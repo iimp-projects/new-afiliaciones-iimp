@@ -1,0 +1,831 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Permission {
+  id          Int      @id @default(autoincrement())
+  action      String // Ej: "create", "read", "update", "delete"
+  subject     String // Ej: "User", "Application", "Role"
+  description String?  @db.Text
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  rolePermissions RolePermission[]
+
+  @@unique([action, subject])
+  @@map("permissions")
+}
+
+model Role {
+  id          Int       @id @default(autoincrement())
+  name        String // Ej: "Validador Senior"
+  slug        String    @unique // Ej: "VALIDATOR"
+  description String?   @db.Text
+  isActive    Boolean   @default(true) @map("is_active")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  rolePermissions RolePermission[]
+  users           User[]
+
+  @@map("roles")
+}
+
+model RolePermission {
+  roleId       Int @map("role_id")
+  permissionId Int @map("permission_id")
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+// NUEVA TABLA: Información física y demográfica
+model Person {
+  id Int @id @default(autoincrement())
+
+  // Identificación
+  documentType   String @map("document_type") // DNI, CE, PASSPORT
+  documentNumber String @unique @map("document_number")
+
+  // Nombres completos
+  firstName        String  @map("first_name")
+  paternalLastName String  @map("paternal_last_name")
+  maternalLastName String? @map("maternal_last_name") // Opcional
+
+  // Demografía
+  birthDate  DateTime? @map("birth_date") @db.Date
+  birthPlace String?   @map("birth_place")
+  gender     String?
+
+  // Ubicación Geográfica
+  country    String? @default("Peru")
+  department String?
+  province   String?
+  district   String?
+  address    String?
+
+  // Contacto
+  phone          String?
+  secondaryEmail String? @map("secondary_email")
+
+  // Auditoría
+  isActive  Boolean   @default(true) @map("is_active")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  // Relación inversa (1 a 1)
+  user User?
+
+  @@map("persons")
+}
+
+// TABLA DE ACCESO: Exclusivamente para credenciales y roles
+model User {
+  id       Int    @id @default(autoincrement())
+  email    String @unique
+  password String
+
+  // Llaves Foráneas
+  roleId   Int? @map("role_id")
+  personId Int? @unique @map("person_id") // Relación 1 a 1 estricta
+
+  // Auditoría
+  isActive  Boolean   @default(true) @map("is_active")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  // Relaciones
+  role   Role?   @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  person Person? @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@map("users")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model app_departamento {
+  idpais  Int?
+  dptocod Int?
+  dpto    String? @db.VarChar(200)
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model app_distrito {
+  idpais  Int?
+  dptocod Int?
+  prvcod  Int?
+  discod  Int?
+  dis     String? @db.VarChar(200)
+
+  @@ignore
+}
+
+model app_ficha {
+  fichnro            Int       @id @default(autoincrement())
+  nroficha           String?   @db.VarChar(20)
+  modalidad          String?   @db.VarChar(20)
+  tipodoc            String?   @db.VarChar(20)
+  nrodoc             String?   @db.VarChar(12)
+  nombre             String?   @db.VarChar(100)
+  apellido           String?   @db.VarChar(100)
+  lugarnac           String?   @db.VarChar(50)
+  fechanac           DateTime? @db.Date
+  genero             String?   @db.VarChar(20)
+  pais               String?   @db.VarChar(20)
+  depa               String?   @db.VarChar(20)
+  prov               String?   @db.VarChar(20)
+  dist               String?   @db.VarChar(20)
+  direccion          String?   @db.VarChar(200)
+  telefono           String?   @db.VarChar(20)
+  celular            String?   @db.VarChar(20)
+  correo             String?   @db.VarChar(100)
+  univ               String?   @db.VarChar(20)
+  titulo             String?   @db.VarChar(100)
+  colegio            String?   @db.VarChar(100)
+  anioe              String?   @db.VarChar(20)
+  espe               String?   @db.VarChar(200)
+  tiempo             String?   @db.VarChar(200)
+  univ2              String?   @db.VarChar(20)
+  anioi              String?   @db.VarChar(20)
+  ciclo              String?   @db.VarChar(30)
+  espe2              String?   @db.VarChar(200)
+  empresa            String?   @db.VarChar(100)
+  area               String?   @db.VarChar(100)
+  cargo              String?   @db.VarChar(100)
+  direcemp           String?   @db.VarChar(100)
+  rucemp             String?   @db.VarChar(20)
+  tlfemp             String?   @db.VarChar(20)
+  anexoemp           String?   @db.VarChar(20)
+  correoemp          String?   @db.VarChar(100)
+  corres             String?   @db.VarChar(100)
+  dniaval1           String?   @db.VarChar(12)
+  codaval1           String?   @db.VarChar(20)
+  nombreaval1        String?   @db.VarChar(100)
+  correoaval1        String?   @db.VarChar(100)
+  dniaval2           String?   @db.VarChar(12)
+  codaval2           String?   @db.VarChar(20)
+  nombreaval2        String?   @db.VarChar(100)
+  correoaval2        String?   @db.VarChar(100)
+  montot             Decimal?  @db.Decimal(14, 3)
+  moneda             String?   @db.VarChar(20)
+  comprobante        String?   @db.VarChar(50)
+  compruc            String?   @db.VarChar(20)
+  comprazon          String?   @db.VarChar(150)
+  compdirec          String?   @db.VarChar(200)
+  comppais           String?   @db.VarChar(50)
+  compcorreo         String?   @db.VarChar(100)
+  tipopago           String?   @db.VarChar(20)
+  carta              String?   @db.VarChar(400)
+  voucher            String?   @db.VarChar(400)
+  estado             String?   @default("P") @db.VarChar(1)
+  fechaparob         DateTime? @db.Timestamp(6)
+  usraprob           Int?
+  intestaval1        Int?      @default(0)
+  intestaval2        Int?      @default(0)
+  fectraaval1        DateTime? @db.Timestamp(6)
+  fectraaval2        DateTime? @db.Timestamp(6)
+  pagows             String?
+  intews             String?
+  fechaasig          DateTime? @db.Timestamp(6)
+  estadopago         String?   @db.VarChar(100)
+  fechapago          DateTime? @db.Timestamp(6)
+  nomuni             String?   @db.VarChar(200)
+  fotoper            String?   @db.VarChar(200)
+  fechareg           DateTime? @default(now()) @db.Timestamp(6)
+  monto1             Decimal?  @db.Decimal(14, 0)
+  monto2             Decimal?  @db.Decimal(14, 0)
+  apellidom          String?   @db.VarChar(100)
+  nrocolegio         String?   @db.VarChar(50)
+  correo2            String?   @db.VarChar(100)
+  observacion        String?
+  documentoadj       String?   @db.VarChar(500)
+  declaracion_jurada String?   @db.VarChar(500)
+  cv_documentado     String?   @db.VarChar(500)
+  cv_resumen         String?
+  val_asociados      Int?      @default(0) @db.SmallInt
+  val_logistica      Int?      @default(0) @db.SmallInt
+  obs_asociados      Json?     @default("[]")
+  obs_logistica      Json?     @default("[]")
+}
+
+model app_logs {
+  idlog     Int       @id @default(autoincrement())
+  origen    String?   @db.VarChar(100)
+  para      String?   @db.VarChar(120)
+  asunto    String?   @db.VarChar(1000)
+  contenido String?
+  fechareg  DateTime? @db.Timestamp(6)
+  usrsend   String?   @db.VarChar(100)
+  nroficha  Int?
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model app_pais {
+  idpais Int?
+  pais   String? @db.VarChar(200)
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model app_provincia {
+  idpais  Int?
+  dptocod Int?
+  prvcod  Int?
+  prv     String? @db.VarChar(200)
+
+  @@ignore
+}
+
+model avst_actor {
+  iact_id           Int                @id @default(autoincrement())
+  iesp_id           Int?
+  itac_id           Int?
+  vact_name         String             @db.VarChar
+  iact_estado       Int?
+  vact_bd           String?            @db.VarChar(100)
+  vact_usu_cre      String?            @db.VarChar
+  dact_fec_cre      DateTime?          @db.Timestamp(6)
+  vact_ip_cre       String?            @db.VarChar
+  vact_usu_mod      String?            @db.VarChar
+  dact_fec_mod      DateTime?          @db.Timestamp(6)
+  vact_ip_mod       String?            @db.VarChar
+  avst_especialidad avst_especialidad? @relation(fields: [iesp_id], references: [iesp_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_avst_actor_1")
+  avst_tipo_actor   avst_tipo_actor?   @relation(fields: [itac_id], references: [itac_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_avst_actor_2")
+}
+
+model avst_additional_resource {
+  iadi_id                           Int                                 @id @default(autoincrement())
+  vadi_name                         String                              @db.VarChar
+  gvadi_tipo                        String?                             @db.VarChar(10)
+  iadi_obli                         Int?
+  vadi_vali                         String?                             @db.VarChar(20)
+  vadi_vcom                         String?                             @db.VarChar(400)
+  vadi_ccom                         String?                             @db.VarChar(400)
+  iadi_maxlen                       Int?
+  iadi_orden                        Int?
+  iadi_estado                       Int?
+  vadi_usu_cre                      String?                             @db.VarChar(80)
+  dadi_fec_cre                      DateTime?                           @db.Timestamp(6)
+  vadi_ip_cre                       String?                             @db.VarChar(20)
+  vadi_usu_mod                      String?                             @db.VarChar(80)
+  dadi_fec_mod                      DateTime?                           @db.Timestamp(6)
+  vadi_ip_mod                       String?                             @db.VarChar(20)
+  iadi_tipo                         Int?                                @default(1) @db.SmallInt
+  iadi_unico                        Int?
+  intelimina                        Int?                                @default(0)
+  avst_business_additional_resource avst_business_additional_resource[]
+}
+
+model avst_agent {
+  iage_id        Int            @id(map: "avst_agent_iage_id") @default(autoincrement())
+  vage_nombre    String?        @db.VarChar(300)
+  vage_cla       String?        @db.VarChar(150)
+  vage_name      String         @db.VarChar(100)
+  vage_usu_cre   String?        @db.VarChar
+  dage_fec_cre   DateTime?      @db.Timestamp(6)
+  vage_ip_cre    String?        @db.VarChar
+  vage_usu_mod   String?        @db.VarChar
+  dage_fec_mod   DateTime?      @db.Timestamp(6)
+  vage_ip_mod    String?        @db.VarChar
+  cage_est       Int?           @default(1) @db.SmallInt
+  vage_tipodoc   String?        @db.Char(3)
+  vage_nrodoc    String?        @db.VarChar(12)
+  vage_apellidop String?        @db.VarChar(70)
+  vage_apellidom String?        @db.VarChar(70)
+  vage_nrodocval String?        @db.VarChar(2)
+  vage_cor       String?        @db.VarChar(60)
+  foto           String?
+  fechanac       DateTime?      @db.Date
+  direccion      String?        @db.VarChar(200)
+  origen         String?        @default("SV") @db.Char(2)
+  direccion2     String?        @db.VarChar(250)
+  comentario     String?        @db.VarChar(500)
+  publicar       Int?           @default(1)
+  fechatran      DateTime?      @db.Timestamp(6)
+  fechain        DateTime?      @db.Timestamp(6)
+  fechacs        DateTime?      @db.Timestamp(6)
+  avst_entidad   avst_entidad[]
+}
+
+model avst_business {
+  ibus_id                           Int                                 @id @default(autoincrement())
+  vbus_name                         String                              @db.VarChar
+  ibus_estado                       Int?
+  vbus_bd                           String?                             @db.VarChar(100)
+  irecor                            Int?
+  vbus_logo                         String?                             @db.VarChar(200)
+  vbus_usu_cre                      String?                             @db.VarChar(80)
+  vbus_fec_cre                      DateTime?                           @db.Timestamp(6)
+  vbus_ip_cre                       String?                             @db.VarChar(20)
+  vbus_usu_mod                      String?                             @db.VarChar(80)
+  vbus_fec_mod                      DateTime?                           @db.Timestamp(6)
+  vbus_ip_mod                       String?                             @db.VarChar(20)
+  avst_business_additional_resource avst_business_additional_resource[]
+  avst_business_systems             avst_business_systems[]
+  avst_entidad_bussines             avst_entidad_bussines[]
+}
+
+model avst_business_additional_resource {
+  ibus_id                  Int
+  iadi_id                  Int
+  badr_estado              Int?
+  badr_usu_cre             String?                  @db.VarChar(80)
+  badr_fec_cre             DateTime?                @db.Timestamp(6)
+  badr_ip_cre              String?                  @db.VarChar(20)
+  badr_usu_mod             String?                  @db.VarChar(80)
+  badr_fec_mod             DateTime?                @db.Timestamp(6)
+  badr_ip_mod              String?                  @db.VarChar(20)
+  badr_orden               Int?
+  avst_business            avst_business            @relation(fields: [ibus_id], references: [ibus_id], onDelete: NoAction, onUpdate: NoAction, map: "avst_business_additional_resource_fk_01")
+  avst_additional_resource avst_additional_resource @relation(fields: [iadi_id], references: [iadi_id], onDelete: NoAction, onUpdate: NoAction, map: "avst_business_additional_resource_fk_02")
+
+  @@id([ibus_id, iadi_id], map: "avst_business_additional_resource_pk")
+}
+
+model avst_business_systems {
+  ibsys_id      Int            @id @default(autoincrement())
+  ibus_id       Int?
+  isys_id       Int?
+  vbsys_name    String?        @db.VarChar(40)
+  vbsys_usu_cre String?        @db.VarChar(80)
+  vbsys_fec_cre DateTime?      @db.Timestamp(6)
+  vbsys_ip_cre  String?        @db.VarChar(20)
+  vbsys_usu_mod String?        @db.VarChar(80)
+  vbsys_fec_mod DateTime?      @db.Timestamp(6)
+  vbsys_ip_mod  String?        @db.VarChar(20)
+  ibsys_est     Int?           @default(1) @db.SmallInt
+  vbus_image    String?        @db.VarChar(100)
+  vbus_desc     String?        @db.VarChar(400)
+  vbus_nomb     String?        @db.VarChar(100)
+  vbsys_domain  String?        @db.VarChar(500)
+  vbsys_host    String?        @db.VarChar(100)
+  vbsys_user    String?        @db.VarChar(100)
+  vbsys_pwd     String?        @db.VarChar(100)
+  avst_business avst_business? @relation(fields: [ibus_id], references: [ibus_id], onDelete: NoAction, onUpdate: NoAction)
+  avst_systems  avst_systems?  @relation(fields: [isys_id], references: [isys_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model avst_entbus_transferidos {
+  iebt_id             Int                 @id(map: "pk_ebt") @default(autoincrement())
+  ient_id             Int
+  ibus_id             Int
+  iebt_est            Int?                @db.SmallInt
+  itran_id            Int
+  avst_transferencias avst_transferencias @relation(fields: [itran_id], references: [itran_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_ebt_tran")
+}
+
+model avst_entidad {
+  ient_id               Int                     @id(map: "avst_entidad_ient_id") @default(autoincrement())
+  iage_id               Int?
+  iusu_id               Int?
+  vent_nombre           String?                 @db.VarChar(300)
+  vent_name             String?                 @db.VarChar(100)
+  vent_usu_cre          String?                 @db.VarChar
+  dent_fec_cre          DateTime?               @db.Timestamp(6)
+  vent_ip_cre           String?                 @db.VarChar
+  vent_usu_mod          String?                 @db.VarChar
+  dent_fec_mod          DateTime?               @db.Timestamp(6)
+  vent_ip_mod           String?                 @db.VarChar
+  vent_est              Int?                    @default(1) @db.SmallInt
+  avst_agent            avst_agent?             @relation(fields: [iage_id], references: [iage_id], onDelete: NoAction, onUpdate: NoAction, map: "fk__avst_agent")
+  avst_user             avst_user?              @relation(fields: [iusu_id], references: [iusu_id], onDelete: NoAction, onUpdate: NoAction, map: "fk__avst_user")
+  avst_entidad_bussines avst_entidad_bussines[]
+}
+
+model avst_entidad_bussines {
+  ient_id                  Int
+  ibus_id                  Int
+  iebu_est                 Int?                       @default(1) @db.SmallInt
+  vebu_usu_cre             String?                    @db.VarChar(80)
+  debu_fec_cre             DateTime?                  @db.Timestamp(6)
+  vebu_ip_cre              String?                    @db.VarChar(20)
+  vebu_usu_mod             String?                    @db.VarChar(80)
+  debu_fec_mod             DateTime?                  @db.Timestamp(6)
+  vebu_ip_mod              String?                    @db.VarChar(20)
+  avst_business            avst_business              @relation(fields: [ibus_id], references: [ibus_id], onDelete: NoAction, onUpdate: NoAction)
+  avst_entidad             avst_entidad               @relation(fields: [ient_id], references: [ient_id], onDelete: NoAction, onUpdate: NoAction)
+  avst_entidad_rol_systems avst_entidad_rol_systems[]
+
+  @@id([ient_id, ibus_id], map: "avst_ent_bussines_id")
+}
+
+model avst_entidad_rol_systems {
+  iers_id               Int                    @id(map: "avst_entidad_rol_systems_001") @default(autoincrement())
+  irol_id               Int
+  isys_id               Int
+  ient_id               Int?
+  ibus_id               Int?
+  iers_est              Int                    @default(1) @db.SmallInt
+  vers_usu_cre          String?                @db.VarChar(80)
+  ders_fec_cre          DateTime?              @db.Timestamp(6)
+  vers_ip_cre           String?                @db.VarChar(20)
+  vers_usu_mod          String?                @db.VarChar(80)
+  ders_fec_mod          DateTime?              @db.Timestamp(6)
+  vers_ip_mod           String?                @db.VarChar(20)
+  iers_estglobal        Int?                   @db.SmallInt
+  avst_entidad_bussines avst_entidad_bussines? @relation(fields: [ient_id, ibus_id], references: [ient_id, ibus_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_avst_rol_systems_acceso_002")
+}
+
+model avst_entrolsys_transferidos {
+  ierst_id            Int                 @id(map: "pk_erst_transferidos") @default(autoincrement())
+  irol_id             Int
+  isys_id             Int
+  ient_id             Int?
+  ibus_id             Int?
+  ierst_est           Int?                @db.SmallInt
+  ierst_estglobal     Int?                @db.SmallInt
+  itran_id            Int
+  avst_transferencias avst_transferencias @relation(fields: [itran_id], references: [itran_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_erst_tran")
+}
+
+model avst_especialidad {
+  iesp_id      Int          @id @default(autoincrement())
+  vesp_cod     String       @db.VarChar
+  vesp_name    String       @db.VarChar
+  vesp_desc    String       @db.VarChar
+  iesp_estado  Int?
+  vesp_usu_cre String?      @db.VarChar
+  desp_fec_cre DateTime?    @db.Timestamp(6)
+  vesp_ip_cre  String?      @db.VarChar
+  vesp_usu_mod String?      @db.VarChar
+  desp_fec_mod DateTime?    @db.Timestamp(6)
+  vesp_ip_mod  String?      @db.VarChar
+  avst_actor   avst_actor[]
+}
+
+model avst_log_agent {
+  iagel_id       Int       @id(map: "pk_age") @default(autoincrement())
+  iage_id        Int?
+  vage_nombre    String?   @db.VarChar(300)
+  vage_cla       String?   @db.VarChar(150)
+  vage_name      String    @db.VarChar(100)
+  vage_usu_cre   String?   @db.VarChar
+  dage_fec_cre   DateTime? @db.Timestamp(6)
+  vage_ip_cre    String?   @db.VarChar
+  vage_usu_mod   String?   @db.VarChar
+  dage_fec_mod   DateTime? @db.Timestamp(6)
+  vage_ip_mod    String?   @db.VarChar
+  cage_est       Int?      @default(1) @db.SmallInt
+  vage_tipodoc   String?   @db.Char(3)
+  vage_nrodoc    String?   @db.VarChar(12)
+  vage_apellidop String?   @db.VarChar(70)
+  vage_apellidom String?   @db.VarChar(70)
+  vage_nrodocval String?   @db.VarChar(2)
+  vage_cor       String?   @db.VarChar(60)
+  vagel_usu_eli  String?   @db.VarChar
+  dagel_fec_eli  DateTime? @db.Timestamp(6)
+  vagel_ip_eli   String?   @db.VarChar
+  vagel_mot      Int?
+  vagel_obs      String?   @db.VarChar(200)
+  iagel_estado   Int?
+}
+
+model avst_log_user {
+  iusul_id       Int       @id(map: "pk_user_lo") @default(autoincrement())
+  iusu_id        Int?
+  vusu_nombre    String?   @db.VarChar(300)
+  vusu_cla       String?   @db.VarChar(150)
+  vusu_name      String    @db.VarChar(100)
+  vusu_cor       String?   @db.VarChar(60)
+  vusu_usu_cre   String?   @db.VarChar
+  dusu_fec_cre   DateTime? @db.Timestamp(6)
+  vusu_ip_cre    String?   @db.VarChar
+  vusu_usu_mod   String?   @db.VarChar
+  dcla_fec_mod   DateTime? @db.Timestamp(6)
+  vusu_ip_mod    String?   @db.VarChar
+  cusu_est       Int?      @default(1) @db.SmallInt
+  vusu_tipodoc   String?   @db.Char(3)
+  vusu_nrodoc    String?   @db.VarChar(12)
+  vusu_apellidop String?   @db.VarChar(70)
+  vusu_apellidom String?   @db.VarChar(70)
+  vusu_nrodocval String?   @db.VarChar(2)
+  vusul_usu_eli  String?   @db.VarChar
+  dclal_fec_eli  DateTime? @db.Timestamp(6)
+  vusul_ip_eli   String?   @db.VarChar
+  vusul_mot      Int?
+  vusul_obs      String?   @db.VarChar(200)
+  iusul_estado   Int?
+}
+
+model avst_manual {
+  iman_id              Int                  @id @default(autoincrement())
+  imod_id              Int
+  vman_content         String
+  iman_est             Int                  @db.SmallInt
+  vman_usu_cre         String?              @db.VarChar
+  dman_fec_cre         DateTime?            @db.Timestamp(6)
+  vman_ip_cre          String?              @db.VarChar
+  vman_usu_mod         String?              @db.VarChar
+  dman_fec_mod         DateTime?            @db.Timestamp(6)
+  vman_ip_mod          String?              @db.VarChar
+  avst_modules_systems avst_modules_systems @relation(fields: [imod_id], references: [imod_id], onDelete: Cascade, map: "fk_manual_module")
+}
+
+model avst_menu_systems {
+  imenu_id       Int           @id(map: "avst_menu_systems_imod_id") @default(autoincrement())
+  isys_id        Int?
+  vmod_name      String        @db.VarChar(64)
+  imod_nivel     Int?
+  imod_padre     Int?
+  imod_orden     Int?
+  vmod_carpeta   String        @db.VarChar(50)
+  imod_sequence  Int?
+  id             Int?
+  imod_est       Int?
+  vmod_usu_cre   String?       @db.VarChar(80)
+  dmod_fec_cre   DateTime?     @db.Timestamp(6)
+  vmod_ip_cre    String?       @db.VarChar(20)
+  vmod_usu_mod   String?       @db.VarChar(80)
+  dmod_fec_mod   DateTime?     @db.Timestamp(6)
+  vmod_ip_mod    String?       @db.VarChar(20)
+  vmod_icono     String?       @db.VarChar(200)
+  vmod_title     String?       @db.VarChar(120)
+  vmod_carpetaen String?       @db.VarChar(100)
+  vmodtipo       String?       @db.VarChar(10)
+  avst_systems   avst_systems? @relation(fields: [isys_id], references: [isys_id], onDelete: NoAction, onUpdate: NoAction, map: "fk__modules_systems")
+}
+
+model avst_modules_systems {
+  imod_id              Int                    @id(map: "avst_modules_systems_imod_id") @default(autoincrement())
+  isys_id              Int?
+  vmod_name            String                 @db.VarChar(64)
+  imod_nivel           Int?
+  imod_padre           Int?
+  imod_orden           Int?
+  vmod_carpeta         String                 @db.VarChar(50)
+  imod_sequence        Int?
+  id                   Int?
+  imod_est             Int?
+  vmod_usu_cre         String?                @db.VarChar(80)
+  dmod_fec_cre         DateTime?              @db.Timestamp(6)
+  vmod_ip_cre          String?                @db.VarChar(20)
+  vmod_usu_mod         String?                @db.VarChar(80)
+  dmod_fec_mod         DateTime?              @db.Timestamp(6)
+  vmod_ip_mod          String?                @db.VarChar(20)
+  vmod_icono           String?                @db.VarChar(200)
+  vmod_title           String?                @db.VarChar(120)
+  avst_manual          avst_manual[]
+  avst_systems         avst_systems?          @relation(fields: [isys_id], references: [isys_id], onDelete: NoAction, onUpdate: NoAction, map: "fk__modules_systems")
+  avst_options_modules avst_options_modules[]
+  avst_reports_modules avst_reports_modules[]
+}
+
+model avst_options_modules {
+  iopt_id              Int                  @id(map: "avst_options_modules_id") @default(autoincrement())
+  imod_id              Int
+  iopt_est             Int?
+  vopt_name            String               @db.VarChar(100)
+  vopt_usu_cre         String?              @db.VarChar(80)
+  dopt_fec_cre         DateTime?            @db.Timestamp(6)
+  vopt_ip_cre          String?              @db.VarChar(20)
+  vopt_usu_mod         String?              @db.VarChar(80)
+  dopt_fec_mod         DateTime?            @db.Timestamp(6)
+  vopt_ip_mod          String?              @db.VarChar(20)
+  vopt_icono           String?              @db.VarChar(60)
+  vopt_etiqueta        String?              @db.VarChar(180)
+  avst_modules_systems avst_modules_systems @relation(fields: [imod_id], references: [imod_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model avst_parametro {
+  ipar_id  Int     @id @default(autoincrement())
+  boton    String? @db.VarChar(20)
+  etiqueta String? @db.VarChar(40)
+  icono    String? @db.VarChar(20)
+}
+
+model avst_perfil {
+  iper_id   Int     @id(map: "avst_per_iper_id") @default(autoincrement())
+  vper_name String? @db.VarChar(30)
+  vper_nom  String? @db.VarChar(100)
+  vper_est  Int?    @default(1) @db.SmallInt
+}
+
+model avst_reports_modules {
+  irep_id              Int                  @id(map: "avst_reports_modules_id") @default(autoincrement())
+  imod_id              Int
+  irep_est             Int?
+  vrep_name            String               @db.VarChar(100)
+  vrep_usu_cre         String?              @db.VarChar(80)
+  drep_fec_cre         DateTime?            @db.Timestamp(6)
+  vrep_ip_cre          String?              @db.VarChar(20)
+  vrep_usu_mod         String?              @db.VarChar(80)
+  drep_fec_mod         DateTime?            @db.Timestamp(6)
+  vrep_ip_mod          String?              @db.VarChar(20)
+  avst_modules_systems avst_modules_systems @relation(fields: [imod_id], references: [imod_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model avst_restriction {
+  irest_id                Int                      @id(map: "avst_restriction_001") @default(autoincrement())
+  vrest_nom               String?                  @db.VarChar(100)
+  vrest_motivo            String?                  @db.VarChar(300)
+  irest_tipo              Int?
+  irest_est               Int?                     @db.SmallInt
+  ibus_id                 Int?
+  ient_id                 Int?
+  isys_id                 Int?
+  irol_id                 Int?
+  vrest_usu_cre           Int?
+  drest_fec_cre           DateTime?                @db.Timestamp(6)
+  vrest_ip_cre            String?                  @db.VarChar(20)
+  vrest_usu_mod           Int?
+  drest_fec_mod           DateTime?                @db.Timestamp(6)
+  vrest_ip_mod            String?                  @db.VarChar(20)
+  vrsy_data               String?
+  avst_restriction_date   avst_restriction_date[]
+  avst_restriction_detail avst_restriction_detail?
+  avst_restriction_ip     avst_restriction_ip[]
+}
+
+model avst_restriction_date {
+  irestf_id        Int               @id(map: "avst_restriction_date_001") @default(autoincrement())
+  irest_id         Int?
+  drestf_fec_ini   DateTime?         @db.Date
+  drestf_fec_fin   DateTime?         @db.Date
+  drestf_hor_ini   DateTime?         @db.Time(6)
+  drestf_hor_fin   DateTime?         @db.Time(6)
+  irestf_est       Int               @default(1) @db.SmallInt
+  vrestf_usu_cre   String?           @db.VarChar(80)
+  drestf_fec_cre   DateTime?         @db.Timestamp(6)
+  vrestf_ip_cre    String?           @db.VarChar(20)
+  vrestf_usu_mod   String?           @db.VarChar(80)
+  drestf_fec_mod   DateTime?         @db.Timestamp(6)
+  vrestf_ip_mod    String?           @db.VarChar(20)
+  avst_restriction avst_restriction? @relation(fields: [irest_id], references: [irest_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model avst_restriction_detail {
+  irestd_id        Int              @default(autoincrement())
+  irest_id         Int              @id(map: "avst_restriction_detail_001")
+  irestd_tipo      Int?
+  imod_id          Int?
+  iopt_id          Int?
+  irep_id          Int?
+  irestd_est       Int              @default(1) @db.SmallInt
+  vrestd_usu_cre   String?          @db.VarChar(80)
+  drestd_fec_cre   DateTime?        @db.Timestamp(6)
+  vrestd_ip_cre    String?          @db.VarChar(20)
+  vrestd_usu_mod   String?          @db.VarChar(80)
+  drestd_fec_mod   DateTime?        @db.Timestamp(6)
+  vrestd_ip_mod    String?          @db.VarChar(20)
+  avst_restriction avst_restriction @relation(fields: [irest_id], references: [irest_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model avst_restriction_ip {
+  irestip_id       Int               @id(map: "avst_restriction_ip_001") @default(autoincrement())
+  irest_id         Int?
+  vrestip_ip_ini   String?           @db.VarChar(20)
+  vrestip_ip_fin   String?           @db.VarChar(20)
+  irestip_tipo     Int?
+  irestip_est      Int               @default(1) @db.SmallInt
+  vrestip_usu_cre  String?           @db.VarChar(80)
+  drestip_fec_cre  DateTime?         @db.Timestamp(6)
+  vrestip_ip_cre   String?           @db.VarChar(20)
+  vrestip_usu_mod  String?           @db.VarChar(80)
+  drestip_fec_mod  DateTime?         @db.Timestamp(6)
+  vrestip_ip_mod   String?           @db.VarChar(20)
+  avst_restriction avst_restriction? @relation(fields: [irest_id], references: [irest_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model avst_rol {
+  irol_id          Int                @id(map: "avst_rol_irol_id") @default(autoincrement())
+  vrol_name        String?            @db.VarChar(100)
+  vrol_nom         String?            @db.VarChar(500)
+  vrol_est         Int?               @default(1) @db.SmallInt
+  avst_rol_systems avst_rol_systems[]
+}
+
+model avst_rol_systems {
+  irol_id                 Int
+  isys_id                 Int
+  irsy_est                Int                       @default(1) @db.SmallInt
+  vrsy_usu_cre            String?                   @db.VarChar
+  drsy_fec_cre            DateTime?                 @db.Timestamp(6)
+  vrsy_ip_cre             String?                   @db.VarChar
+  vrsy_usu_mod            String?                   @db.VarChar
+  drsy_fec_mod            DateTime?                 @db.Timestamp(6)
+  vrsy_ip_mod             String?                   @db.VarChar
+  vrsy_data               String?
+  avst_rol                avst_rol                  @relation(fields: [irol_id], references: [irol_id], onDelete: NoAction, onUpdate: NoAction)
+  avst_systems            avst_systems              @relation(fields: [isys_id], references: [isys_id], onDelete: NoAction, onUpdate: NoAction)
+  avst_rol_systems_acceso avst_rol_systems_acceso[]
+
+  @@id([irol_id, isys_id], map: "avst_rol_systems_001")
+}
+
+model avst_rol_systems_acceso {
+  irsa_id          Int              @id(map: "avst_rol_systems_acceso_001") @default(autoincrement())
+  irol_id          Int
+  isys_id          Int
+  imod_id          Int?
+  iopt_id          Int?
+  irep_id          Int?
+  irsa_est         Int              @default(1) @db.SmallInt
+  vrsa_usu_cre     String?          @db.VarChar(80)
+  drsa_fec_cre     DateTime?        @db.Timestamp(6)
+  vrsa_ip_cre      String?          @db.VarChar(20)
+  vrsa_usu_mod     String?          @db.VarChar(80)
+  drsa_fec_mod     DateTime?        @db.Timestamp(6)
+  vrsa_ip_mod      String?          @db.VarChar(20)
+  avst_rol_systems avst_rol_systems @relation(fields: [irol_id, isys_id], references: [irol_id, isys_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_avst_rol_systems_acceso_001")
+}
+
+model avst_systems {
+  isys_id               Int                     @id(map: "avst_systems_isys_id") @default(autoincrement())
+  vsys_namme            String                  @db.VarChar(32)
+  vsys_description      String?                 @db.VarChar(64)
+  vsys_logo             String?                 @db.VarChar(50)
+  vsys_estado           Int?                    @db.SmallInt
+  vsys_usu_cre          String?                 @db.VarChar(80)
+  dsys_fec_cre          DateTime?               @db.Timestamp(6)
+  vsys_ip_cre           String?                 @db.VarChar(20)
+  vsys_usu_mod          String?                 @db.VarChar(80)
+  dsys_fec_mod          DateTime?               @db.Timestamp(6)
+  vsys_ip_mod           String?                 @db.VarChar(20)
+  avst_business_systems avst_business_systems[]
+  avst_menu_systems     avst_menu_systems[]
+  avst_modules_systems  avst_modules_systems[]
+  avst_rol_systems      avst_rol_systems[]
+}
+
+model avst_tipo_actor {
+  itac_id      Int          @id @default(autoincrement())
+  vtac_name    String       @db.VarChar
+  itac_estado  Int?
+  vtac_usu_cre String?      @db.VarChar
+  dtac_fec_cre DateTime?    @db.Timestamp(6)
+  vtac_ip_cre  String?      @db.VarChar
+  vtac_usu_mod String?      @db.VarChar
+  dtac_fec_mod DateTime?    @db.Timestamp(6)
+  vtac_ip_mod  String?      @db.VarChar
+  avst_actor   avst_actor[]
+}
+
+model avst_transferencias {
+  itran_id                    Int                           @id(map: "pk_transferidos") @default(autoincrement())
+  ient_id_o                   Int
+  ient_id_d                   Int
+  vtran_duracion              String?                       @db.VarChar(5)
+  vtran_impacto               String?                       @db.VarChar(5)
+  dtram_feci                  DateTime?                     @db.Timestamp(6)
+  dtram_fecf                  DateTime?                     @db.Timestamp(6)
+  itran_est                   Int                           @default(1) @db.SmallInt
+  vtran_usu_cre               String?                       @db.VarChar(80)
+  dtran_fec_cre               DateTime?                     @db.Timestamp(6)
+  vtran_ip_cre                String?                       @db.VarChar(20)
+  vtran_usu_mod               String?                       @db.VarChar(80)
+  dtran_fec_mod               DateTime?                     @db.Timestamp(6)
+  vtran_ip_mod                String?                       @db.VarChar(20)
+  avst_entbus_transferidos    avst_entbus_transferidos[]
+  avst_entrolsys_transferidos avst_entrolsys_transferidos[]
+}
+
+model avst_user {
+  iusu_id        Int            @id(map: "avst_usuario_iusu_id") @default(autoincrement())
+  vusu_nombre    String?        @db.VarChar(300)
+  vusu_cla       String?        @db.VarChar(150)
+  vusu_name      String         @db.VarChar(100)
+  vusu_cor       String?        @db.VarChar(60)
+  vusu_usu_cre   String?        @db.VarChar
+  dusu_fec_cre   DateTime?      @db.Timestamp(6)
+  vusu_ip_cre    String?        @db.VarChar
+  vusu_usu_mod   String?        @db.VarChar
+  dcla_fec_mod   DateTime?      @db.Timestamp(6)
+  vusu_ip_mod    String?        @db.VarChar
+  cusu_est       Int?           @default(1) @db.SmallInt
+  vusu_tipodoc   String?        @db.Char(3)
+  vusu_nrodoc    String?        @db.VarChar(12)
+  vusu_apellidop String?        @db.VarChar(70)
+  vusu_apellidom String?        @db.VarChar(70)
+  vusu_nrodocval String?        @db.VarChar(2)
+  intelimina     Int?           @default(0)
+  perfil         Int?
+  avst_entidad   avst_entidad[]
+}
+
+model avst_user_additional_resource {
+  ient_id      Int
+  ibus_id      Int
+  iadi_id      Int
+  vuad_valor   String?   @db.VarChar(400)
+  vuad_usu_mod Int?
+  duad_fec_mod DateTime? @db.Timestamp(6)
+  vuad_ip_mod  String?   @db.VarChar
+  iage_id      Int?
+  iusu_id      Int?
+
+  @@id([ient_id, ibus_id, iadi_id], map: "avst_user_additional_resource_id")
+}
