@@ -1,4 +1,3 @@
-// auth.ts (en la raíz)
 import NextAuth from "next-auth";
 import { authConfig } from "@/modules/auth/config/auth.config";
 import CredentialsProvider from "next-auth/providers/credentials";
@@ -11,10 +10,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        // IMPORTACIÓN DINÁMICA: Esto carga el servicio SOLO cuando el usuario intenta loguearse
-        const { AuthService } = await import("@/modules/auth/services/auth.service");
+        // IMPORTACIÓN DINÁMICA: Importamos limpiamente a través del patrón Barrel (index.ts)
+        const { LoginService } = await import("@/modules/auth/login");
         
-        return await AuthService.validateUserCredentials(
+        return await LoginService.validateCredentials(
           credentials.email as string,
           credentials.password as string
         );

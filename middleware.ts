@@ -1,43 +1,38 @@
 // middleware.ts (en la raíz)
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
+import { BackofficePolicy } from "@/modules/authorization/policies";
 
 export default auth((req) => {
   const isLoggedIn = !!req.auth;
+  const user = req.auth?.user;
   const { nextUrl } = req;
   const path = nextUrl.pathname;
 
-  // 1. Logs de depuración (MIRA TU TERMINAL AL RECARGAR)
-  console.log("🔍 Middleware Debug:", { path, isLoggedIn });
-
-  // 2. Definimos las rutas públicas
+  // 1. Zonas de la aplicación
   const isAuthRoute = path === "/login" || path === "/recuperar-password";
   const isBackofficeRoute = path.startsWith("/backoffice");
   const isIntranetRoute = path.startsWith("/intranet");
 
-  // 3. SI EL USUARIO ESTÁ EN LOGIN
+  // 2. Manejo de Rutas de Autenticación (Login)
   if (isAuthRoute) {
     if (isLoggedIn) {
-      // Si ya está logueado, no lo dejes en login, mándalo a su panel
-      const userRole = (req.auth?.user as any)?.role;
-      const isAdmin = ["SUPER_ADMIN", "LOGISTICA", "LEGAL", "COMUNICACIONES"].includes(userRole);
-      return NextResponse.redirect(new URL(isAdmin ? "/backoffice" : "/intranet", nextUrl));
+      // Delegamos a la Policy para saber a dónde redirigirlo
+      const redirectPath = BackofficePolicy.canAccess(user) ? "/backoffice" : "/intranet";
+      return NextResponse.redirect(new URL(redirectPath, nextUrl));
     }
-    // Si NO está logueado, déjalo cargar el login
     return NextResponse.next();
   }
 
-  // 4. SI EL USUARIO NO ESTÁ LOGUEADO Y QUIERE ENTRAR A ZONAS PRIVADAS
+  // 3. Protección Global para zonas privadas
   if (!isLoggedIn && (isBackofficeRoute || isIntranetRoute)) {
     return NextResponse.redirect(new URL("/login", nextUrl));
   }
 
-  // 5. PROTECCIÓN DE ROL (Backoffice solo para Staff)
+  // 4. Aplicación de Políticas (Authorization)
   if (isLoggedIn && isBackofficeRoute) {
-    const userRole = (req.auth?.user as any)?.role;
-    const isStaff = ["SUPER_ADMIN", "LOGISTICA", "LEGAL", "COMUNICACIONES"].includes(userRole);
-    
-    if (!isStaff) {
+    // EL MIDDLEWARE SOLO PREGUNTA, NO JUZGA.
+    if (!BackofficePolicy.canAccess(user)) {
       return NextResponse.redirect(new URL("/intranet", nextUrl));
     }
   }
