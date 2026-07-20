@@ -1,6 +1,6 @@
 "use server";
 
-import { signIn } from "@/auth";
+import { signIn } from "@/lib/auth";
 import { AuthError } from "next-auth";
 import { loginSchema } from "./schema";
 import type { LoginState } from "./types";

@@ -13,3 +13,12 @@ export interface LoginRequestMeta {
   os?: string | null;
   browser?: string | null;
 }
+
+export interface LoginState {
+  success: boolean;
+  message?: string;
+  errors?: {
+    email?: string[];
+    password?: string[];
+  };
+}
