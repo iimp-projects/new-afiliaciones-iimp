@@ -1,0 +1,895 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  Int                   @id @default(autoincrement())
+  name                String?               @db.VarChar(150)
+  email               String                @unique @db.VarChar(150)
+  emailVerified       DateTime?             @map("email_verified")
+  image               String?               @db.VarChar(500)
+  status              UserStatus            @default(PENDING)
+  type                UserType              @default(APPLICANT)
+  lastLoginAt         DateTime?             @map("last_login_at")
+  failedLoginAttempts Int                   @default(0) @map("failed_login_attempts")
+  lockedUntil         DateTime?             @map("locked_until")
+  roleId              Int?                  @map("role_id")
+  personId            Int?                  @unique @map("person_id")
+  createdAt           DateTime              @default(now()) @map("created_at")
+  updatedAt           DateTime              @updatedAt @map("updated_at")
+  deletedAt           DateTime?             @map("deleted_at")
+  accounts            Account[]
+  credentials         Credential[]
+  securityEvents      SecurityEvent[]
+  sessions            Session[]
+  userSessions        UserSession[]
+  person              Person?               @relation(fields: [personId], references: [id], onDelete: Cascade)
+  role                Role?                 @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  documentApprovals   ApplicationDocument[] @relation("DocumentApprover")
+  auditLogs           AuditLog[]
+  notifications       Notification[]
+
+  @@index([email])
+  @@index([status])
+  @@index([roleId])
+  @@map("auth_users")
+}
+
+model Credential {
+  id        String         @id @default(uuid())
+  userId    Int            @map("user_id")
+  type      CredentialType
+  secret    String
+  isActive  Boolean        @default(true) @map("is_active")
+  expiresAt DateTime?      @map("expires_at")
+  createdAt DateTime       @default(now()) @map("created_at")
+  updatedAt DateTime       @updatedAt @map("updated_at")
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("auth_credentials")
+}
+
+model UserSession {
+  id             String    @id @default(uuid())
+  userId         Int       @map("user_id")
+  ipAddress      String?   @map("ip_address") @db.VarChar(45)
+  userAgent      String?   @map("user_agent")
+  os             String?   @db.VarChar(100)
+  browser        String?   @db.VarChar(100)
+  expiresAt      DateTime  @map("expires_at")
+  lastActivityAt DateTime  @default(now()) @map("last_activity_at")
+  isRevoked      Boolean   @default(false) @map("is_revoked")
+  revokedAt      DateTime? @map("revoked_at")
+  revokeReason   String?   @map("revoke_reason") @db.VarChar(255)
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRevoked])
+  @@index([expiresAt])
+  @@map("auth_user_sessions")
+}
+
+model SecurityEvent {
+  id        String            @id @default(uuid())
+  userId    Int?              @map("user_id")
+  type      SecurityEventType
+  ipAddress String?           @map("ip_address") @db.VarChar(45)
+  userAgent String?           @map("user_agent")
+  metadata  Json?             @map("metadata")
+  createdAt DateTime          @default(now()) @map("created_at")
+  user      User?             @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
+  @@map("auth_security_events")
+}
+
+model Account {
+  id                String  @id @default(uuid())
+  userId            Int     @map("user_id")
+  type              String  @db.VarChar(50)
+  provider          String  @db.VarChar(50)
+  providerAccountId String  @map("provider_account_id") @db.VarChar(100)
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String? @db.VarChar(50)
+  scope             String? @db.VarChar(255)
+  id_token          String?
+  session_state     String? @db.VarChar(255)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("auth_accounts")
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique @map("session_token") @db.VarChar(255)
+  userId       Int      @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("auth_sessions")
+}
+
+model VerificationToken {
+  identifier String   @db.VarChar(150)
+  token      String   @unique @db.VarChar(255)
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("auth_verification_tokens")
+}
+
+model Role {
+  id              Int              @id @default(autoincrement())
+  name            String           @db.VarChar(100)
+  slug            String           @unique @db.VarChar(100)
+  description     String?
+  isActive        Boolean          @default(true) @map("is_active")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  rolePermissions RolePermission[]
+  users           User[]
+
+  @@map("auth_roles")
+}
+
+model Permission {
+  id              Int              @id @default(autoincrement())
+  action          String           @db.VarChar(100)
+  subject         String           @db.VarChar(100)
+  description     String?
+  isActive        Boolean          @default(true) @map("is_active")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  rolePermissions RolePermission[]
+
+  @@unique([action, subject])
+  @@map("auth_permissions")
+}
+
+model RolePermission {
+  roleId       Int        @map("role_id")
+  permissionId Int        @map("permission_id")
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
+  @@map("auth_role_permissions")
+}
+
+model Person {
+  id                      Int                      @id @default(autoincrement())
+  documentType            DocumentType             @map("document_type")
+  documentNumber          String                   @map("document_number") @db.VarChar(50)
+  firstName               String                   @map("first_name") @db.VarChar(150)
+  paternalLastName        String                   @map("paternal_last_name") @db.VarChar(150)
+  maternalLastName        String?                  @map("maternal_last_name") @db.VarChar(150)
+  gender                  Gender?
+  civilStatus             CivilStatus?             @map("civil_status")
+  birthDate               DateTime?                @map("birth_date") @db.Date
+  birthPlace              String?                  @map("birth_place") @db.VarChar(200)
+  nationalityId           Int?                     @map("nationality_id")
+  createdAt               DateTime                 @default(now()) @map("created_at")
+  updatedAt               DateTime                 @updatedAt @map("updated_at")
+  deletedAt               DateTime?                @map("deleted_at")
+  user                    User?
+  applications            MembershipApplication[]
+  endorsementsGiven       MembershipApproval[]     @relation("SponsorPerson")
+  addresses               Address[]
+  contacts                PersonContact[]
+  nationality             Country?                 @relation("PersonNationality", fields: [nationalityId], references: [id], onDelete: Restrict)
+  academicInfos           AcademicInfo[]
+  employmentInfos         EmploymentInfo[]
+  professionalExperiences ProfessionalExperience[]
+
+  @@unique([documentType, documentNumber])
+  @@index([documentNumber])
+  @@index([nationalityId])
+  @@index([paternalLastName, maternalLastName, firstName])
+  @@map("persons")
+}
+
+model PersonContact {
+  id          Int       @id @default(autoincrement())
+  personId    Int       @map("person_id")
+  phoneType   PhoneType @default(MOBILE) @map("phone_type")
+  phoneNumber String    @map("phone_number") @db.VarChar(50)
+  email       String?   @db.VarChar(150)
+  isPrimary   Boolean   @default(false) @map("is_primary")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  person      Person    @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@index([personId])
+  @@index([email])
+  @@map("person_contacts")
+}
+
+model Address {
+  id            Int         @id @default(autoincrement())
+  personId      Int         @map("person_id")
+  districtId    Int         @map("district_id")
+  addressTypeId Int         @map("address_type_id")
+  street        String      @db.VarChar(255)
+  reference     String?     @db.VarChar(255)
+  zipCode       String?     @map("zip_code") @db.VarChar(20)
+  isPrimary     Boolean     @default(false) @map("is_primary")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+  addressType   AddressType @relation(fields: [addressTypeId], references: [id])
+  district      District    @relation(fields: [districtId], references: [id])
+  person        Person      @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@index([personId])
+  @@index([districtId])
+  @@index([addressTypeId])
+  @@map("person_addresses")
+}
+
+model MembershipApplication {
+  id                       Int                     @id @default(autoincrement())
+  applicationCode          String                  @unique @map("application_code") @db.VarChar(50)
+  trackingCode             String                  @unique @map("tracking_code") @db.VarChar(50)
+  personId                 Int                     @map("person_id")
+  affiliateType            AffiliateType           @map("affiliate_type")
+  status                   ApplicationStatus       @default(DRAFT)
+  currentStep              Int                     @default(1) @map("current_step")
+  draftData                Json?                   @map("draft_data")
+  correspondencePreference String?                 @map("correspondence_preference") @db.VarChar(100)
+  submittedAt              DateTime?               @map("submitted_at")
+  createdAt                DateTime                @default(now()) @map("created_at")
+  updatedAt                DateTime                @updatedAt @map("updated_at")
+  deletedAt                DateTime?               @map("deleted_at")
+  person                   Person                  @relation(fields: [personId], references: [id])
+  approvals                MembershipApproval[]
+  documents                ApplicationDocument[]
+  history                  MembershipHistory[]
+  observations             MembershipObservation[]
+  payments                 Payment[]
+
+  @@index([personId])
+  @@index([status])
+  @@index([applicationCode])
+  @@index([trackingCode])
+  @@index([personId, status])
+  @@map("membership_applications")
+}
+
+model ApplicationDocument {
+  id                 String                @id @default(uuid())
+  applicationId      Int                   @map("application_id")
+  category           DocumentCategory
+  fileUrl            String                @map("file_url") @db.VarChar(500)
+  fileName           String                @map("file_name") @db.VarChar(250)
+  mimeType           String                @map("mime_type") @db.VarChar(100)
+  sizeBytes          BigInt                @map("size_bytes")
+  aiValidationStatus AiValidationStatus    @default(PENDING) @map("ai_validation_status")
+  aiConfidenceScore  Decimal?              @map("ai_confidence_score") @db.Decimal(5, 4)
+  aiExtractedData    Json?                 @map("ai_extracted_data")
+  aiModelUsed        String?               @map("ai_model_used") @db.VarChar(100)
+  validatedAt        DateTime?             @map("validated_at")
+  approvedById       Int?                  @map("approved_by_id")
+  rejectionReason    String?               @map("rejection_reason")
+  createdAt          DateTime              @default(now()) @map("created_at")
+  updatedAt          DateTime              @updatedAt @map("updated_at")
+  application        MembershipApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  approvedBy         User?                 @relation("DocumentApprover", fields: [approvedById], references: [id])
+
+  @@index([applicationId])
+  @@index([approvedById])
+  @@index([aiValidationStatus])
+  @@map("membership_documents")
+}
+
+model MembershipHistory {
+  id             Int                   @id @default(autoincrement())
+  applicationId  Int                   @map("application_id")
+  previousStatus ApplicationStatus     @map("previous_status")
+  newStatus      ApplicationStatus     @map("new_status")
+  changedById    Int?                  @map("changed_by_id")
+  changeReason   String?               @map("change_reason")
+  createdAt      DateTime              @default(now()) @map("created_at")
+  application    MembershipApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
+  @@map("membership_history")
+}
+
+model MembershipApproval {
+  id              Int                   @id @default(autoincrement())
+  applicationId   Int                   @map("application_id")
+  sponsorPersonId Int                   @map("sponsor_person_id")
+  sponsorCode     String?               @map("sponsor_code") @db.VarChar(50)
+  status          EndorsementStatus     @default(PENDING)
+  transactionDate DateTime?             @map("transaction_date")
+  createdAt       DateTime              @default(now()) @map("created_at")
+  updatedAt       DateTime              @updatedAt @map("updated_at")
+  application     MembershipApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  sponsorPerson   Person                @relation("SponsorPerson", fields: [sponsorPersonId], references: [id])
+
+  @@index([applicationId])
+  @@index([sponsorPersonId])
+  @@map("membership_approvals")
+}
+
+model MembershipObservation {
+  id               Int                   @id @default(autoincrement())
+  applicationId    Int                   @map("application_id")
+  reviewDepartment String                @map("review_department") @db.VarChar(100)
+  errorDescription String                @map("error_description")
+  status           ObservationStatus     @default(PENDING)
+  resolvedAt       DateTime?             @map("resolved_at")
+  createdAt        DateTime              @default(now()) @map("created_at")
+  updatedAt        DateTime              @updatedAt @map("updated_at")
+  application      MembershipApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
+  @@index([status])
+  @@map("membership_observations")
+}
+
+model AcademicInfo {
+  id                      Int             @id @default(autoincrement())
+  personId                Int             @map("person_id")
+  studyLevel              StudyLevel      @map("study_level")
+  degreeId                Int?            @map("degree_id")
+  universityId            Int?            @map("university_id")
+  specialtyId             Int?            @map("specialty_id")
+  degreeTitle             String?         @map("degree_title") @db.VarChar(200)
+  professionalAssociation String?         @map("professional_association") @db.VarChar(200)
+  licenseNumber           String?         @map("license_number") @db.VarChar(50)
+  graduationYear          Int?            @map("graduation_year")
+  termOrSemester          String?         @map("term_or_semester") @db.VarChar(50)
+  createdAt               DateTime        @default(now()) @map("created_at")
+  updatedAt               DateTime        @updatedAt @map("updated_at")
+  degree                  AcademicDegree? @relation(fields: [degreeId], references: [id], onDelete: Restrict)
+  person                  Person          @relation(fields: [personId], references: [id], onDelete: Cascade)
+  specialty               Specialty?      @relation(fields: [specialtyId], references: [id], onDelete: Restrict)
+  university              University?     @relation(fields: [universityId], references: [id], onDelete: Restrict)
+
+  @@index([personId])
+  @@index([degreeId])
+  @@index([universityId])
+  @@index([specialtyId])
+  @@map("professional_academics")
+}
+
+model EmploymentInfo {
+  id             Int          @id @default(autoincrement())
+  personId       Int          @map("person_id")
+  companyId      Int?         @map("company_id")
+  positionId     Int?         @map("position_id")
+  area           String?      @db.VarChar(150)
+  workingAddress String?      @map("working_address") @db.VarChar(250)
+  workPhone      String?      @map("work_phone") @db.VarChar(50)
+  workExtension  String?      @map("work_extension") @db.VarChar(20)
+  workEmail      String?      @map("work_email") @db.VarChar(150)
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  company        Company?     @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  person         Person       @relation(fields: [personId], references: [id], onDelete: Cascade)
+  position       JobPosition? @relation(fields: [positionId], references: [id], onDelete: Restrict)
+
+  @@index([personId])
+  @@index([companyId])
+  @@index([positionId])
+  @@map("professional_employment")
+}
+
+model ProfessionalExperience {
+  id          Int         @id @default(autoincrement())
+  personId    Int         @map("person_id")
+  companyId   Int?        @map("company_id")
+  positionId  Int         @map("position_id")
+  description String?
+  startDate   DateTime    @map("start_date") @db.Date
+  endDate     DateTime?   @map("end_date") @db.Date
+  isCurrent   Boolean     @default(false) @map("is_current")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+  company     Company?    @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  person      Person      @relation(fields: [personId], references: [id], onDelete: Cascade)
+  position    JobPosition @relation(fields: [positionId], references: [id])
+
+  @@index([personId])
+  @@index([companyId])
+  @@index([positionId])
+  @@map("professional_experiences")
+}
+
+model Payment {
+  id                Int                   @id @default(autoincrement())
+  applicationId     Int                   @map("application_id")
+  gateway           PaymentGateway        @default(NIUBIZ)
+  transactionId     String?               @map("transaction_id") @db.VarChar(100)
+  authorizationCode String?               @map("authorization_code") @db.VarChar(50)
+  responseCode      String?               @map("response_code") @db.VarChar(50)
+  totalAmount       Decimal               @map("total_amount") @db.Decimal(10, 2)
+  currency          Currency              @default(PEN)
+  status            PaymentStatus         @default(PENDING)
+  paymentDate       DateTime?             @map("payment_date")
+  gatewayPayload    Json?                 @map("gateway_payload")
+  createdAt         DateTime              @default(now()) @map("created_at")
+  updatedAt         DateTime              @updatedAt @map("updated_at")
+  billing           Billing?
+  application       MembershipApplication @relation(fields: [applicationId], references: [id])
+
+  @@index([applicationId])
+  @@index([status])
+  @@index([transactionId])
+  @@map("payments")
+}
+
+model Billing {
+  id             Int      @id @default(autoincrement())
+  paymentId      Int      @unique @map("payment_id")
+  taxId          String   @map("tax_id") @db.VarChar(20)
+  businessName   String   @map("business_name") @db.VarChar(250)
+  billingAddress String?  @map("billing_address") @db.VarChar(250)
+  countryId      Int?     @map("country_id")
+  billingEmail   String?  @map("billing_email") @db.VarChar(150)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+  country        Country? @relation(fields: [countryId], references: [id], onDelete: Restrict)
+  payment        Payment  @relation(fields: [paymentId], references: [id])
+  invoice        Invoice?
+
+  @@index([paymentId])
+  @@index([taxId])
+  @@index([countryId])
+  @@map("billings")
+}
+
+model Invoice {
+  id          Int         @id @default(autoincrement())
+  billingId   Int         @unique @map("billing_id")
+  type        InvoiceType
+  serie       String      @db.VarChar(4)
+  number      String      @db.VarChar(8)
+  issueDate   DateTime    @map("issue_date")
+  sunatHash   String?     @map("sunat_hash") @db.VarChar(255)
+  sunatCdrUrl String?     @map("sunat_cdr_url") @db.VarChar(500)
+  xmlUrl      String?     @map("xml_url") @db.VarChar(500)
+  pdfUrl      String?     @map("pdf_url") @db.VarChar(500)
+  status      String      @default("EMITTED") @db.VarChar(50)
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+  billing     Billing     @relation(fields: [billingId], references: [id])
+
+  @@unique([serie, number])
+  @@index([billingId])
+  @@map("invoices")
+}
+
+model Country {
+  id              Int          @id @default(autoincrement())
+  code            String?      @unique @db.VarChar(50)
+  isoCode         String       @unique @map("iso_code") @db.VarChar(3)
+  phoneCode       String       @map("phone_code") @db.VarChar(10)
+  name            String       @db.VarChar(150)
+  isActive        Boolean      @default(true) @map("is_active")
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+  billings        Billing[]
+  companies       Company[]
+  departments     Department[]
+  universities    University[]
+  nationalPersons Person[]     @relation("PersonNationality")
+
+  @@map("catalog_countries")
+}
+
+model Department {
+  id         Int        @id @default(autoincrement())
+  code       String?    @unique @db.VarChar(50)
+  countryId  Int        @map("country_id")
+  ubigeoCode String     @unique @map("ubigeo_code") @db.VarChar(10)
+  name       String     @db.VarChar(150)
+  isActive   Boolean    @default(true) @map("is_active")
+  createdAt  DateTime   @default(now()) @map("created_at")
+  updatedAt  DateTime   @updatedAt @map("updated_at")
+  country    Country    @relation(fields: [countryId], references: [id])
+  provinces  Province[]
+
+  @@index([countryId])
+  @@map("catalog_departments")
+}
+
+model Province {
+  id           Int        @id @default(autoincrement())
+  code         String?    @unique @db.VarChar(50)
+  departmentId Int        @map("department_id")
+  ubigeoCode   String     @unique @map("ubigeo_code") @db.VarChar(10)
+  name         String     @db.VarChar(150)
+  isActive     Boolean    @default(true) @map("is_active")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+  districts    District[]
+  department   Department @relation(fields: [departmentId], references: [id])
+
+  @@index([departmentId])
+  @@map("catalog_provinces")
+}
+
+model District {
+  id         Int       @id @default(autoincrement())
+  code       String?   @unique @db.VarChar(50)
+  provinceId Int       @map("province_id")
+  ubigeoCode String    @unique @map("ubigeo_code") @db.VarChar(10)
+  name       String    @db.VarChar(150)
+  isActive   Boolean   @default(true) @map("is_active")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  province   Province  @relation(fields: [provinceId], references: [id])
+  addresses  Address[]
+
+  @@index([provinceId])
+  @@map("catalog_districts")
+}
+
+model University {
+  id            Int            @id @default(autoincrement())
+  code          String?        @unique @db.VarChar(50)
+  name          String         @db.VarChar(250)
+  countryId     Int            @map("country_id")
+  acronym       String?        @unique @db.VarChar(20)
+  website       String?        @db.VarChar(255)
+  isLicensed    Boolean        @default(true) @map("is_licensed")
+  isPublic      Boolean        @default(false) @map("is_public")
+  isActive      Boolean        @default(true) @map("is_active")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  country       Country        @relation(fields: [countryId], references: [id])
+  academicInfos AcademicInfo[]
+
+  @@unique([countryId, name])
+  @@index([countryId])
+  @@map("catalog_universities")
+}
+
+model Company {
+  id          Int                      @id @default(autoincrement())
+  code        String?                  @unique @db.VarChar(50)
+  taxId       String?                  @unique @map("tax_id") @db.VarChar(20)
+  name        String                   @db.VarChar(250)
+  industry    String?                  @db.VarChar(150)
+  countryId   Int?                     @map("country_id")
+  sectorId    Int?                     @map("sector_id")
+  website     String?                  @db.VarChar(255)
+  email       String?                  @db.VarChar(150)
+  phone       String?                  @db.VarChar(50)
+  address     String?                  @db.VarChar(255)
+  isActive    Boolean                  @default(true) @map("is_active")
+  createdAt   DateTime                 @default(now()) @map("created_at")
+  updatedAt   DateTime                 @updatedAt @map("updated_at")
+  country     Country?                 @relation(fields: [countryId], references: [id], onDelete: Restrict)
+  sector      CompanySector?           @relation(fields: [sectorId], references: [id], onDelete: Restrict)
+  employments EmploymentInfo[]
+  experiences ProfessionalExperience[]
+
+  @@index([taxId])
+  @@index([name])
+  @@index([countryId])
+  @@index([sectorId])
+  @@map("catalog_companies")
+}
+
+model Specialty {
+  id                  Int                @id @default(autoincrement())
+  code                String?            @unique @db.VarChar(50)
+  name                String             @db.VarChar(200)
+  description         String?
+  specialtyCategoryId Int?               @map("specialty_category_id")
+  isActive            Boolean            @default(true) @map("is_active")
+  createdAt           DateTime           @default(now()) @map("created_at")
+  updatedAt           DateTime           @updatedAt @map("updated_at")
+  specialtyCategory   SpecialtyCategory? @relation(fields: [specialtyCategoryId], references: [id], onDelete: Restrict)
+  academicInfos       AcademicInfo[]
+
+  @@index([specialtyCategoryId])
+  @@map("catalog_specialties")
+}
+
+model AcademicDegree {
+  id            Int            @id @default(autoincrement())
+  code          String?        @unique @db.VarChar(50)
+  name          String         @db.VarChar(150)
+  abbreviation  String?        @db.VarChar(50)
+  studyLevel    StudyLevel     @map("study_level")
+  description   String?
+  isActive      Boolean        @default(true) @map("is_active")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  academicInfos AcademicInfo[]
+
+  @@map("catalog_academic_degrees")
+}
+
+model SpecialtyCategory {
+  id          Int         @id @default(autoincrement())
+  code        String?     @unique @db.VarChar(50)
+  name        String      @db.VarChar(150)
+  description String?
+  isActive    Boolean     @default(true) @map("is_active")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+  specialties Specialty[]
+
+  @@map("catalog_specialty_categories")
+}
+
+model CompanySector {
+  id          Int       @id @default(autoincrement())
+  code        String?   @unique @db.VarChar(50)
+  name        String    @db.VarChar(150)
+  description String?
+  isActive    Boolean   @default(true) @map("is_active")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  companies   Company[]
+
+  @@map("catalog_company_sectors")
+}
+
+model JobPosition {
+  id             Int                      @id @default(autoincrement())
+  code           String?                  @unique @db.VarChar(50)
+  name           String                   @db.VarChar(150)
+  description    String?
+  hierarchyLevel Int?                     @map("hierarchy_level")
+  isActive       Boolean                  @default(true) @map("is_active")
+  createdAt      DateTime                 @default(now()) @map("created_at")
+  updatedAt      DateTime                 @updatedAt @map("updated_at")
+  employments    EmploymentInfo[]
+  experiences    ProfessionalExperience[]
+
+  @@map("catalog_job_positions")
+}
+
+model AddressType {
+  id          Int       @id @default(autoincrement())
+  code        String?   @unique @db.VarChar(50)
+  name        String    @db.VarChar(100)
+  description String?
+  isActive    Boolean   @default(true) @map("is_active")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  addresses   Address[]
+
+  @@map("catalog_address_types")
+}
+
+model Notification {
+  id        Int                 @id @default(autoincrement())
+  userId    Int                 @map("user_id")
+  channel   NotificationChannel @default(IN_APP)
+  title     String              @db.VarChar(200)
+  message   String
+  status    NotificationStatus  @default(UNREAD)
+  readAt    DateTime?           @map("read_at")
+  createdAt DateTime            @default(now()) @map("created_at")
+  updatedAt DateTime            @updatedAt @map("updated_at")
+  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@map("sys_notifications")
+}
+
+model AuditLog {
+  id              String   @id @default(uuid())
+  traceId         String?  @map("trace_id") @db.VarChar(100)
+  userId          Int?     @map("user_id")
+  action          String   @db.VarChar(100)
+  entity          String   @db.VarChar(100)
+  entityId        String?  @map("entity_id") @db.VarChar(100)
+  oldValues       Json?    @map("old_values")
+  newValues       Json?    @map("new_values")
+  endpoint        String?  @db.VarChar(255)
+  httpMethod      String?  @map("http_method") @db.VarChar(10)
+  executionTimeMs Int?     @map("execution_time_ms")
+  ipAddress       String?  @map("ip_address") @db.VarChar(50)
+  userAgent       String?  @map("user_agent")
+  createdAt       DateTime @default(now()) @map("created_at")
+  user            User?    @relation(fields: [userId], references: [id])
+
+  @@index([entity, entityId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("sys_audit_logs")
+}
+
+model Configuration {
+  id          Int            @id @default(autoincrement())
+  group       String         @db.VarChar(100)
+  key         String         @unique @db.VarChar(100)
+  value       String
+  dataType    ConfigDataType @default(STRING) @map("data_type")
+  description String?
+  isPublic    Boolean        @default(false) @map("is_public")
+  updatedBy   String?        @map("updated_by") @db.VarChar(100)
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  @@index([group])
+  @@map("sys_configurations")
+}
+
+enum CredentialType {
+  PASSWORD
+  PASSKEY
+}
+
+enum SecurityEventType {
+  LOGIN_SUCCESS
+  LOGIN_FAILED
+  ACCOUNT_LOCKED
+  ACCOUNT_UNLOCKED
+  SESSION_REVOKED
+  SESSION_EXPIRED
+  CREDENTIAL_ADDED
+  CREDENTIAL_REVOKED
+}
+
+enum DocumentType {
+  DNI
+  CE
+  PASSPORT
+  OTHER
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+enum CivilStatus {
+  SINGLE
+  MARRIED
+  DIVORCED
+  WIDOWED
+  OTHER
+}
+
+enum ApplicationStatus {
+  DRAFT
+  SUBMITTED
+  AWAITING_ENDORSEMENTS
+  UNDER_EVALUATION
+  OBSERVED
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum AiValidationStatus {
+  PENDING
+  VALIDATED
+  REJECTED
+  MANUAL_REVIEW_REQUIRED
+}
+
+enum DocumentCategory {
+  CV
+  RECOMMENDATION_LETTER
+  SWORN_DECLARATION
+  ID_DOCUMENT
+  DEGREE_CERTIFICATE
+  PAYMENT_VOUCHER
+  OTHER
+}
+
+enum ObservationStatus {
+  PENDING
+  RESOLVED
+  DISMISSED
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum PaymentGateway {
+  NIUBIZ
+  IZIPAY
+  STRIPE
+  PAYPAL
+  BANK_TRANSFER
+}
+
+enum Currency {
+  PEN
+  USD
+}
+
+enum InvoiceType {
+  BOLETA
+  FACTURA
+  CREDIT_NOTE
+  DEBIT_NOTE
+}
+
+enum PhoneType {
+  MOBILE
+  LANDLINE
+  WORK
+  OTHER
+}
+
+enum UserType {
+  SYSTEM_ADMIN
+  VALIDATOR
+  APPLICANT
+  AFFILIATE
+}
+
+enum AffiliateType {
+  REGULAR
+  STUDENT
+  SENIOR
+  HONORARY
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  BLOCKED
+  PENDING
+}
+
+enum NotificationChannel {
+  IN_APP
+  EMAIL
+  SMS
+  PUSH
+}
+
+enum NotificationStatus {
+  UNREAD
+  READ
+  ARCHIVED
+}
+
+enum StudyLevel {
+  BACHELOR
+  MASTER
+  DOCTORATE
+  TECHNICAL
+  OTHER
+}
+
+enum EndorsementStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ConfigDataType {
+  STRING
+  INTEGER
+  DECIMAL
+  BOOLEAN
+  JSON
+}
