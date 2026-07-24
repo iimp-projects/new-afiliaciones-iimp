@@ -243,32 +243,107 @@ model Address {
 }
 
 model MembershipApplication {
-  id                       Int                     @id @default(autoincrement())
-  applicationCode          String                  @unique @map("application_code") @db.VarChar(50)
-  trackingCode             String                  @unique @map("tracking_code") @db.VarChar(50)
-  personId                 Int                     @map("person_id")
-  affiliateType            AffiliateType           @map("affiliate_type")
-  status                   ApplicationStatus       @default(DRAFT)
-  currentStep              Int                     @default(1) @map("current_step")
-  draftData                Json?                   @map("draft_data")
-  correspondencePreference String?                 @map("correspondence_preference") @db.VarChar(100)
-  submittedAt              DateTime?               @map("submitted_at")
-  createdAt                DateTime                @default(now()) @map("created_at")
-  updatedAt                DateTime                @updatedAt @map("updated_at")
-  deletedAt                DateTime?               @map("deleted_at")
-  person                   Person                  @relation(fields: [personId], references: [id])
-  approvals                MembershipApproval[]
-  documents                ApplicationDocument[]
-  history                  MembershipHistory[]
-  observations             MembershipObservation[]
-  payments                 Payment[]
+
+  id Int @id @default(autoincrement())
+
+  applicationCode String @unique
+
+  trackingCode String @unique
+
+  personId Int?
+
+  person Person? @relation(fields: [personId], references: [id])
+
+  // ==========================
+  // Identidad de la postulación
+  // ==========================
+
+  documentType DocumentType
+
+  documentNumber String
+
+  email String
+
+  phone String
+
+  // ==========================
+
+  affiliateType AffiliateType
+
+  status ApplicationStatus @default(DRAFT)
+
+  currentStep Int @default(1)
+
+  draftData Json?
+
+  correspondencePreference String?
+
+  submittedAt DateTime?
+
+  verifiedAt DateTime?
+
+  lastAccessAt DateTime?
+
+  expiresAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  deletedAt DateTime?
+
+  verificationCodes VerificationCode[]
+
+  approvals MembershipApproval[]
+
+  documents ApplicationDocument[]
+
+  history MembershipHistory[]
+
+  observations MembershipObservation[]
+
+  payments Payment[]
+
+  @@index([documentNumber])
+
+  @@index([documentNumber, status])
+
+  @@index([email])
+
+  @@index([status])
 
   @@index([personId])
-  @@index([status])
-  @@index([applicationCode])
-  @@index([trackingCode])
+
   @@index([personId, status])
+
+  @@index([applicationCode])
+
+  @@index([trackingCode])
+
   @@map("membership_applications")
+}
+
+
+
+model VerificationCode {
+  id Int @id @default(autoincrement())
+
+  applicationId Int
+
+  application MembershipApplication @relation(fields: [applicationId], references: [id])
+
+  purpose VerificationPurpose
+  channel VerificationChannel
+
+  destination String
+  code        String
+
+  expiresAt  DateTime
+  verifiedAt DateTime?
+
+  attempts Int @default(0)
+
+  createdAt DateTime @default(now())
 }
 
 model ApplicationDocument {
@@ -298,8 +373,9 @@ model ApplicationDocument {
 }
 
 model MembershipHistory {
-  id             Int                   @id @default(autoincrement())
-  applicationId  Int                   @map("application_id")
+  id            Int @id @default(autoincrement())
+  applicationId Int @map("application_id")
+
   previousStatus ApplicationStatus     @map("previous_status")
   newStatus      ApplicationStatus     @map("new_status")
   changedById    Int?                  @map("changed_by_id")
@@ -846,10 +922,8 @@ enum UserType {
 }
 
 enum AffiliateType {
-  REGULAR
+  ACTIVE
   STUDENT
-  SENIOR
-  HONORARY
 }
 
 enum UserStatus {
@@ -892,4 +966,15 @@ enum ConfigDataType {
   DECIMAL
   BOOLEAN
   JSON
+}
+
+enum VerificationChannel {
+  EMAIL
+  SMS
+}
+
+enum VerificationPurpose {
+  START_APPLICATION
+  RESUME_APPLICATION
+  SUBMIT_APPLICATION
 }
