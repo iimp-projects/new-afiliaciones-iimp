@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { resetPasswordAction } from "../action";
 import type { ResetPasswordState } from "../types";
 
 export function useResetPassword() {
-    const [code, setCode] = useState(""); // 6 dígitos
+    const [code, setCode] = useState(""); 
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
@@ -14,9 +14,18 @@ export function useResetPassword() {
     const [state, setState] = useState<ResetPasswordState>({ success: false });
     
     const router = useRouter();
+    // Capturamos los parámetros de la URL
+    const searchParams = useSearchParams();
+    const emailFromUrl = searchParams.get("email");
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Validamos que exista el correo en la URL
+        if (!emailFromUrl) {
+            setState({ success: false, message: "No se detectó el correo. Por favor, solicita el código nuevamente." });
+            return;
+        }
         
         if (newPassword !== confirmPassword) {
             setState({ success: false, message: "Las contraseñas no coinciden." });
@@ -28,8 +37,8 @@ export function useResetPassword() {
 
         try {
             const formData = new FormData();
-            formData.append("email", "correo@del-usuario.com"); // Reemplazar con lógica real de captura de email (ej. searchParams)
-            formData.append("token", code); // Asumiendo que adaptas el backend a aceptar el código de 6 dígitos
+            formData.append("email", emailFromUrl); // Insertamos el correo real de la URL
+            formData.append("token", code);
             formData.append("password", newPassword);
             formData.append("confirmPassword", confirmPassword);
 
@@ -40,7 +49,7 @@ export function useResetPassword() {
                 setTimeout(() => router.push("/login"), 2000);
             }
         } catch (error) {
-            setState({ success: false, message: "Ocurrió un error." });
+            setState({ success: false, message: "Ocurrió un error al restablecer la contraseña." });
         } finally {
             setIsLoading(false);
         }
@@ -51,6 +60,7 @@ export function useResetPassword() {
         newPassword, setNewPassword,
         confirmPassword, setConfirmPassword,
         showPassword, setShowPassword,
-        isLoading, state, handleSubmit
+        isLoading, state, handleSubmit,
+        emailFromUrl
     };
 }

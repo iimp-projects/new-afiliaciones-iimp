@@ -2,7 +2,8 @@ import { z } from "zod";
 
 export const resetPasswordSchema = z.object({
   email: z.string().email(),
-  token: z.string().min(64),
+  // 👇 AQUÍ ESTÁ LA MAGIA: Cambiamos .min(64) por .length(6)
+  token: z.string().length(6, { message: "El código de verificación debe tener exactamente 6 dígitos." }),
   password: z
     .string()
     .min(8, { message: "La contraseña debe tener al menos 8 caracteres." })
