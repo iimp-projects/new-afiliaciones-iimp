@@ -6,273 +6,104 @@ import { ValidationRules } from "./ValidationRules";
 export class PersonalInformationValidator extends BaseValidator {
   public validate(data: PersonalInformation): ValidationResult {
     this.reset();
-
-    this.validateIdentity(data);
     this.validateDocument(data);
     this.validateNames(data);
     this.validateBirthInformation(data);
     this.validateContact(data);
     this.validateLocation(data);
     this.validateDocuments(data);
-
     return this.getResult();
   }
 
-  /**
-   * Verifica que la identidad haya sido validada.
-   */
-  private validateIdentity(data: PersonalInformation): void {
-    if (!data.identityVerified) {
-      this.addError(
-        "documentNumber",
-        "IDENTITY_NOT_VERIFIED",
-        "Debe verificar primero la identidad del postulante.",
-      );
-    }
-  }
-
-  /**
-   * Documento
-   */
   private validateDocument(data: PersonalInformation): void {
-    if (
-      !ValidationRules.required(
-        data.documentType,
-        "documentType",
-        this,
-        "DOCUMENT_TYPE_REQUIRED",
-        "El tipo de documento es obligatorio.",
-      )
-    ) {
-      return;
-    }
+    if (!ValidationRules.required(data.documentType, "documentType", this, "REQ", "Seleccione un tipo de documento.")) return;
+    if (!ValidationRules.required(data.documentNumber, "documentNumber", this, "REQ", "Ingrese su número de documento.")) return;
 
-    ValidationRules.required(
-      data.documentNumber,
-      "documentNumber",
-      this,
-      "DOCUMENT_NUMBER_REQUIRED",
-      "El número de documento es obligatorio.",
-    );
+    if (data.documentType === "DNI") {
+      ValidationRules.exactLength(data.documentNumber, 8, "documentNumber", this, "LEN", "El DNI debe tener exactamente 8 caracteres.");
+      ValidationRules.numeric(data.documentNumber, "documentNumber", this, "NUM", "El DNI solo debe contener números.");
+    } else if (data.documentType === "CE") {
+      ValidationRules.lengthBetween(data.documentNumber, 9, 12, "documentNumber", this, "LEN", "El CE debe tener entre 9 y 12 caracteres.");
+      ValidationRules.alphaNumeric(data.documentNumber, "documentNumber", this, "ALPHANUM", "El CE solo permite letras y números.");
+    } else if (data.documentType === "PASSPORT") {
+      ValidationRules.lengthBetween(data.documentNumber, 6, 12, "documentNumber", this, "LEN", "El pasaporte debe tener entre 6 y 12 caracteres.");
+      ValidationRules.alphaNumeric(data.documentNumber, "documentNumber", this, "ALPHANUM", "El pasaporte solo permite letras y números.");
+    }
   }
 
-  /**
-   * Nombres
-   */
   private validateNames(data: PersonalInformation): void {
-    if (
-      ValidationRules.required(
-        data.names,
-        "names",
-        this,
-        "NAMES_REQUIRED",
-        "Los nombres son obligatorios.",
-      )
-    ) {
-      ValidationRules.onlyLetters(
-        data.names,
-        "names",
-        this,
-        "NAMES_INVALID",
-        "Los nombres solo pueden contener letras.",
-      );
-    }
+    const nameFields = [
+      { key: "names" as const, label: "nombres" },
+      { key: "fatherLastName" as const, label: "apellido paterno" },
+      { key: "motherLastName" as const, label: "apellido materno" },
+    ];
 
-    if (
-      ValidationRules.required(
-        data.fatherLastName,
-        "fatherLastName",
-        this,
-        "FATHER_LASTNAME_REQUIRED",
-        "El apellido paterno es obligatorio.",
-      )
-    ) {
-      ValidationRules.onlyLetters(
-        data.fatherLastName,
-        "fatherLastName",
-        this,
-        "FATHER_LASTNAME_INVALID",
-        "El apellido paterno solo puede contener letras.",
-      );
-    }
-
-    if (
-      ValidationRules.required(
-        data.motherLastName,
-        "motherLastName",
-        this,
-        "MOTHER_LASTNAME_REQUIRED",
-        "El apellido materno es obligatorio.",
-      )
-    ) {
-      ValidationRules.onlyLetters(
-        data.motherLastName,
-        "motherLastName",
-        this,
-        "MOTHER_LASTNAME_INVALID",
-        "El apellido materno solo puede contener letras.",
-      );
-    }
+    nameFields.forEach(({ key, label }) => {
+      if (ValidationRules.required(data[key], key, this, "REQ", `El ${label} es obligatorio.`)) {
+        ValidationRules.minLength(data[key], 2, key, this, "MIN", `Debe tener al menos 2 caracteres.`);
+        ValidationRules.maxLength(data[key], 100, key, this, "MAX", `Máximo 100 caracteres permitidos.`);
+        ValidationRules.onlyLetters(data[key], key, this, "LETTERS", `Solo se permiten letras, tildes y espacios.`);
+      }
+    });
   }
 
-  /**
-   * Fecha de nacimiento y género
-   */
   private validateBirthInformation(data: PersonalInformation): void {
-    ValidationRules.required(
-      data.birthDate,
-      "birthDate",
-      this,
-      "BIRTHDATE_REQUIRED",
-      "La fecha de nacimiento es obligatoria.",
-    );
-
-    ValidationRules.required(
-      data.gender,
-      "gender",
-      this,
-      "GENDER_REQUIRED",
-      "El género es obligatorio.",
-    );
+    if (ValidationRules.required(data.birthDate, "birthDate", this, "REQ", "La fecha de nacimiento es obligatoria.")) {
+      ValidationRules.notFutureDate(data.birthDate, "birthDate", this, "FUTURE", "La fecha no puede ser futura.");
+      ValidationRules.validateAgeRange(data.birthDate, 18, 100, "birthDate", this, "AGE", "Debe tener entre 18 y 100 años.");
+    }
+    
+    if (ValidationRules.required(data.gender, "gender", this, "REQ", "Seleccione su género.")) {
+      if (!["MALE", "FEMALE"].includes(data.gender)) {
+        this.addError("gender", "INVALID", "Género seleccionado inválido.");
+      }
+    }
   }
 
-  /**
-   * Contacto
-   */
   private validateContact(data: PersonalInformation): void {
-    if (
-      ValidationRules.required(
-        data.phone,
-        "phone",
-        this,
-        "PHONE_REQUIRED",
-        "El teléfono es obligatorio.",
-      )
-    ) {
-      ValidationRules.phone(
-        data.phone,
-        "phone",
-        this,
-        "PHONE_INVALID",
-        "El teléfono no es válido.",
-      );
+    if (ValidationRules.required(data.phone, "phone", this, "REQ", "El celular es obligatorio.")) {
+      ValidationRules.exactLength(data.phone, 9, "phone", this, "LEN", "El celular debe tener exactamente 9 dígitos.");
+      ValidationRules.numeric(data.phone, "phone", this, "NUM", "El celular solo permite números.");
     }
 
-    if (
-      ValidationRules.required(
-        data.primaryEmail,
-        "primaryEmail",
-        this,
-        "PRIMARY_EMAIL_REQUIRED",
-        "El correo electrónico es obligatorio.",
-      )
-    ) {
-      ValidationRules.email(
-        data.primaryEmail,
-        "primaryEmail",
-        this,
-        "PRIMARY_EMAIL_INVALID",
-        "El correo electrónico no es válido.",
-      );
+    if (ValidationRules.required(data.primaryEmail, "primaryEmail", this, "REQ", "El correo principal es obligatorio.")) {
+      ValidationRules.email(data.primaryEmail, "primaryEmail", this, "EMAIL", "Ingrese un correo electrónico válido.");
+      ValidationRules.maxLength(data.primaryEmail, 254, "primaryEmail", this, "MAX", "El correo es demasiado largo.");
     }
 
-    if (data.secondaryEmail) {
-      ValidationRules.email(
-        data.secondaryEmail,
-        "secondaryEmail",
-        this,
-        "SECONDARY_EMAIL_INVALID",
-        "El correo electrónico secundario no es válido.",
-      );
+    if (data.secondaryEmail && data.secondaryEmail.trim() !== "") {
+      ValidationRules.email(data.secondaryEmail, "secondaryEmail", this, "EMAIL", "Ingrese un correo secundario válido.");
+      ValidationRules.maxLength(data.secondaryEmail, 254, "secondaryEmail", this, "MAX", "El correo secundario es demasiado largo.");
     }
   }
 
-  /**
-   * Ubicación
-   */
   private validateLocation(data: PersonalInformation): void {
-    ValidationRules.required(
-      data.countryId,
-      "countryId",
-      this,
-      "COUNTRY_REQUIRED",
-      "El país es obligatorio.",
-    );
+    if (!data.countryId || data.countryId === 0) {
+      this.addError("countryId", "REQ", "Seleccione un país.");
+    }
 
-    ValidationRules.requiredIf(
-      data.countryId === 1,
-      data.departmentId,
-      "departmentId",
-      this,
-      "DEPARTMENT_REQUIRED",
-      "El departamento es obligatorio.",
-    );
+    if (data.countryId === 1) { // 1 = Perú
+      if (!data.departmentId) this.addError("departmentId", "REQ", "Seleccione un departamento.");
+      if (!data.provinceId) this.addError("provinceId", "REQ", "Seleccione una provincia.");
+      if (!data.districtId) this.addError("districtId", "REQ", "Seleccione un distrito.");
+    }
 
-    ValidationRules.requiredIf(
-      data.countryId === 1,
-      data.provinceId,
-      "provinceId",
-      this,
-      "PROVINCE_REQUIRED",
-      "La provincia es obligatoria.",
-    );
-
-    ValidationRules.requiredIf(
-      data.countryId === 1,
-      data.districtId,
-      "districtId",
-      this,
-      "DISTRICT_REQUIRED",
-      "El distrito es obligatorio.",
-    );
-
-    ValidationRules.required(
-      data.address,
-      "address",
-      this,
-      "ADDRESS_REQUIRED",
-      "La dirección es obligatoria.",
-    );
+    if (ValidationRules.required(data.address, "address", this, "REQ", "La dirección es obligatoria.")) {
+      ValidationRules.minLength(data.address, 10, "address", this, "MIN", "La dirección debe tener al menos 10 caracteres.");
+      ValidationRules.maxLength(data.address, 250, "address", this, "MAX", "La dirección es demasiado larga.");
+      ValidationRules.addressFormat(data.address, "address", this, "FORMAT", "Formato de dirección inválido.");
+    }
   }
 
-  /**
-   * Documentos
-   */
   private validateDocuments(data: PersonalInformation): void {
-    ValidationRules.allowedExtensions(
-      data.photo,
-      ["jpg", "jpeg", "png"],
-      "photo",
-      this,
-      "PHOTO_EXTENSION_INVALID",
-      "La fotografía debe estar en formato JPG o PNG.",
-    );
+    if (ValidationRules.requiredFile(data.photo, "photo", this, "REQ", "La fotografía es obligatoria.")) {
+      ValidationRules.allowedExtensions(data.photo, ["jpg", "jpeg", "png"], "photo", this, "EXT", "Solo JPG, JPEG o PNG.");
+      ValidationRules.maxFileSize(data.photo, 5 * 1024 * 1024, "photo", this, "SIZE", "Máximo 5 MB.");
+    }
 
-    ValidationRules.maxFileSize(
-      data.photo,
-      5 * 1024 * 1024,
-      "photo",
-      this,
-      "PHOTO_MAX_SIZE",
-      "La fotografía no debe superar los 5 MB.",
-    );
-
-    ValidationRules.allowedExtensions(
-      data.identityDocument,
-      ["pdf", "jpg", "jpeg", "png"],
-      "identityDocument",
-      this,
-      "IDENTITY_DOCUMENT_EXTENSION_INVALID",
-      "El documento debe ser PDF, JPG o PNG.",
-    );
-
-    ValidationRules.maxFileSize(
-      data.identityDocument,
-      10 * 1024 * 1024,
-      "identityDocument",
-      this,
-      "IDENTITY_DOCUMENT_MAX_SIZE",
-      "El documento no debe superar los 10 MB.",
-    );
+    if (ValidationRules.requiredFile(data.identityDocument, "identityDocument", this, "REQ", "El documento es obligatorio.")) {
+      ValidationRules.allowedExtensions(data.identityDocument, ["pdf", "jpg", "jpeg", "png"], "identityDocument", this, "EXT", "Solo PDF, JPG o PNG.");
+      ValidationRules.maxFileSize(data.identityDocument, 10 * 1024 * 1024, "identityDocument", this, "SIZE", "Máximo 10 MB.");
+    }
   }
 }

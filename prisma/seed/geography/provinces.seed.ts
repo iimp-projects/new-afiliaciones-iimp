@@ -1,30 +1,46 @@
 import { prisma } from '@/lib/prisma';
 import { seedLogger } from '@/lib/seed';
+import { provincesData } from './data/provinces.data';
 
 export const seedProvinces = async (): Promise<void> => {
-  seedLogger.info('  -> Ejecutando upsert de Provincias...');
+  seedLogger.info('  -> Ejecutando upsert de Provincias (Nivel 2)...');
 
-  // Referencia segura: Departamento de Lima
-  const limaDept = await prisma.department.findUnique({ where: { ubigeoCode: '150000' } });
-  
-  if (!limaDept) {
-    seedLogger.warn('     ⚠️ Departamento de Lima no encontrado. Abortando seed de Provincias.');
-    return;
-  }
+  // 1. Obtenemos TODOS los departamentos en una sola consulta
+  const departments = await prisma.department.findMany({
+    select: { id: true, ubigeoCode: true }
+  });
 
-  const provinces = [
-    { ubigeoCode: '150100', name: 'Lima' },
-    { ubigeoCode: '150200', name: 'Barranca' },
-    { ubigeoCode: '150300', name: 'Cajatambo' },
-  ];
+  // Mapa O(1): Llave = ubigeoCode del departamento, Valor = ID en base de datos
+  const deptMap = new Map(departments.map(d => [d.ubigeoCode, d.id]));
 
-  for (const prov of provinces) {
+  let processedCount = 0;
+
+  for (const prov of provincesData) {
+    // 2. Resolvemos el departmentId usando su Ubigeo
+    const departmentId = deptMap.get(prov.departmentUbigeo);
+
+    if (!departmentId) {
+      seedLogger.warn(`      ⚠️ Departamento no encontrado para Ubigeo: ${prov.departmentUbigeo}. Saltando provincia: ${prov.name}.`);
+      continue;
+    }
+
+    // 3. Upsert idempotente y seguro
     await prisma.province.upsert({
       where: { ubigeoCode: prov.ubigeoCode },
-      update: { name: prov.name, departmentId: limaDept.id },
-      create: { ubigeoCode: prov.ubigeoCode, name: prov.name, departmentId: limaDept.id },
+      update: { 
+        name: prov.name, 
+        departmentId: departmentId 
+      },
+      create: { 
+        ubigeoCode: prov.ubigeoCode, 
+        name: prov.name, 
+        departmentId: departmentId, 
+        isActive: true 
+      },
     });
+
+    processedCount++;
   }
 
-  seedLogger.success(`  -> ${provinces.length} provincias procesadas correctamente.`);
+  seedLogger.success(`  -> ${processedCount} provincias procesadas correctamente.`);
 };

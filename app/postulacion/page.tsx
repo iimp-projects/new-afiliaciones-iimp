@@ -447,7 +447,7 @@ export default function PostulacionLandingPage() {
                 </ul>
 
                 <Link
-                  href="/postulacion/asociado/paso-1"
+                  href="/postulacion/asociado"
                   className="w-full py-4 rounded-xl text-white bg-primary font-bold text-sm tracking-widest uppercase hover:bg-[#4a2d00] transition-colors flex items-center justify-center gap-2 shadow-md"
                 >
                   Comenzar Afiliación <ArrowRight size={18} />
@@ -508,7 +508,7 @@ export default function PostulacionLandingPage() {
                 </ul>
 
                 <Link
-                  href="/postulacion/estudiante/paso-1"
+                  href="/postulacion/estudiante"
                   className="w-full py-4 rounded-xl text-[#6b5c4b] border-2 border-[#6b5c4b] font-bold text-sm tracking-widest uppercase hover:bg-[#6b5c4b] hover:text-white transition-colors flex items-center justify-center gap-2"
                 >
                   Afiliación Estudiante <ArrowRight size={18} />

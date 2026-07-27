@@ -5,12 +5,12 @@ import {
   seedPermissions,
   seedRoles,
   seedRolePermissions,
-  // seedCountries,
-  // seedDepartments,
-  // seedProvinces,
-  // seedDistricts,
-  // seedUniversities,
-  // seedSpecialties,
+  seedCountries,
+  seedDepartments,
+  seedProvinces,
+  seedDistricts,
+  seedUniversities,
+  seedSpecialties,
   // seedCompanies,
   // seedConfiguration,
   // seedDemoUsers,
@@ -26,17 +26,17 @@ const main = async (): Promise<void> => {
 
   try {
     // 1. MÓDULOS CORE
-    await runSeed('Auth: Permissions', seedPermissions);
-    await runSeed('Auth: Roles', seedRoles);
-    await runSeed('Auth: Role-Permissions', seedRolePermissions);
-    await runSeed('Auth: Users', seedUsers);
+    // await runSeed('Auth: Permissions', seedPermissions);
+    // await runSeed('Auth: Roles', seedRoles);
+    // await runSeed('Auth: Role-Permissions', seedRolePermissions);
+    // await runSeed('Auth: Users', seedUsers);
     
     // await runSeed('Catalogs: Countries', seedCountries);
     // await runSeed('Catalogs: Departments', seedDepartments);
     // await runSeed('Catalogs: Provinces', seedProvinces);
     // await runSeed('Catalogs: Districts', seedDistricts);
-    // await runSeed('Catalogs: Universities', seedUniversities);
-    // await runSeed('Catalogs: Specialties', seedSpecialties);
+    await runSeed('Catalogs: Universities', seedUniversities);
+    await runSeed('Catalogs: Specialties', seedSpecialties);
     // await runSeed('Catalogs: Companies', seedCompanies);
     
     // await runSeed('System: Configuration', seedConfiguration);

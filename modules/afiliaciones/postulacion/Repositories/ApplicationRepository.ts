@@ -241,6 +241,8 @@ export class ApplicationRepository implements IApplicationRepository {
 
       await this.persistApprovals(tx, application);
 
+      await this.persistDocuments(tx, application);
+
       return await this.completeApplication(tx, application, personId);
     });
   }
@@ -527,7 +529,83 @@ export class ApplicationRepository implements IApplicationRepository {
     tx: Prisma.TransactionClient,
     application: Prisma.MembershipApplicationGetPayload<Record<string, never>>,
   ): Promise<void> {
-    // TODO Sprint 7
+    if (!application.draftData) {
+      return;
+    }
+
+    const draft = application.draftData as unknown as ApplicationDraft;
+
+    // 1. Limpiamos documentos previos por si acaso
+    await tx.applicationDocument.deleteMany({
+      where: {
+        applicationId: application.id,
+      },
+    });
+
+    // 2. Guardar el Documento de Identidad (DNI/CE/Pasaporte)
+    const identityDoc = draft.personalInformation?.identityDocument as any;
+    if (identityDoc && identityDoc.url) {
+      await tx.applicationDocument.create({
+        data: {
+          applicationId: application.id,
+          category: "ID_DOCUMENT", // Categoría exacta de tu Enum
+          fileUrl: identityDoc.url,
+          fileName:
+            identityDoc.name ||
+            `Documento_Identidad_${draft.personalInformation?.documentNumber}`,
+          mimeType: identityDoc.type || "application/pdf",
+          sizeBytes: BigInt(0), // Requerido por tu schema (BigInt)
+        },
+      });
+    }
+
+    // 3. Guardar la Foto (La guardamos como OTHER, ya que no hay categoría PHOTO en tu enum)
+    const photoDoc = draft.personalInformation?.photo as any;
+    if (photoDoc && photoDoc.url) {
+      await tx.applicationDocument.create({
+        data: {
+          applicationId: application.id,
+          category: "OTHER",
+          fileUrl: photoDoc.url,
+          fileName:
+            photoDoc.name ||
+            `Foto_${draft.personalInformation?.documentNumber}`,
+          mimeType: photoDoc.type || "image/jpeg",
+          sizeBytes: BigInt(0),
+        },
+      });
+    }
+
+    // 4. Guardar la Declaración Jurada Firmada
+    const declarationUrl = draft.endorsements?.declarationDocumentId;
+    if (declarationUrl) {
+      await tx.applicationDocument.create({
+        data: {
+          applicationId: application.id,
+          category: "SWORN_DECLARATION", // Categoría exacta de tu Enum
+          fileUrl: declarationUrl,
+          fileName: "Declaracion_Jurada_Firmada.pdf",
+          mimeType: "application/pdf",
+          sizeBytes: BigInt(0),
+        },
+      });
+    }
+
+    // 5. Guardar Constancia de Estudiante (si existe)
+    const universityLetter = draft.academicStudies?.[0]
+      ?.universityLetter as any;
+    if (universityLetter && universityLetter.url) {
+      await tx.applicationDocument.create({
+        data: {
+          applicationId: application.id,
+          category: "OTHER", // U otra categoría si tienes una específica para constancias
+          fileUrl: universityLetter.url,
+          fileName: universityLetter.name || "Constancia_Estudios.pdf",
+          mimeType: universityLetter.type || "application/pdf",
+          sizeBytes: BigInt(0),
+        },
+      });
+    }
   }
 
   private async completeApplication(

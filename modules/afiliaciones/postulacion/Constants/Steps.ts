@@ -4,6 +4,8 @@ import {
     Briefcase,
     ShieldCheck,
     CheckCircle2,
+    FileSignature,
+    Users
 } from "lucide-react";
 
 import { MembershipType } from "../Types/MembershipType";
@@ -14,7 +16,7 @@ export const APPLICATION_STEPS: Record<
     ApplicationStep[]
 > = {
 
-    [MembershipType.ASSOCIATE]: [
+    [MembershipType.ACTIVE]: [
 
         {
             id: 1,
@@ -41,15 +43,22 @@ export const APPLICATION_STEPS: Record<
             id: 4,
             title: "AVALES Y TÉRMINOS",
             path: "endorsements",
-            icon: ShieldCheck,
+            icon: Users,
         },
 
         {
             id: 5,
-            title: "FINALIZACIÓN",
-            path: "finish",
-            icon: CheckCircle2,
+            title: "DECLARACIÓN JURADA",
+            path: "declaration",
+            icon: FileSignature, // <-- Nuevo paso 5
         },
+
+        // {
+        //     id: 6,
+        //     title: "FINALIZACIÓN",
+        //     path: "finish",
+        //     icon: CheckCircle2,
+        // },
 
     ],
 
@@ -69,12 +78,12 @@ export const APPLICATION_STEPS: Record<
             icon: GraduationCap,
         },
 
-        {
-            id: 3,
-            title: "FINALIZACIÓN",
-            path: "finish",
-            icon: CheckCircle2,
-        },
+        // {
+        //     id: 3,
+        //     title: "FINALIZACIÓN",
+        //     path: "finish",
+        //     icon: CheckCircle2,
+        // },
 
     ],
 

@@ -5,6 +5,7 @@ import { PersonalInformationValidator } from "./PersonalInformationValidator";
 import { ValidationResult } from "./ValidationResult";
 import { EmploymentInformationValidator } from "./EmploymentInformationValidator";
 import { EndorsementsValidator } from "./EndorsementsValidator";
+import { MembershipType } from "../Types/MembershipType";
 
 export class ApplicationValidator extends BaseValidator {
   private readonly personalValidator = new PersonalInformationValidator();
@@ -22,9 +23,12 @@ export class ApplicationValidator extends BaseValidator {
 
     this.validateAcademicStudies(draft);
 
-    this.validateEmploymentInformation(draft);
-
-    this.validateEndorsements(draft);
+    // 👇 SOLUCIÓN: Solo validamos Empleo y Avales si es ASOCIADO ACTIVO
+    if (draft.membershipType === MembershipType.ACTIVE) {
+      this.validateEmploymentInformation(draft);
+      
+      this.validateEndorsements(draft);
+    }
 
     return this.getResult();
   }

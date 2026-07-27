@@ -108,7 +108,7 @@ export function LoginForm() {
               Recordarme
             </span>
           </label>
-          <Link href="/recuperar-password" className="text-sm font-bold text-primary hover:text-primary/80 transition-colors">
+          <Link href="/forgot-password" className="text-sm font-bold text-primary hover:text-primary/80 transition-colors">
             ¿Olvidaste tu contraseña?
           </Link>
         </div>
@@ -116,9 +116,10 @@ export function LoginForm() {
         {/* Botón Ingresar */}
         <div className="pt-2">
           <button
+           
             type="submit"
             disabled={isLoading}
-            className="w-full h-12 rounded-xl text-on-primary bg-primary font-bold text-sm tracking-wide hover:brightness-90 transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-primary/20 disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full h-12 rounded-xl text-on-primary bg-primary font-bold text-sm tracking-wide hover:brightness-90 transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-primary/20 disabled:opacity-70 disabled:cursor-not-allowed  cursor-pointer"
           >
             {isLoading ? (
               <span className="flex items-center gap-2">

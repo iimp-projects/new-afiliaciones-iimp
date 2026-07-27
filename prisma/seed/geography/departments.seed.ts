@@ -1,45 +1,45 @@
-// prisma/seed/catalogs/departments.seed.ts
 import { prisma } from '@/lib/prisma';
-import { seedLogger, SEED_CONSTANTS } from '@/lib/seed';
+import { seedLogger } from '@/lib/seed';
+import { departmentsData } from './data/departaments.data'; // Asegúrate de que el nombre del archivo coincida con tu proyecto
 
 export const seedDepartments = async (): Promise<void> => {
   seedLogger.info('  -> Ejecutando upsert de Departamentos...');
 
-  // 1. Obtener la referencia segura (Dependencia)
-  const peru = await prisma.country.findUnique({
-    where: { isoCode: SEED_CONSTANTS.COUNTRIES.PERU.isoCode },
+  // 1. Obtenemos TODOS los países en una sola consulta para armar un mapa en memoria O(1)
+  const countries = await prisma.country.findMany({
+    select: { id: true, isoCode: true }
   });
 
-  if (!peru) {
-    seedLogger.warn('     ⚠️ País Perú no encontrado. Abortando seed de Departamentos.');
-    return;
-  }
+  const countryMap = new Map(countries.map(c => [c.isoCode, c.id]));
 
-  // 2. Data inicial basada en códigos Ubigeo reales
-  const departments = [
-    { ubigeoCode: '150000', name: 'Lima' },
-    { ubigeoCode: '040000', name: 'Arequipa' },
-    { ubigeoCode: '080000', name: 'Cusco' },
-    { ubigeoCode: '130000', name: 'La Libertad' },
-    { ubigeoCode: '200000', name: 'Piura' },
-    { ubigeoCode: '070000', name: 'Callao' },
-  ];
+  let processedCount = 0;
 
-  for (const dept of departments) {
+  for (const dept of departmentsData) {
+    // 2. Resolvemos el countryId usando el ISO estandarizado
+    const countryId = countryMap.get(dept.countryIso);
+
+    if (!countryId) {
+      seedLogger.warn(`      ⚠️ País no encontrado para ISO: ${dept.countryIso}. Saltando departamento: ${dept.name}.`);
+      continue;
+    }
+
+    // 3. Upsert idempotente y seguro
     await prisma.department.upsert({
       where: { ubigeoCode: dept.ubigeoCode },
-      update: {
-        name: dept.name,
-        countryId: peru.id, // Forzamos que siempre mantenga la relación correcta
+      update: { 
+        name: dept.name, 
+        countryId: countryId 
       },
-      create: {
-        ubigeoCode: dept.ubigeoCode,
-        name: dept.name,
-        countryId: peru.id,
-        isActive: true,
+      create: { 
+        ubigeoCode: dept.ubigeoCode, 
+        name: dept.name, 
+        countryId: countryId, 
+        isActive: true 
       },
     });
+
+    processedCount++;
   }
 
-  seedLogger.success(`  -> ${departments.length} departamentos procesados correctamente.`);
+  seedLogger.success(`  -> ${processedCount} departamentos procesados correctamente en múltiples países.`);
 };

@@ -1,31 +1,34 @@
 import { prisma } from '@/lib/prisma';
 import { seedLogger } from '@/lib/seed';
+import { districtsData } from './data/districts.data';
 
 export const seedDistricts = async (): Promise<void> => {
-  seedLogger.info('  -> Ejecutando upsert de Distritos...');
+  seedLogger.info('  -> Ejecutando upsert de Distritos / Comunas / Nivel 3...');
 
-  // Referencia segura: Provincia de Lima
-  const limaProv = await prisma.province.findUnique({ where: { ubigeoCode: '150100' } });
+  // 1. Mapa O(1) de todas las Provincias
+  const provinces = await prisma.province.findMany({
+    select: { id: true, ubigeoCode: true }
+  });
+  const provMap = new Map(provinces.map(p => [p.ubigeoCode, p.id]));
 
-  if (!limaProv) {
-    seedLogger.warn('     ⚠️ Provincia de Lima no encontrada. Abortando seed de Distritos.');
-    return;
-  }
+  let processedCount = 0;
 
-  const districts = [
-    { ubigeoCode: '150101', name: 'Lima' },
-    { ubigeoCode: '150122', name: 'Miraflores' },
-    { ubigeoCode: '150131', name: 'San Isidro' },
-    { ubigeoCode: '150140', name: 'Santiago de Surco' },
-  ];
+  for (const dist of districtsData) {
+    const provinceId = provMap.get(dist.provinceUbigeo);
 
-  for (const dist of districts) {
+    if (!provinceId) {
+      seedLogger.warn(`      ⚠️ Provincia no encontrada para Ubigeo: ${dist.provinceUbigeo}. Saltando: ${dist.name}.`);
+      continue;
+    }
+
     await prisma.district.upsert({
       where: { ubigeoCode: dist.ubigeoCode },
-      update: { name: dist.name, provinceId: limaProv.id },
-      create: { ubigeoCode: dist.ubigeoCode, name: dist.name, provinceId: limaProv.id },
+      update: { name: dist.name, provinceId: provinceId },
+      create: { ubigeoCode: dist.ubigeoCode, name: dist.name, provinceId: provinceId, isActive: true },
     });
+
+    processedCount++;
   }
 
-  seedLogger.success(`  -> ${districts.length} distritos procesados correctamente.`);
+  seedLogger.success(`  -> ${processedCount} distritos (Nivel 3) procesados correctamente.`);
 };

@@ -3,7 +3,7 @@ export enum MembershipType {
     /**
      * Asociado Activo
      */
-    ASSOCIATE = "ASSOCIATE",
+    ACTIVE = "ACTIVE",
 
     /**
      * Asociado Estudiante

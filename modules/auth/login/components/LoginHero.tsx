@@ -49,18 +49,19 @@ export function LoginHero() {
 
         {/* Botones */}
         <div className="flex gap-4 mb-8">
-          <button className="flex items-center gap-2 bg-surface text-primary px-6 h-12 rounded-xl font-bold hover:bg-surface-container-highest transition-colors shadow-sm">
+          <a href="/postulacion" className="flex items-center gap-2 bg-surface text-primary px-6 h-12 rounded-xl font-bold hover:bg-surface-container-highest transition-colors shadow-sm">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
             </svg>
+
             Iniciar Afiliación
-          </button>
-          <button className="flex items-center gap-2 border-2 border-white/30 text-white px-6 h-12 rounded-xl font-bold hover:bg-white/10 transition-colors">
+          </a>
+          <a  href="#" className="flex items-center gap-2 border-2 border-white/30 text-white px-6 h-12 rounded-xl font-bold hover:bg-white/10 transition-colors">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
             </svg>
             Consultar Estado
-          </button>
+          </a>
         </div>
 
         <div className="mt-8">

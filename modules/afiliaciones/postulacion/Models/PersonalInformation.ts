@@ -1,3 +1,10 @@
+export interface UploadedFile {
+    url: string;
+    name: string;
+    type: string;
+}
+
+
 export interface PersonalInformation {
 
     /**
