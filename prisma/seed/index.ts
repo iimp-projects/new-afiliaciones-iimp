@@ -21,3 +21,5 @@ export { seedSpecialties } from './education/specialties.seed';
 // export { seedDemoUsers } from './development/demo-users.seed';
 // export { seedDemoApplications } from './development/demo-applications.seed';
 // export { seedDemoPayments } from './development/demo-payments.seed';
+
+export * from './benefits/benefits';

@@ -13,8 +13,9 @@ export default auth((req) => {
     "/login",
     "/forgot-password",
     "/reset-password",
-   "/postulacion",
-   "/afiliaciones"
+    "/postulacion",
+    "/afiliaciones",
+    "/beneficios"
   ];
 
   const isPublicRoute = publicRoutes.some((route) =>

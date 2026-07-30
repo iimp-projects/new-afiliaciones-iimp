@@ -12,6 +12,7 @@ import {
   ChevronDown,
   FileText,
 } from "lucide-react";
+import ExclusiveBenefits from "@/components/ui/ExclusiveBenefits";
 
 export default function PostulacionLandingPage() {
   // Función para hacer scroll suave a los planes
@@ -89,7 +90,7 @@ export default function PostulacionLandingPage() {
 
       {/* =========================================
         2. BENEFICIOS PREMIUM (Showcase Tecnológico)
-      ========================================= */}
+      ========================================= */}   
       <section className="py-24 px-6 lg:px-12 bg-[#F8F9FA] relative z-20 overflow-hidden">
         {/* Decoraciones de fondo (Tech Vibe) */}
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
@@ -113,10 +114,12 @@ export default function PostulacionLandingPage() {
             </p>
           </div>
 
-          {/* FEATURE 1: El Video Cinemático (Sin recortes, formato panorámico) */}
-          <div className="w-full bg-white rounded-[32px] border border-gray-200 shadow-xl overflow-hidden mb-10 flex flex-col xl:flex-row group hover:shadow-2xl hover:border-primary/40 transition-all duration-500">
-            
-            {/* Contenedor del Video (Proporción perfecta 16:9) */}
+          {/* FEATURE 1: El Video Cinemático (Convertido en Link) */}
+          <Link 
+            href="/beneficios/networking-alto-nivel"
+            className="w-full bg-white rounded-[32px] border border-gray-200 shadow-xl overflow-hidden mb-10 flex flex-col xl:flex-row group hover:shadow-2xl hover:border-primary/40 transition-all duration-500 cursor-pointer block"
+          >
+            {/* Contenedor del Video */}
             <div className="w-full xl:w-[60%] bg-black relative aspect-video xl:aspect-auto">
               <video
                 autoPlay
@@ -125,12 +128,8 @@ export default function PostulacionLandingPage() {
                 playsInline
                 className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-700"
               >
-                {/* Ruta de tu video local */}
                 <source src="/videos/jueves_minero.mp4" type="video/mp4" />
-                Tu navegador no soporta videos.
               </video>
-              
-              {/* Overlay y Botón Play visual */}
               <div className="absolute inset-0 bg-gradient-to-t xl:bg-gradient-to-r from-black/80 via-black/20 to-transparent"></div>
               <div className="absolute bottom-8 left-8 xl:bottom-12 xl:left-12 flex items-center gap-4">
                 <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center text-white shadow-[0_0_30px_rgba(197,160,89,0.8)] animate-pulse">
@@ -143,77 +142,83 @@ export default function PostulacionLandingPage() {
               </div>
             </div>
 
-            {/* Contenido Descriptivo del Video */}
+            {/* Contenido Descriptivo */}
             <div className="w-full xl:w-[40%] p-8 lg:p-12 flex flex-col justify-center bg-white">
               <div className="w-16 h-16 rounded-2xl bg-[#D6A84A]/10 text-[#D6A84A] flex items-center justify-center mb-6">
                 <Coffee size={32} strokeWidth={1.5} />
               </div>
               <h3 className="text-3xl font-extrabold text-[#1E293B] mb-4">Networking de Alto Nivel</h3>
               <p className="text-lg text-slate-500 leading-relaxed mb-8">
-                Construye relaciones que transforman carreras. Disfruta de participación preferencial en los <strong className="text-[#1E293B]">Jueves Mineros presenciales</strong>, y accede junto a tus invitados al exclusivo Restobar Minero y Salas VIP en nuestra sede.
+                Construye relaciones que transforman carreras. Disfruta de participación preferencial en los <strong className="text-[#1E293B]">Jueves Mineros presenciales</strong>, y accede junto a tus invitados al exclusivo Restobar Minero.
               </p>
-              <ul className="space-y-4">
-                <li className="flex items-center gap-3 text-sm font-bold text-slate-700">
-                  <CheckCircle2 className="text-[#D6A84A] w-6 h-6 shrink-0"/> Intercambio de ideas con expertos
-                </li>
-                <li className="flex items-center gap-3 text-sm font-bold text-slate-700">
-                  <CheckCircle2 className="text-[#D6A84A] w-6 h-6 shrink-0"/> Ambientes de negocios exclusivos
-                </li>
-              </ul>
+              <span className="inline-flex items-center gap-2 text-sm font-bold text-[#D6A84A] group-hover:gap-3 transition-all">
+                Ver detalles de Networking <ArrowRight size={16} />
+              </span>
             </div>
-          </div>
+          </Link>
 
-          {/* GRID INFERIOR (3 Tarjetas de alto nivel y muy descriptivas) */}
+          {/* GRID INFERIOR (3 Tarjetas envueltas en Link) */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             
             {/* Tarjeta OneMine */}
-            <div className="bg-white p-8 lg:p-10 rounded-[32px] border border-gray-200 shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 relative overflow-hidden group">
+            <Link 
+              href="/beneficios/onemine-global"
+              className="bg-white p-8 lg:p-10 rounded-[32px] border border-gray-200 shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 relative overflow-hidden group block"
+            >
               <div className="absolute top-0 right-0 w-40 h-40 bg-[#D6A84A]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-[#D6A84A]/20 transition-colors"></div>
               <div className="w-16 h-16 rounded-2xl bg-[#F8F9FA] border border-gray-100 text-[#D6A84A] flex items-center justify-center mb-8 shadow-sm group-hover:scale-110 transition-transform">
                 <BookOpen size={32} strokeWidth={1.5} />
               </div>
               <h3 className="text-2xl font-black text-[#1E293B] mb-4">OneMine Global</h3>
               <p className="text-slate-500 leading-relaxed mb-6 font-medium">
-                Accede sin límites a la biblioteca virtual minera más grande del mundo. Más de <strong className="text-[#D6A84A]">120,000 publicaciones técnicas</strong> de la industria a tu entera disposición.
+                Accede sin límites a la biblioteca virtual minera más grande del mundo. Más de <strong className="text-[#D6A84A]">120,000 publicaciones técnicas</strong>.
               </p>
               <span className="inline-flex items-center gap-2 text-sm font-bold text-[#D6A84A] group-hover:gap-3 transition-all">
                 Conocimiento ilimitado <ArrowRight size={16} />
               </span>
-            </div>
+            </Link>
 
             {/* Tarjeta Eventos */}
-            <div className="bg-white p-8 lg:p-10 rounded-[32px] border border-gray-200 shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 relative overflow-hidden group">
+            <Link 
+              href="/beneficios/eventos-top"
+              className="bg-white p-8 lg:p-10 rounded-[32px] border border-gray-200 shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 relative overflow-hidden group block"
+            >
               <div className="absolute top-0 right-0 w-40 h-40 bg-[#8C6215]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-[#8C6215]/20 transition-colors"></div>
               <div className="w-16 h-16 rounded-2xl bg-[#F8F9FA] border border-gray-100 text-[#8C6215] flex items-center justify-center mb-8 shadow-sm group-hover:scale-110 transition-transform">
                 <Ticket size={32} strokeWidth={1.5} />
               </div>
               <h3 className="text-2xl font-black text-[#1E293B] mb-4">Eventos Top</h3>
               <p className="text-slate-500 leading-relaxed mb-6 font-medium">
-                Tarifas preferenciales que amortizan tu membresía al instante. Descuentos significativos en tu inscripción a <strong className="text-[#8C6215]">PERUMIN y proEXPLO</strong>.
+                Tarifas preferenciales que amortizan tu membresía al instante. Descuentos significativos en <strong className="text-[#8C6215]">PERUMIN y proEXPLO</strong>.
               </p>
               <span className="inline-flex items-center gap-2 text-sm font-bold text-[#8C6215] group-hover:gap-3 transition-all">
                 Descubre los eventos <ArrowRight size={16} />
               </span>
-            </div>
+            </Link>
 
             {/* Tarjeta Desarrollo / Mentoring */}
-            <div className="bg-white p-8 lg:p-10 rounded-[32px] border border-gray-200 shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 relative overflow-hidden group">
+            <Link 
+              href="/beneficios/desarrollo-profesional"
+              className="bg-white p-8 lg:p-10 rounded-[32px] border border-gray-200 shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 relative overflow-hidden group block"
+            >
               <div className="absolute top-0 right-0 w-40 h-40 bg-[#2F3136]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-[#2F3136]/20 transition-colors"></div>
               <div className="w-16 h-16 rounded-2xl bg-[#F8F9FA] border border-gray-100 text-[#2F3136] flex items-center justify-center mb-8 shadow-sm group-hover:scale-110 transition-transform">
                 <Award size={32} strokeWidth={1.5} />
               </div>
               <h3 className="text-2xl font-black text-[#1E293B] mb-4">Desarrollo Profesional</h3>
               <p className="text-slate-500 leading-relaxed mb-6 font-medium">
-                Descuentos en cursos especializados, envío mensual de la Revista Minería y oportunidad de participar como mentor en el programa <strong className="text-[#2F3136]">Mentoring</strong>.
+                Descuentos en cursos especializados, envío mensual de la Revista Minería y programas de <strong className="text-[#2F3136]">Mentoring</strong>.
               </p>
               <span className="inline-flex items-center gap-2 text-sm font-bold text-[#2F3136] group-hover:gap-3 transition-all">
                 Impulsa tu perfil <ArrowRight size={16} />
               </span>
-            </div>
+            </Link>
 
           </div>
         </div>
       </section>
+
+    
 
       {/* =========================================
                 3. PRUEBA SOCIAL (Testimonios y Stats)
