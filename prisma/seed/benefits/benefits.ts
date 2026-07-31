@@ -13,12 +13,12 @@ export async function seedBenefits() {
       isActive: true, // <--- Agregado
     },
     {
-      slug: 'onemine-global',
-      title: 'OneMine Global',
-      description: 'Acceso ilimitado a la biblioteca virtual de ingeniería minera más grande del mundo.',
-      iconName: 'Globe',
+      slug: 'recursos-digitales',
+      title: 'Recursos Digitales',
+      description: 'Acceso ilimitado a OneMine, publicaciones técnicas, la Revista Minería y la biblioteca IIMP.',
+      iconName: 'BookOpen',
       badgeText: 'ACCESO VIP',
-      redirectUrl: '/beneficios/onemine-global',
+      redirectUrl: '/beneficios/recursos-digitales',
       order: 2,
       isActive: true, // <--- Agregado
     },

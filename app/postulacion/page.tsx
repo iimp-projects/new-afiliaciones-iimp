@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react"
 import Link from "next/link";
 import {
   ArrowRight,
@@ -12,9 +13,21 @@ import {
   ChevronDown,
   FileText,
 } from "lucide-react";
-import ExclusiveBenefits from "@/components/ui/ExclusiveBenefits";
+import ExclusiveBenefits from "@/components/ui/ExclusiveBenefits"; // Ajusta la ruta según tu carpeta
 
 export default function PostulacionLandingPage() {
+  // Manejar el scroll si vienen desde otra página con el hash #planes-afiliacion
+  useEffect(() => {
+    if (window.location.hash === "#planes-afiliacion") {
+      const element = document.getElementById("planes-afiliacion");
+      if (element) {
+        // Pequeño timeout para esperar que Next.js renderice completamente el DOM
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: "smooth" });
+        }, 100);
+      }
+    }
+  }, []);
   // Función para hacer scroll suave a los planes
   const scrollToPlanes = () => {
     document
@@ -160,21 +173,21 @@ export default function PostulacionLandingPage() {
           {/* GRID INFERIOR (3 Tarjetas envueltas en Link) */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             
-            {/* Tarjeta OneMine */}
+            {/* Tarjeta Recursos Digitales */}
             <Link 
-              href="/beneficios/onemine-global"
+              href="/beneficios/recursos-digitales"
               className="bg-white p-8 lg:p-10 rounded-[32px] border border-gray-200 shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 relative overflow-hidden group block"
             >
               <div className="absolute top-0 right-0 w-40 h-40 bg-[#D6A84A]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-[#D6A84A]/20 transition-colors"></div>
               <div className="w-16 h-16 rounded-2xl bg-[#F8F9FA] border border-gray-100 text-[#D6A84A] flex items-center justify-center mb-8 shadow-sm group-hover:scale-110 transition-transform">
                 <BookOpen size={32} strokeWidth={1.5} />
               </div>
-              <h3 className="text-2xl font-black text-[#1E293B] mb-4">OneMine Global</h3>
+              <h3 className="text-2xl font-black text-[#1E293B] mb-4">Recursos Digitales</h3>
               <p className="text-slate-500 leading-relaxed mb-6 font-medium">
-                Accede sin límites a la biblioteca virtual minera más grande del mundo. Más de <strong className="text-[#D6A84A]">120,000 publicaciones técnicas</strong>.
+                Acceso ilimitado a OneMine, publicaciones técnicas, la Revista Minería y la biblioteca IIMP. Más de <strong className="text-[#D6A84A]">150,000 publicaciones técnicas</strong>.
               </p>
               <span className="inline-flex items-center gap-2 text-sm font-bold text-[#D6A84A] group-hover:gap-3 transition-all">
-                Conocimiento ilimitado <ArrowRight size={16} />
+                Explorar recursos <ArrowRight size={16} />
               </span>
             </Link>
 
@@ -207,7 +220,7 @@ export default function PostulacionLandingPage() {
               </div>
               <h3 className="text-2xl font-black text-[#1E293B] mb-4">Desarrollo Profesional</h3>
               <p className="text-slate-500 leading-relaxed mb-6 font-medium">
-                Descuentos en cursos especializados, envío mensual de la Revista Minería y programas de <strong className="text-[#2F3136]">Mentoring</strong>.
+                Descuentos en cursos especializados, acceso al programa Cantera de Talentos y programas de <strong className="text-[#2F3136]">Mentoring</strong>.
               </p>
               <span className="inline-flex items-center gap-2 text-sm font-bold text-[#2F3136] group-hover:gap-3 transition-all">
                 Impulsa tu perfil <ArrowRight size={16} />
@@ -221,193 +234,167 @@ export default function PostulacionLandingPage() {
     
 
       {/* =========================================
-                3. PRUEBA SOCIAL (Testimonios y Stats)
-            ========================================= */}
-      <section className="py-24 bg-surface relative overflow-hidden border-y border-outline-variant">
-        {/* Decoración de fondo sutil */}
-        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
+          3. PRUEBA SOCIAL (Testimonios y Stats)
+      ========================================= */}
+      <section className="py-24 bg-[#F4F5F7] relative overflow-hidden border-y border-gray-200">
+        {/* Glow sutil con Primary */}
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#C39254]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
 
         <div className="max-w-[1280px] mx-auto px-6 lg:px-12 relative z-10">
-          {/* Header y Stats Integrados */}
-          <div className="flex flex-col md:flex-row items-center justify-between gap-10 mb-16">
+          
+          {/* Header y Stats */}
+          <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-16">
             <div className="max-w-xl text-center md:text-left">
-              <h2 className="text-3xl md:text-4xl font-extrabold text-on-surface mb-4">
-                Respaldados por la <span className="text-primary">industria</span>
+              <span className="text-xs font-black uppercase tracking-widest text-[#C39254] mb-2 block">
+                Comunidad IIMP
+              </span>
+              <h2 className="text-3xl md:text-4xl font-extrabold text-[#3E3E3D] tracking-tight mb-3">
+                Respaldados por la <span className="text-[#C39254]">industria minera</span>
               </h2>
-              <p className="text-lg text-secondary">
-                Únete a la red de profesionales mineros más influyente de la
-                región. El éxito de nuestros asociados es nuestra mejor
-                garantía.
+              <p className="text-base text-gray-600 font-medium">
+                Únete a la red de profesionales y estudiantes más influyente de la región.
               </p>
             </div>
 
-            <div className="flex items-center gap-8 bg-surface-container-lowest px-8 py-5 rounded-2xl border border-secondary/10 shadow-sm">
+            {/* Stats integrados */}
+            <div className="flex items-center gap-8 bg-white px-8 py-4 rounded-2xl border border-gray-200 shadow-sm">
               <div className="flex flex-col text-center md:text-left">
-                <span className="text-3xl font-black text-on-surface">+10K</span>
-                <span className="text-xs font-bold text-secondary uppercase tracking-wider">
-                  Asociados
+                <span className="text-3xl font-black text-[#3E3E3D]">+5,000</span>
+                <span className="text-[11px] font-bold text-[#C39254] uppercase tracking-wider">
+                  Asociados Activos
                 </span>
               </div>
-              <div className="w-px h-12 bg-outline-variant"></div>
+              <div className="w-px h-10 bg-gray-200"></div>
               <div className="flex flex-col text-center md:text-left">
-                <span className="text-3xl font-black text-on-surface">80K+</span>
-                <span className="text-xs font-bold text-secondary uppercase tracking-wider">
-                  Lectores
+                <span className="text-3xl font-black text-[#3E3E3D]">10K+</span>
+                <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+                  Lectores Revista
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Grid de Testimonios Estilo Card-in-Card */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Grid de Testimonios Estilo Ejecutivo */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
             
-            {/* Testimonio 1: Enfoque Senior / OneMine */}
-            <div className="bg-surface-container-lowest p-6 rounded-3xl border border-secondary/10 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.05)] hover:-translate-y-1 transition-transform flex flex-col">
-              
-              {/* Avatares apilados estilo "Accede a cursos..." */}
-              <div className="flex items-center gap-4 mb-8 bg-surface p-3 rounded-2xl border border-secondary/5">
-                <div className="flex -space-x-2 shrink-0">
-                  <img src="https://randomuser.me/api/portraits/women/12.jpg" className="w-8 h-8 rounded-full border-2 border-surface object-cover" alt="User"/>
-                  <img src="https://randomuser.me/api/portraits/men/22.jpg" className="w-8 h-8 rounded-full border-2 border-surface object-cover" alt="User"/>
-                  <div className="w-8 h-8 rounded-full border-2 border-surface bg-[#f3bd7a]/20 text-[#c39254] flex items-center justify-center text-[10px] font-bold">+10k</div>
+            {/* Testimonio 1: Geólogo / Senior */}
+            <div className="bg-white p-8 rounded-3xl border border-gray-200/80 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+              <div>
+                {/* Rating + Badge */}
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex text-[#C39254]">
+                    {[...Array(5)].map((_, i) => (
+                      <svg key={i} className="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    ))}
+                  </div>
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#C39254] bg-[#C39254]/10 px-3 py-1 rounded-full">
+                    Asociado Senior
+                  </span>
                 </div>
-                <p className="text-xs text-secondary font-medium leading-snug">
-                  Únete a Carlos y a más de <strong className="text-on-surface">10,000 profesionales</strong>
+
+                <p className="text-[#3E3E3D] font-medium leading-relaxed italic text-sm mb-8">
+                  "El acceso a OneMine y a las ponencias de los Jueves Mineros le da un valor altísimo a la membresía. Es la mejor plataforma para mantenerte actualizado con estándares globales."
                 </p>
               </div>
 
-              {/* Contenedor Anidado (Borde interno) */}
-              <div className="relative border-2 border-outline-variant/50 rounded-2xl p-6 pt-8 mt-2 flex-grow flex flex-col bg-surface/50">
-                
-                {/* Badge superpuesto en el borde superior */}
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-surface border-2 border-outline-variant/50 text-secondary text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full whitespace-nowrap shadow-sm">
-                  Geólogo Senior
+              {/* User Info */}
+              <div className="flex items-center gap-4 pt-4 border-t border-gray-100">
+                <img
+                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150"
+                  alt="Ing. Carlos Mendoza"
+                  className="w-12 h-12 rounded-full object-cover border-2 border-[#C39254]"
+                />
+                <div>
+                  <h4 className="font-extrabold text-[#3E3E3D] text-sm">
+                    Ing. Carlos Mendoza
+                  </h4>
+                  <p className="text-xs text-gray-500 font-medium">
+                    Geólogo Principal • Las Bambas
+                  </p>
                 </div>
-
-                <div className="flex items-center gap-4 mb-5">
-                  <img
-                    src="https://randomuser.me/api/portraits/men/32.jpg"
-                    alt="Carlos Mendoza"
-                    className="w-14 h-14 rounded-xl object-cover border-2 border-primary/20 shadow-sm"
-                  />
-                  <div>
-                    <h4 className="font-extrabold text-on-surface text-lg leading-none mb-1.5">
-                      Carlos Mendoza
-                    </h4>
-                    <div className="flex text-[#f3bd7a]">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <svg key={star} className="w-4 h-4 fill-current" viewBox="0 0 20 20">
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <p className="text-on-surface-variant font-medium leading-relaxed italic text-sm">
-                  "Gracias al acceso ilimitado a OneMine, mi equipo redujo el tiempo de investigación a la mitad. Es una herramienta invaluable que justifica la membresía por sí sola."
-                </p>
               </div>
             </div>
 
-            {/* Testimonio 2: Tarjeta Invertida Premium */}
-            <div className="bg-primary p-6 rounded-3xl shadow-[0_20px_40px_-15px_rgba(127,86,30,0.3)] hover:-translate-y-1 transition-transform relative overflow-hidden flex flex-col">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
-              
-              {/* Avatares apilados */}
-              <div className="relative z-10 flex items-center gap-4 mb-8 bg-white/5 p-3 rounded-2xl border border-white/10 backdrop-blur-sm">
-                <div className="flex -space-x-2 shrink-0">
-                  <img src="https://randomuser.me/api/portraits/men/41.jpg" className="w-8 h-8 rounded-full border-2 border-primary object-cover" alt="User"/>
-                  <img src="https://randomuser.me/api/portraits/women/33.jpg" className="w-8 h-8 rounded-full border-2 border-primary object-cover" alt="User"/>
-                  <div className="w-8 h-8 rounded-full border-2 border-primary bg-white/20 text-white flex items-center justify-center text-[10px] font-bold">+1k</div>
+            {/* Testimonio 2: Tarjeta Destacada Primary (#C39254) */}
+            <div className="bg-[#C39254] text-white p-8 rounded-3xl shadow-xl shadow-[#C39254]/20 flex flex-col justify-between relative overflow-hidden transform md:-translate-y-2">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex text-white">
+                    {[...Array(5)].map((_, i) => (
+                      <svg key={i} className="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    ))}
+                  </div>
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-white bg-black/20 px-3 py-1 rounded-full border border-white/20">
+                    Líder Sectorial
+                  </span>
                 </div>
-                <p className="text-xs text-white/80 font-medium leading-snug">
-                  Red exclusiva de <strong className="text-white">líderes mineros</strong>
+
+                <p className="text-white/95 font-medium leading-relaxed italic text-sm mb-8">
+                  "El networking presencial en eventos como proEXPLO y PERUMIN me permitió conectar directamente con tomadores de decisión y potenciar proyectos tecnológicos clave."
                 </p>
               </div>
 
-              {/* Contenedor Anidado (Borde interno) */}
-              <div className="relative z-10 border-2 border-white/20 rounded-2xl p-6 pt-8 mt-2 flex-grow flex flex-col bg-black/10 backdrop-blur-sm">
-                
-                {/* Badge superpuesto en el borde superior */}
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-primary border-2 border-white/20 text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full whitespace-nowrap shadow-md">
-                  Desarrollador de Software
+              <div className="flex items-center gap-4 pt-4 border-t border-white/20 relative z-10">
+                <img
+                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150"
+                  alt="Ing. John Morón"
+                  className="w-12 h-12 rounded-full object-cover border-2 border-white/40"
+                />
+                <div>
+                  <h4 className="font-extrabold text-white text-sm">
+                    Ing. John Morón
+                  </h4>
+                  <p className="text-xs text-white/80 font-medium">
+                    Especialista en Innovación Mining
+                  </p>
                 </div>
-
-                <div className="flex items-center gap-4 mb-5">
-                  <img
-                    src="https://randomuser.me/api/portraits/men/46.jpg"
-                    alt="John Moron"
-                    className="w-14 h-14 rounded-xl object-cover border-2 border-white/30 shadow-sm"
-                  />
-                  <div>
-                    <h4 className="font-extrabold text-white text-lg leading-none mb-1.5">
-                      John Moron
-                    </h4>
-                    <div className="flex text-[#f3bd7a]">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <svg key={star} className="w-4 h-4 fill-current" viewBox="0 0 20 20">
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <p className="text-white/90 font-medium leading-relaxed italic text-sm">
-                  "El networking digital y presencial que logré a través del IIMP me permitió conectar con líderes de la industria y potenciar proyectos tecnológicos críticos para eventos como proEXPLO."
-                </p>
               </div>
             </div>
 
-            {/* Testimonio 3: Enfoque Estudiantes */}
-            <div className="bg-surface-container-lowest p-6 rounded-3xl border border-secondary/10 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.05)] hover:-translate-y-1 transition-transform flex flex-col">
-              
-              {/* Avatares apilados */}
-              <div className="flex items-center gap-4 mb-8 bg-surface p-3 rounded-2xl border border-secondary/5">
-                <div className="flex -space-x-2 shrink-0">
-                  <img src="https://randomuser.me/api/portraits/women/62.jpg" className="w-8 h-8 rounded-full border-2 border-surface object-cover" alt="User"/>
-                  <img src="https://randomuser.me/api/portraits/men/55.jpg" className="w-8 h-8 rounded-full border-2 border-surface object-cover" alt="User"/>
-                  <div className="w-8 h-8 rounded-full border-2 border-surface bg-secondary/10 text-secondary flex items-center justify-center text-[10px] font-bold">+5k</div>
+            {/* Testimonio 3: Estudiante Pre-grado / Cantera */}
+            <div className="bg-white p-8 rounded-3xl border border-gray-200/80 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex text-[#C39254]">
+                    {[...Array(5)].map((_, i) => (
+                      <svg key={i} className="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    ))}
+                  </div>
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#3E3E3D] bg-gray-100 px-3 py-1 rounded-full">
+                    Estudiante / Mentoring
+                  </span>
                 </div>
-                <p className="text-xs text-secondary font-medium leading-snug">
-                  Comunidad de <strong className="text-on-surface">Jóvenes Estudiantes</strong>
+
+                <p className="text-[#3E3E3D] font-medium leading-relaxed italic text-sm mb-8">
+                  "El Programa Mentoring del IIMP fue decisivo para orientar mi carrera y conseguir mi primera práctica en mina. Además, las tarifas estudiantiles para conferencias valen totalmente la pena."
                 </p>
               </div>
 
-              {/* Contenedor Anidado */}
-              <div className="relative border-2 border-outline-variant/50 rounded-2xl p-6 pt-8 mt-2 flex-grow flex flex-col bg-surface/50">
-                
-                {/* Badge superpuesto en el borde superior */}
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-surface border-2 border-outline-variant/50 text-secondary text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full whitespace-nowrap shadow-sm">
-                  Estudiante Pre-grado
+              <div className="flex items-center gap-4 pt-4 border-t border-gray-100">
+                <img
+                  src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=150"
+                  alt="Valeria Torres"
+                  className="w-12 h-12 rounded-full object-cover border-2 border-gray-300"
+                />
+                <div>
+                  <h4 className="font-extrabold text-[#3E3E3D] text-sm">
+                    Valeria Torres
+                  </h4>
+                  <p className="text-xs text-gray-500 font-medium">
+                    Ingeniería de Minas • UNI
+                  </p>
                 </div>
-
-                <div className="flex items-center gap-4 mb-5">
-                  <img
-                    src="https://randomuser.me/api/portraits/women/44.jpg"
-                    alt="Valeria Torres"
-                    className="w-14 h-14 rounded-xl object-cover border-2 border-primary/20 shadow-sm"
-                  />
-                  <div>
-                    <h4 className="font-extrabold text-on-surface text-lg leading-none mb-1.5">
-                      Valeria Torres
-                    </h4>
-                    <div className="flex text-[#f3bd7a]">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <svg key={star} className="w-4 h-4 fill-current" viewBox="0 0 20 20">
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <p className="text-on-surface-variant font-medium leading-relaxed italic text-sm">
-                  "El Programa de Mentoring fue clave para conseguir mi primera pasantía. Además, el trato preferencial como estudiante en PERUMIN es una experiencia inigualable."
-                </p>
               </div>
             </div>
+
           </div>
         </div>
       </section>
