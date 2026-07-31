@@ -13,7 +13,7 @@ import {
   ChevronDown,
   FileText,
 } from "lucide-react";
-import ExclusiveBenefits from "@/components/ui/ExclusiveBenefits"; // Ajusta la ruta según tu carpeta
+
 
 export default function PostulacionLandingPage() {
   // Manejar el scroll si vienen desde otra página con el hash #planes-afiliacion

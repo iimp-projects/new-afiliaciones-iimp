@@ -10,7 +10,7 @@ export async function seedBenefits() {
       badgeText: 'MÁS POPULAR',
       redirectUrl: '/beneficios/networking-alto-nivel',
       order: 1,
-      isActive: true, // <--- Agregado
+      isActive: true, 
     },
     {
       slug: 'recursos-digitales',
@@ -20,7 +20,7 @@ export async function seedBenefits() {
       badgeText: 'ACCESO VIP',
       redirectUrl: '/beneficios/recursos-digitales',
       order: 2,
-      isActive: true, // <--- Agregado
+      isActive: true, 
     },
     {
       slug: 'eventos-top',
@@ -30,7 +30,7 @@ export async function seedBenefits() {
       badgeText: 'DESCUENTOS',
       redirectUrl: '/beneficios/eventos-top',
       order: 3,
-      isActive: true, // <--- Agregado
+      isActive: true, 
     },
     {
       slug: 'desarrollo-profesional',
@@ -40,7 +40,7 @@ export async function seedBenefits() {
       badgeText: 'CRECIMIENTO',
       redirectUrl: '/beneficios/desarrollo-profesional',
       order: 4,
-      isActive: true, // <--- Agregado
+      isActive: true, 
     },
   ];
 
