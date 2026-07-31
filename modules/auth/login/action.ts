@@ -25,7 +25,7 @@ export async function loginAction(
     await signIn("credentials", {
       email,
       password,
-      redirectTo: "/backoffice",
+      redirectTo: "/intranet",
     });
 
     return { success: true };
