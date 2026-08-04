@@ -7,16 +7,16 @@
   --color-surface-container-lowest: #ffffff;
   --color-on-surface: #1a1c1c;
   --color-on-surface-variant: #504539;
-  
+
   --color-primary: #7f561e; /* Dorado IIMP Principal */
   --color-on-primary: #ffffff;
   --color-primary-container: #c39254;
   --color-on-primary-container: #4a2d00;
-  
+
   --color-secondary: #5f5e5d; /* Gris IIMP */
   --color-on-secondary: #ffffff;
   --color-secondary-container: #e4e2e0;
-  
+
   --color-outline: #827568;
   --color-outline-variant: #d4c4b5;
 
@@ -24,7 +24,21 @@
   --animate-sweep: sweep 3.5s infinite;
 
   @keyframes sweep {
-    0% { transform: translateX(-150%) skewX(-15deg); }
-    100% { transform: translateX(300%) skewX(-15deg); }
+    0% {
+      transform: translateX(-150%) skewX(-15deg);
+    }
+    100% {
+      transform: translateX(300%) skewX(-15deg);
+    }
   }
+
+  @keyframes marquee {
+    0% {
+      transform: translateX(0%);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
 }

@@ -11,7 +11,7 @@ import {
   seedDistricts,
   seedUniversities,
   seedSpecialties,
-  // seedCompanies,
+  seedBenefits,  // seedCompanies,
   // seedConfiguration,
   // seedDemoUsers,
   // seedDemoApplications,
@@ -39,6 +39,7 @@ const main = async (): Promise<void> => {
     // await runSeed('Catalogs: Specialties', seedSpecialties);
     // await runSeed('Catalogs: Companies', seedCompanies);
     
+    await runSeed('Catalogs: Benefits', seedBenefits);
     // await runSeed('System: Configuration', seedConfiguration);
     
 

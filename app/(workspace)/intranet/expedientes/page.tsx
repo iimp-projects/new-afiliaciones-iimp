@@ -1,6 +1,6 @@
 import { contextService } from "@/modules/auth/context/service";
 import { ExpedientesWorkspace } from "@/modules/afiliaciones/expedientes/Views/ExpedientesWorkspace";
-
+import { ExpedientesMockupView } from "@/modules/afiliaciones/expedientes/Views/ExpedientesMockupView";
 export const metadata = {
     title: "Gestión de Expedientes | Intranet IIMP",
 };
@@ -11,7 +11,8 @@ export default async function ExpedientesPage() {
 
     return (
         <div className="h-full">
-            <ExpedientesWorkspace />
+            {/* <ExpedientesWorkspace /> */}
+            <ExpedientesMockupView />
         </div>
     );
 }

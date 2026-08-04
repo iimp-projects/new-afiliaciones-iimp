@@ -12,6 +12,7 @@ export { seedProvinces } from './geography/provinces.seed';
 export { seedDistricts } from './geography/districts.seed';
 export { seedUniversities } from './education/universities.seed';
 export { seedSpecialties } from './education/specialties.seed';
+export { seedBenefits } from './benefits/benefits.seed';
 // export { seedCompanies } from './geography/companies.seed';
 
 // // System

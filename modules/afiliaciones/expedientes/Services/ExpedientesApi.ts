@@ -1,21 +1,26 @@
-import type { ExpedienteDTO } from "../Entities/ExpedienteDTO";
+import type { SmartCaseCardData } from "@/modules/shared/Components/SmartCaseCard/types";
+
+export interface PaginatedExpedientesResponse {
+  success: boolean;
+  items: SmartCaseCardData[];
+  meta: {
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+  };
+}
 
 export class ExpedientesApi {
-    async getSubmittedApplications(): Promise<ExpedienteDTO[]> {
-        const response = await fetch("/api/afiliaciones/expedientes", {
-            method: "GET",
-            headers: { "Content-Type": "application/json" },
-            cache: "no-store",
-        });
+  async getWorkspaceCases(queryString: string): Promise<PaginatedExpedientesResponse> {
+    const response = await fetch(`/api/afiliaciones/expedientes?${queryString}`, {
+      method: "GET",
+      cache: "no-store", // Evitamos caché para traer la data en tiempo real
+    });
 
-        const result = await response.json();
-        
-        if (!response.ok || !result.success) {
-            throw new Error(result.message || "Error al cargar expedientes.");
-        }
-
-        return result.data;
-    }
+    if (!response.ok) throw new Error("Error al obtener expedientes");
+    return response.json();
+  }
 }
 
 export const expedientesApi = new ExpedientesApi();
