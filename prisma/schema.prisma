@@ -628,7 +628,7 @@ model University {
   code          String?        @unique @db.VarChar(50)
   name          String         @db.VarChar(250)
   countryId     Int            @map("country_id")
-  acronym       String?        @unique @db.VarChar(20)
+  acronym       String?        @db.VarChar(20)
   website       String?        @db.VarChar(255)
   isLicensed    Boolean        @default(true) @map("is_licensed")
   isPublic      Boolean        @default(false) @map("is_public")

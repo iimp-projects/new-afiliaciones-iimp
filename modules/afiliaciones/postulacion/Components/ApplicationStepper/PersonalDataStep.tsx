@@ -502,6 +502,8 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
       value ?? emptyPersonalInformation,
     );
 
+    const [isReniecFetched, setIsReniecFetched] = useState(false);
+
     const [touched, setTouched] = useState<Record<string, boolean>>({});
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [globalError, setGlobalError] = useState<string | null>(null);
@@ -640,6 +642,7 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
           case "NEW":
             setIsFormEnabled(true);
             if (response.person?.firstName) {
+              setIsReniecFetched(true);
               setSearchFeedback({ type: 'success', message: 'Datos identificados exitosamente.' });
               setForm(prev => ({
                 ...prev,
@@ -648,11 +651,18 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
                 motherLastName: response.person!.maternalLastName || "",
               }));
             } else {
+              setIsReniecFetched(false);
               setSearchFeedback({ type: 'warning', message: 'Documento no encontrado. Por favor, ingrese sus datos manualmente.' });
             }
             break;
           case "REJECTED":
             setIsFormEnabled(true);
+            // Si la respuesta incluye nombres cargados previamente de RENIEC, se bloquea; de lo contrario no
+            if (response.person?.firstName) {
+              setIsReniecFetched(true);
+            } else {
+              setIsReniecFetched(false);
+            }
             setSearchFeedback({ type: 'warning', message: 'Existe una solicitud anterior no procedente. Puede iniciar una nueva postulación.' });
             setForm(prev => ({
               ...prev,
@@ -662,6 +672,7 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
             }));
             break;
           case "DRAFT":
+            setIsReniecFetched(false);
             if (response.trackingCode && response.email) {
               setRecoveryData({ trackingCode: response.trackingCode, email: response.email });
               setShowDraftModal(true);
@@ -669,10 +680,12 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
             break;
           case "ASSOCIATE":
           case "APPROVED":
+            setIsReniecFetched(false);
             setShowAssociateModal(true);
             break;
         }
       } catch (err: any) {
+        setIsReniecFetched(false);
         setGlobalError("Ocurrió un error al consultar el documento en el servidor.");
       } finally {
         setIsSearching(false);
@@ -735,6 +748,15 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
       // Reseteos en cascada al cambiar ubicación
       if (field === "documentType") {
         newForm.documentNumber = "";
+        // Si selecciona Carné de Extranjería o Pasaporte, se activa la edición manual
+        if (sanitizedValue === "CE" || sanitizedValue === "PASSPORT") {
+          setIsFormEnabled(true);
+          setIsReniecFetched(false);
+        } else if (sanitizedValue === "DNI") {
+          // Si selecciona DNI, se bloquea el formulario a la espera de la búsqueda RENIEC
+          setIsFormEnabled(false);
+          setIsReniecFetched(false);
+        }
       } else if (field === "countryId") {
         newForm.departmentId = undefined;
         newForm.provinceId = undefined;
@@ -835,9 +857,10 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
       }`;
     };
 
-    const getInputClass = (field: keyof PersonalInformation) => {
-      if (!isFormEnabled) {
-        return "w-full h-11 px-3 rounded-xl border border-gray-200 bg-gray-50 text-slate-400 cursor-not-allowed focus:outline-none transition-colors";
+    const getInputClass = (field: keyof PersonalInformation, isDisabledField: boolean = false) => {
+      //Estado Bloqueado (ya sea por Formulario deshabilitado o por RENIEC)
+      if (!isFormEnabled || isDisabledField) {
+        return "w-full h-11 px-3 rounded-xl border border-gray-200 bg-gray-100 text-slate-500 font-medium cursor-not-allowed focus:outline-none transition-colors select-none";
       }
       const hasError = touched[field] && errors[field];
       return `w-full h-11 px-3 rounded-xl border focus:outline-none focus:ring-2 font-medium text-sm transition-colors ${
@@ -890,9 +913,9 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
     }
 
     // LOGICA DE DESHABILITACIÓN EN CASCADA
-    const isDeptDisabled = !isFormEnabled || !form.countryId;
-    const isProvDisabled = isDeptDisabled || !form.departmentId;
-    const isDistDisabled = isProvDisabled || !form.provinceId;
+    const isDeptDisabled = !isFormEnabled || !form.countryId || departments.length === 0;
+    const isProvDisabled = isDeptDisabled || !form.departmentId || provinces.length === 0;
+    const isDistDisabled = isProvDisabled || !form.provinceId || districts.length === 0;
 
     return (
       <div className="space-y-8">
@@ -1073,9 +1096,9 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
                 <button
                   type="button"
                   onClick={handleSearchDocument}
-                  disabled={isSearching || !form.documentNumber || !form.documentType}
+                  disabled={ isSearching || !form.documentNumber || form.documentType !== "DNI" }
                   className={`h-12 px-5 flex items-center justify-center rounded-r-xl transition-all duration-300 border-y border-r shadow-sm z-0 ${
-                    isSearching || !form.documentNumber || !form.documentType
+                    isSearching || !form.documentNumber || form.documentType !== "DNI"
                       ? "bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed shadow-none"
                       : "bg-[#D4A353] hover:bg-[#C5A059] text-white border-[#D4A353] hover:border-[#C5A059]"
                   }`}
@@ -1119,11 +1142,11 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
                 </label>
                 <input
                   type="text"
-                  disabled={!isFormEnabled}
+                  disabled={!isFormEnabled || isReniecFetched}
                   value={form.names}
                   onChange={(e) => updateField("names", e.target.value)}
                   onBlur={() => handleBlur("names")}
-                  className={getInputClass("names")}
+                  className={getInputClass("names", isReniecFetched)}
                 />
                 {getErrorText("names")}
               </div>
@@ -1133,13 +1156,13 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
                 </label>
                 <input
                   type="text"
-                  disabled={!isFormEnabled}
+                  disabled={!isFormEnabled || isReniecFetched}
                   value={form.fatherLastName}
                   onChange={(e) =>
                     updateField("fatherLastName", e.target.value)
                   }
                   onBlur={() => handleBlur("fatherLastName")}
-                  className={getInputClass("fatherLastName")}
+                  className={getInputClass("fatherLastName", isReniecFetched)}
                 />
                 {getErrorText("fatherLastName")}
               </div>
@@ -1149,13 +1172,13 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
                 </label>
                 <input
                   type="text"
-                  disabled={!isFormEnabled}
+                  disabled={!isFormEnabled || isReniecFetched}
                   value={form.motherLastName}
                   onChange={(e) =>
                     updateField("motherLastName", e.target.value)
                   }
                   onBlur={() => handleBlur("motherLastName")}
-                  className={getInputClass("motherLastName")}
+                  className={getInputClass("motherLastName", isReniecFetched)}
                 />
                 {getErrorText("motherLastName")}
               </div>
@@ -1256,7 +1279,14 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
                 </h3>
                 {isFormEnabled && (
                   <div className="bg-blue-50 text-blue-700 border border-blue-100 text-[11px] px-3 py-1.5 rounded-full font-bold flex items-center gap-1.5 shadow-sm">
-                    <Info size={14} /> Seleccione el país primero para habilitar opciones.
+                    <Info size={14} className="shrink-0" />
+                    <span>
+                      {!form.countryId 
+                        ? "Seleccione un país para desglosar sus subdivisiones." 
+                        : departments.length === 0 
+                        ? "El país seleccionado no requiere subdivisiones adicionales." 
+                        : "Las opciones se habilitan según la disponibilidad del país seleccionado."}
+                    </span>
                   </div>
                 )}
               </div>
@@ -1286,7 +1316,13 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
                   </label>
                   <SearchableSelect
                     options={departments}
-                    placeholder="Seleccione..."
+                    placeholder={
+                      !form.countryId
+                        ? "Seleccione..."
+                        : departments.length === 0
+                        ? "País sin departamentos"
+                        : "Seleccione..."
+                    }
                     value={form.departmentId}
                     onChange={(val) => updateField("departmentId", val === "" ? undefined : val)}
                     onBlur={() => handleBlur("departmentId")}
@@ -1305,7 +1341,13 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
                   </label>
                   <SearchableSelect
                     options={provinces}
-                    placeholder="Seleccione..."
+                    placeholder={
+                      !form.departmentId
+                        ? "Seleccione..."
+                        : provinces.length === 0
+                        ? "Departamento sin provincias"
+                        : "Seleccione..."
+                    }
                     value={form.provinceId}
                     onChange={(val) => updateField("provinceId", val === "" ? undefined : val)}
                     onBlur={() => handleBlur("provinceId")}
@@ -1324,7 +1366,13 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
                   </label>
                   <SearchableSelect
                     options={districts}
-                    placeholder="Seleccione..."
+                    placeholder={
+                      !form.provinceId
+                        ? "Seleccione..."
+                        : districts.length === 0
+                        ? "Provincia sin distritos"
+                        : "Seleccione..."
+                    }
                     value={form.districtId}
                     onChange={(val) => updateField("districtId", val === "" ? undefined : val)}
                     onBlur={() => handleBlur("districtId")}
