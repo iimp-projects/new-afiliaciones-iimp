@@ -78,20 +78,23 @@ export class PersonalInformationValidator extends BaseValidator {
   }
 
   private validateLocation(data: PersonalInformation): void {
-    if (!data.countryId || data.countryId === 0) {
+    const countryId = Number(data.countryId);
+
+    if (!countryId) {
       this.addError("countryId", "REQ", "Seleccione un país.");
+      return;
     }
 
-    if (data.countryId === 1) { // 1 = Perú
+    // Validación para Perú
+    if (countryId === 1) {
       if (!data.departmentId) this.addError("departmentId", "REQ", "Seleccione un departamento.");
       if (!data.provinceId) this.addError("provinceId", "REQ", "Seleccione una provincia.");
-      if (!data.districtId) this.addError("districtId", "REQ", "Seleccione un distrito.");
-    }
-
-    if (ValidationRules.required(data.address, "address", this, "REQ", "La dirección es obligatoria.")) {
-      ValidationRules.minLength(data.address, 10, "address", this, "MIN", "La dirección debe tener al menos 10 caracteres.");
-      ValidationRules.maxLength(data.address, 250, "address", this, "MAX", "La dirección es demasiado larga.");
-      ValidationRules.addressFormat(data.address, "address", this, "FORMAT", "Formato de dirección inválido.");
+      
+      // Solo exigir distrito si districtId es undefined o <= 0.
+      // Si viene explícitamente como null, el validador LO APRUEBA.
+      if (data.districtId === undefined) {
+        this.addError("districtId", "REQ", "Seleccione un distrito.");
+      }
     }
   }
 

@@ -35,8 +35,8 @@ const main = async (): Promise<void> => {
      await runSeed('Catalogs: Departments', seedDepartments);
      await runSeed('Catalogs: Provinces', seedProvinces);
      await runSeed('Catalogs: Districts', seedDistricts);
-     await runSeed('Catalogs: Universities', seedUniversities);
-    // await runSeed('Catalogs: Specialties', seedSpecialties);
+     await runSeed('Catalogs: Universities', seedUniversities);    
+     await runSeed('Catalogs: Specialties', seedSpecialties);
     // await runSeed('Catalogs: Companies', seedCompanies);
     
     await runSeed('Catalogs: Benefits', seedBenefits);

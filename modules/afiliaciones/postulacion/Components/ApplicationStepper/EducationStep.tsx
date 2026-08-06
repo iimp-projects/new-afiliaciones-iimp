@@ -175,8 +175,13 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
       }
 
       const newForm = { ...form, [field]: sanitizedValue };
+
       if (field === "institutionId" && rawValue !== 0) newForm.otherInstitution = "";
       
+      if (field === "professionalAssociation" && (!sanitizedValue || sanitizedValue.trim() === "")) {
+        newForm.registrationNumber = "";
+      }
+
       setTouched((prev) => ({ ...prev, [field]: true }));
       setGlobalError(null);
       setForm(newForm);
@@ -253,7 +258,19 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
 
     const getInputClass = (field: keyof AcademicStudy) => {
       const hasError = touched[field] && errors[field];
-      return `w-full h-11 px-3 rounded-xl border focus:outline-none focus:ring-2 font-medium text-sm transition-colors ${hasError ? "border-red-500 focus:ring-red-200 bg-red-50/30 text-red-900" : "border-gray-300 focus:border-[#C5A059] focus:ring-[#C5A059]/20 bg-white text-slate-700"}`;
+      
+      // Condición de deshabilitado específica para "otherInstitution"
+      const isDisabled = field === "otherInstitution" && form.institutionId !== 0;
+
+      if (isDisabled) {
+        return "w-full h-11 px-3 rounded-xl border border-gray-200 bg-gray-100 text-gray-400 placeholder:text-gray-300 font-medium text-sm cursor-not-allowed select-none transition-colors";
+      }
+
+      if (hasError) {
+        return "w-full h-11 px-3 rounded-xl border border-red-500 focus:outline-none focus:ring-2 focus:ring-red-200 bg-red-50/30 text-red-900 font-medium text-sm transition-colors";
+      }
+
+      return "w-full h-11 px-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:border-[#C5A059] focus:ring-[#C5A059]/20 bg-white text-slate-700 font-medium text-sm transition-colors";
     };
 
     const getErrorText = (field: keyof AcademicStudy) => {
@@ -331,7 +348,15 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
                 <label className="text-xs font-bold text-slate-700 mb-1.5 block uppercase tracking-wide">
                   Otra Institución {form.institutionId === 0 && <span className="text-red-500">*</span>}
                 </label>
-                <input type="text" placeholder="Especifique institución si eligió 'Otra'" disabled={form.institutionId !== 0} value={form.otherInstitution || ""} onChange={(e) => updateField("otherInstitution", e.target.value)} onBlur={() => handleBlur("otherInstitution")} className={getInputClass("otherInstitution")} />
+                <input
+                  type="text"
+                  placeholder="Especifique institución si eligió 'Otra'"
+                  disabled={form.institutionId !== 0}
+                  value={form.otherInstitution || ""}
+                  onChange={(e) => updateField("otherInstitution", e.target.value)}
+                  onBlur={() => handleBlur("otherInstitution")}
+                  className={getInputClass("otherInstitution")}
+                />
                 {getErrorText("otherInstitution")}
               </div>
 
@@ -358,13 +383,39 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
               {!isStudent && (
                 <>
                   <div>
-                    <label className="text-xs font-bold text-slate-700 mb-1.5 block uppercase tracking-wide">Colegio Profesional <span className="text-red-500">*</span></label>
-                    <input type="text" placeholder="Ej. CIP" value={form.professionalAssociation || ""} onChange={(e) => updateField("professionalAssociation", e.target.value)} onBlur={() => handleBlur("professionalAssociation")} className={getInputClass("professionalAssociation")} />
+                    <label className="text-xs font-bold text-slate-700 mb-1.5 block uppercase tracking-wide">Colegio Profesional</label>
+                    <input 
+                    type="text" 
+                    placeholder="Ej. CIP" 
+                    value={form.professionalAssociation || ""} 
+                    onChange={(e) => updateField("professionalAssociation", e.target.value)} 
+                    onBlur={() => handleBlur("professionalAssociation")} 
+                    className={getInputClass("professionalAssociation")} />
                     {getErrorText("professionalAssociation")}
                   </div>
                   <div>
-                    <label className="text-xs font-bold text-slate-700 mb-1.5 block uppercase tracking-wide">Nro Colegiatura <span className="text-red-500">*</span></label>
-                    <input type="text" placeholder="N° de Registro" value={form.registrationNumber || ""} onChange={(e) => updateField("registrationNumber", e.target.value)} onBlur={() => handleBlur("registrationNumber")} className={getInputClass("registrationNumber")} />
+                    <label className="text-xs font-bold text-slate-700 mb-1.5 block uppercase tracking-wide">
+                      Nro Colegiatura 
+                      {/* Solo es obligatorio si el usuario ha escrito un Colegio Profesional */}
+                      {form.professionalAssociation && form.professionalAssociation.trim() !== "" ? (
+                        <span className="text-red-500"> *</span>
+                      ) : (
+                        <span className="text-gray-400 font-normal lowercase"> (opcional)</span>
+                      )}
+                    </label>
+                    <input 
+                      type="text" 
+                      placeholder="N° de Registro" 
+                      value={form.registrationNumber || ""} 
+                      disabled={!form.professionalAssociation || form.professionalAssociation.trim() === ""}
+                      onChange={(e) => updateField("registrationNumber", e.target.value)} 
+                      onBlur={() => handleBlur("registrationNumber")} 
+                      className={
+                        !form.professionalAssociation || form.professionalAssociation.trim() === ""
+                          ? "w-full h-11 px-3 rounded-xl border border-gray-200 bg-gray-100 text-gray-400 placeholder:text-gray-400 font-medium text-sm cursor-not-allowed select-none transition-colors"
+                          : getInputClass("registrationNumber")
+                      } 
+                    />
                     {getErrorText("registrationNumber")}
                   </div>
                 </>

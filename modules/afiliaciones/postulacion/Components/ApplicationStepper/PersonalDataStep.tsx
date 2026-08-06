@@ -390,7 +390,7 @@ const SearchableSelect = ({
   emptyMessage = "No se encontraron resultados",
 }: {
   options: CatalogItem[];
-  value: number | string | undefined;
+  value: number | string | null | undefined; 
   onChange: (val: any) => void;
   onBlur?: () => void;
   disabled?: boolean;
@@ -574,6 +574,7 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
         .catch((err) => console.error("Error cargando países:", err));
     }, []);
 
+    // 1. Cargar Departamentos según País
     useEffect(() => {
       if (form.countryId && form.countryId !== 0) {
         fetch(`/api/catalogs/${form.countryId}/departments`)
@@ -581,13 +582,32 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
             if (!res.ok) throw new Error(`Error API Departamentos: ${res.status}`);
             return res.json();
           })
-          .then((data) => setDepartments(data))
+          .then((data: CatalogItem[]) => {
+            setDepartments(data);
+
+            // Si el país no tiene departamentos (ej. Andorra, Mónaco, Vatican)
+            if (data.length === 0) {
+              setForm((prev) => ({
+                ...prev,
+                departmentId: null,
+                provinceId: null,
+                districtId: null,
+              }));
+              setErrors((prev) => ({
+                ...prev,
+                departmentId: "",
+                provinceId: "",
+                districtId: "",
+              }));
+            }
+          })
           .catch((err) => console.error("Error cargando departamentos:", err));
       } else {
         setDepartments([]);
       }
     }, [form.countryId]);
 
+    // 2. Cargar Provincias según Departamento
     useEffect(() => {
       if (form.departmentId) {
         fetch(`/api/catalogs/${form.departmentId}/provinces`)
@@ -595,13 +615,30 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
             if (!res.ok) throw new Error(`Error API Provincias: ${res.status}`);
             return res.json();
           })
-          .then((data) => setProvinces(data))
+          .then((data: CatalogItem[]) => {
+            setProvinces(data);
+
+            // Si el departamento no tiene provincias
+            if (data.length === 0) {
+              setForm((prev) => ({
+                ...prev,
+                provinceId: null,
+                districtId: null,
+              }));
+              setErrors((prev) => ({
+                ...prev,
+                provinceId: "",
+                districtId: "",
+              }));
+            }
+          })
           .catch((err) => console.error("Error cargando provincias:", err));
       } else {
         setProvinces([]);
       }
     }, [form.departmentId]);
 
+    // 3. Cargar Distritos según Provincia
     useEffect(() => {
       if (form.provinceId) {
         fetch(`/api/catalogs/${form.provinceId}/districts`)
@@ -609,7 +646,15 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
             if (!res.ok) throw new Error(`Error API Distritos: ${res.status}`);
             return res.json();
           })
-          .then((data) => setDistricts(data))
+          .then((data: CatalogItem[]) => {
+            setDistricts(data);
+
+            // Si la provincia no tiene distritos
+            if (data.length === 0) {
+              setForm((prev) => ({ ...prev, districtId: null }));
+              setErrors((prev) => ({ ...prev, districtId: "" }));
+            }
+          })
           .catch((err) => console.error("Error cargando distritos:", err));
       } else {
         setDistricts([]);
@@ -758,14 +803,14 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
           setIsReniecFetched(false);
         }
       } else if (field === "countryId") {
-        newForm.departmentId = undefined;
-        newForm.provinceId = undefined;
-        newForm.districtId = undefined;
+        newForm.departmentId = null;
+        newForm.provinceId = null;
+        newForm.districtId = null;
       } else if (field === "departmentId") {
-        newForm.provinceId = undefined;
-        newForm.districtId = undefined;
+        newForm.provinceId = null;
+        newForm.districtId = null;
       } else if (field === "provinceId") {
-        newForm.districtId = undefined;
+        newForm.districtId = null;
       }
 
       setTouched((prev) => ({ ...prev, [field]: true }));

@@ -33,9 +33,9 @@ export interface PersonalInformation {
      * Ubicación
      */
     countryId: number;
-    departmentId?: number;
-    provinceId?: number;
-    districtId?: number;
+    departmentId?: number | null;
+    provinceId?: number | null;   
+    districtId?: number | null;
     address: string;
 
     /**
