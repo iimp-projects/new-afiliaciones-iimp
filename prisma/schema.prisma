@@ -8,31 +8,32 @@ datasource db {
 }
 
 model User {
-  id                  Int                   @id @default(autoincrement())
-  name                String?               @db.VarChar(150)
-  email               String                @unique @db.VarChar(150)
-  emailVerified       DateTime?             @map("email_verified")
-  image               String?               @db.VarChar(500)
-  status              UserStatus            @default(PENDING)
-  type                UserType              @default(APPLICANT)
-  lastLoginAt         DateTime?             @map("last_login_at")
-  failedLoginAttempts Int                   @default(0) @map("failed_login_attempts")
-  lockedUntil         DateTime?             @map("locked_until")
-  roleId              Int?                  @map("role_id")
-  personId            Int?                  @unique @map("person_id")
-  createdAt           DateTime              @default(now()) @map("created_at")
-  updatedAt           DateTime              @updatedAt @map("updated_at")
-  deletedAt           DateTime?             @map("deleted_at")
+  id                  Int                        @id @default(autoincrement())
+  name                String?                    @db.VarChar(150)
+  email               String                     @unique @db.VarChar(150)
+  emailVerified       DateTime?                  @map("email_verified")
+  image               String?                    @db.VarChar(500)
+  status              UserStatus                 @default(PENDING)
+  type                UserType                   @default(APPLICANT)
+  lastLoginAt         DateTime?                  @map("last_login_at")
+  failedLoginAttempts Int                        @default(0) @map("failed_login_attempts")
+  lockedUntil         DateTime?                  @map("locked_until")
+  roleId              Int?                       @map("role_id")
+  personId            Int?                       @unique @map("person_id")
+  createdAt           DateTime                   @default(now()) @map("created_at")
+  updatedAt           DateTime                   @updatedAt @map("updated_at")
+  deletedAt           DateTime?                  @map("deleted_at")
   accounts            Account[]
   credentials         Credential[]
   securityEvents      SecurityEvent[]
   sessions            Session[]
   userSessions        UserSession[]
-  person              Person?               @relation(fields: [personId], references: [id], onDelete: Cascade)
-  role                Role?                 @relation(fields: [roleId], references: [id], onDelete: Restrict)
-  documentApprovals   ApplicationDocument[] @relation("DocumentApprover")
+  person              Person?                    @relation(fields: [personId], references: [id], onDelete: Cascade)
+  role                Role?                      @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  documentApprovals   ApplicationDocument[]      @relation("DocumentApprover")
   auditLogs           AuditLog[]
   notifications       Notification[]
+  areaValidations     MembershipAreaValidation[]
 
   @@index([email])
   @@index([status])
@@ -90,7 +91,6 @@ model Benefit {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
-
 
 model SecurityEvent {
   id        String            @id @default(uuid())
@@ -310,6 +310,8 @@ model MembershipApplication {
 
   approvals MembershipApproval[]
 
+  areaValidations MembershipAreaValidation[]
+
   documents ApplicationDocument[]
 
   history MembershipHistory[]
@@ -327,6 +329,25 @@ model MembershipApplication {
   @@index([applicationCode])
   @@index([trackingCode])
   @@map("membership_applications")
+}
+
+model MembershipAreaValidation {
+  id            Int               @id @default(autoincrement())
+  applicationId Int               @map("application_id")
+  department    String            @db.VarChar(100) // 'LOGISTICA', 'ATENCION_ASOCIADO'
+  status        ObservationStatus @default(PENDING) // PENDING, APPROVED, OBSERVED
+  validatedById Int?              @map("validated_by_id")
+  validatedAt   DateTime?         @map("validated_at")
+  comments      String?           @db.Text
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @updatedAt @map("updated_at")
+
+  application MembershipApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  validatedBy User?                 @relation(fields: [validatedById], references: [id], onDelete: SetNull)
+
+  @@index([applicationId])
+  @@index([department])
+  @@map("membership_area_validations")
 }
 
 model VerificationCode {
@@ -584,7 +605,7 @@ model Department {
   isActive   Boolean    @default(true) @map("is_active")
   createdAt  DateTime   @default(now()) @map("created_at")
   updatedAt  DateTime   @updatedAt @map("updated_at")
-  country    Country   @relation(fields: [countryId], references: [id], onDelete: Restrict)
+  country    Country    @relation(fields: [countryId], references: [id], onDelete: Restrict)
   provinces  Province[]
 
   @@index([countryId])

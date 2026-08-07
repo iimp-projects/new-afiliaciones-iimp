@@ -11,8 +11,8 @@ export default async function ExpedientesPage() {
 
     return (
         <div className="h-full">
-            {/* <ExpedientesWorkspace /> */}
-            <ExpedientesMockupView />
+            <ExpedientesWorkspace />
+            {/* <ExpedientesMockupView /> */}
         </div>
     );
 }

@@ -1,9 +1,12 @@
-export abstract class AuthError extends Error {
+import { CredentialsSignin } from "next-auth";
+
+// Heredamos de CredentialsSignin para que NextAuth permita pasar el mensaje al frontend
+export abstract class AuthError extends CredentialsSignin {
   constructor(message: string) {
-    super(message);
+    super();
     this.name = this.constructor.name;
-    // Mantiene la traza de la pila limpia en V8 (Node.js)
-    Error.captureStackTrace(this, this.constructor);
+    // Auth.js v5 lee la propiedad 'code' para enviarla como res.error al cliente
+    this.code = message; 
   }
 }
 

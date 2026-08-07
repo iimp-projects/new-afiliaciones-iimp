@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+import { checkLockStatus } from "../action"; // Importamos la nueva función
 
 export function useLogin() {
   const [email, setEmail] = useState("");
@@ -17,9 +18,16 @@ export function useLogin() {
     setError("");
     setIsLoading(true);
 
-    console.log("🔍 Iniciando intento de login con:", { email });
-
     try {
+      // 1. Verificamos si la cuenta YA está bloqueada antes de tocar NextAuth
+      const preCheck = await checkLockStatus(email);
+      if (preCheck.locked) {
+        setError(preCheck.message!);
+        setIsLoading(false);
+        return;
+      }
+
+      // 2. Intentamos iniciar sesión
       const res = await signIn("credentials", {
         email,
         password,
@@ -27,15 +35,18 @@ export function useLogin() {
       });
 
       if (res?.error) {
-        console.error("❌ Error en autenticación:", res.error);
-        setError("Correo o contraseña incorrectos. Por favor, intenta de nuevo.");
+        // 3. Si falló, verificamos si ESTE último intento acaba de bloquear la cuenta
+        const postCheck = await checkLockStatus(email);
+        if (postCheck.locked) {
+          setError(postCheck.message!);
+        } else {
+          setError("Correo o contraseña incorrectos. Por favor, intenta de nuevo.");
+        }
       } else {
-        console.log("✅ Autenticación exitosa. Redirigiendo al panel...");
         router.push("/intranet");
         router.refresh();
       }
     } catch (err) {
-      console.error("💥 Error crítico en el proceso de login:", err);
       setError("Ocurrió un error inesperado al conectar con el servidor.");
     } finally {
       setIsLoading(false);
@@ -43,20 +54,18 @@ export function useLogin() {
   };
 
   const handleSocialLogin = (provider: string) => {
-    console.log(`🚀 Iniciando sesión social con: ${provider}`);
-    // Aquí iría la lógica de signIn(provider)
+    console.log(`Iniciando sesión social con: ${provider}`);
   };
 
+  // NUEVO: Función para cerrar la alerta
+  const clearError = () => setError(""); 
+
   return {
-    email,
-    setEmail,
-    password,
-    setPassword,
-    error,
+    email, setEmail,
+    password, setPassword,
+    error, setError, clearError, // <-- Exportamos clearError
     isLoading,
-    showPassword,
-    setShowPassword,
-    handleSubmit,
-    handleSocialLogin,
+    showPassword, setShowPassword,
+    handleSubmit, handleSocialLogin,
   };
 }
