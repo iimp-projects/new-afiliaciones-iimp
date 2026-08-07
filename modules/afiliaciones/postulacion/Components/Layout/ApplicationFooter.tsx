@@ -1,6 +1,7 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { useState } from "react";
+import { ChevronLeft, ChevronRight, Info, X } from "lucide-react";
 
 interface ApplicationFooterProps {
   currentStep: number;
@@ -23,6 +24,7 @@ export default function ApplicationFooter({
   onPrevious,
   onNext,
 }: ApplicationFooterProps) {
+  const [showInfo, setShowInfo] = useState(false);
   return (
     <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 py-4 z-[100] shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 flex items-center justify-between">
@@ -55,7 +57,6 @@ export default function ApplicationFooter({
             </button>
           )}
         </div>
-
         {/* DERECHA: Botones de Navegación */}
         <div className="flex items-center gap-4">
           {currentStep > 1 && showPrevious && (
@@ -86,6 +87,29 @@ export default function ApplicationFooter({
               Anterior
             </button>
           )}
+          {/* BOTÓN DE INFORMACIÓN (TOOLTIP / POPOVER) */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowInfo(!showInfo)}
+              onMouseEnter={() => setShowInfo(true)}
+              onMouseLeave={() => setShowInfo(false)}
+              className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center hover:bg-blue-100 transition-colors shadow-sm focus:outline-none"
+              aria-label="Información de guardado"
+            >
+              <Info size={20} />
+            </button>
+
+            {/* CUADRO FLOTANTE DE INFORMACIÓN (SE ABRE HACIA LA IZQUIERDA/ARRIBA) */}
+            {showInfo && (
+              <div className="absolute bottom-12 right-0 w-72 sm:w-80 bg-white border border-blue-100 text-slate-700 text-xs p-3.5 rounded-xl shadow-xl z-50 leading-relaxed">
+                <div className="font-bold text-blue-900 mb-1 flex items-center gap-1.5">
+                  <Info size={14} className="text-blue-600" /> Guardado automático
+                </div>
+                Tus datos se guardarán al completar este paso. Si cierras la ventana, podrás retomar tu registro cuando quieras con tu documento y el código enviado a tu correo.
+              </div>
+            )}
+          </div>
 
           {/* BOTÓN PRINCIPAL CON DEGRADADO DORADO CORPORATIVO */}
           <button

@@ -1,9 +1,9 @@
 import type { Prisma } from "@prisma/client";
 
-// ENTERPRISE SEED - COUNTRIES (Top 100 Países ISO 3166-1 alfa-3)
-// Compatible con model Country del schema.prisma
 export const countriesData: Prisma.CountryCreateManyInput[] = [
+  // ==========================================
   // AMÉRICA DEL SUR Y LATAM (Prioritarios)
+  // ==========================================
   { isoCode: "PER", phoneCode: "+51", name: "Perú", isActive: true },
   { isoCode: "ARG", phoneCode: "+54", name: "Argentina", isActive: true },
   { isoCode: "BOL", phoneCode: "+591", name: "Bolivia", isActive: true },
@@ -14,21 +14,43 @@ export const countriesData: Prisma.CountryCreateManyInput[] = [
   { isoCode: "PRY", phoneCode: "+595", name: "Paraguay", isActive: true },
   { isoCode: "URY", phoneCode: "+598", name: "Uruguay", isActive: true },
   { isoCode: "VEN", phoneCode: "+58", name: "Venezuela", isActive: true },
+  { isoCode: "GUY", phoneCode: "+592", name: "Guyana", isActive: true },
+  { isoCode: "SUR", phoneCode: "+597", name: "Surinam", isActive: true },
+
+  // ==========================================
+  // CENTROAMÉRICA Y EL CARIBE
+  // ==========================================
   { isoCode: "MEX", phoneCode: "+52", name: "México", isActive: true },
   { isoCode: "PAN", phoneCode: "+507", name: "Panamá", isActive: true },
   { isoCode: "CRI", phoneCode: "+506", name: "Costa Rica", isActive: true },
-  { isoCode: "DOM", phoneCode: "+1-809", name: "República Dominicana", isActive: true },
-  { isoCode: "CUB", phoneCode: "+53", name: "Cuba", isActive: true },
   { isoCode: "GTM", phoneCode: "+502", name: "Guatemala", isActive: true },
   { isoCode: "HND", phoneCode: "+504", name: "Honduras", isActive: true },
   { isoCode: "NIC", phoneCode: "+505", name: "Nicaragua", isActive: true },
   { isoCode: "SLV", phoneCode: "+503", name: "El Salvador", isActive: true },
-  
+  { isoCode: "BLZ", phoneCode: "+501", name: "Belice", isActive: true },
+  { isoCode: "DOM", phoneCode: "+1-809", name: "República Dominicana", isActive: true },
+  { isoCode: "CUB", phoneCode: "+53", name: "Cuba", isActive: true },
+  { isoCode: "HTI", phoneCode: "+509", name: "Haití", isActive: true },
+  { isoCode: "JAM", phoneCode: "+1-876", name: "Jamaica", isActive: true },
+  { isoCode: "TTO", phoneCode: "+1-868", name: "Trinidad y Tobago", isActive: true },
+  { isoCode: "BHS", phoneCode: "+1-242", name: "Bahamas", isActive: true },
+  { isoCode: "BRB", phoneCode: "+1-246", name: "Barbados", isActive: true },
+  { isoCode: "ATG", phoneCode: "+1-268", name: "Antigua y Barbuda", isActive: true },
+  { isoCode: "DMA", phoneCode: "+1-767", name: "Dominica", isActive: true },
+  { isoCode: "GRD", phoneCode: "+1-473", name: "Granada", isActive: true },
+  { isoCode: "KNA", phoneCode: "+1-869", name: "San Cristóbal y Nieves", isActive: true },
+  { isoCode: "LCA", phoneCode: "+1-758", name: "Santa Lucía", isActive: true },
+  { isoCode: "VCT", phoneCode: "+1-784", name: "San Vicente y las Granadinas", isActive: true },
+
+  // ==========================================
   // NORTEAMÉRICA
+  // ==========================================
   { isoCode: "USA", phoneCode: "+1", name: "Estados Unidos", isActive: true },
   { isoCode: "CAN", phoneCode: "+1", name: "Canadá", isActive: true },
 
+  // ==========================================
   // EUROPA
+  // ==========================================
   { isoCode: "ESP", phoneCode: "+34", name: "España", isActive: true },
   { isoCode: "DEU", phoneCode: "+49", name: "Alemania", isActive: true },
   { isoCode: "FRA", phoneCode: "+33", name: "Francia", isActive: true },
@@ -46,11 +68,17 @@ export const countriesData: Prisma.CountryCreateManyInput[] = [
   { isoCode: "ISL", phoneCode: "+354", name: "Islandia", isActive: true },
   { isoCode: "POL", phoneCode: "+48", name: "Polonia", isActive: true },
   { isoCode: "CZE", phoneCode: "+420", name: "República Checa", isActive: true },
+  { isoCode: "SVK", phoneCode: "+421", name: "Eslovaquia", isActive: true },
   { isoCode: "AUT", phoneCode: "+43", name: "Austria", isActive: true },
   { isoCode: "GRC", phoneCode: "+30", name: "Grecia", isActive: true },
   { isoCode: "ROU", phoneCode: "+40", name: "Rumanía", isActive: true },
   { isoCode: "BGR", phoneCode: "+359", name: "Bulgaria", isActive: true },
-  { isoCode: "HRV", phoneCode: "+387", name: "Bosnia y Herzegovina", isActive: true },
+  { isoCode: "HRV", phoneCode: "+385", name: "Croacia", isActive: true },
+  { isoCode: "BIH", phoneCode: "+387", name: "Bosnia y Herzegovina", isActive: true },
+  { isoCode: "SRB", phoneCode: "+381", name: "Serbia", isActive: true },
+  { isoCode: "SVN", phoneCode: "+386", name: "Eslovenia", isActive: true },
+  { isoCode: "MNE", phoneCode: "+382", name: "Montenegro", isActive: true },
+  { isoCode: "MKD", phoneCode: "+389", name: "Macedonia del Norte", isActive: true },
   { isoCode: "UKR", phoneCode: "+380", name: "Ucrania", isActive: true },
   { isoCode: "RUS", phoneCode: "+7", name: "Rusia", isActive: true },
   { isoCode: "LUX", phoneCode: "+352", name: "Luxemburgo", isActive: true },
@@ -58,11 +86,23 @@ export const countriesData: Prisma.CountryCreateManyInput[] = [
   { isoCode: "ALB", phoneCode: "+355", name: "Albania", isActive: true },
   { isoCode: "BLR", phoneCode: "+375", name: "Bielorrusia", isActive: true },
   { isoCode: "EST", phoneCode: "+372", name: "Estonia", isActive: true },
+  { isoCode: "LVA", phoneCode: "+371", name: "Letonia", isActive: true },
+  { isoCode: "LTU", phoneCode: "+370", name: "Lituania", isActive: true },
+  { isoCode: "MDA", phoneCode: "+373", name: "Moldavia", isActive: true },
+  { isoCode: "MLT", phoneCode: "+356", name: "Malta", isActive: true },
+  { isoCode: "MC0", phoneCode: "+377", name: "Mónaco", isActive: true },
+  { isoCode: "SMR", phoneCode: "+378", name: "San Marino", isActive: true },
+  { isoCode: "VAT", phoneCode: "+379", name: "Ciudad del Vaticano", isActive: true },
+  { isoCode: "LIE", phoneCode: "+423", name: "Liechtenstein", isActive: true },
+  { isoCode: "CYP", phoneCode: "+357", name: "Chipre", isActive: true },
 
-  // ASIA Y MEDIO ORIENTE
+  // ==========================================
+  // ASIA Y MEDIO ORIENTE (Con Potencias Mineras)
+  // ==========================================
   { isoCode: "CHN", phoneCode: "+86", name: "China", isActive: true },
   { isoCode: "JPN", phoneCode: "+81", name: "Japón", isActive: true },
   { isoCode: "KOR", phoneCode: "+82", name: "Corea del Sur", isActive: true },
+  { isoCode: "PRK", phoneCode: "+850", name: "Corea del Norte", isActive: true },
   { isoCode: "IND", phoneCode: "+91", name: "India", isActive: true },
   { isoCode: "IDN", phoneCode: "+62", name: "Indonesia", isActive: true },
   { isoCode: "THA", phoneCode: "+66", name: "Tailandia", isActive: true },
@@ -71,24 +111,47 @@ export const countriesData: Prisma.CountryCreateManyInput[] = [
   { isoCode: "MYS", phoneCode: "+60", name: "Malasia", isActive: true },
   { isoCode: "SGP", phoneCode: "+65", name: "Singapur", isActive: true },
   { isoCode: "TWN", phoneCode: "+886", name: "Taiwán", isActive: true },
+  { isoCode: "MNG", phoneCode: "+976", name: "Mongolia", isActive: true }, // Clave minera mundial
+  { isoCode: "KAZ", phoneCode: "+7", name: "Kazajistán", isActive: true }, // Clave minera mundial
+  { isoCode: "UZB", phoneCode: "+998", name: "Uzbekistán", isActive: true },
+  { isoCode: "KGZ", phoneCode: "+996", name: "Kirguistán", isActive: true },
+  { isoCode: "TJK", phoneCode: "+992", name: "Tayikistán", isActive: true },
+  { isoCode: "TKM", phoneCode: "+993", name: "Turkmenistán", isActive: true },
   { isoCode: "TUR", phoneCode: "+90", name: "Turquía", isActive: true },
   { isoCode: "SAU", phoneCode: "+966", name: "Arabia Saudita", isActive: true },
   { isoCode: "ARE", phoneCode: "+971", name: "Emiratos Árabes Unidos", isActive: true },
   { isoCode: "ISR", phoneCode: "+972", name: "Israel", isActive: true },
   { isoCode: "QAT", phoneCode: "+974", name: "Catar", isActive: true },
-  { isoCode: "KWT", phoneCode: "+974", name: "Kuwait", isActive: true },
+  { isoCode: "KWT", phoneCode: "+965", name: "Kuwait", isActive: true },
   { isoCode: "PAK", phoneCode: "+92", name: "Pakistán", isActive: true },
   { isoCode: "BGD", phoneCode: "+880", name: "Bangladés", isActive: true },
   { isoCode: "LBN", phoneCode: "+961", name: "Líbano", isActive: true },
-  { isoCode: "OMN", phoneCode: "+974", name: "Omán", isActive: true },
+  { isoCode: "OMN", phoneCode: "+968", name: "Omán", isActive: true },
   { isoCode: "BHR", phoneCode: "+973", name: "Baréin", isActive: true },
   { isoCode: "ARM", phoneCode: "+374", name: "Armenia", isActive: true },
   { isoCode: "AZE", phoneCode: "+994", name: "Azerbaiyán", isActive: true },
+  { isoCode: "GEO", phoneCode: "+995", name: "Georgia", isActive: true },
   { isoCode: "BRN", phoneCode: "+673", name: "Brunéi", isActive: true },
   { isoCode: "AFG", phoneCode: "+93", name: "Afganistán", isActive: true },
+  { isoCode: "IRN", phoneCode: "+98", name: "Irán", isActive: true },
+  { isoCode: "IRQ", phoneCode: "+964", name: "Irak", isActive: true },
+  { isoCode: "JOR", phoneCode: "+962", name: "Jordania", isActive: true },
+  { isoCode: "YEM", phoneCode: "+967", name: "Yemen", isActive: true },
+  { isoCode: "LKA", phoneCode: "+94", name: "Sri Lanka", isActive: true },
+  { isoCode: "NPL", phoneCode: "+977", name: "Nepal", isActive: true },
+  { isoCode: "MMR", phoneCode: "+95", name: "Myanmar (Birmania)", isActive: true },
+  { isoCode: "KHM", phoneCode: "+855", name: "Camboya", isActive: true },
+  { isoCode: "LAO", phoneCode: "+856", name: "Laos", isActive: true },
+  { isoCode: "MDV", phoneCode: "+960", name: "Maldivas", isActive: true },
+  { isoCode: "BTN", phoneCode: "+975", name: "Bután", isActive: true },
+  { isoCode: "TLS", phoneCode: "+670", name: "Timor Oriental", isActive: true },
 
-  // ÁFRICA
+  // ==========================================
+  // ÁFRICA (Incluyendo Gigantes Mineros)
+  // ==========================================
   { isoCode: "ZAF", phoneCode: "+27", name: "Sudáfrica", isActive: true },
+  { isoCode: "COD", phoneCode: "+243", name: "República Democrática del Congo", isActive: true }, // Litio/Cobre/Cobalto
+  { isoCode: "ZMB", phoneCode: "+260", name: "Zambia", isActive: true }, // Cobre clave
   { isoCode: "EGY", phoneCode: "+20", name: "Egipto", isActive: true },
   { isoCode: "NGA", phoneCode: "+234", name: "Nigeria", isActive: true },
   { isoCode: "KEN", phoneCode: "+254", name: "Kenia", isActive: true },
@@ -96,29 +159,48 @@ export const countriesData: Prisma.CountryCreateManyInput[] = [
   { isoCode: "DZA", phoneCode: "+213", name: "Argelia", isActive: true },
   { isoCode: "AGO", phoneCode: "+244", name: "Angola", isActive: true },
   { isoCode: "GHA", phoneCode: "+233", name: "Ghana", isActive: true },
-  { isoCode: "ETH", phoneCode: "+254", name: "Etiopía", isActive: true },
-  { isoCode: "CMR", phoneCode: "+233", name: "Camerún", isActive: true },
+  { isoCode: "ETH", phoneCode: "+251", name: "Etiopía", isActive: true },
+  { isoCode: "CMR", phoneCode: "+237", name: "Camerún", isActive: true },
   { isoCode: "CIV", phoneCode: "+225", name: "Costa de Marfil", isActive: true },
-  { isoCode: "SEN", phoneCode: "+225", name: "Senegal", isActive: true },
+  { isoCode: "SEN", phoneCode: "+221", name: "Senegal", isActive: true },
   { isoCode: "UGA", phoneCode: "+256", name: "Uganda", isActive: true },
   { isoCode: "TZA", phoneCode: "+255", name: "Tanzania", isActive: true },
   { isoCode: "MOZ", phoneCode: "+258", name: "Mozambique", isActive: true },
   { isoCode: "BWA", phoneCode: "+267", name: "Botsuana", isActive: true },
   { isoCode: "BEN", phoneCode: "+229", name: "Benín", isActive: true },
+  { isoCode: "ZWE", phoneCode: "+263", name: "Zimbabue", isActive: true },
+  { isoCode: "NAM", phoneCode: "+264", name: "Namibia", isActive: true },
+  { isoCode: "MDG", phoneCode: "+261", name: "Madagascar", isActive: true },
+  { isoCode: "TUN", phoneCode: "+216", name: "Túnez", isActive: true },
+  { isoCode: "LBY", phoneCode: "+218", name: "Libia", isActive: true },
+  { isoCode: "SDN", phoneCode: "+249", name: "Sudán", isActive: true },
+  { isoCode: "GAB", phoneCode: "+241", name: "Gabón", isActive: true },
+  { isoCode: "COG", phoneCode: "+242", name: "República del Congo", isActive: true },
+  { isoCode: "RWA", phoneCode: "+250", name: "Ruanda", isActive: true },
+  { isoCode: "GNQ", phoneCode: "+240", name: "Guinea Ecuatorial", isActive: true },
+  { isoCode: "GIN", phoneCode: "+224", name: "Guinea", isActive: true },
+  { isoCode: "MLI", phoneCode: "+223", name: "Malí", isActive: true },
+  { isoCode: "NER", phoneCode: "+227", name: "Níger", isActive: true },
+  { isoCode: "BFA", phoneCode: "+226", name: "Burkina Faso", isActive: true },
+  { isoCode: "TCD", phoneCode: "+235", name: "Chad", isActive: true },
+  { isoCode: "MRT", phoneCode: "+222", name: "Mauritania", isActive: true },
+  { isoCode: "SOM", phoneCode: "+252", name: "Somalia", isActive: true },
 
+  // ==========================================
   // OCEANÍA
+  // ==========================================
   { isoCode: "AUS", phoneCode: "+61", name: "Australia", isActive: true },
   { isoCode: "NZL", phoneCode: "+64", name: "Nueva Zelanda", isActive: true },
   { isoCode: "FJI", phoneCode: "+679", name: "Fiyi", isActive: true },
   { isoCode: "PNG", phoneCode: "+675", name: "Papúa Nueva Guinea", isActive: true },
   { isoCode: "WSM", phoneCode: "+685", name: "Samoa", isActive: true },
-
-  // EL CARIBE Y OTROS
-  { isoCode: "BHS", phoneCode: "+1-242", name: "Bahamas", isActive: true },
-  { isoCode: "BRB", phoneCode: "+1-246", name: "Barbados", isActive: true },
-  { isoCode: "BLZ", phoneCode: "+501", name: "Belice", isActive: true },
-  { isoCode: "JAM", phoneCode: "+1-876", name: "Jamaica", isActive: true },
-  { isoCode: "TTO", phoneCode: "+1-868", name: "Trinidad y Tobago", isActive: true },
-  { isoCode: "HTI", phoneCode: "+53", name: "Haití", isActive: true },
-  { isoCode: "ATG", phoneCode: "+1-268", name: "Antigua y Barbuda", isActive: true },
+  { isoCode: "TON", phoneCode: "+676", name: "Tonga", isActive: true },
+  { isoCode: "VUT", phoneCode: "+678", name: "Vanuatu", isActive: true },
+  { isoCode: "SLB", phoneCode: "+677", name: "Islas Salomón", isActive: true },
+  { isoCode: "FSM", phoneCode: "+691", name: "Micronesia", isActive: true },
+  { isoCode: "PLW", phoneCode: "+680", name: "Palaos", isActive: true },
+  { isoCode: "KIR", phoneCode: "+686", name: "Kiribati", isActive: true },
+  { isoCode: "NRU", phoneCode: "+674", name: "Nauru", isActive: true },
+  { isoCode: "TUV", phoneCode: "+688", name: "Tuvalu", isActive: true },
+  { isoCode: "MHL", phoneCode: "+692", name: "Islas Marshall", isActive: true },
 ];

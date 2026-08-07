@@ -52,19 +52,28 @@ export class AcademicStudyValidator extends BaseValidator {
     }
 
     private validateProfessionalInformation(data: AcademicStudy, membershipType: MembershipType): void {
-        // Solo es obligatorio para Asociados Activos
         if (membershipType !== MembershipType.ACTIVE) {
             return;
         }
 
-        if (ValidationRules.required(data.professionalAssociation, "professionalAssociation", this, "REQ", "El colegio profesional es obligatorio.")) {
-            ValidationRules.minLength(data.professionalAssociation, 3, "professionalAssociation", this, "MIN", "Mínimo 3 caracteres.");
-            ValidationRules.maxLength(data.professionalAssociation, 100, "professionalAssociation", this, "MAX", "Máximo 100 caracteres.");
+        const association = (data.professionalAssociation || "").trim();
+        const regNumber = (data.registrationNumber || "").trim();
+
+        // 1. Si el usuario ingresó un Colegio Profesional
+        if (association.length > 0) {
+            ValidationRules.minLength(association, 3, "professionalAssociation", this, "MIN", "Mínimo 3 caracteres.");
+            ValidationRules.maxLength(association, 100, "professionalAssociation", this, "MAX", "Máximo 100 caracteres.");
+
+            // Obliga a ingresar el N° de Colegiatura
+            if (regNumber.length === 0) {
+                this.addError("registrationNumber", "REQ", "Ingrese el número de colegiatura si especifica un colegio profesional.");
+            }
         }
 
-        if (ValidationRules.required(data.registrationNumber, "registrationNumber", this, "REQ", "El número de colegiatura es obligatorio.")) {
-            ValidationRules.numeric(data.registrationNumber, "registrationNumber", this, "NUM", "Solo se permiten números.");
-            ValidationRules.lengthBetween(data.registrationNumber, 4, 15, "registrationNumber", this, "LEN", "Debe tener entre 4 y 15 dígitos.");
+        // 2. Si ingresó N° de Colegiatura
+        if (regNumber.length > 0) {
+            ValidationRules.numeric(regNumber, "registrationNumber", this, "NUM", "Solo se permiten números.");
+            ValidationRules.lengthBetween(regNumber, 4, 15, "registrationNumber", this, "LEN", "Debe tener entre 4 y 15 dígitos.");
         }
     }
 

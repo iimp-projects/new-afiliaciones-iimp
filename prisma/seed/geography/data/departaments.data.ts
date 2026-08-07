@@ -285,5 +285,130 @@ export const departmentsData = [
   { countryIso: "ESP", ubigeoCode: "ES14", name: "Murcia" },
   { countryIso: "ESP", ubigeoCode: "ES15", name: "Navarra" },
   { countryIso: "ESP", ubigeoCode: "ES16", name: "País Vasco" },
-  { countryIso: "ESP", ubigeoCode: "ES17", name: "La Rioja" }
+  { countryIso: "ESP", ubigeoCode: "ES17", name: "La Rioja" },
+
+  // ==========================================
+  // CANADÁ (10 Provincias + 3 Territorios)
+  // ==========================================
+  { countryIso: "CAN", ubigeoCode: "CA01", name: "Ontario" },
+  { countryIso: "CAN", ubigeoCode: "CA02", name: "Quebec" },
+  { countryIso: "CAN", ubigeoCode: "CA03", name: "British Columbia" },
+  { countryIso: "CAN", ubigeoCode: "CA04", name: "Alberta" },
+  { countryIso: "CAN", ubigeoCode: "CA05", name: "Manitoba" },
+  { countryIso: "CAN", ubigeoCode: "CA06", name: "Saskatchewan" },
+  { countryIso: "CAN", ubigeoCode: "CA07", name: "Nova Scotia" },
+  { countryIso: "CAN", ubigeoCode: "CA08", name: "New Brunswick" },
+  { countryIso: "CAN", ubigeoCode: "CA09", name: "Newfoundland and Labrador" },
+  { countryIso: "CAN", ubigeoCode: "CA10", name: "Prince Edward Island" },
+  { countryIso: "CAN", ubigeoCode: "CA11", name: "Northwest Territories" },
+  { countryIso: "CAN", ubigeoCode: "CA12", name: "Yukon" },
+  { countryIso: "CAN", ubigeoCode: "CA13", name: "Nunavut" },
+
+  // ==========================================
+  // CHINA (22 Provincias + 5 Regiones Autónomas + 4 Municipios + 2 SAR)
+  // ==========================================
+  // Municipios Especiales
+  { countryIso: "CHN", ubigeoCode: "CN01", name: "Beijing" },
+  { countryIso: "CHN", ubigeoCode: "CN02", name: "Shanghai" },
+  { countryIso: "CHN", ubigeoCode: "CN03", name: "Tianjin" },
+  { countryIso: "CHN", ubigeoCode: "CN04", name: "Chongqing" },
+  // Provincias
+  { countryIso: "CHN", ubigeoCode: "CN05", name: "Anhui" },
+  { countryIso: "CHN", ubigeoCode: "CN06", name: "Fujian" },
+  { countryIso: "CHN", ubigeoCode: "CN07", name: "Gansu" },
+  { countryIso: "CHN", ubigeoCode: "CN08", name: "Guangdong" },
+  { countryIso: "CHN", ubigeoCode: "CN09", name: "Guizhou" },
+  { countryIso: "CHN", ubigeoCode: "CN10", name: "Hainan" },
+  { countryIso: "CHN", ubigeoCode: "CN11", name: "Hebei" },
+  { countryIso: "CHN", ubigeoCode: "CN12", name: "Heilongjiang" },
+  { countryIso: "CHN", ubigeoCode: "CN13", name: "Henan" },
+  { countryIso: "CHN", ubigeoCode: "CN14", name: "Hubei" },
+  { countryIso: "CHN", ubigeoCode: "CN15", name: "Hunan" },
+  { countryIso: "CHN", ubigeoCode: "CN16", name: "Jiangsu" },
+  { countryIso: "CHN", ubigeoCode: "CN17", name: "Jiangxi" },
+  { countryIso: "CHN", ubigeoCode: "CN18", name: "Jilin" },
+  { countryIso: "CHN", ubigeoCode: "CN19", name: "Liaoning" },
+  { countryIso: "CHN", ubigeoCode: "CN20", name: "Qinghai" },
+  { countryIso: "CHN", ubigeoCode: "CN21", name: "Shaanxi" },
+  { countryIso: "CHN", ubigeoCode: "CN22", name: "Shandong" },
+  { countryIso: "CHN", ubigeoCode: "CN23", name: "Shanxi" },
+  { countryIso: "CHN", ubigeoCode: "CN24", name: "Sichuan" },
+  { countryIso: "CHN", ubigeoCode: "CN25", name: "Yunnan" },
+  { countryIso: "CHN", ubigeoCode: "CN26", name: "Zhejiang" },
+  // Regiones Autónomas
+  { countryIso: "CHN", ubigeoCode: "CN27", name: "Guangxi" },
+  { countryIso: "CHN", ubigeoCode: "CN28", name: "Nei Mongol (Inner Mongolia)" },
+  { countryIso: "CHN", ubigeoCode: "CN29", name: "Ningxia" },
+  { countryIso: "CHN", ubigeoCode: "CN30", name: "Xinjiang" },
+  { countryIso: "CHN", ubigeoCode: "CN31", name: "Xizang (Tibet)" },
+  // Regiones Administrativas Especiales
+  { countryIso: "CHN", ubigeoCode: "CN32", name: "Hong Kong" },
+  { countryIso: "CHN", ubigeoCode: "CN33", name: "Macau" },
+
+  // ==========================================
+  // AUSTRALIA (6 Estados + 2 Territorios)
+  // ==========================================
+  { countryIso: "AUS", ubigeoCode: "AU01", name: "Western Australia" },
+  { countryIso: "AUS", ubigeoCode: "AU02", name: "Queensland" },
+  { countryIso: "AUS", ubigeoCode: "AU03", name: "New South Wales" },
+  { countryIso: "AUS", ubigeoCode: "AU04", name: "Victoria" },
+  { countryIso: "AUS", ubigeoCode: "AU05", name: "South Australia" },
+  { countryIso: "AUS", ubigeoCode: "AU06", name: "Tasmania" },
+  { countryIso: "AUS", ubigeoCode: "AU07", name: "Northern Territory" },
+  { countryIso: "AUS", ubigeoCode: "AU08", name: "Australian Capital Territory" },
+
+  // ==========================================
+  // SUDÁFRICA (9 Provincias)
+  // ==========================================
+  { countryIso: "ZAF", ubigeoCode: "ZA01", name: "Gauteng" },
+  { countryIso: "ZAF", ubigeoCode: "ZA02", name: "Western Cape" },
+  { countryIso: "ZAF", ubigeoCode: "ZA03", name: "KwaZulu-Natal" },
+  { countryIso: "ZAF", ubigeoCode: "ZA04", name: "Eastern Cape" },
+  { countryIso: "ZAF", ubigeoCode: "ZA05", name: "Free State" },
+  { countryIso: "ZAF", ubigeoCode: "ZA06", name: "Limpopo" },
+  { countryIso: "ZAF", ubigeoCode: "ZA07", name: "Mpumalanga" },
+  { countryIso: "ZAF", ubigeoCode: "ZA08", name: "North West" },
+  { countryIso: "ZAF", ubigeoCode: "ZA09", name: "Northern Cape" },
+
+  // ==========================================
+  // BOLIVIA (9 Departamentos)
+  // ==========================================
+  { countryIso: "BOL", ubigeoCode: "BO01", name: "La Paz" },
+  { countryIso: "BOL", ubigeoCode: "BO02", name: "Santa Cruz" },
+  { countryIso: "BOL", ubigeoCode: "BO03", name: "Cochabamba" },
+  { countryIso: "BOL", ubigeoCode: "BO04", name: "Potosí" },
+  { countryIso: "BOL", ubigeoCode: "BO05", name: "Oruro" },
+  { countryIso: "BOL", ubigeoCode: "BO06", name: "Tarija" },
+  { countryIso: "BOL", ubigeoCode: "BO07", name: "Chuquisaca" },
+  { countryIso: "BOL", ubigeoCode: "BO08", name: "Beni" },
+  { countryIso: "BOL", ubigeoCode: "BO09", name: "Pando" },
+
+  // ==========================================
+  // REINO UNIDO (4 Naciones Constitutivas)
+  // ==========================================
+  { countryIso: "GBR", ubigeoCode: "GB01", name: "England" },
+  { countryIso: "GBR", ubigeoCode: "GB02", name: "Scotland" },
+  { countryIso: "GBR", ubigeoCode: "GB03", name: "Wales" },
+  { countryIso: "GBR", ubigeoCode: "GB04", name: "Northern Ireland" },
+
+  // ==========================================
+  // ALEMANIA (16 Estados Federados - Bundesländer)
+  // ==========================================
+  { countryIso: "DEU", ubigeoCode: "DE01", name: "Baden-Württemberg" },
+  { countryIso: "DEU", ubigeoCode: "DE02", name: "Bavaria (Bayern)" },
+  { countryIso: "DEU", ubigeoCode: "DE03", name: "Berlin" },
+  { countryIso: "DEU", ubigeoCode: "DE04", name: "Brandenburg" },
+  { countryIso: "DEU", ubigeoCode: "DE05", name: "Bremen" },
+  { countryIso: "DEU", ubigeoCode: "DE06", name: "Hamburg" },
+  { countryIso: "DEU", ubigeoCode: "DE07", name: "Hesse (Hessen)" },
+  { countryIso: "DEU", ubigeoCode: "DE08", name: "Lower Saxony (Niedersachsen)" },
+  { countryIso: "DEU", ubigeoCode: "DE09", name: "Mecklenburg-Vorpommern" },
+  { countryIso: "DEU", ubigeoCode: "DE10", name: "North Rhine-Westphalia" },
+  { countryIso: "DEU", ubigeoCode: "DE11", name: "Rhineland-Palatinate" },
+  { countryIso: "DEU", ubigeoCode: "DE12", name: "Saarland" },
+  { countryIso: "DEU", ubigeoCode: "DE13", name: "Saxony (Sachsen)" },
+  { countryIso: "DEU", ubigeoCode: "DE14", name: "Saxony-Anhalt" },
+  { countryIso: "DEU", ubigeoCode: "DE15", name: "Schleswig-Holstein" },
+  { countryIso: "DEU", ubigeoCode: "DE16", name: "Thuringia (Thüringen)" }
+  
 ];
