@@ -1,97 +1,146 @@
 "use client";
 
-import { MoreVertical, CheckCircle2, Clock, XCircle, MinusCircle } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { 
+  MoreVertical, CheckCircle2, Clock, XCircle, 
+  MinusCircle, AlertCircle, Eye, UserPlus, 
+  FileEdit, Trash2 
+} from "lucide-react";
 import type { SmartCaseCardProps } from "./types";
 import { FallbackAvatar } from "./FallbackAvatar";
+import { DynamicIcon } from "@/modules/layout/Utils/DynamicIcon";
 
-const StatusIcon = ({ status }: { status: string }) => {
-  if (status === "check") return <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center shadow-sm"><CheckCircle2 size={14} className="text-white" strokeWidth={3} /></div>;
-  if (status === "pending") return <div className="w-5 h-5 rounded-full bg-amber-500 flex items-center justify-center shadow-sm"><Clock size={13} className="text-white" strokeWidth={3} /></div>;
-  if (status === "error") return <div className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center shadow-sm"><XCircle size={14} className="text-white" strokeWidth={3} /></div>;
-  if (status === "dash") return <div className="w-5 h-5 rounded-full bg-slate-300 flex items-center justify-center shadow-sm"><MinusCircle size={14} className="text-white" strokeWidth={3} /></div>;
+const StatusIcon = ({ status, className = "" }: { status: string; className?: string }) => {
+  if (status === "check") return <CheckCircle2 size={14} className={className} strokeWidth={2.5} />;
+  if (status === "pending" || status === "clock") return <Clock size={14} className={className} strokeWidth={2.5} />;
+  if (status === "error") return <XCircle size={14} className={className} strokeWidth={2.5} />;
+  if (status === "dash") return <MinusCircle size={14} className={className} strokeWidth={2.5} />;
+  if (status === "review") return <AlertCircle size={14} className={className} strokeWidth={2.5} />;
   return null;
 };
 
 export function SmartCaseCard({ data, onClick }: SmartCaseCardProps) {
-  const { identity, primaryBadge, atomicValidations, metadata } = data;
+  const { identity, primaryBadge, atomicValidations, metadata, topBorderColorClass, subStatus } = data;
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+    if (isMenuOpen) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isMenuOpen]);
 
   return (
-    <article 
+    <article
       onClick={onClick}
-      className="bg-white rounded-2xl p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-slate-200/60 relative flex flex-col hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] hover:border-slate-300 transition-all duration-300 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#4a6ab0]"
+      className={`bg-white rounded-2xl p-5 shadow-sm border border-slate-200 relative flex flex-col hover:shadow-md transition-all duration-300 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary/50 overflow-visible`}
     >
-      {identity.categoryBadge && (
-        <div className={`absolute top-4 left-5 px-2.5 py-0.5 rounded-full text-[9px] font-black tracking-widest text-white shadow-sm ${identity.categoryBadge.colorClass}`}>
-          {identity.categoryBadge.label}
-        </div>
+      {topBorderColorClass && (
+        <div className={`absolute top-0 left-0 w-full h-1.5 rounded-t-2xl ${topBorderColorClass}`}></div>
       )}
 
-      <button className="absolute top-4 right-4 text-slate-300 hover:text-slate-600 transition-colors" onClick={(e) => e.stopPropagation()}>
-        <MoreVertical size={20} strokeWidth={2.5} />
-      </button>
+      {/* HEADER: ESTADO Y SUB-ESTADO UNIDOS EN UNA SOLA CAJA VISUAL */}
+      <div className="flex items-start justify-between mt-1 mb-6 relative">
+        {primaryBadge && (
+          <div className={`flex flex-col px-3 py-2 rounded-xl w-max ${primaryBadge.colorClass}`}>
+            <div className="flex items-center gap-1.5">
+              <StatusIcon status={primaryBadge.icon} className="shrink-0" />
+              <span className="text-[11px] font-black uppercase tracking-wider">{primaryBadge.label}</span>
+            </div>
+            {subStatus && (
+              <span className="text-[11px] font-semibold mt-0.5 opacity-80">
+                {subStatus}
+              </span>
+            )}
+          </div>
+        )}
 
-      <div className="flex items-start gap-4 mt-8 mb-5">
-        <div className="w-[72px] h-[90px] shrink-0 rounded-xl overflow-hidden shadow-sm border border-slate-100 relative">
-          {identity.avatarUrl ? (
-            <img src={identity.avatarUrl} alt="" className="w-full h-full object-cover" />
-          ) : (
-            <FallbackAvatar identifier={data.trackingCode} initials={identity.fallbackInitials} size={90} />
+        {/* MENÚ 3 PUNTITOS */}
+        <div ref={menuRef} className="absolute -top-1 -right-2 z-50">
+          <button 
+            className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-1.5 rounded-lg transition-colors" 
+            onClick={(e) => { e.stopPropagation(); setIsMenuOpen(!isMenuOpen); }}
+          >
+            <MoreVertical size={20} strokeWidth={2.5} />
+          </button>
+
+          {isMenuOpen && (
+            <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-slate-100 rounded-xl shadow-[0_10px_40px_-15px_rgba(0,0,0,0.2)] py-1.5 z-[100] animate-in fade-in zoom-in-95">
+              <button onClick={(e) => { e.stopPropagation(); setIsMenuOpen(false); onClick?.(); }} className="w-full flex items-center gap-2.5 px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-[#C5A059] transition-colors"><Eye size={16} /> Ver expediente</button>
+            </div>
           )}
-        </div>
-        
-        <div className="flex flex-col pt-1">
-          <h3 className="text-[15px] font-black text-slate-800 leading-[1.2] mb-1.5 line-clamp-2" title={identity.title}>
-            {identity.title}
-          </h3>
-          <p className="text-[11px] font-bold text-slate-400 font-mono tracking-wide">
-            {identity.subtitle}
-          </p>
-          <p className="text-[11px] font-bold text-[#4a6ab0] font-mono tracking-wide mt-0.5">
-            {data.trackingCode}
-          </p>
         </div>
       </div>
 
-      {primaryBadge && (
-        <div className="mb-5">
-          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black tracking-widest border ${primaryBadge.colorClass}`}>
-            {primaryBadge.icon === "check" && <CheckCircle2 size={14} strokeWidth={3} className="opacity-80" />}
-            {primaryBadge.icon === "clock" && <Clock size={14} strokeWidth={3} className="opacity-80" />}
-            {primaryBadge.icon === "error" && <XCircle size={14} strokeWidth={3} className="opacity-80" />}
-            {primaryBadge.icon === "dash" && <MinusCircle size={14} strokeWidth={3} className="opacity-80" />}
-            {primaryBadge.label}
-          </span>
+      {/* IDENTIDAD DEL POSTULANTE (SIN CÓDIGO LARGO) */}
+      <div className="flex items-center gap-4 mb-6">
+        <div className="w-[56px] h-[56px] shrink-0 rounded-full overflow-hidden border border-slate-100 relative">
+          {identity.avatarUrl ? (
+            <img src={identity.avatarUrl} alt={identity.title} className="w-full h-full object-cover" />
+          ) : (
+            <FallbackAvatar identifier={data.trackingCode} initials={identity.fallbackInitials} size={56} />
+          )}
         </div>
-      )}
+        <div className="flex flex-col min-w-0">
+          <h3 className="text-[14px] font-extrabold text-slate-800 leading-tight capitalize line-clamp-2" title={identity.title}>
+            {identity.title.toLowerCase()}
+          </h3>
+          <p className="text-[11px] font-semibold text-slate-500 mt-1">{identity.categoryBadge?.label}</p>
+          <p className="text-[10px] font-bold text-slate-400 font-mono mt-0.5">{identity.subtitle}</p>
+        </div>
+      </div>
 
-      <hr className="border-slate-100 mb-4" />
-
+      {/* VALIDACIONES ATÓMICAS */}
       {atomicValidations && (
-        <div className="grid grid-cols-4 gap-2 px-2 mb-5">
-          {atomicValidations.map((validation, idx) => (
-            <div key={idx} className="flex flex-col items-center gap-2">
-              <span className="text-[10px] font-extrabold text-slate-800 tracking-wider">{validation.label}</span>
-              <StatusIcon status={validation.status} />
+        <div className="flex flex-col gap-3.5 mb-5 flex-grow">
+          {atomicValidations.map((val, idx) => (
+            <div key={idx} className="flex items-center w-full justify-between gap-1">
+              
+              {/* Columna 1: Icono e Identificador del Área */}
+              <div className="flex items-center gap-2 w-[80px] shrink-0">
+                <DynamicIcon name={val.icon} size={15} className="text-slate-500 shrink-0" />
+                <span className="text-[12px] font-bold text-slate-700 leading-none">{val.label}</span>
+              </div>
+              
+              {/* Columna 2: Estado */}
+              <div className="flex justify-center shrink-0">
+                <span className={`inline-flex items-center justify-center gap-1 w-max px-2 py-0.5 rounded text-[10px] font-bold ${val.statusColorClass} whitespace-nowrap`}>
+                  <StatusIcon status={val.status} className="w-3 h-3 shrink-0" />
+                  <span>{val.statusLabel}</span>
+                </span>
+              </div>
+
+              {/* Columna 3: Nombre del Auditor + HORA DE LA ACCIÓN */}
+              <div className="flex-1 flex flex-col items-end justify-center pl-1">
+                {val.assignee ? (
+                  <>
+                    <span className="text-[10px] font-medium text-slate-500 text-right leading-tight" title={val.assignee.name}>
+                      {val.assignee.name}
+                    </span>
+                    {/* ESTA ES LA LÍNEA NUEVA QUE AGREGA LA HORA */}
+                    {val.assignee.timeRelative && (
+                      <span className="text-[9px] font-bold text-slate-400 text-right mt-0.5">
+                        {val.assignee.timeRelative}
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <span className="text-[10px] font-medium text-slate-400 text-right">Sin asignar</span>
+                )}
+              </div>
+              
             </div>
           ))}
         </div>
       )}
 
-      <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-100">
-        <span className="text-[12px] font-bold text-slate-500 flex items-center gap-1.5">
-          <Clock size={14} className="text-slate-400" /> {metadata.lastUpdatedRelative}
-        </span>
-        
-        <div className="flex items-center gap-2">
-          {metadata.assignedTo.initial !== "-" && (
-            <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-black text-slate-600">
-              {metadata.assignedTo.initial}
-            </div>
-          )}
-          <span className={`text-[11px] font-black tracking-widest uppercase ${metadata.assignedTo.name === 'SIN ASIGNAR' ? 'text-slate-300' : 'text-slate-700'}`}>
-            {metadata.assignedTo.name}
-          </span>
-        </div>
+      {/* FOOTER */}
+      <div className="flex items-center gap-1.5 pt-4 border-t border-slate-100 text-[11px] font-medium text-slate-500 mt-auto">
+        <Clock size={14} className="text-slate-400" /> {metadata.lastUpdatedRelative}
       </div>
     </article>
   );

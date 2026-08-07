@@ -25,12 +25,27 @@ export class SessionService {
     return sessionRepository.findById(sessionId);
   }
 
+  // isSessionValid(session: SessionDTO | null): boolean {
+  //   if (!session) return false;
+  //   if (session.isRevoked) return false;
+  //   if (session.expiresAt <= new Date()) return false;
+  //   return true;
+  // }
+
   isSessionValid(session: SessionDTO | null): boolean {
     if (!session) return false;
     if (session.isRevoked) return false;
     if (session.expiresAt <= new Date()) return false;
+
+    // NUEVO: Validar inactividad (Ejemplo: 30 minutos)
+    const MAX_IDLE_TIME_MS = 30 * 60 * 1000; 
+    const NOW = new Date().getTime();
+    if (NOW - session.lastActivityAt.getTime() > MAX_IDLE_TIME_MS) {
+        return false; // La sesión caducó por inactividad
+    }
+
     return true;
-  }
+}
 
   async touchSession(sessionId: string): Promise<SessionDTO | null> {
     const session = await this.getSessionById(sessionId);
@@ -73,6 +88,7 @@ export class SessionService {
   async deleteExpiredSessions(): Promise<number> {
     return sessionRepository.deleteExpired(new Date());
   }
+  
 }
 
 export const sessionService = new SessionService();

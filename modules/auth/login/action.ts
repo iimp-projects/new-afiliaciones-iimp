@@ -4,6 +4,8 @@ import { signIn } from "@/lib/auth";
 import { AuthError } from "next-auth";
 import { loginSchema } from "./schema";
 import type { LoginState } from "./types";
+import { loginRepository } from "./repository";
+import { securityService } from "../security/service";
 
 export async function loginAction(
   prevState: LoginState,
@@ -40,5 +42,20 @@ export async function loginAction(
     }
     // Relanzar redirecciones de Next.js u otros errores no manejados
     throw error;
+  }
+}
+
+export async function checkLockStatus(email: string) {
+  try {
+    const user = await loginRepository.findUserWithPassword(email);
+    if (user && securityService.isAccountLocked(user.lockedUntil)) {
+      return { 
+        locked: true, 
+        message: "Demasiados intentos fallidos. La cuenta ha sido bloqueada por 15 minutos." 
+      };
+    }
+    return { locked: false };
+  } catch (error) {
+    return { locked: false };
   }
 }

@@ -23,6 +23,10 @@ class ContextService {
     // Validación remota en tiempo real (Revocación / Expiración)
     if (!sessionService.isSessionValid(session)) return null;
 
+    // NUEVO: Registrar que el usuario acaba de interactuar con el sistema
+    // El método internamente sabe que solo debe actualizar la BD cada 5 minutos
+    await sessionService.touchSession(sessionId);
+    
     return session;
   });
 
