@@ -1,7 +1,5 @@
-import { ApplicationStatus, Prisma } from "@prisma/client";
-
+import { ApplicationStatus, Prisma, ValidationStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-
 import { Application } from "../Entities/Application";
 import { IApplicationRepository } from "./Interfaces/IApplicationRepository";
 import { UpdateDraftDTO } from "../DTOs/update-draft.dto";
@@ -16,9 +14,7 @@ export class ApplicationRepository implements IApplicationRepository {
     const application = await this.db.membershipApplication.findFirst({
       where: {
         documentNumber,
-
         status: ApplicationStatus.DRAFT,
-
         deletedAt: null,
       },
     });
@@ -29,43 +25,24 @@ export class ApplicationRepository implements IApplicationRepository {
 
     return {
       id: application.id,
-
       applicationCode: application.applicationCode,
-
       trackingCode: application.trackingCode,
-
       personId: application.personId,
-
       documentType: application.documentType,
-
       documentNumber: application.documentNumber,
-
       email: application.email,
-
       phone: application.phone,
-
       affiliateType: application.affiliateType,
-
       status: application.status,
-
       currentStep: application.currentStep,
-
       draftData: application.draftData as Prisma.JsonValue | null,
-
       correspondencePreference: application.correspondencePreference,
-
       submittedAt: application.submittedAt,
-
       verifiedAt: application.verifiedAt,
-
       lastAccessAt: application.lastAccessAt,
-
       expiresAt: application.expiresAt,
-
       createdAt: application.createdAt,
-
       updatedAt: application.updatedAt,
-
       deletedAt: application.deletedAt,
     };
   }
@@ -90,23 +67,14 @@ export class ApplicationRepository implements IApplicationRepository {
     const newApplication = await this.db.membershipApplication.create({
       data: {
         applicationCode: application.applicationCode!,
-
         trackingCode: application.trackingCode!,
-
         affiliateType: application.affiliateType as any,
-
         documentType: application.documentType as any,
-
         documentNumber: application.documentNumber!,
-
         email: application.email!,
-
         phone: application.phone!,
-
         status: application.status as any,
-
         currentStep: application.currentStep ?? 1,
-
         draftData:
           application.draftData === null
             ? Prisma.JsonNull
@@ -127,36 +95,23 @@ export class ApplicationRepository implements IApplicationRepository {
       },
       data: {
         personId: application.personId,
-
         affiliateType: application.affiliateType as any,
-
         documentType: application.documentType as any,
-
         documentNumber: application.documentNumber,
-
         email: application.email,
-
         phone: application.phone,
-
         status: application.status as any,
-
         currentStep: application.currentStep,
-
         correspondencePreference: application.correspondencePreference,
-
         draftData:
           application.draftData === undefined
             ? undefined
             : application.draftData === null
               ? Prisma.JsonNull
               : (application.draftData as Prisma.InputJsonValue),
-
         submittedAt: application.submittedAt,
-
         verifiedAt: application.verifiedAt,
-
         lastAccessAt: application.lastAccessAt,
-
         expiresAt: application.expiresAt,
       },
     });
@@ -192,12 +147,6 @@ export class ApplicationRepository implements IApplicationRepository {
       throw new Error("La postulación no existe.");
     }
 
-    /**
-     * Merge del borrador.
-     * Conserva toda la información existente
-     * y únicamente agrega o reemplaza
-     * la sección enviada.
-     */
     const mergedDraft = {
       ...((application.draftData as Record<string, unknown>) ?? {}),
       ...dto.draftData,
@@ -209,9 +158,7 @@ export class ApplicationRepository implements IApplicationRepository {
       },
       data: {
         currentStep: dto.currentStep,
-
         draftData: mergedDraft as unknown as Prisma.InputJsonValue,
-
         lastAccessAt: new Date(),
       },
     });
@@ -236,14 +183,42 @@ export class ApplicationRepository implements IApplicationRepository {
       const personId = await this.upsertPerson(tx, application);
 
       await this.persistAcademicInfos(tx, personId, application);
-
       await this.persistEmploymentInfos(tx, personId, application);
-
       await this.persistApprovals(tx, application);
-
       await this.persistDocuments(tx, application);
 
+      // 👇 AQUÍ EJECUTAMOS LA CREACIÓN DE LAS COLAS DE TRABAJO (ÁREAS) 👇
+      await this.persistInitialValidations(tx, application.id);
+
       return await this.completeApplication(tx, application, personId);
+    });
+  }
+
+  // =================================================================
+  // NUEVO MÉTODO: Crea los registros reales de áreas pendientes en BD
+  // =================================================================
+  private async persistInitialValidations(
+    tx: Prisma.TransactionClient,
+    applicationId: number
+  ): Promise<void> {
+    // 1. Buscamos todos los departamentos que tu sistema requiere evaluar
+    const departments = await tx.membershipDepartment.findMany({
+      where: { isActive: true, isRequired: true },
+    });
+
+    if (departments.length === 0) return;
+
+    // 2. Por cada departamento, insertamos físicamente un registro "PENDIENTE"
+    // ValidatedById queda en null porque nadie lo ha atendido aún.
+    const validationsData = departments.map((dept) => ({
+      applicationId: applicationId,
+      departmentId: dept.id,
+      status: ValidationStatus.PENDING,
+    }));
+
+    await tx.membershipValidation.createMany({
+      data: validationsData,
+      skipDuplicates: true, // Protege contra dobles envíos
     });
   }
 
@@ -251,12 +226,10 @@ export class ApplicationRepository implements IApplicationRepository {
     tx: Prisma.TransactionClient,
     application: Prisma.MembershipApplicationGetPayload<Record<string, never>>,
   ): Promise<void> {
-    // 1. Debe existir información del borrador.
     if (!application.draftData) {
       throw new Error("La postulación no contiene información.");
     }
 
-    // 2. Solo se puede enviar un DRAFT.
     if (application.status !== ApplicationStatus.DRAFT) {
       throw new Error(
         "Solo las postulaciones en estado DRAFT pueden enviarse.",
@@ -265,14 +238,12 @@ export class ApplicationRepository implements IApplicationRepository {
 
     const draft = application.draftData as unknown as ApplicationDraft;
 
-    // 3. Debe existir el paso 1.
     if (!draft.personalInformation) {
       throw new Error("La información personal es obligatoria.");
     }
 
     const personal = draft.personalInformation;
 
-    // 4. Documento obligatorio.
     if (!personal.documentNumber) {
       throw new Error("El número de documento es obligatorio.");
     }
@@ -281,21 +252,16 @@ export class ApplicationRepository implements IApplicationRepository {
       throw new Error("El tipo de documento es obligatorio.");
     }
 
-    // 5. Buscar otra postulación activa.
     const duplicatedApplication = await tx.membershipApplication.findFirst({
       where: {
         id: {
           not: application.id,
         },
-
         documentType: application.documentType,
-
         documentNumber: application.documentNumber,
-
         deletedAt: null,
-
         status: {
-          in: [ApplicationStatus.DRAFT, ApplicationStatus.SUBMITTED],
+          in: [ApplicationStatus.DRAFT, ApplicationStatus.PENDING],
         },
       },
     });
@@ -303,12 +269,6 @@ export class ApplicationRepository implements IApplicationRepository {
     if (duplicatedApplication) {
       throw new Error("Ya existe otra postulación activa para este documento.");
     }
-
-    // ======================================================
-    // TODO
-    // Verificar si la persona ya es asociada.
-    // Esta regla depende del modelo Person/Affiliate.
-    // ======================================================
   }
 
   private async upsertPerson(
@@ -357,15 +317,11 @@ export class ApplicationRepository implements IApplicationRepository {
       data: {
         documentType: personal.documentType as any,
         documentNumber: personal.documentNumber,
-
         firstName: personal.names,
         paternalLastName: personal.fatherLastName,
         maternalLastName: personal.motherLastName,
-
         birthDate: personal.birthDate ? new Date(personal.birthDate) : null,
-
         gender: personal.gender as any,
-
         birthPlace: null,
         civilStatus: null,
         nationalityId: null,
@@ -390,7 +346,6 @@ export class ApplicationRepository implements IApplicationRepository {
       return;
     }
 
-    // Eliminamos la información previa para volver a sincronizarla.
     await tx.academicInfo.deleteMany({
       where: {
         personId,
@@ -401,27 +356,17 @@ export class ApplicationRepository implements IApplicationRepository {
       await tx.academicInfo.create({
         data: {
           personId,
-
-          // Temporal hasta que el formulario envíe el nivel de estudio.
           studyLevel: "OTHER",
-
           degreeId: null,
-
           universityId:
             study.institutionId && study.institutionId > 0
               ? study.institutionId
               : null,
-
           specialtyId: null,
-
           degreeTitle: study.degreeTitle,
-
           professionalAssociation: study.professionalAssociation ?? null,
-
           licenseNumber: study.registrationNumber ?? null,
-
           graduationYear: study.graduationYear ?? null,
-
           termOrSemester: null,
         },
       });
@@ -454,30 +399,15 @@ export class ApplicationRepository implements IApplicationRepository {
     await tx.employmentInfo.create({
       data: {
         personId,
-
         companyId: employment.companyId ?? null,
-
         positionId: employment.positionId ?? null,
-
         area: employment.area ?? null,
-
         workingAddress: employment.workingAddress ?? null,
-
         workPhone: employment.workPhone ?? null,
-
         workExtension: employment.workExtension ?? null,
-
         workEmail: employment.workEmail ?? null,
       },
     });
-  }
-
-  private async persistProfessionalExperiences(
-    tx: Prisma.TransactionClient,
-    personId: number,
-    application: Prisma.MembershipApplicationGetPayload<Record<string, never>>,
-  ): Promise<void> {
-    // TODO Sprint 5
   }
 
   private async persistApprovals(
@@ -535,31 +465,28 @@ export class ApplicationRepository implements IApplicationRepository {
 
     const draft = application.draftData as unknown as ApplicationDraft;
 
-    // 1. Limpiamos documentos previos por si acaso
     await tx.applicationDocument.deleteMany({
       where: {
         applicationId: application.id,
       },
     });
 
-    // 2. Guardar el Documento de Identidad (DNI/CE/Pasaporte)
     const identityDoc = draft.personalInformation?.identityDocument as any;
     if (identityDoc && identityDoc.url) {
       await tx.applicationDocument.create({
         data: {
           applicationId: application.id,
-          category: "ID_DOCUMENT", // Categoría exacta de tu Enum
+          category: "ID_DOCUMENT",
           fileUrl: identityDoc.url,
           fileName:
             identityDoc.name ||
             `Documento_Identidad_${draft.personalInformation?.documentNumber}`,
           mimeType: identityDoc.type || "application/pdf",
-          sizeBytes: BigInt(0), // Requerido por tu schema (BigInt)
+          sizeBytes: BigInt(0),
         },
       });
     }
 
-    // 3. Guardar la Foto (La guardamos como OTHER, ya que no hay categoría PHOTO en tu enum)
     const photoDoc = draft.personalInformation?.photo as any;
     if (photoDoc && photoDoc.url) {
       await tx.applicationDocument.create({
@@ -576,13 +503,12 @@ export class ApplicationRepository implements IApplicationRepository {
       });
     }
 
-    // 4. Guardar la Declaración Jurada Firmada
     const declarationUrl = draft.endorsements?.declarationDocumentId;
     if (declarationUrl) {
       await tx.applicationDocument.create({
         data: {
           applicationId: application.id,
-          category: "SWORN_DECLARATION", // Categoría exacta de tu Enum
+          category: "SWORN_DECLARATION",
           fileUrl: declarationUrl,
           fileName: "Declaracion_Jurada_Firmada.pdf",
           mimeType: "application/pdf",
@@ -591,14 +517,13 @@ export class ApplicationRepository implements IApplicationRepository {
       });
     }
 
-    // 5. Guardar Constancia de Estudiante (si existe)
     const universityLetter = draft.academicStudies?.[0]
       ?.universityLetter as any;
     if (universityLetter && universityLetter.url) {
       await tx.applicationDocument.create({
         data: {
           applicationId: application.id,
-          category: "OTHER", // U otra categoría si tienes una específica para constancias
+          category: "OTHER",
           fileUrl: universityLetter.url,
           fileName: universityLetter.name || "Constancia_Estudios.pdf",
           mimeType: universityLetter.type || "application/pdf",
@@ -619,7 +544,7 @@ export class ApplicationRepository implements IApplicationRepository {
       },
       data: {
         personId,
-        status: ApplicationStatus.SUBMITTED,
+        status: ApplicationStatus.PENDING,
         submittedAt: new Date(),
       },
     });
@@ -632,43 +557,24 @@ export class ApplicationRepository implements IApplicationRepository {
   ): Application {
     return {
       id: application.id,
-
       applicationCode: application.applicationCode,
-
       trackingCode: application.trackingCode,
-
       personId: application.personId,
-
       documentType: application.documentType,
-
       documentNumber: application.documentNumber,
-
       email: application.email,
-
       phone: application.phone,
-
       affiliateType: application.affiliateType,
-
       status: application.status,
-
       currentStep: application.currentStep,
-
       draftData: application.draftData as Prisma.JsonValue | null,
-
       correspondencePreference: application.correspondencePreference,
-
       submittedAt: application.submittedAt,
-
       verifiedAt: application.verifiedAt,
-
       lastAccessAt: application.lastAccessAt,
-
       expiresAt: application.expiresAt,
-
       createdAt: application.createdAt,
-
       updatedAt: application.updatedAt,
-
       deletedAt: application.deletedAt,
     };
   }

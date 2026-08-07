@@ -1,11 +1,31 @@
-export type CasePriority = 'low' | 'medium' | 'high' | 'critical';
-export type AtomicValidationStatus = 'check' | 'pending' | 'error' | 'dash' | 'review';
-export type PrimaryBadgeIcon = 'check' | 'clock' | 'error' | 'dash';
+export type CasePriority = "low" | "medium" | "high" | "critical";
+
+// Se integran los nuevos estados del backend conservando la compatibilidad gráfica
+export type AtomicValidationStatus =
+  | "PENDING"
+  | "UNDER_EVALUATION"
+  | "OBSERVED"
+  | "RESOLVED"
+  | "APPROVED"
+  | "REJECTED"
+  | "check"
+  | "pending"
+  | "error"
+  | "dash"
+  | "review";
+
+export type PrimaryBadgeIcon =
+  | "check"
+  | "clock"
+  | "error"
+  | "dash"
+  | "review"
+  | "alert";
 
 export interface WorkflowStep {
   id: string;
   label: string;
-  state: 'pending' | 'current' | 'completed' | 'blocked' | 'skipped';
+  state: "pending" | "current" | "completed" | "blocked" | "skipped";
 }
 
 export interface WorkflowData {
@@ -14,11 +34,11 @@ export interface WorkflowData {
 }
 
 export interface AtomicValidation {
-  icon: string; // Nombre del icono de Lucide (ej. 'CreditCard', 'Users', 'Package')
+  icon: string;
   label: string;
   status: AtomicValidationStatus;
-  statusLabel: string; // Ej. "Confirmado", "Pendiente", "Aprobado"
-  statusColorClass: string; // Clases de Tailwind para el badge
+  statusLabel: string;
+  statusColorClass: string;
   assignee?: {
     name: string;
     timeRelative: string;
@@ -28,9 +48,8 @@ export interface AtomicValidation {
 export interface SmartCaseCardData {
   id: string | number;
   trackingCode: string;
-  topBorderColorClass?: string; // NUEVO: Color de la franja superior
-  subStatus?: string; // NUEVO: Ej. "Pendiente Logística"
-  
+  topBorderColorClass?: string;
+  subStatus?: string;
   identity: {
     title: string;
     subtitle: string;
@@ -41,16 +60,13 @@ export interface SmartCaseCardData {
       colorClass: string;
     };
   };
-  
   primaryBadge?: {
     label: string;
     icon: PrimaryBadgeIcon;
     colorClass: string;
   };
-  
-  workflow?: WorkflowData; // Opcional para este diseño
-  atomicValidations?: AtomicValidation[]; // ACTUALIZADO a la nueva estructura
-  
+  workflow?: WorkflowData;
+  atomicValidations?: AtomicValidation[];
   metadata: {
     priority: CasePriority;
     lastUpdatedRelative: string;

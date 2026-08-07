@@ -8,32 +8,34 @@ datasource db {
 }
 
 model User {
-  id                  Int                        @id @default(autoincrement())
-  name                String?                    @db.VarChar(150)
-  email               String                     @unique @db.VarChar(150)
-  emailVerified       DateTime?                  @map("email_verified")
-  image               String?                    @db.VarChar(500)
-  status              UserStatus                 @default(PENDING)
-  type                UserType                   @default(APPLICANT)
-  lastLoginAt         DateTime?                  @map("last_login_at")
-  failedLoginAttempts Int                        @default(0) @map("failed_login_attempts")
-  lockedUntil         DateTime?                  @map("locked_until")
-  roleId              Int?                       @map("role_id")
-  personId            Int?                       @unique @map("person_id")
-  createdAt           DateTime                   @default(now()) @map("created_at")
-  updatedAt           DateTime                   @updatedAt @map("updated_at")
-  deletedAt           DateTime?                  @map("deleted_at")
-  accounts            Account[]
-  credentials         Credential[]
-  securityEvents      SecurityEvent[]
-  sessions            Session[]
-  userSessions        UserSession[]
-  person              Person?                    @relation(fields: [personId], references: [id], onDelete: Cascade)
-  role                Role?                      @relation(fields: [roleId], references: [id], onDelete: Restrict)
-  documentApprovals   ApplicationDocument[]      @relation("DocumentApprover")
-  auditLogs           AuditLog[]
-  notifications       Notification[]
-  areaValidations     MembershipAreaValidation[]
+  id                       Int                           @id @default(autoincrement())
+  name                     String?                       @db.VarChar(150)
+  email                    String                        @unique @db.VarChar(150)
+  emailVerified            DateTime?                     @map("email_verified")
+  image                    String?                       @db.VarChar(500)
+  status                   UserStatus                    @default(PENDING)
+  type                     UserType                      @default(APPLICANT)
+  lastLoginAt              DateTime?                     @map("last_login_at")
+  failedLoginAttempts      Int                           @default(0) @map("failed_login_attempts")
+  lockedUntil              DateTime?                     @map("locked_until")
+  roleId                   Int?                          @map("role_id")
+  personId                 Int?                          @unique @map("person_id")
+  createdAt                DateTime                      @default(now()) @map("created_at")
+  updatedAt                DateTime                      @updatedAt @map("updated_at")
+  deletedAt                DateTime?                     @map("deleted_at")
+  accounts                 Account[]
+  credentials              Credential[]
+  securityEvents           SecurityEvent[]
+  sessions                 Session[]
+  userSessions             UserSession[]
+  person                   Person?                       @relation(fields: [personId], references: [id], onDelete: Cascade)
+  role                     Role?                         @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  documentApprovals        ApplicationDocument[]         @relation("DocumentApprover")
+  auditLogs                AuditLog[]
+  notifications            Notification[]
+  areaValidations          MembershipAreaValidation[]
+  validations              MembershipValidation[]
+  validationHistoryEntries MembershipValidationHistory[]
 
   @@index([email])
   @@index([status])
@@ -90,6 +92,8 @@ model Benefit {
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@map("catalog_benefits")
 }
 
 model SecurityEvent {
@@ -320,6 +324,8 @@ model MembershipApplication {
 
   payments Payment[]
 
+  validations MembershipValidation[]
+
   @@index([documentNumber])
   @@index([documentNumber, status])
   @@index([email])
@@ -348,6 +354,59 @@ model MembershipAreaValidation {
   @@index([applicationId])
   @@index([department])
   @@map("membership_area_validations")
+}
+
+// Nivel 1: Catálogo de Departamentos / Áreas
+model MembershipDepartment {
+  id           Int     @id @default(autoincrement())
+  code         String  @unique @db.VarChar(50) // Ej: AVALES, ASOCIADOS, LOGISTICA, COMITE
+  name         String  @db.VarChar(150)
+  displayOrder Int     @default(0) @map("display_order")
+  isRequired   Boolean @default(true) @map("is_required")
+  isActive     Boolean @default(true) @map("is_active")
+
+  validations MembershipValidation[]
+
+  @@map("catalog_membership_departments")
+}
+
+// Nivel 2: Validación por Área (1 registro por departamento para cada expediente)
+model MembershipValidation {
+  id            Int              @id @default(autoincrement())
+  applicationId Int              @map("application_id")
+  departmentId  Int              @map("department_id")
+  status        ValidationStatus @default(PENDING)
+  validatedById Int?             @map("validated_by_id")
+  validatedAt   DateTime?        @map("validated_at")
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+
+  application MembershipApplication         @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  department  MembershipDepartment          @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+  validatedBy User?                         @relation(fields: [validatedById], references: [id], onDelete: SetNull)
+  history     MembershipValidationHistory[]
+
+  @@unique([applicationId, departmentId]) // Garantiza solo una validación activa por área por expediente
+  @@index([applicationId])
+  @@index([departmentId])
+  @@index([status])
+  @@map("membership_validations")
+}
+
+// Nivel 3: Historial Inmutable de la Validación
+model MembershipValidationHistory {
+  id           Int              @id @default(autoincrement())
+  validationId Int              @map("validation_id")
+  userId       Int?             @map("user_id") // Quién realizó la acción (Revisor o Postulante)
+  action       ValidationAction
+  comment      String?          @db.Text
+  createdAt    DateTime         @default(now()) @map("created_at")
+
+  validation MembershipValidation @relation(fields: [validationId], references: [id], onDelete: Cascade)
+  user       User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([validationId])
+  @@map("membership_validation_history")
 }
 
 model VerificationCode {
@@ -870,15 +929,51 @@ enum CivilStatus {
   OTHER
 }
 
+// enum ApplicationStatus {
+//   DRAFT
+//   SUBMITTED
+//   AWAITING_ENDORSEMENTS
+//   UNDER_EVALUATION
+//   OBSERVED
+//   APPROVED
+//   REJECTED
+//   CANCELLED
+// }
+
+// ==========================================
+// ENUMS DE ESTADO Y ACCIONES
+// ==========================================
+
+// Estados calculados a nivel de Expediente (General)
 enum ApplicationStatus {
   DRAFT
-  SUBMITTED
-  AWAITING_ENDORSEMENTS
+  PENDING
+  UNDER_EVALUACION
+  OBSERVED
+  RESOLVED
+  READY_FOR_PAYMENT
+  COMPLETED
+  REJECTED
+}
+
+// Estados a nivel de Área (Validación individual)
+enum ValidationStatus {
+  PENDING
   UNDER_EVALUATION
   OBSERVED
+  RESOLVED
   APPROVED
   REJECTED
-  CANCELLED
+}
+
+// Acciones permitidas dentro del historial
+enum ValidationAction {
+  START_REVIEW
+  OBSERVED
+  SUBMITTED_CORRECTION
+  APPROVED
+  REJECTED
+  REOPENED
 }
 
 enum AiValidationStatus {

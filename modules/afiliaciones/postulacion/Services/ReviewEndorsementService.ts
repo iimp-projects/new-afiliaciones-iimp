@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
 import { EndorsementStatus } from "@prisma/client";
+import { ApplicationStatusCalculatorService } from "./ApplicationStatusCalculatorService";
 
 export class ReviewEndorsementService {
   async execute(token: string, action: "APPROVE" | "REJECT"): Promise<void> {
@@ -11,7 +12,7 @@ export class ReviewEndorsementService {
         sponsorPersonId: number;
       };
 
-      // 2. Actualizar el estado en la base de datos
+      // 2. Actualizar el estado del AVAL en la base de datos
       const result = await prisma.membershipApproval.updateMany({
         where: {
           applicationId: decoded.applicationId,
@@ -27,8 +28,9 @@ export class ReviewEndorsementService {
         throw new Error("No se encontró el registro de aval o ya fue procesado.");
       }
 
-      // Opcional: Aquí podrías verificar si AMBOS avales ya aprobaron para cambiar el estado general de la postulación
-      // a 'UNDER_EVALUATION' automáticamente.
+      // 3. DISPARADOR MÁGICO: Recalcular Estado Global Automáticamente
+      const calculator = new ApplicationStatusCalculatorService();
+      await calculator.recalculate(decoded.applicationId);
 
     } catch (error: any) {
       if (error.name === "TokenExpiredError") {
