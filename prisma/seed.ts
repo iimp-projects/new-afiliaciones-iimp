@@ -26,10 +26,10 @@ const main = async (): Promise<void> => {
 
   try {
     // 1. MÓDULOS CORE
-    // await runSeed('Auth: Permissions', seedPermissions);
-    // await runSeed('Auth: Roles', seedRoles);
-    // await runSeed('Auth: Role-Permissions', seedRolePermissions);
-    // await runSeed('Auth: Users', seedUsers);
+     await runSeed('Auth: Permissions', seedPermissions);
+     await runSeed('Auth: Roles', seedRoles);
+     await runSeed('Auth: Role-Permissions', seedRolePermissions);
+     await runSeed('Auth: Users', seedUsers);
     
      await runSeed('Catalogs: Countries', seedCountries);
      await runSeed('Catalogs: Departments', seedDepartments);
