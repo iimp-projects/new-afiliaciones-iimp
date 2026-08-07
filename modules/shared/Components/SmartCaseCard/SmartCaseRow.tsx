@@ -1,15 +1,17 @@
 "use client";
 
-import { MoreHorizontal, Clock, Flag, CheckCircle2, XCircle, MinusCircle } from "lucide-react";
+import { MoreHorizontal, Clock, Flag, CheckCircle2, XCircle, MinusCircle, AlertCircle } from "lucide-react";
 import type { SmartCaseCardProps } from "./types";
 import { FallbackAvatar } from "./FallbackAvatar";
 
-// Sub-componente para renderizar los iconos circulares atómicos
+// Sub-componente actualizado para renderizar los iconos circulares de las áreas
 const StatusIcon = ({ status }: { status: string }) => {
-  if (status === "check") return <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center shadow-sm"><CheckCircle2 size={14} className="text-white" strokeWidth={3} /></div>;
-  if (status === "pending") return <div className="w-5 h-5 rounded-full bg-amber-500 flex items-center justify-center shadow-sm"><Clock size={13} className="text-white" strokeWidth={3} /></div>;
-  if (status === "error") return <div className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center shadow-sm"><XCircle size={14} className="text-white" strokeWidth={3} /></div>;
-  if (status === "dash") return <div className="w-5 h-5 rounded-full bg-slate-300 flex items-center justify-center shadow-sm"><MinusCircle size={14} className="text-white" strokeWidth={3} /></div>;
+  if (status === "APPROVED" || status === "check") return <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center shadow-sm"><CheckCircle2 size={14} className="text-white" strokeWidth={3} /></div>;
+  if (status === "UNDER_EVALUATION" || status === "RESOLVED" || status === "pending") return <div className="w-5 h-5 rounded-full bg-amber-500 flex items-center justify-center shadow-sm"><Clock size={13} className="text-white" strokeWidth={3} /></div>;
+  if (status === "REJECTED" || status === "error") return <div className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center shadow-sm"><XCircle size={14} className="text-white" strokeWidth={3} /></div>;
+  if (status === "PENDING" || status === "dash") return <div className="w-5 h-5 rounded-full bg-slate-300 flex items-center justify-center shadow-sm"><MinusCircle size={14} className="text-white" strokeWidth={3} /></div>;
+  if (status === "OBSERVED" || status === "review" || status === "alert") return <div className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center shadow-sm"><AlertCircle size={14} className="text-white" strokeWidth={3} /></div>;
+  
   return null;
 };
 
@@ -43,11 +45,8 @@ export function SmartCaseRow({ data, onClick }: SmartCaseCardProps) {
       <div className="w-[180px] shrink-0 px-4">
         {primaryBadge ? (
           <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black tracking-widest border truncate max-w-full ${primaryBadge.colorClass}`} title={primaryBadge.label}>
-            {primaryBadge.icon === "check" && <CheckCircle2 size={14} strokeWidth={3} className="opacity-80" />}
-            {primaryBadge.icon === "clock" && <Clock size={14} strokeWidth={3} className="opacity-80" />}
-            {primaryBadge.icon === "error" && <XCircle size={14} strokeWidth={3} className="opacity-80" />}
-            {primaryBadge.icon === "dash" && <MinusCircle size={14} strokeWidth={3} className="opacity-80" />}
-            <span className="truncate">{primaryBadge.label}</span>
+            <StatusIcon status={primaryBadge.icon} />
+            <span className="truncate ml-1">{primaryBadge.label}</span>
           </span>
         ) : (
           <span className="text-[10px] font-bold text-slate-400">---</span>
@@ -66,17 +65,16 @@ export function SmartCaseRow({ data, onClick }: SmartCaseCardProps) {
       {/* 4. Metadatos & Asignado */}
       <div className="flex items-center justify-end gap-6 shrink-0 ml-auto pl-4">
         
-        {/* LA SOLUCIÓN ESTÁ AQUÍ: Envolvemos el ícono en un DIV que tiene el title */}
         {metadata.priority !== 'low' && (
-          <div title={`Prioridad: ${metadata.priority}`}>
-             <Flag size={14} className={`${priorityColors[metadata.priority]} fill-current`} />
+          <div title={`Prioridad: ${metadata.priority}`}> 
+            <Flag size={14} className={`${priorityColors[metadata.priority]} fill-current`} />
           </div>
         )}
         
         {/* Asignado a */}
-        <div className="flex items-center gap-2 w-24 justify-end" title={`Asignado a: ${metadata.assignedTo.name}`}>
-          <span className={`text-[11px] font-black tracking-widest uppercase truncate ${metadata.assignedTo.name === 'SIN ASIGNAR' ? 'text-slate-300' : 'text-slate-700'}`}>
-            {metadata.assignedTo.name}
+        <div className="flex items-center gap-2 w-24 justify-end" title={`Asignado a: ${metadata.assignedTo?.name || 'Sin asignar'}`}>
+          <span className={`text-[11px] font-black tracking-widest uppercase truncate ${metadata.assignedTo?.name === 'SIN ASIGNAR' ? 'text-slate-300' : 'text-slate-700'}`}>
+            {metadata.assignedTo?.name || 'SIN ASIGNAR'}
           </span>
         </div>
 

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { ApplicationStatus, ObservationStatus } from "@prisma/client";
+import { ValidationStatus, ValidationAction } from "@prisma/client";
 import { contextService } from "@/modules/auth/context/service";
+import { ApplicationStatusCalculatorService } from "@/modules/afiliaciones/postulacion/Services/ApplicationStatusCalculatorService";
 
 export async function PATCH(
     request: NextRequest,
@@ -13,74 +14,80 @@ export async function PATCH(
         const body = await request.json();
         const { newStatus, reason } = body; 
 
-        if (!Object.values(ApplicationStatus).includes(newStatus)) {
-            return NextResponse.json({ success: false, message: "Estado inválido." }, { status: 400 });
+        // 1. Obtener usuario actual y mapear su Rol a un Área
+        const currentUser = await contextService.getCurrentUser().catch(() => null);
+        const userDept = currentUser ? currentUser.role.slug : 'SISTEMA';
+        
+        const roleDeptMap: Record<string, string> = {
+            "LOGISTICA": "LOGISTICA",
+            "ATENCION_ASOCIADO": "ASOCIADOS",
+            "COMITE_EVALUADOR": "COMITE"
+        };
+        const deptCode = roleDeptMap[userDept];
+
+        // 2. EL FIX ESTÁ AQUÍ: Mapeamos la acción del Frontend al Estado Real del Área
+        let targetAreaStatus: ValidationStatus | null = null;
+        let actionEnum: ValidationAction = ValidationAction.START_REVIEW;
+
+        // Si el front manda UNDER_EVALUATION (Validar Fase), significa que el área APRUEBA.
+        if (newStatus === "UNDER_EVALUACION" || newStatus === "UNDER_EVALUATION" || newStatus === "APPROVED") {
+            targetAreaStatus = ValidationStatus.APPROVED;
+            actionEnum = ValidationAction.APPROVED;
+        } else if (newStatus === "OBSERVED") {
+            targetAreaStatus = ValidationStatus.OBSERVED;
+            actionEnum = ValidationAction.OBSERVED;
+        } else if (newStatus === "RESOLVED") {
+            targetAreaStatus = ValidationStatus.RESOLVED;
+            actionEnum = ValidationAction.SUBMITTED_CORRECTION;
+        } else if (newStatus === "REJECTED") {
+            targetAreaStatus = ValidationStatus.REJECTED;
+            actionEnum = ValidationAction.REJECTED;
         }
 
-        const currentUser = await contextService.getCurrentUser().catch(() => null);
-        const userName = currentUser ? `${currentUser.person.firstName} ${currentUser.person.paternalLastName}` : 'Sistema';
-        const userDept = currentUser ? currentUser.role.slug : 'SISTEMA';
-        const roleName = userDept.replace(/_/g, ' ');
+        if (!targetAreaStatus) {
+            return NextResponse.json({ success: false, message: "Estado de área inválido." }, { status: 400 });
+        }
 
-        const auditReason = `[Por: ${userName} - ${roleName}] ${reason || 'Validación de etapa.'}`;
-
-        const updatedApplication = await prisma.$transaction(async (tx) => {
-            const currentApp = await tx.membershipApplication.findUnique({
-                where: { id: appId },
-                select: { status: true }
-            });
-
-            if (!currentApp) throw new Error("Expediente no encontrado.");
-
-            // 1. Actualizar el estado general de la postulación
-            const updated = await tx.membershipApplication.update({
-                where: { id: appId },
-                data: { status: newStatus as ApplicationStatus }
-            });
-
-            // 2. Registrar en la Línea de Tiempo
-            await tx.membershipHistory.create({
-                data: {
-                    applicationId: appId,
-                    previousStatus: currentApp.status,
-                    newStatus: newStatus as ApplicationStatus,
-                    changeReason: auditReason,
-                    changedById: currentUser?.id || null
-                }
-            });
-
-            // 3. USO DE LA NUEVA TABLA (Validaciones por Área)
-            const isAreaRole = userDept === "LOGISTICA" || userDept === "ATENCION_ASOCIADO";
+        // 3. Ejecutar actualización
+        await prisma.$transaction(async (tx) => {
             
-            if (isAreaRole) {
-                // Si eligen "Validar Fase" (UNDER_EVALUATION) -> El área aprueba (RESOLVED)
-                // Si eligen "Observar" (OBSERVED) -> El área observa (PENDING)
-                let areaStatus: ObservationStatus | null = null;
-                if (newStatus === "UNDER_EVALUATION") areaStatus = ObservationStatus.RESOLVED;
-                if (newStatus === "OBSERVED") areaStatus = ObservationStatus.PENDING;
+            // A) Actualizar el área específica que le corresponde al usuario
+            if (deptCode) {
+                const department = await tx.membershipDepartment.findUnique({ where: { code: deptCode } });
 
-                if (areaStatus) {
-                    const existingValidation = await tx.membershipAreaValidation.findFirst({
-                        where: { applicationId: appId, department: userDept }
+                if (department) {
+                    const validation = await tx.membershipValidation.findUnique({
+                        where: { applicationId_departmentId: { applicationId: appId, departmentId: department.id } }
                     });
 
-                    if (existingValidation) {
-                        await tx.membershipAreaValidation.update({
-                            where: { id: existingValidation.id },
-                            data: { status: areaStatus, comments: reason, validatedById: currentUser?.id, validatedAt: new Date() }
+                    if (validation) {
+                        await tx.membershipValidation.update({
+                            where: { id: validation.id },
+                            data: {
+                                status: targetAreaStatus, // AHORA SE GUARDA "APPROVED"
+                                validatedById: currentUser?.id,
+                                validatedAt: new Date()   // AQUÍ CAPTURAMOS LA HORA EXACTA
+                            }
                         });
-                    } else {
-                        await tx.membershipAreaValidation.create({
-                            data: { applicationId: appId, department: userDept, status: areaStatus, comments: reason, validatedById: currentUser?.id, validatedAt: new Date() }
+
+                        await tx.membershipValidationHistory.create({
+                            data: {
+                                validationId: validation.id,
+                                userId: currentUser?.id,
+                                action: actionEnum,
+                                comment: reason || 'Actualización de estado del área'
+                            }
                         });
                     }
                 }
             }
 
-            return updated;
+            // B) Disparamos el Cerebro para recalcular
+            const calculator = new ApplicationStatusCalculatorService();
+            await calculator.recalculate(appId, tx);
         });
 
-        return NextResponse.json({ success: true, data: updatedApplication }, { status: 200 });
+        return NextResponse.json({ success: true, message: "Estado actualizado y recalculado correctamente." }, { status: 200 });
 
     } catch (error: any) {
         console.error("[Update Status Error]:", error);
