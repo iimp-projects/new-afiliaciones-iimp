@@ -1,9 +1,16 @@
 import nodemailer from "nodemailer";
 
+interface SendMailAttachment {
+  filename: string;
+  content: Buffer | string;
+  contentType?: string;
+}
+
 interface SendMailOptions {
   to: string;
   subject: string;
   html: string;
+  attachments?: SendMailAttachment[];
 }
 
 export class MailService {
@@ -28,6 +35,7 @@ export class MailService {
         to: options.to,
         subject: options.subject,
         html: options.html,
+        attachments: options.attachments,
       });
       console.log(`[MailService] Correo enviado exitosamente a: ${options.to}`);
     } catch (error) {
