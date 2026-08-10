@@ -1,8 +1,10 @@
+import { expedientesApi } from './../../../../../../modules/afiliaciones/expedientes/Services/ExpedientesApi';
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ValidationStatus, ValidationAction } from "@prisma/client";
 import { contextService } from "@/modules/auth/context/service";
 import { ApplicationStatusCalculatorService } from "@/modules/afiliaciones/postulacion/Services/ApplicationStatusCalculatorService";
+import { NotifyComiteService } from "@/modules/afiliaciones/expedientes/Services/NotifyComiteService"; 
 
 export async function PATCH(
     request: NextRequest,
@@ -12,9 +14,8 @@ export async function PATCH(
         const { id } = await params;
         const appId = parseInt(id, 10);
         const body = await request.json();
-        const { newStatus, reason } = body; 
+        const { newStatus, reason } = body;
 
-        // 1. Obtener usuario actual y mapear su Rol a un Área
         const currentUser = await contextService.getCurrentUser().catch(() => null);
         const userDept = currentUser ? currentUser.role.slug : 'SISTEMA';
         
@@ -25,11 +26,9 @@ export async function PATCH(
         };
         const deptCode = roleDeptMap[userDept];
 
-        // 2. EL FIX ESTÁ AQUÍ: Mapeamos la acción del Frontend al Estado Real del Área
         let targetAreaStatus: ValidationStatus | null = null;
         let actionEnum: ValidationAction = ValidationAction.START_REVIEW;
 
-        // Si el front manda UNDER_EVALUATION (Validar Fase), significa que el área APRUEBA.
         if (newStatus === "UNDER_EVALUACION" || newStatus === "UNDER_EVALUATION" || newStatus === "APPROVED") {
             targetAreaStatus = ValidationStatus.APPROVED;
             actionEnum = ValidationAction.APPROVED;
@@ -42,19 +41,18 @@ export async function PATCH(
         } else if (newStatus === "REJECTED") {
             targetAreaStatus = ValidationStatus.REJECTED;
             actionEnum = ValidationAction.REJECTED;
+        } else if (newStatus === "PENDING") { 
+            targetAreaStatus = ValidationStatus.PENDING;
+            actionEnum = ValidationAction.REOPENED;
         }
 
         if (!targetAreaStatus) {
             return NextResponse.json({ success: false, message: "Estado de área inválido." }, { status: 400 });
         }
 
-        // 3. Ejecutar actualización
         await prisma.$transaction(async (tx) => {
-            
-            // A) Actualizar el área específica que le corresponde al usuario
             if (deptCode) {
                 const department = await tx.membershipDepartment.findUnique({ where: { code: deptCode } });
-
                 if (department) {
                     const validation = await tx.membershipValidation.findUnique({
                         where: { applicationId_departmentId: { applicationId: appId, departmentId: department.id } }
@@ -64,9 +62,9 @@ export async function PATCH(
                         await tx.membershipValidation.update({
                             where: { id: validation.id },
                             data: {
-                                status: targetAreaStatus, // AHORA SE GUARDA "APPROVED"
+                                status: targetAreaStatus,
                                 validatedById: currentUser?.id,
-                                validatedAt: new Date()   // AQUÍ CAPTURAMOS LA HORA EXACTA
+                                validatedAt: new Date()
                             }
                         });
 
@@ -82,10 +80,18 @@ export async function PATCH(
                 }
             }
 
-            // B) Disparamos el Cerebro para recalcular
             const calculator = new ApplicationStatusCalculatorService();
             await calculator.recalculate(appId, tx);
         });
+
+        // ==============================================================
+        // 2. DISPARAMOS EL SERVICIO DE NOTIFICACIÓN COMO EVENTO AISLADO
+        // ==============================================================
+        if (targetAreaStatus === ValidationStatus.APPROVED) {
+            const notifyService = new NotifyComiteService();
+            // Lo lanzamos sin 'await' para no bloquear la respuesta HTTP al cliente
+            notifyService.execute(appId).catch(console.error);
+        }
 
         return NextResponse.json({ success: true, message: "Estado actualizado y recalculado correctamente." }, { status: 200 });
 
