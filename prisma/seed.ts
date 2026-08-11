@@ -11,7 +11,9 @@ import {
   seedDistricts,
   seedUniversities,
   seedSpecialties,
-  seedBenefits,  // seedCompanies,
+  seedBenefits, 
+  seedMembershipDepartments,
+  // seedCompanies,
   // seedConfiguration,
   // seedDemoUsers,
   // seedDemoApplications,
@@ -26,10 +28,10 @@ const main = async (): Promise<void> => {
 
   try {
     // 1. MÓDULOS CORE
-    // await runSeed('Auth: Permissions', seedPermissions);
-    // await runSeed('Auth: Roles', seedRoles);
-    // await runSeed('Auth: Role-Permissions', seedRolePermissions);
-    // await runSeed('Auth: Users', seedUsers);
+    await runSeed('Auth: Permissions', seedPermissions);
+    await runSeed('Auth: Roles', seedRoles);
+    await runSeed('Auth: Role-Permissions', seedRolePermissions);
+    await runSeed('Auth: Users', seedUsers);
     
      await runSeed('Catalogs: Countries', seedCountries);
      await runSeed('Catalogs: Departments', seedDepartments);
@@ -40,6 +42,7 @@ const main = async (): Promise<void> => {
     // await runSeed('Catalogs: Companies', seedCompanies);
     
     await runSeed('Catalogs: Benefits', seedBenefits);
+    await runSeed('Catalogs: Membership Departments', seedMembershipDepartments);
     // await runSeed('System: Configuration', seedConfiguration);
     
 

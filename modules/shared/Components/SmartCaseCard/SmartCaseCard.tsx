@@ -3,19 +3,27 @@
 import { useState, useRef, useEffect } from "react";
 import { 
   MoreVertical, CheckCircle2, Clock, XCircle, 
-  MinusCircle, AlertCircle, Eye, UserPlus, 
-  FileEdit, Trash2 
+  MinusCircle, AlertCircle, Eye
 } from "lucide-react";
 import type { SmartCaseCardProps } from "./types";
 import { FallbackAvatar } from "./FallbackAvatar";
 import { DynamicIcon } from "@/modules/layout/Utils/DynamicIcon";
 
 const StatusIcon = ({ status, className = "" }: { status: string; className?: string }) => {
+  // Mapeo de Nuevos Estados del Backend
+  if (status === "APPROVED") return <CheckCircle2 size={14} className={className} strokeWidth={2.5} />;
+  if (status === "UNDER_EVALUATION" || status === "RESOLVED") return <Clock size={14} className={className} strokeWidth={2.5} />;
+  if (status === "REJECTED") return <XCircle size={14} className={className} strokeWidth={2.5} />;
+  if (status === "PENDING") return <MinusCircle size={14} className={className} strokeWidth={2.5} />;
+  if (status === "OBSERVED") return <AlertCircle size={14} className={className} strokeWidth={2.5} />;
+
+  // Mapeo Gráfico (Legacy / Primary Badge)
   if (status === "check") return <CheckCircle2 size={14} className={className} strokeWidth={2.5} />;
   if (status === "pending" || status === "clock") return <Clock size={14} className={className} strokeWidth={2.5} />;
   if (status === "error") return <XCircle size={14} className={className} strokeWidth={2.5} />;
   if (status === "dash") return <MinusCircle size={14} className={className} strokeWidth={2.5} />;
-  if (status === "review") return <AlertCircle size={14} className={className} strokeWidth={2.5} />;
+  if (status === "review" || status === "alert") return <AlertCircle size={14} className={className} strokeWidth={2.5} />;
+  
   return null;
 };
 
@@ -30,6 +38,7 @@ export function SmartCaseCard({ data, onClick }: SmartCaseCardProps) {
         setIsMenuOpen(false);
       }
     };
+
     if (isMenuOpen) document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isMenuOpen]);
@@ -62,7 +71,7 @@ export function SmartCaseCard({ data, onClick }: SmartCaseCardProps) {
         {/* MENÚ 3 PUNTITOS */}
         <div ref={menuRef} className="absolute -top-1 -right-2 z-50">
           <button 
-            className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-1.5 rounded-lg transition-colors" 
+            className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-1.5 rounded-lg transition-colors"
             onClick={(e) => { e.stopPropagation(); setIsMenuOpen(!isMenuOpen); }}
           >
             <MoreVertical size={20} strokeWidth={2.5} />
@@ -121,7 +130,6 @@ export function SmartCaseCard({ data, onClick }: SmartCaseCardProps) {
                     <span className="text-[10px] font-medium text-slate-500 text-right leading-tight" title={val.assignee.name}>
                       {val.assignee.name}
                     </span>
-                    {/* ESTA ES LA LÍNEA NUEVA QUE AGREGA LA HORA */}
                     {val.assignee.timeRelative && (
                       <span className="text-[9px] font-bold text-slate-400 text-right mt-0.5">
                         {val.assignee.timeRelative}

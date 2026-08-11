@@ -56,11 +56,20 @@ export class ExpedienteRepository {
           person: true,
           payments: { orderBy: { createdAt: "desc" }, take: 1 },
           approvals: { include: { sponsorPerson: true } },
-          // CORRECCIÓN: Quitamos take: 1 para traer TODAS las observaciones pendientes
           observations: { where: { status: 'PENDING' }, orderBy: { createdAt: "desc" } },
           documents: true, 
           areaValidations: { include: { validatedBy: { include: { person: true } } } },
-          history: { orderBy: { createdAt: "desc" }, take: 5 }
+          history: { orderBy: { createdAt: "desc" }, take: 5 },
+          // 👇 AQUÍ ESTÁ LA NUEVA TABLA QUE FALTABA 👇
+          validations: {
+            include: {
+              department: true,
+              validatedBy: { include: { person: true } },
+            },
+            orderBy: {
+              department: { displayOrder: 'asc' }
+            }
+          }
         },
       }),
     ]);
@@ -82,6 +91,16 @@ export class ExpedienteRepository {
         documents: true, 
         areaValidations: { include: { validatedBy: { include: { person: true } } } },
         history: { orderBy: { createdAt: "desc" } },
+        // 👇 TAMBIÉN LA INCLUIMOS EN EL DETALLE 👇
+        validations: {
+          include: {
+            department: true,
+            validatedBy: { include: { person: true } },
+          },
+          orderBy: {
+            department: { displayOrder: 'asc' }
+          }
+        }
       },
     });
   }
