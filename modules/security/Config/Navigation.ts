@@ -16,22 +16,14 @@ export const securityModuleDefinition: ModuleDefinition = {
                     href: "/intranet",
                     icon: "LayoutDashboard",
                     order: 1,
-                },
-                {
-                    id: "nav-security-roles-list",
-                    title: "Usuarios y Accesos",
-                    href: "/workspace/seguridad/usuarios",
-                    icon: "Users",
-                    order: 2,
-                    permission: { action: "read", subject: "users" }
                 }
             ]
         },
-        // --- NUEVA SECCI N: GESTI N DE AFILIACIONES ---
+        // --- NUEVA SECCION: GESTIÓN DE AFILIACIONES ---
         {
             id: "group-afiliaciones",
             title: "GESTIÓN DE AFILIACIONES",
-            type: "group", // Esto activa el dise o est tico de cabecera en el Sidebar
+            type: "group", // Esto activa el diseño estetico de cabecera en el Sidebar
             order: 15,
             children: [
                 {
@@ -54,26 +46,38 @@ export const securityModuleDefinition: ModuleDefinition = {
                 }
             ]
         },
+        // 3. NUEVO GRUPO: SEGURIDAD Y USUARIOS (Restringido)
         {
-            id: "group-admin",
-            title: "ADMINISTRACIÓN",
-            type: "group", // <-- Otra sección del menú
+            id: "group-security",
+            title: "SEGURIDAD Y USUARIOS",
+            type: "group",
             order: 20,
             children: [
                 {
+                    id: "nav-security-users",
+                    title: "Usuarios del Sistema",
+                    href: "/intranet/security/users",
+                    icon: "Users",
+                    order: 1,
+                    // Solo visible si el rol tiene permiso de 'read:users'
+                    permission: { action: "read", subject: "users" }
+                },
+                {
                     id: "nav-security-roles",
                     title: "Roles y Permisos",
-                    href: "/workspace/seguridad/roles",
+                    href: "/intranet/security/roles",
                     icon: "KeyRound",
-                    order: 1,
+                    order: 2,
+                    // Solo visible si el rol tiene permiso de 'read:roles'
                     permission: { action: "read", subject: "roles" }
                 },
                 {
                     id: "nav-security-audit",
                     title: "Auditoría del Sistema",
-                    href: "/workspace/seguridad/auditoria",
+                    href: "/intranet/security/audit",
                     icon: "Activity",
-                    order: 2,
+                    order: 3,
+                    // Solo visible si el rol tiene permiso de 'read:audit'
                     permission: { action: "read", subject: "audit" }
                 }
             ]

@@ -39,6 +39,18 @@ export const usersData: SeedUser[] = [
       maternalLastName: "Cruz",
     },
   },
+  {
+    email: "max.ichajaya@iimp.org.pe", // Puedes ajustarlo a tu correo oficial
+    role: "SUPER_ADMIN",
+    type: UserType.SYSTEM_ADMIN,
+    person: {
+      documentType: DocumentType.DNI,
+      documentNumber: "00000000", // Coloca tu DNI real
+      firstName: "Max Junior",
+      paternalLastName: "Ichajaya",
+      maternalLastName: "Peña",
+    },
+  },
 
   // ====================== SYSTEM_ADMIN ======================
   {

@@ -1,13 +1,10 @@
-import { PrismaClient, ApplicationStatus, ValidationStatus, EndorsementStatus, PaymentStatus } from "@prisma/client";
+import { ApplicationStatus, ValidationStatus, EndorsementStatus, PaymentStatus, ValidationAction } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 export class ApplicationStatusCalculatorService {
   /**
    * Recalcula el Estado General del Expediente basándose estrictamente 
    * en las reglas de negocio y dependencias de cada área.
-   * 
-   * @param applicationId ID del Expediente
-   * @param tx Transacción de Prisma opcional (si se llama dentro de un flujo atómico)
    */
   async recalculate(applicationId: number, tx?: any): Promise<ApplicationStatus> {
     const db = tx || prisma;
@@ -24,66 +21,81 @@ export class ApplicationStatusCalculatorService {
 
     if (!app) throw new Error("Expediente no encontrado para recalcular estado.");
 
-    // Regla 1: Si es BORRADOR, no se toca.
     if (app.status === ApplicationStatus.DRAFT) return ApplicationStatus.DRAFT;
 
     const isStudent = app.affiliateType === "STUDENT";
 
-    // 2. Extraer métricas de las áreas
+    // ==========================================
+    // 1. EVALUAR AVALES (Tabla externa)
+    // ==========================================
+    const approvedApprovalsCount = app.approvals.filter((a: any) => a.status === EndorsementStatus.APPROVED).length;
+    const areApprovalsReady = isStudent || approvedApprovalsCount >= 2;
+
+    // =========================================================================
+    // [!] FIX: AUTO-APROBAR AVALES EN LA TABLA DE VALIDACIONES SIN ROMPER PRISMA
+    // =========================================================================
+    const avalesValidation = app.validations.find((v: any) => v.department.code === 'AVALES');
+    if (avalesValidation && avalesValidation.status !== ValidationStatus.APPROVED && areApprovalsReady) {
+        
+        // Actualizamos la tabla principal (OJO: Sin 'comments' para que Prisma no explote)
+        await db.membershipValidation.update({
+            where: { id: avalesValidation.id },
+            data: { 
+              status: ValidationStatus.APPROVED, 
+              validatedAt: new Date()
+            }
+        });
+
+        // Insertamos el comentario donde realmente va: En el historial
+        await db.membershipValidationHistory.create({
+            data: {
+                validationId: avalesValidation.id,
+                action: ValidationAction.APPROVED,
+                comment: "Aprobación automática al completarse los avales externos."
+            }
+        });
+        
+        avalesValidation.status = ValidationStatus.APPROVED; 
+    }
+
+    // ==========================================
+    // 2. EXTRAER MÉTRICAS ACTUALIZADAS
+    // ==========================================
     const hasRejectedValidation = app.validations.some((v: any) => v.status === ValidationStatus.REJECTED);
     const hasRejectedApproval = app.approvals.some((a: any) => a.status === EndorsementStatus.REJECTED);
     
     const hasObservedValidation = app.validations.some((v: any) => v.status === ValidationStatus.OBSERVED);
     const hasResolvedValidation = app.validations.some((v: any) => v.status === ValidationStatus.RESOLVED);
 
-    // ¿Están listos los Avales? (Estudiantes = true, Activos = 2 aprobados)
-    const approvedApprovalsCount = app.approvals.filter((a: any) => a.status === EndorsementStatus.APPROVED).length;
-    const areApprovalsReady = isStudent || approvedApprovalsCount >= 2;
-
-    // ¿Están todas las áreas obligatorias aprobadas?
+    // ¿Están todas las áreas obligatorias aprobadas? (Incluyendo AVALES que se auto-aprobó arriba)
     const mandatoryValidations = app.validations.filter((v: any) => v.department.isRequired);
     const allMandatoryApproved = mandatoryValidations.length > 0 && mandatoryValidations.every((v: any) => v.status === ValidationStatus.APPROVED);
 
-    // ¿Existe AL MENOS UNA actividad? (Cualquier área dejó de ser PENDING o al menos un Aval aprobó)
     const hasAnyActivity = app.validations.some((v: any) => v.status !== ValidationStatus.PENDING) || approvedApprovalsCount > 0;
-
-    // ¿Está pagado?
+    
     const isPaid = app.payments.length > 0 && app.payments[0].status === PaymentStatus.PAID;
     const isPaymentResolved = isStudent || isPaid;
 
     // ==========================================
-    // 3. APLICAR REGLAS DE PRIORIDAD ESTRICTA
+    // 3. LÓGICA ESTRICTA DE ESTADOS
     // ==========================================
     let newGeneralStatus: ApplicationStatus = ApplicationStatus.PENDING;
 
-    // Prioridad 2: RECHAZADO (Definitivo)
     if (hasRejectedValidation || hasRejectedApproval) {
         newGeneralStatus = ApplicationStatus.REJECTED;
-    } 
-    // Prioridad 3: OBSERVADO (Tiene peso sobre los demás en curso)
-    else if (hasObservedValidation) {
+    } else if (hasObservedValidation) {
         newGeneralStatus = ApplicationStatus.OBSERVED;
-    } 
-    // Prioridad 4: SUBSANADO (El postulante respondió, espera re-evaluación)
-    else if (hasResolvedValidation) {
+    } else if (hasResolvedValidation) {
         newGeneralStatus = ApplicationStatus.RESOLVED;
-    } 
-    // Prioridad 5 y 6: APTO PARA PAGO o COMPLETADO
-    else if (allMandatoryApproved && areApprovalsReady) {
-        if (isPaymentResolved) {
-            newGeneralStatus = ApplicationStatus.COMPLETED; // Completó Evaluaciones y Pagó
-        } else {
-            newGeneralStatus = ApplicationStatus.READY_FOR_PAYMENT; // Solo falta pagar
-        }
-    } 
-    // Prioridad 7: EN EVALUACIÓN (Ya empezó el proceso, pero falta que terminen)
-    else if (hasAnyActivity) {
+    } else if (allMandatoryApproved && areApprovalsReady) {
+        // [!] ESTE ES TU OBJETIVO: Los 4 Ok -> Se va directo a Pago
+        newGeneralStatus = isPaymentResolved ? ApplicationStatus.COMPLETED : ApplicationStatus.READY_FOR_PAYMENT;
+    } else if (hasAnyActivity) {
         newGeneralStatus = ApplicationStatus.UNDER_EVALUACION;
     }
-    // Prioridad 8: PENDIENTE (Es el valor inicial por defecto)
-    
+
     // ==========================================
-    // 4. ACTUALIZAR SI HUBO CAMBIOS
+    // 4. GUARDAR CAMBIOS DE ESTADO GENERAL
     // ==========================================
     if (app.status !== newGeneralStatus) {
         await db.membershipApplication.update({
@@ -91,14 +103,13 @@ export class ApplicationStatusCalculatorService {
             data: { status: newGeneralStatus }
         });
 
-        // Registrar en el log histórico del expediente
         await db.membershipHistory.create({
             data: {
                 applicationId: applicationId,
                 previousStatus: app.status,
                 newStatus: newGeneralStatus,
-                changeReason: "Recálculo automático de estado según áreas (Workflow Engine).",
-                changedById: null // Null indica que fue una acción del Sistema
+                changeReason: "Recálculo automático de estado según áreas (Flujo Integrado).",
+                changedById: null 
             }
         });
     }
