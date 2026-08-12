@@ -10,22 +10,28 @@ export class NotifyApplicantService {
     draft: ApplicationDraft,
     pdfBuffer?: Buffer
   ): Promise<void> {
-    // 1. Obtener email del postulante
-    const draftEmail = (draft as any)?.personalInformation?.email || (draft as any)?.email;
+    // ✅ Corregido: Ahora busca 'primaryEmail' de acuerdo a tu JSON
+    const personal = (draft as any)?.personalInformation;
+    const draftEmail = personal?.primaryEmail || personal?.email || (draft as any)?.email;
     const recipientEmail = application.email || draftEmail;
 
-    if (!recipientEmail) return;
+    console.log("[NotifyApplicantService] Email destino:", recipientEmail);
 
-    // 2. Nombres del postulante
-    const personal = (draft as any)?.personalInformation;
+    if (!recipientEmail) {
+      console.error("[NotifyApplicantService] No se encontró email para el postulante.");
+      return;
+    }
+
     const applicantName = personal
       ? `${personal.names || ""} ${personal.fatherLastName || ""} ${personal.motherLastName || ""}`.trim()
       : "Postulante";
 
-    // 3. Código de seguimiento
     const trackingCode = application.trackingCode || application.applicationCode;
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
     const trackingUrl = `${baseUrl}/consulta`;
+
+    const logoUrl =
+      "https://s3-iimp-gestor-de-archivos-v3.s3.sa-east-1.amazonaws.com/boletines/images/IMG20260807_134823.png";
 
     const htmlTemplate = `
       <!DOCTYPE html>
@@ -33,28 +39,33 @@ export class NotifyApplicantService {
       <head>
         <meta charset="utf-8">
         <style>
-          body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #F4F5F7; margin: 0; padding: 20px; }
-          .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
-          .header { background-color: #3E3E3D; padding: 25px; text-align: center; }
-          .header-title { color: #C39254; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
-          .header h2 { color: #ffffff; margin: 0; font-size: 20px; }
-          .content { padding: 30px; color: #3E3E3D; line-height: 1.6; }
-          .code-box { background-color: #F4F5F7; border: 1px solid rgba(195, 146, 84, 0.3); padding: 18px; border-radius: 8px; text-align: center; margin: 20px 0; }
-          .code-title { font-size: 11px; color: #3E3E3D; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px; }
-          .code-value { font-family: monospace; font-size: 16px; font-weight: bold; color: #C39254; margin-top: 6px; word-break: break-all; }
-          .btn { display: inline-block; background-color: #C39254; color: #ffffff !important; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-weight: bold; font-size: 14px; margin-top: 10px; }
-          .footer { background-color: #F4F5F7; padding: 15px; text-align: center; font-size: 11px; color: #718096; border-top: 1px solid #edf2f7; }
+          body { font-family: 'Hanken Grotesk', 'Helvetica Neue', Arial, sans-serif; background-color: #F4F5F7; margin: 0; padding: 25px 15px; }
+          .card { max-width: 580px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; padding: 35px 30px; border: 1px solid #E2E8F0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+          .header { text-align: center; margin-bottom: 25px; border-bottom: 1px solid #F4F5F7; padding-bottom: 20px; }
+          .logo { max-width: 170px; height: auto; margin-bottom: 12px; }
+          .subtitle { color: #718096; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700; margin-bottom: 4px; }
+          .title { color: #C39254; font-size: 20px; font-weight: 700; margin: 0; }
+          .content { color: #3E3E3D; font-size: 14px; line-height: 1.6; }
+          .code-box { background-color: #F4F5F7; border: 1px solid rgba(195, 146, 84, 0.3); padding: 18px; border-radius: 8px; text-align: center; margin: 22px 0; }
+          .code-title { font-size: 11px; color: #718096; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
+          .code-value { font-family: monospace; font-size: 16px; font-weight: 700; color: #C39254; margin-top: 6px; word-break: break-all; }
+          .btn-container { text-align: center; margin: 30px 0 20px 0; }
+          .btn { display: inline-block; background-color: #C39254; color: #ffffff !important; text-decoration: none; padding: 13px 32px; border-radius: 8px; font-weight: 700; font-size: 14px; }
+          .footer { text-align: center; font-size: 11px; color: #94A3B8; margin-top: 25px; line-height: 1.5; }
         </style>
       </head>
       <body>
-        <div class="container">
+        <div class="card">
           <div class="header">
-            <div class="header-title">Portal Oficial de Afiliaciones</div>
-            <h2>Instituto de Ingenieros de Minas del Perú</h2>
+            <img src="${logoUrl}" alt="IIMP Logo" class="logo" />
+            <div class="subtitle">Ecosistema Digital de Afiliaciones</div>
+            <h2 class="title">Confirmación de Solicitud</h2>
           </div>
+          
           <div class="content">
             <p>Estimado(a) <strong>${applicantName}</strong>,</p>
-            <p>Confirmamos que su solicitud de incorporación como asociado al <strong>IIMP</strong> ha sido registrada exitosamente.</p>
+            
+            <p>Confirmamos que su solicitud de incorporación como asociado al <strong>Instituto de Ingenieros de Minas del Perú (IIMP)</strong> ha sido registrada exitosamente.</p>
             
             <div class="code-box">
               <div class="code-title">Código de Seguimiento / Verificación</div>
@@ -63,15 +74,16 @@ export class NotifyApplicantService {
 
             <p>Puede hacer seguimiento al estado de su trámite ingresando a nuestro portal con su número de documento y este código asignado.</p>
 
-            <div style="text-align: center; margin: 25px 0;">
+            <div class="btn-container">
               <a href="${trackingUrl}" class="btn">Consultar Estado de Solicitud →</a>
             </div>
 
-            <p style="font-size: 12px; color: #718096;">Adjunto a este correo encontrará el archivo PDF con su Declaración Jurada y Ficha Oficial registrada.</p>
+            <p style="font-size: 12px; color: #64748B; text-align: center;">Adjunto a este correo encontrará el archivo PDF con su Declaración Jurada y Ficha Oficial registrada.</p>
           </div>
+
           <div class="footer">
-            © ${new Date().getFullYear()} Instituto de Ingenieros de Minas del Perú.<br>
-            Calle Los Canarios 155, Urb. San César II Etapa, La Molina, Lima - Perú.
+            © ${new Date().getFullYear()} Instituto de Ingenieros de Minas del Perú<br>
+            Calle Los Canarios 155, Urb. San César II Etapa, La Molina, Lima - Perú
           </div>
         </div>
       </body>
@@ -88,11 +100,17 @@ export class NotifyApplicantService {
         ]
       : [];
 
-    await this.mailService.sendMail({
-      to: recipientEmail,
-      subject: "Confirmación de Solicitud - Postulación IIMP",
-      html: htmlTemplate,
-      attachments,
-    });
+    try {
+      await this.mailService.sendMail({
+        to: recipientEmail,
+        subject: "Confirmación de Solicitud - Postulación IIMP",
+        html: htmlTemplate,
+        attachments,
+      });
+      console.log("[NotifyApplicantService] Correo enviado exitosamente a:", recipientEmail);
+    } catch (error) {
+      console.error("[NotifyApplicantService] Error al enviar con MailService:", error);
+      throw error;
+    }
   }
 }

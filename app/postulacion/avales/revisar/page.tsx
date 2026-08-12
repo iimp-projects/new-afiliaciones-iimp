@@ -13,7 +13,7 @@ export default function ReviewEndorsementPage() {
   const handleAction = async (action: "APPROVE" | "REJECT") => {
     setStatus("LOADING");
     try {
-      const res = await fetch("/api/afiliaciones/avales/revisar", {
+      const res = await fetch("/api/afiliaciones/postulacion/avales/revisar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token, action }),
