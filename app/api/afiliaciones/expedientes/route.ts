@@ -11,8 +11,14 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search") || undefined;
     const status = searchParams.get("status") || undefined;
     const modality = searchParams.get("modality") || undefined;
+   
+   // Filtros de Áreas
     const logisticValidation = searchParams.get("logisticValidation") || undefined;
     const associateValidation = searchParams.get("associateValidation") || undefined;
+    const comiteValidation = searchParams.get("comiteValidation") || undefined; // <-- NUEVO
+    
+    // Filtros Extras
+    const paymentStatus = searchParams.get("paymentStatus") || undefined; // <-- NUEVO
     const orderBy = searchParams.get("orderBy") || undefined;
     const dateFrom = searchParams.get("dateFrom") || undefined;
     const dateTo = searchParams.get("dateTo") || undefined;
