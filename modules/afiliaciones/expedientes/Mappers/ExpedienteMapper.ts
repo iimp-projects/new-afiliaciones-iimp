@@ -1,4 +1,4 @@
-import { ApplicationStatus, EndorsementStatus, PaymentStatus } from "@prisma/client";
+import { ApplicationStatus, EndorsementStatus, PaymentStatus, ValidationStatus } from "@prisma/client";
 import { S3StorageService } from "@/modules/shared/Services/S3StorageService";
 import type { 
     SmartCaseCardData, 
@@ -15,7 +15,7 @@ export class ExpedienteMapper {
         const isStudent = app.affiliateType === "STUDENT";
         
         // ==========================================
-        // FOTO
+        // 1. FOTO
         // ==========================================
         let avatarUrl = null;
         const photoDoc = app.documents?.find((d: any) => 
@@ -33,118 +33,133 @@ export class ExpedienteMapper {
         }
 
         // ==========================================
-        // A. Validar Avales
+        // 2. LECTURA DE ÁREAS 
         // ==========================================
+        const isPaid = app.payments?.[0]?.status === PaymentStatus.PAID;
+        const isPaymentResolved = isStudent || isPaid;
+
         const approvals = app.approvals || [];
         const approvedCount = approvals.filter((a: any) => a.status === EndorsementStatus.APPROVED).length;
         const areEndorsementsReady = isStudent || approvedCount >= 2;
 
-        // ==========================================
-        // B. Lectura de la NUEVA TABLA y ANTIGUA TABLA
-        // ==========================================
-        const areaValidations = app.areaValidations || [];
-        const logValidation = areaValidations.find((v: any) => v.department?.toUpperCase().includes('LOGISTICA'));
-        const asoValidation = areaValidations.find((v: any) => v.department?.toUpperCase().includes('ASOCIADO'));
+        const newValidations = app.validations || [];
+        const oldAreaValidations = app.areaValidations || [];
+        const oldObservations = app.observations || [];
 
-        const observations = app.observations || [];
-        const logObs = observations.find((o: any) => o.reviewDepartment?.toUpperCase().includes('LOGISTICA') && o.status === 'PENDING');
-        const asoObs = observations.find((o: any) => o.reviewDepartment?.toUpperCase().includes('ASOCIADO') && o.status === 'PENDING');
-
-        const formatAssignee = (validationRecord: any) => {
-            if (!validationRecord?.validatedBy?.person) return "Admin";
-            const p = validationRecord.validatedBy.person;
+        const formatAssignee = (v: any) => {
+            if (!v?.validatedBy?.person) return "Administrador";
+            const p = v.validatedBy.person;
             return `${p.firstName.split(' ')[0]} ${p.paternalLastName}`;
         };
 
-        const isPaid = app.payments?.[0]?.status === PaymentStatus.PAID;
-        const isPaymentResolved = isStudent || isPaid;
+        // FIX: Mostrar Fecha y Hora Completa
+        const formatTime = (dateStr: string | undefined) => {
+            if (!dateStr) return "";
+            const d = new Date(dateStr);
+            const datePart = d.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            const timePart = d.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', hour12: true });
+            return `${datePart} - ${timePart}`;
+        };
 
-        // Tiempos exactos para las áreas
-        const logTime = logObs?.createdAt || logValidation?.validatedAt || null;
-        const logTimeStr = logTime ? this.getRelativeTime(new Date(logTime)).replace("Actualizado: ", "") : "";
-
-        const asoTime = asoObs?.createdAt || asoValidation?.validatedAt || null;
-        const asoTimeStr = asoTime ? this.getRelativeTime(new Date(asoTime)).replace("Actualizado: ", "") : "";
-
-        // ==========================================
-        // C. Estados Atómicos Dinámicos (INDEPENDIENTES)
-        // ==========================================
-        
-        // --- LOGÍSTICA ---
-        let logStatus: AtomicValidationStatus = 'pending';
-        let logLabel = 'Pendiente';
-        let logAssignee = 'Sin asignar';
-        
-        if (logValidation?.status === 'PENDING' || logObs) {
-            logStatus = 'error'; logLabel = 'Observado'; logAssignee = 'Ver detalle';
-        } else if (logValidation?.status === 'RESOLVED') {
-            logStatus = 'check'; logLabel = 'Validado'; logAssignee = formatAssignee(logValidation);
-        }
-
-        // --- ASOCIADOS ---
-        let asoStatus: AtomicValidationStatus = 'pending';
-        let asoLabel = 'Pendiente';
-        let asoAssignee = 'Sin asignar';
-
-        if (asoValidation?.status === 'PENDING' || asoObs) {
-            asoStatus = 'error'; asoLabel = 'Observado'; asoAssignee = 'Ver detalle';
-        } else if (asoValidation?.status === 'RESOLVED') {
-            asoStatus = 'check'; asoLabel = 'Validado'; asoAssignee = formatAssignee(asoValidation);
-        }
-
-        // ==========================================
-        // D. Badge Principal (Burbuja Arriba Izquierda Unida)
-        // ==========================================
-        let primaryBadgeLabel = "EN PROCESO";
-        let primaryBadgeIcon: PrimaryBadgeIcon = "clock";
-        let primaryBadgeColor = "bg-amber-50 text-amber-600";
-        let topBorderColorClass = "bg-amber-400";
-        let subStatus = "Pendiente Logística y Asociados";
-
-        const hasObservation = app.status === ApplicationStatus.OBSERVED || logObs || asoObs || logValidation?.status === 'PENDING' || asoValidation?.status === 'PENDING';
-
-        if (app.status === ApplicationStatus.APPROVED) {
-            if (isPaymentResolved) { 
-                primaryBadgeLabel = "COMPLETADO"; primaryBadgeIcon = "check"; primaryBadgeColor = "bg-emerald-50 text-emerald-700"; topBorderColorClass = "bg-emerald-500"; subStatus = "Trámite finalizado";
-            } else {
-                primaryBadgeLabel = "PENDIENTE PAGO"; primaryBadgeIcon = "clock"; primaryBadgeColor = "bg-blue-50 text-blue-600"; topBorderColorClass = "bg-blue-400"; subStatus = "Aprobado, falta abonar";
+        const getDepartmentState = (deptCode: string) => {
+            const newVal = newValidations.find((v: any) => v.department?.code === deptCode);
+            if (newVal) {
+                return { status: newVal.status, assignee: formatAssignee(newVal), time: formatTime(newVal.validatedAt) };
             }
-        } else if (hasObservation) {
-            primaryBadgeLabel = "OBSERVADO"; primaryBadgeIcon = "error"; primaryBadgeColor = "bg-red-50 text-red-600"; topBorderColorClass = "bg-red-500"; subStatus = "Requiere atención";
-        } else if (app.status === ApplicationStatus.REJECTED) {
-            primaryBadgeLabel = "RECHAZADO"; primaryBadgeIcon = "error"; primaryBadgeColor = "bg-slate-100 text-slate-700"; topBorderColorClass = "bg-slate-400"; subStatus = "Postulación rechazada";
-        } else if (!areEndorsementsReady) {
-            primaryBadgeLabel = "EN REVISIÓN"; primaryBadgeIcon = "dash"; primaryBadgeColor = "bg-slate-100 text-slate-600"; topBorderColorClass = "bg-slate-400"; subStatus = `Faltan Avales (${approvedCount}/2)`;
-        } else {
-            primaryBadgeLabel = "EN PROCESO"; primaryBadgeIcon = "clock"; primaryBadgeColor = "bg-amber-50 text-amber-600"; topBorderColorClass = "bg-amber-400";
-            if (logStatus === 'pending' && asoStatus === 'pending') subStatus = "Pendiente Logística y Asociados";
-            else if (logStatus === 'pending') subStatus = "Pendiente Logística";
-            else if (asoStatus === 'pending') subStatus = "Pendiente Asociados";
-            else subStatus = "Listo para Aprobar Final";
-        }
+            if (deptCode === "LOGISTICA" || deptCode === "ASOCIADOS") {
+                const oldVal = oldAreaValidations.find((v: any) => v.department?.toUpperCase().includes(deptCode));
+                const oldObs = oldObservations.find((o: any) => o.reviewDepartment?.toUpperCase().includes(deptCode) && o.status === 'PENDING');
+                if (oldObs || oldVal?.status === 'PENDING') return { status: 'OBSERVED', assignee: 'Ver detalle', time: formatTime(oldObs?.createdAt) };
+                if (oldVal?.status === 'RESOLVED') return { status: 'APPROVED', assignee: formatAssignee(oldVal), time: formatTime(oldVal.validatedAt) };
+            }
+            return { status: 'PENDING', assignee: 'Sin asignar', time: '' };
+        };
+
+        const mapStatus = (status: string): { atomicStatus: AtomicValidationStatus, label: string, color: string } => {
+            switch(status) {
+                case 'APPROVED': return { atomicStatus: 'check', label: 'Validado', color: 'bg-emerald-50 text-emerald-700' };
+                case 'RESOLVED': return { atomicStatus: 'check', label: 'Subsanado', color: 'bg-purple-50 text-purple-700' };
+                case 'OBSERVED': return { atomicStatus: 'error', label: 'Observado', color: 'bg-red-50 text-red-700' };
+                case 'REJECTED': return { atomicStatus: 'error', label: 'Rechazado', color: 'bg-red-50 text-red-700' };
+                case 'UNDER_EVALUATION': return { atomicStatus: 'review', label: 'Evaluando', color: 'bg-blue-50 text-blue-700' };
+                default: return { atomicStatus: 'pending', label: 'Pendiente', color: 'bg-amber-50 text-amber-700' };
+            }
+        };
+
+        const asoState = getDepartmentState("ASOCIADOS");
+        const logState = getDepartmentState("LOGISTICA");
+        const comiteState = getDepartmentState("COMITE");
+
+        const asoMapped = mapStatus(asoState.status);
+        const logMapped = mapStatus(logState.status);
+        const comiteMapped = mapStatus(comiteState.status);
 
         // ==========================================
-        // ORDEN CRONOLÓGICO: Avales -> Asociados -> Logística -> Pago
+        // 3. ESTADO PRINCIPAL Y SUBTÍTULO DINÁMICO
         // ==========================================
+        let badgeLabel = "DESCONOCIDO";
+        let badgeIcon: PrimaryBadgeIcon = "dash";
+        let badgeColor = "bg-slate-100 text-slate-500 border-slate-200";
+        let topBorderColorClass = "bg-slate-400";
+        let subStatus = "En proceso";
+
+        switch (app.status) {
+            case ApplicationStatus.DRAFT:
+                badgeLabel = "Borrador"; badgeIcon = "dash"; badgeColor = "bg-slate-100 text-slate-600"; topBorderColorClass = "bg-slate-400";
+                subStatus = "Postulación incompleta";
+                break;
+            case ApplicationStatus.PENDING: 
+                badgeLabel = "Pendiente"; badgeIcon = "clock"; badgeColor = "bg-amber-50 text-amber-600"; topBorderColorClass = "bg-amber-400";
+                subStatus = areEndorsementsReady ? "Pendiente de revisión" : `Faltan Avales (${approvedCount}/2)`;
+                break;
+            case ApplicationStatus.UNDER_EVALUACION:
+                badgeLabel = "En Evaluación"; badgeIcon = "review"; badgeColor = "bg-blue-50 text-blue-600"; topBorderColorClass = "bg-blue-400";
+                subStatus = "Áreas evaluando el expediente";
+                break;
+            case ApplicationStatus.OBSERVED:
+                badgeLabel = "Observado"; badgeIcon = "error"; badgeColor = "bg-red-50 text-red-600"; topBorderColorClass = "bg-red-500";
+                subStatus = "Requiere subsanación del postulante";
+                break;
+            case ApplicationStatus.RESOLVED:
+                badgeLabel = "Subsanado"; badgeIcon = "clock"; badgeColor = "bg-purple-50 text-purple-600"; topBorderColorClass = "bg-purple-400";
+                subStatus = "Respuestas recibidas, por revisar";
+                break;
+            case ApplicationStatus.READY_FOR_PAYMENT:
+                badgeLabel = "Apto para Pago"; badgeIcon = "check"; badgeColor = "bg-emerald-50 text-emerald-600"; topBorderColorClass = "bg-emerald-400";
+                subStatus = "Postulación aprobada, aguardando pago";
+                break;
+            case ApplicationStatus.COMPLETED:
+                badgeLabel = "Completado"; badgeIcon = "check"; badgeColor = "bg-emerald-50 text-emerald-700"; topBorderColorClass = "bg-emerald-500";
+                subStatus = "Trámite finalizado exitosamente";
+                break;
+            case ApplicationStatus.REJECTED:
+                badgeLabel = "Rechazado"; badgeIcon = "error"; badgeColor = "bg-slate-100 text-slate-700"; topBorderColorClass = "bg-slate-400";
+                subStatus = "El proceso no procedió";
+                break;
+        }
+
         const atomicValidations: AtomicValidation[] = [
             ...(!isStudent ? [{
                 icon: "Users", label: "Avales",
                 status: (areEndorsementsReady ? "check" : "pending") as AtomicValidationStatus,
                 statusLabel: areEndorsementsReady ? "2 de 2 Aprobados" : `${approvedCount} de 2 Aprobados`,
-                statusColorClass: areEndorsementsReady ? "bg-emerald-50 text-emerald-700" : "bg-blue-50 text-blue-700",
+                statusColorClass: areEndorsementsReady ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700",
                 assignee: { name: areEndorsementsReady ? "En regla" : "En espera", timeRelative: "" }
             }] : []),
             {
                 icon: "UserCheck", label: "Asociados",
-                status: asoStatus, statusLabel: asoLabel,
-                statusColorClass: asoStatus === 'check' ? "bg-emerald-50 text-emerald-700" : asoStatus === 'error' ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-700",
-                assignee: { name: asoAssignee, timeRelative: asoTimeStr } // HORA AGREGADA
+                status: asoMapped.atomicStatus, statusLabel: asoMapped.label, statusColorClass: asoMapped.color,
+                assignee: { name: asoState.assignee, timeRelative: asoState.time }
             },
             {
                 icon: "ShieldCheck", label: "Logística",
-                status: logStatus, statusLabel: logLabel,
-                statusColorClass: logStatus === 'check' ? "bg-emerald-50 text-emerald-700" : logStatus === 'error' ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-700",
-                assignee: { name: logAssignee, timeRelative: logTimeStr } // HORA AGREGADA
+                status: logMapped.atomicStatus, statusLabel: logMapped.label, statusColorClass: logMapped.color,
+                assignee: { name: logState.assignee, timeRelative: logState.time }
+            },
+            {
+                icon: "Award", label: "Comité",
+                status: comiteMapped.atomicStatus, statusLabel: comiteMapped.label, statusColorClass: comiteMapped.color,
+                assignee: { name: comiteState.assignee, timeRelative: comiteState.time }
             },
             {
                 icon: "CreditCard", label: "Pago",
@@ -167,14 +182,14 @@ export class ExpedienteMapper {
                 avatarUrl,
                 fallbackInitials: initials,
                 categoryBadge: {
-                    label: isStudent ? "Estudiante" : "Asociado Activo",
+                    label: isStudent ? "Asociado Estudiante" : "Asociado Activo",
                     colorClass: isStudent ? "bg-slate-500 border-slate-600 text-white" : "bg-[#f4e9d8] text-[#a67c00] border-[#e8d09e]"
                 }
             },
-            primaryBadge: { label: primaryBadgeLabel, icon: primaryBadgeIcon, colorClass: primaryBadgeColor },
+            primaryBadge: { label: badgeLabel, icon: badgeIcon, colorClass: badgeColor },
             metadata: {
                 priority: "medium",
-                lastUpdatedRelative: this.getRelativeTime(app.updatedAt),
+                lastUpdatedRelative: this.getRelativeTime(new Date(app.updatedAt)),
                 assignedTo: { name: "Sin asignar", initial: "-" }
             },
             allowedActions: ["view", "evaluate"],

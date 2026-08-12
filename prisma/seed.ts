@@ -11,9 +11,11 @@ import {
   seedDistricts,
   seedUniversities,
   seedSpecialties,
-  seedBenefits,  // seedCompanies,
+  seedBenefits, 
+  seedMembershipDepartments,
+  // seedCompanies,
   // seedConfiguration,
-  // seedDemoUsers,
+  // seedDemoUsers, 
   // seedDemoApplications,
   // seedDemoPayments,
   seedUsers
@@ -40,6 +42,7 @@ const main = async (): Promise<void> => {
     // await runSeed('Catalogs: Companies', seedCompanies);
     
     await runSeed('Catalogs: Benefits', seedBenefits);
+    await runSeed('Catalogs: Membership Departments', seedMembershipDepartments);
     // await runSeed('System: Configuration', seedConfiguration);
     
 
