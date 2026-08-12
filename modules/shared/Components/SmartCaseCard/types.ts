@@ -68,8 +68,10 @@ export interface SmartCaseCardData {
   workflow?: WorkflowData;
   atomicValidations?: AtomicValidation[];
   metadata: {
-    priority: CasePriority;
+   priority: CasePriority;
     lastUpdatedRelative: string;
+    isAlreadyEvaluatedByMe?: boolean; // <-- NUEVO: Controla si se bloquean los botones
+    reviewerArea?: string;            // <-- NUEVO: Nombre del área (Ej. "Logística")
     assignedTo?: {
       name: string;
       initial: string;

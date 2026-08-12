@@ -11,6 +11,15 @@ export const permissionsData: Prisma.PermissionCreateManyInput[] = [
   },
 
   // ===========================================================================
+  // SUPER ADMIN
+  // ===========================================================================
+  { 
+    action: "manage", 
+    subject: "all", 
+    description: "Privilegio absoluto de super administrador." 
+  },
+
+  // ===========================================================================
   // USERS
   // ===========================================================================
   { action: "create", subject: "users", description: "Crear usuarios." },
