@@ -1,15 +1,41 @@
 "use client";
 
 import React, { useState } from "react";
+import { Search, CheckCircle2, AlertTriangle, CloudUpload } from "lucide-react";
 import { ApplicationStatusData } from "../Models/ApplicationStatus";
 
+interface ExtendedApplicationStatusData extends Partial<ApplicationStatusData> {
+  id: number | string;
+  applicationCode?: string;
+  observations?: string[];
+  expirationDate?: string;
+}
+
 interface Props {
-  data: ApplicationStatusData;
+  data: ExtendedApplicationStatusData;
   onUploadSuccess?: () => void;
+}
+
+interface SponsorData {
+  personId?: number;
+  fullName: string;
+  email: string;
+  iimpCode: string;
+  dni: string;
 }
 
 export const StatusObserved: React.FC<Props> = ({ data, onUploadSuccess }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  // Estados para búsqueda de Aval Sustituto
+  const [sponsorDni, setSponsorDni] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  const [foundSponsor, setFoundSponsor] = useState<SponsorData | null>(null);
+
+  // Estados de proceso
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -17,10 +43,133 @@ export const StatusObserved: React.FC<Props> = ({ data, onUploadSuccess }) => {
     }
   };
 
+  // Buscar aval por DNI
+  const handleSearchSponsor = async () => {
+    if (sponsorDni.length !== 8) return;
+
+    // Resolver ID de la solicitud
+    const appId = 
+      data?.id || 
+      (data as any)?.applicationId || 
+      (data as any)?.application_id;
+
+    setIsSearching(true);
+    setErrorMessage(null);
+    setFoundSponsor(null);
+
+    try {
+      const url = appId
+        ? `/api/afiliaciones/postulacion/validate-sponsor?documentNumber=${sponsorDni}&applicationId=${appId}`
+        : `/api/afiliaciones/postulacion/validate-sponsor?documentNumber=${sponsorDni}`;
+
+      const response = await fetch(url);
+      const resData = await response.json();
+
+      if (!response.ok || !resData.success) {
+        throw new Error(resData?.message || "No se encontró ningún socio activo con ese DNI.");
+      }
+
+      const sponsorInfo = resData.data || resData;
+
+      setFoundSponsor({
+        personId: sponsorInfo.id || sponsorInfo.personId,
+        fullName: sponsorInfo.fullName,
+        email: sponsorInfo.email,
+        iimpCode: sponsorInfo.sponsorCode || sponsorInfo.iimpCode,
+        dni: sponsorDni,
+      });
+    } catch (err: any) {
+      setErrorMessage(err.message || "Error al buscar el aval.");
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+// Guardar reemplazo en Base de Datos
+  const handleSubmitReplacement = async () => {
+    if (!foundSponsor) return;
+
+    // 🔍 Inspeccionar en consola del navegador la estructura real
+    console.log("📌 PROP DATA COMPLETA RECIBIDA:", data);
+
+    // Búsqueda profunda de application_id en cualquier posible propiedad
+    const appId = 
+      data?.id || 
+      (data as any)?.applicationId || 
+      (data as any)?.application_id || 
+      (data as any)?.application?.id || 
+      (data as any)?.membershipApplication?.id;
+
+    console.log("👉 ID de solicitud resuelto:", appId);
+
+    if (!appId) {
+      setErrorMessage(
+        "Error: No se pudo obtener el ID del expediente. Revisa la consola del navegador (F12) para ver la estructura de 'data'."
+      );
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
+    try {
+      const response = await fetch("/api/consulta/reemplazar-aval", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          application_id: Number(appId), // 👈 Asegúrate de convertir a Number
+          sponsor_person_id: foundSponsor.personId,
+          sponsor_code: foundSponsor.iimpCode,
+          dni: foundSponsor.dni,
+          status: "PENDING",
+        }),
+      });
+
+      const resData = await response.json();
+
+      if (!response.ok || !resData.success) {
+        throw new Error(resData.error || "Error al guardar el nuevo aval.");
+      }
+
+      setSuccessMessage(`Se registró exitosamente a ${foundSponsor.fullName}.`);
+      setFoundSponsor(null);
+      setSponsorDni("");
+
+      setTimeout(() => {
+        if (onUploadSuccess) {
+          onUploadSuccess();
+        } else {
+          window.location.reload();
+        }
+      }, 1200);
+
+    } catch (err: any) {
+      console.error("Error al reemplazar aval:", err);
+      setErrorMessage(err.message || "No se pudo actualizar la base de datos.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {/* Columna Izquierda: Detalle de Observaciones + Dropzone */}
+      {/* Columna Izquierda: Detalle de Observaciones + Acciones */}
       <div className="md:col-span-2 space-y-6">
+        {/* Mensajes Globales de Error / Éxito */}
+        {errorMessage && (
+          <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-600 font-bold text-xs flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 shrink-0" /> {errorMessage}
+          </div>
+        )}
+
+        {successMessage && (
+          <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold text-xs flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 shrink-0" /> {successMessage}
+          </div>
+        )}
+
+        {/* Observaciones del Comité */}
         <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-3">
           <div className="flex items-center gap-2 text-amber-800 font-semibold text-sm">
             <span>⚠️</span> Observaciones del Comité
@@ -29,15 +178,69 @@ export const StatusObserved: React.FC<Props> = ({ data, onUploadSuccess }) => {
             {data.observations && data.observations.length > 0 ? (
               data.observations.map((obs, idx) => <li key={idx}>{obs}</li>)
             ) : (
-              <li>Por favor, revise los documentos adjuntos de su postulación e intente subirlos nuevamente legibles.</li>
+              <li>Por favor, revise los requerimientos o avales rechazados e ingrese la nueva información.</li>
             )}
           </ul>
         </div>
 
-        {/* Dropzone Subsanación */}
+        {/* MÓDULO: Reemplazar Aval Observado */}
+        <div className="p-5 bg-white border border-slate-200 rounded-2xl space-y-4 shadow-sm">
+          <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide">
+            1. Reemplazar Aval Rechazado
+          </h4>
+          
+          <div className="space-y-3">
+            <label className="text-xs font-semibold text-slate-700 block">DNI del Nuevo Aval</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                maxLength={8}
+                placeholder="Ingrese DNI (8 dígitos)"
+                value={sponsorDni}
+                onChange={(e) => setSponsorDni(e.target.value.replace(/\D/g, ""))}
+                className="flex-1 h-10 px-3 rounded-xl border border-slate-300 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#C5A059]"
+              />
+              <button
+                type="button"
+                onClick={handleSearchSponsor}
+                disabled={isSearching || sponsorDni.length !== 8}
+                className="px-4 h-10 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-medium transition-colors disabled:opacity-40 flex items-center gap-1.5"
+              >
+                {isSearching ? "Buscando..." : <><Search size={14} /> Buscar</>}
+              </button>
+            </div>
+          </div>
+
+          {/* Datos del Aval Encontrado */}
+          {foundSponsor && (
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3 text-xs">
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <span className="text-[10px] uppercase text-slate-400 font-bold block">Nombre Completo</span>
+                  <span className="font-bold text-slate-800">{foundSponsor.fullName}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase text-slate-400 font-bold block">Código IIMP</span>
+                  <span className="font-medium text-slate-700">{foundSponsor.iimpCode}</span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleSubmitReplacement}
+                disabled={isSubmitting}
+                className="w-full h-10 bg-[#C5A059] hover:bg-[#b08e4b] text-white font-bold text-xs rounded-xl transition-colors shadow-sm disabled:opacity-50"
+              >
+                {isSubmitting ? "Enviando Solicitud..." : "Confirmar y Enviar a Nuevo Aval"}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Dropzone Subsanación de Documentos */}
         <div className="space-y-2">
           <label className="text-xs font-semibold text-slate-700 block">
-            Actualizar Documentación
+            2. Actualizar Documentación Subsanada
           </label>
           <div className="border-2 border-dashed border-slate-200 hover:border-amber-500 rounded-2xl p-6 text-center bg-slate-50/50 hover:bg-amber-50/10 transition-colors cursor-pointer relative">
             <input
@@ -47,7 +250,7 @@ export const StatusObserved: React.FC<Props> = ({ data, onUploadSuccess }) => {
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             />
             <div className="w-10 h-10 bg-amber-100/60 rounded-full flex items-center justify-center mx-auto mb-2 text-amber-800">
-              ☁️
+              <CloudUpload className="w-5 h-5" />
             </div>
             <p className="text-xs font-medium text-slate-700">
               {selectedFile ? selectedFile.name : "Seleccionar archivo o arrastrar aquí PDF, JPG"}
@@ -61,11 +264,11 @@ export const StatusObserved: React.FC<Props> = ({ data, onUploadSuccess }) => {
           onClick={onUploadSuccess}
           className="w-full h-11 bg-slate-800 hover:bg-slate-900 text-white font-medium text-xs rounded-xl transition-colors disabled:opacity-40"
         >
-          Corregir Información
+          Corregir Documentación
         </button>
       </div>
 
-      {/* Columna Derecha: Tarjeta de Detalles del Trámite */}
+      {/* Columna Derecha: Detalle del Trámite */}
       <div className="space-y-4">
         <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 space-y-3">
           <h5 className="text-xs font-bold text-slate-800">Detalles del Trámite</h5>

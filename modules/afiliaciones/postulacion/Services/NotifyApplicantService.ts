@@ -31,7 +31,7 @@ export class NotifyApplicantService {
     const trackingUrl = `${baseUrl}/consulta`;
 
     const logoUrl =
-      "https://s3-iimp-gestor-de-archivos-v3.s3.sa-east-1.amazonaws.com/boletines/images/IMG20260807_134823.png";
+      "https://s3-iimp-gestor-de-archivos-v3.s3.sa-east-1.amazonaws.com/boletines/images/IMG20260817_120138.png";
 
     const htmlTemplate = `
       <!DOCTYPE html>

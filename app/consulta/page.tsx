@@ -9,72 +9,85 @@ import { StatusObserved } from "@/modules/afiliaciones/consulta/Components/Statu
 import { StatusApproved } from "@/modules/afiliaciones/consulta/Components/StatusApproved";
 import { StatusRejected } from "@/modules/afiliaciones/consulta/Components/StatusRejected";
 
-// Definimos el tipo de estado localmente para evitar el error de export
-type StatusType = "IN_REVIEW" | "OBSERVED" | "APPROVED" | "REJECTED";
-
 export default function ConsultaPage() {
   const [loading, setLoading] = useState(false);
   const [statusData, setStatusData] = useState<ApplicationStatusData | null>(null);
-
-  // Mocks de prueba por estado
-  const getMockDataByStatus = (status: StatusType, code: string): ApplicationStatusData => {
-    switch (status) {
-      case "OBSERVED":
-        return {
-          status: "OBSERVED",
-          applicationCode: code || "APP-2026-9811",
-          submissionDate: "02/08/2026",
-          observations: [
-            "El documento DNI escaneado no presenta la firma visible.",
-            "Adjuntar constancia Habilitación CIP vigente."
-          ],
-          expirationDate: "12/08/2026"
-        };
-      case "APPROVED":
-        return {
-          status: "APPROVED",
-          applicationCode: code || "APP-2026-9811",
-          submissionDate: "01/08/2026",
-          evaluationDate: "06/08/2026",
-          totalAmount: 500
-        };
-      case "REJECTED":
-        return {
-          status: "REJECTED",
-          applicationCode: code || "APP-2026-9811",
-          submissionDate: "28/07/2026",
-          rejectionReason: "El expediente presentado no acredita la experiencia profesional mínima requerida según el Estatuto del IIMP."
-        };
-      case "IN_REVIEW":
-      default:
-        return {
-          status: "IN_REVIEW",
-          applicationCode: code || "APP-2026-9811",
-          submissionDate: "05/08/2026"
-        };
-    }
-  };
+  const [lastQuery, setLastQuery] = useState<ConsultationQuery | null>(null);
 
   const handleConsult = async (query: ConsultationQuery) => {
     setLoading(true);
-    setTimeout(() => {
-      setStatusData(getMockDataByStatus("IN_REVIEW", query.verificationCode));
+    setLastQuery(query);
+
+    try {
+      const response = await fetch(
+        `/api/consulta?documentType=${query.documentType}&documentNumber=${query.documentNumber}&code=${query.verificationCode}`
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("📊 DATOS REALES DE CONSULTA:", data);
+        
+        const realId = data.id || data.applicationId || data.application_id;
+        
+        setStatusData({
+          ...data,
+          id: realId,
+          applicationId: realId,
+        });
+      } else {
+        alert("No se encontró ninguna solicitud con los datos ingresados.");
+        setStatusData(null);
+      }
+    } catch (error) {
+      console.error("Error consultando la API real:", error);
+      alert("Ocurrió un error al consultar la solicitud.");
+    } finally {
       setLoading(false);
-    }, 800);
+    }
   };
+
+  const handleRefresh = () => {
+    if (lastQuery) {
+      handleConsult(lastQuery);
+    }
+  };
+
+  const getNormalizedStatus = (status?: string) => {
+    if (!status) return "IN_REVIEW";
+    const upper = status.toUpperCase();
+
+    if (
+      [
+        "SUBMITTED",
+        "IN_REVIEW",
+        "PENDING",
+        "EN_REVISION",
+        "REVISADO",
+        "UNDER_EVALUACION",
+        "UNDER_EVALUATION",
+      ].includes(upper)
+    ) {
+      return "IN_REVIEW";
+    }
+
+    if (["OBSERVED", "OBSERVADO", "OBSERVADA"].includes(upper)) return "OBSERVED";
+    if (["APPROVED", "APROBADO", "APROBADA"].includes(upper)) return "APPROVED";
+    if (["REJECTED", "RECHAZADO", "RECHAZADA"].includes(upper)) return "REJECTED";
+
+    return "IN_REVIEW";
+  };
+
+  const currentStatus = getNormalizedStatus(statusData?.status);
 
   return (
     <main className="relative min-h-screen w-full flex flex-col justify-between items-center py-10 px-4 bg-[#F4F5F7]">
-      {/* Texture Layer */}
       <div
         className="absolute inset-0 z-0 bg-cover bg-center opacity-10 mix-blend-multiply pointer-events-none"
         style={{ backgroundImage: "url('/images/minero.jpg')" }}
       />
       
-      {/* Primary Resplandor */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-96 bg-gradient-to-b from-[#C39254]/15 to-transparent pointer-events-none blur-3xl" />
 
-      {/* Header Institucional */}
       <header className="relative z-10 text-center max-w-lg mx-auto mt-2">
         <Link href="/login" className="inline-block transition-transform hover:scale-105 mb-3">
           <div className="w-20 h-20 mx-auto flex items-center justify-center bg-white rounded-2xl p-3 shadow-md border border-[#C39254]/20">
@@ -100,28 +113,35 @@ export default function ConsultaPage() {
         </p>
       </header>
 
-      {/* Contenedor Principal */}
       <section className="relative z-10 w-full max-w-xl my-auto pt-6 pb-4">
         {!statusData ? (
           <ConsultationForm onSubmit={handleConsult} loading={loading} />
         ) : (
           <div className="w-full bg-white rounded-2xl p-6 sm:p-8 shadow-xl border border-slate-200/80">
-            
-            {statusData.status === "SUBMITTED" || statusData.status === "IN_REVIEW" ? (
-              <StatusInReview data={statusData} />
-            ) : statusData.status === "OBSERVED" ? (
-              <StatusObserved 
+            {currentStatus === "IN_REVIEW" && (
+              <StatusInReview 
                 data={statusData} 
-                onUploadSuccess={() => alert("Documentación re-enviada")} 
+                applicationId={statusData?.id || statusData?.applicationId || 101} 
               />
-            ) : statusData.status === "APPROVED" ? (
+            )}
+
+            {currentStatus === "OBSERVED" && (
+              <StatusObserved 
+                data={statusData as any} 
+                onUploadSuccess={handleRefresh} 
+              />
+            )}
+
+            {currentStatus === "APPROVED" && (
               <StatusApproved 
                 data={statusData} 
                 onProceedPayment={() => alert("Redirigiendo a pasarela de pagos...")} 
               />
-            ) : statusData.status === "REJECTED" ? (
+            )}
+
+            {currentStatus === "REJECTED" && (
               <StatusRejected data={statusData} />
-            ) : null}
+            )}
 
             <div className="text-center mt-6 pt-5 border-t border-slate-100">
               <button
@@ -135,38 +155,6 @@ export default function ConsultaPage() {
         )}
       </section>
 
-      {/* BARRA DEV TOOLBAR: Simulador QA */}
-      {statusData && (
-        <div className="relative z-20 my-4 bg-[#3E3E3D] text-white px-4 py-2 rounded-xl shadow-lg flex flex-wrap items-center justify-center gap-2 text-xs">
-          <span className="font-bold text-amber-400 mr-2">Simulador QA:</span>
-          <button
-            onClick={() => setStatusData(getMockDataByStatus("IN_REVIEW", statusData.applicationCode))}
-            className={`px-2.5 py-1 rounded transition-colors ${statusData.status === "IN_REVIEW" ? "bg-[#C39254] font-bold" : "bg-slate-700 hover:bg-slate-600"}`}
-          >
-            En Evaluación
-          </button>
-          <button
-            onClick={() => setStatusData(getMockDataByStatus("OBSERVED", statusData.applicationCode))}
-            className={`px-2.5 py-1 rounded transition-colors ${statusData.status === "OBSERVED" ? "bg-[#C39254] font-bold" : "bg-slate-700 hover:bg-slate-600"}`}
-          >
-            Observado
-          </button>
-          <button
-            onClick={() => setStatusData(getMockDataByStatus("APPROVED", statusData.applicationCode))}
-            className={`px-2.5 py-1 rounded transition-colors ${statusData.status === "APPROVED" ? "bg-[#C39254] font-bold" : "bg-slate-700 hover:bg-slate-600"}`}
-          >
-            Aprobado
-          </button>
-          <button
-            onClick={() => setStatusData(getMockDataByStatus("REJECTED", statusData.applicationCode))}
-            className={`px-2.5 py-1 rounded transition-colors ${statusData.status === "REJECTED" ? "bg-[#C39254] font-bold" : "bg-slate-700 hover:bg-slate-600"}`}
-          >
-            Rechazado
-          </button>
-        </div>
-      )}
-
-      {/* Footer */}
       <footer className="relative z-10 text-center pb-2">
         <a
           href="mailto:liset.otoya@iimp.org.pe"

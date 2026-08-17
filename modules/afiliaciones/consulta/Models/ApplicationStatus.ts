@@ -1,26 +1,39 @@
-export type StatusType = "IN_REVIEW" | "OBSERVED" | "APPROVED" | "REJECTED" | "SUBMITTED" ;
+export type AreaStatusType = "PENDING" | "APPROVED" | "OBSERVED" | "REJECTED" | "NOT_REQUIRED";
+export type GlobalStatusType = "SUBMITTED" | "IN_REVIEW" | "OBSERVED" | "APPROVED" | "REJECTED";
 
 export interface ConsultationQuery {
   documentType: string;
   documentNumber: string;
-  verificationCode: string; // applicationCode (ej. APP-1786118277804)
+  verificationCode: string;
+}
+
+export interface AreaDetail {
+  status: AreaStatusType;
+  label?: string;            // Ej: "1 de 2 Aprobados", "En espera"
+  observation?: string;      // Detalle en caso de observación
+  evaluator?: string;
 }
 
 export interface ApplicationStatusData {
-  status: StatusType;
+  id?: number | string;           
+  applicationId?: number | string;
+  status: GlobalStatusType;
   applicationCode: string;
   applicantName?: string;
   submissionDate?: string;
-  // Campos para Observado
-  observations?: string[];
-  expirationDate?: string;
-  // Campos para Aprobado
-  membershipType?: string;
-  period?: string;
-  registrationFee?: number;
-  annualFee?: number;
+  updatedAt?: string;
+
+  // Evaluación detallada por áreas
+  areas: {
+    sponsors: AreaDetail & { approvedCount: number; requiredCount: number };
+    associates: AreaDetail;
+    logistics: AreaDetail;
+    legal?: AreaDetail;      // Condicional: Solo si Logística observa
+    board: AreaDetail;      // Directorio / Comité
+    payment: AreaDetail;
+  };
+
+  // Datos adicionales para estados finales
   totalAmount?: number;
-  // Campos para Rechazado
   rejectionReason?: string;
-  evaluationDate?: string;
 }
