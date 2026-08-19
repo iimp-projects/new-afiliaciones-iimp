@@ -34,6 +34,10 @@ export async function GET(request: Request) {
             department: true,
           },
         },
+        observations: {
+          where: { status: "PENDING" },
+          orderBy: { createdAt: "desc" },
+        },
       },
     });
 
@@ -88,9 +92,18 @@ export async function GET(request: Request) {
       observationsList.push("Un aval ha rechazado la solicitud. Es necesario ingresar los datos de un nuevo aval para continuar.");
     }
 
-    // Agregar observaciones registradas en las áreas internas
+    // Agregar observaciones registradas por el revisor, con sus campos editables.
+    const pendingObservations = application.observations.map((observation) => ({
+      id: observation.id,
+      department: observation.reviewDepartment,
+      message: observation.errorDescription,
+      fieldPaths: Array.isArray(observation.fieldPaths) ? observation.fieldPaths.filter((path): path is string => typeof path === "string") : [],
+    }));
+    pendingObservations.forEach((observation) => observationsList.push(observation.message));
+
+    // Mantener el mensaje genérico por área cuando no exista una observación detallada.
     application.validations.forEach((val) => {
-      if (val.status === "OBSERVED" && val.department) {
+      if (val.status === "OBSERVED" && val.department && !pendingObservations.some((observation) => observation.department === val.department.code)) {
         observationsList.push(`Observación en área (${val.department.name}): Verifique la documentación entregada.`);
       }
     });
@@ -106,6 +119,8 @@ export async function GET(request: Request) {
       status: effectiveStatus,
       applicationCode: application.applicationCode || application.trackingCode,
       trackingCode: application.trackingCode,
+      draftData: application.draftData,
+      pendingObservations,
       applicantName: fullName,
       existingSponsorDnis: existingSponsorDnis,
       observations: observationsList,

@@ -1,2 +1,1 @@
--- DropIndex
-DROP INDEX "catalog_universities_acronym_key";
+DROP INDEX IF EXISTS "catalog_universities_acronym_key";

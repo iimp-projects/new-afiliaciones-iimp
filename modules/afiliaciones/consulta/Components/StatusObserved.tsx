@@ -26,6 +26,8 @@ interface SponsorData {
 
 export const StatusObserved: React.FC<Props> = ({ data, onUploadSuccess }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [correctionDraft, setCorrectionDraft] = useState<Record<string, any>>(() => (data as any).draftData ?? {});
+  const [savingCorrection, setSavingCorrection] = useState(false);
 
   // Estados para búsqueda de Aval Sustituto
   const [sponsorDni, setSponsorDni] = useState("");
@@ -41,6 +43,47 @@ export const StatusObserved: React.FC<Props> = ({ data, onUploadSuccess }) => {
     if (e.target.files && e.target.files[0]) {
       setSelectedFile(e.target.files[0]);
     }
+  };
+
+  const observedFields = Array.from(new Set(((data as any).pendingObservations ?? []).flatMap((item: any) => item.fieldPaths ?? []))) as string[];
+  const isSponsorRejected = (data as any).areas?.sponsors?.status === "OBSERVED";
+  const fieldLabels: Record<string, string> = {
+    names: "Nombres", fatherLastName: "Apellido paterno", motherLastName: "Apellido materno", birthDate: "Fecha de nacimiento", gender: "Género", phone: "Celular", primaryEmail: "Correo principal", secondaryEmail: "Correo secundario", address: "Dirección", companyTaxId: "RUC", companyName: "Empresa", area: "Área", positionName: "Cargo", workPhone: "Teléfono laboral", workEmail: "Correo laboral", workingAddress: "Dirección laboral", degreeTitle: "Título o grado", specialty: "Especialidad", professionalAssociation: "Colegio profesional", registrationNumber: "Número de colegiatura", sponsorDocumentNumber: "DNI del aval", declarationDocumentId: "Declaración jurada firmada"
+  };
+  const readPath = (path: string) => path.split(".").reduce((value: any, key) => value?.[key], correctionDraft) ?? "";
+  const writePath = (path: string, value: string) => setCorrectionDraft((previous) => {
+    const next = structuredClone(previous);
+    const keys = path.split("."); let cursor: any = next;
+    keys.forEach((key, index) => { if (index === keys.length - 1) cursor[key] = value; else { cursor[key] ??= /^\d+$/.test(keys[index + 1]) ? [] : {}; cursor = cursor[key]; } });
+    return next;
+  });
+  const isFilePath = (path: string) => ["photo", "identityDocument", "universityLetter", "declarationDocumentId"].includes(path.split(".").at(-1) ?? "");
+  const uploadCorrectionFile = async (path: string, file?: File) => {
+    if (!file) return;
+    const trackingCode = (data as any).trackingCode;
+    if (!trackingCode) return setErrorMessage("No se encontró el código de seguimiento del expediente.");
+    setErrorMessage(null);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", `afiliaciones/${trackingCode}/subsanaciones`);
+      const response = await fetch("/api/afiliaciones/postulacion/upload", { method: "POST", body: formData });
+      const result = await response.json();
+      if (!response.ok || !result.success) throw new Error(result.message || "No se pudo subir el archivo.");
+      writePath(path, result.data.url);
+    } catch (error: any) { setErrorMessage(error.message || "No se pudo subir el archivo."); }
+  };
+  const saveCorrection = async () => {
+    const trackingCode = (data as any).trackingCode;
+    if (!trackingCode) return setErrorMessage("No se encontró el código de seguimiento del expediente.");
+    setSavingCorrection(true); setErrorMessage(null);
+    try {
+      const response = await fetch(`/api/afiliaciones/postulacion/${trackingCode}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ currentStep: 1, draftData: correctionDraft }) });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "No se pudo guardar la corrección.");
+      setSuccessMessage("Corrección guardada. El área responsable podrá reevaluar su expediente.");
+      onUploadSuccess?.();
+    } catch (error: any) { setErrorMessage(error.message); } finally { setSavingCorrection(false); }
   };
 
   // Buscar aval por DNI
@@ -183,8 +226,23 @@ export const StatusObserved: React.FC<Props> = ({ data, onUploadSuccess }) => {
           </ul>
         </div>
 
+        {observedFields.length > 0 && (
+          <div className="p-5 bg-white border border-slate-200 rounded-2xl space-y-4 shadow-sm">
+            <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide">Campos observados para corregir</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {observedFields.map((path) => {
+                const field = path.split(".").at(-1) ?? path;
+                const type = field.includes("Email") ? "email" : field.includes("Date") ? "date" : field.includes("DocumentNumber") || field === "phone" || field === "workPhone" || field === "companyTaxId" ? "text" : "text";
+                if (isFilePath(path)) return <label key={path} className="text-xs font-semibold text-slate-700"><span className="block mb-1">{fieldLabels[field] ?? field}</span><input type="file" accept={field === "photo" ? ".jpg,.jpeg,.png" : ".pdf,.jpg,.jpeg,.png"} onChange={(event) => uploadCorrectionFile(path, event.target.files?.[0])} className="w-full text-xs file:mr-3 file:border-0 file:rounded-lg file:bg-amber-100 file:px-3 file:py-2 file:text-amber-800" /><span className="block mt-1 text-[10px] text-slate-400">{typeof readPath(path) === "string" && readPath(path) ? "Archivo cargado. Puede reemplazarlo si es necesario." : "Seleccione el archivo corregido."}</span></label>;
+                return <label key={path} className="text-xs font-semibold text-slate-700"><span className="block mb-1">{fieldLabels[field] ?? field}</span><input type={type} value={String(readPath(path) ?? "")} onChange={(event) => writePath(path, event.target.value)} className="w-full h-10 px-3 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#C5A059]" /></label>;
+              })}
+            </div>
+            <button type="button" onClick={saveCorrection} disabled={savingCorrection} className="w-full h-11 bg-[#C5A059] hover:bg-[#b08e4b] text-white font-bold text-xs rounded-xl disabled:opacity-50">{savingCorrection ? "Guardando..." : "Guardar correcciones"}</button>
+          </div>
+        )}
+
         {/* MÓDULO: Reemplazar Aval Observado */}
-        <div className="p-5 bg-white border border-slate-200 rounded-2xl space-y-4 shadow-sm">
+        {isSponsorRejected && <div className="p-5 bg-white border border-slate-200 rounded-2xl space-y-4 shadow-sm">
           <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide">
             1. Reemplazar Aval Rechazado
           </h4>
@@ -235,7 +293,7 @@ export const StatusObserved: React.FC<Props> = ({ data, onUploadSuccess }) => {
               </button>
             </div>
           )}
-        </div>
+        </div>}
 
         {/* Dropzone Subsanación de Documentos */}
         <div className="space-y-2">

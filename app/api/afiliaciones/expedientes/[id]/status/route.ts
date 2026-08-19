@@ -5,6 +5,7 @@ import { ValidationStatus, ValidationAction } from "@prisma/client";
 import { contextService } from "@/modules/auth/context/service";
 import { ApplicationStatusCalculatorService } from "@/modules/afiliaciones/postulacion/Services/ApplicationStatusCalculatorService";
 import { NotifyComiteService } from "@/modules/afiliaciones/expedientes/Services/NotifyComiteService"; 
+import { OBSERVATION_FIELD_KEYS } from "@/modules/afiliaciones/observations/ObservationFields";
 
 export async function PATCH(
     request: NextRequest,
@@ -14,7 +15,14 @@ export async function PATCH(
         const { id } = await params;
         const appId = parseInt(id, 10);
         const body = await request.json();
-        const { newStatus, reason } = body;
+        const { newStatus, reason, fieldPaths = [] } = body;
+        const normalizedFieldPaths = Array.isArray(fieldPaths)
+            ? [...new Set(fieldPaths.filter((field): field is string => typeof field === "string" && OBSERVATION_FIELD_KEYS.has(field)))]
+            : [];
+
+        if (newStatus === "OBSERVED" && normalizedFieldPaths.length === 0) {
+            return NextResponse.json({ success: false, message: "Seleccione al menos un campo observado." }, { status: 400 });
+        }
 
         const currentUser = await contextService.getCurrentUser().catch(() => null);
         const userDept = currentUser ? currentUser.role.slug : 'SISTEMA';
@@ -76,6 +84,17 @@ export async function PATCH(
                                 comment: reason || 'Actualización de estado del área'
                             }
                         });
+
+                        if (targetAreaStatus === ValidationStatus.OBSERVED) {
+                            await tx.membershipObservation.create({
+                                data: {
+                                    applicationId: appId,
+                                    reviewDepartment: deptCode,
+                                    errorDescription: reason || "Se requiere subsanación.",
+                                    fieldPaths: normalizedFieldPaths,
+                                }
+                            });
+                        }
                     }
                 }
             }

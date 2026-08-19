@@ -493,6 +493,7 @@ model MembershipObservation {
   applicationId    Int                   @map("application_id")
   reviewDepartment String                @map("review_department") @db.VarChar(100)
   errorDescription String                @map("error_description")
+  fieldPaths       Json?                 @map("field_paths")
   status           ObservationStatus     @default(PENDING)
   resolvedAt       DateTime?             @map("resolved_at")
   createdAt        DateTime              @default(now()) @map("created_at")

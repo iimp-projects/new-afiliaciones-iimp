@@ -46,6 +46,7 @@ import {
   UploadCloud   // <-- AÑADIDO PARA ADJUNTOS
 } from "lucide-react";
 import { DynamicIcon } from "@/modules/layout/Utils/DynamicIcon";
+import { OBSERVATION_FIELDS } from "@/modules/afiliaciones/observations/ObservationFields";
 
 // ==========================================
 // 1. DICCIONARIO TRADUCTOR ESTRICTO
@@ -133,8 +134,11 @@ const DataField = ({
   </div>
 );
 
-const getDocumentFriendlyName = (category: string) => {
-  switch (category) {
+const getDocumentFriendlyName = (document: { category: string; fileName?: string; mimeType?: string }) => {
+  if (document.category === "OTHER" && (document.mimeType?.startsWith("image/") || /foto|photograph/i.test(document.fileName ?? ""))) {
+    return "Fotografía del postulante";
+  }
+  switch (document.category) {
     case "ID_DOCUMENT":
       return "Documento de Identidad (DNI / CE / Pasaporte)";
     case "SWORN_DECLARATION":
@@ -557,6 +561,7 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
   const [attachments, setAttachments] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [observedFieldPaths, setObservedFieldPaths] = useState<string[]>([]);
 
   const [filters, setFilters] = useState({
     search: "",
@@ -764,6 +769,7 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
           body: JSON.stringify({
             newStatus: targetStatus,
             reason: statusReason, // Ahora este reason contiene HTML generado por TipTap
+            fieldPaths: targetStatus === "OBSERVED" ? observedFieldPaths : undefined,
             // attachments: attachments (Aquí irían los archivos si usan formData o base64)
           }),
         }
@@ -773,6 +779,7 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
         setShowStatusModal(false);
         setStatusReason("");
         setAttachments([]); // Limpiamos los archivos adjuntos
+        setObservedFieldPaths([]);
         fetchExpedientes();
         handleOpenDrawer(drawerData.header); // Refresca en vivo el drawer
       } else {
@@ -916,6 +923,19 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
             : "bg-red-100 text-red-600 border-red-200",
         });
       }
+    });
+
+    payload.observations?.forEach((observation: any) => {
+      const fields = Array.isArray(observation.fieldPaths) ? observation.fieldPaths : [];
+      const names = fields.map((path: string) => OBSERVATION_FIELDS.find((field) => field.key === path)?.label ?? path);
+      const message = String(observation.errorDescription ?? "").replace(/<[^>]*>/g, "").trim();
+      events.push({
+        date: new Date(observation.createdAt),
+        title: `Observación: ${observation.reviewDepartment}`,
+        desc: `${message}${names.length ? ` Campos observados: ${names.join(", ")}.` : ""}`,
+        icon: <AlertCircle size={14} />,
+        color: observation.status === "RESOLVED" ? "bg-purple-100 text-purple-600 border-purple-200" : "bg-red-100 text-red-600 border-red-200",
+      });
     });
 
     return events.sort((a, b) => b.date.getTime() - a.date.getTime());
@@ -1440,7 +1460,7 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
         <div className="grid grid-cols-1 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
           {payload.documents.length > 0 ? (
             payload.documents.map((doc: any) => {
-              const friendlyName = getDocumentFriendlyName(doc.category);
+              const friendlyName = getDocumentFriendlyName(doc);
               const fileExtension =
                 doc.fileName?.split(".").pop()?.toUpperCase() || "PDF";
 
@@ -1692,6 +1712,31 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
                   />
                 </div>
 
+                {targetStatus === "OBSERVED" && (
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-2 ml-1">
+                      Campos que debe corregir <span className="text-red-500">*</span>
+                    </label>
+                    <div className="max-h-52 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 rounded-xl border border-slate-200 bg-slate-50">
+                      {OBSERVATION_FIELDS.map((field) => {
+                        const checked = observedFieldPaths.includes(field.key);
+                        return (
+                          <label key={field.key} className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() => setObservedFieldPaths((current) => checked ? current.filter((key) => key !== field.key) : [...current, field.key])}
+                              className="accent-amber-500"
+                            />
+                            {field.label}
+                          </label>
+                        );
+                      })}
+                    </div>
+                    {observedFieldPaths.length === 0 && <p className="text-[11px] text-amber-700 mt-2">Seleccione los campos que el postulante podrá editar.</p>}
+                  </div>
+                )}
+
                 {/* Zona de Adjuntos */}
                 <div>
                   <div className="flex items-center justify-between mb-2 ml-1 pr-1">
@@ -1769,7 +1814,7 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
                 </button>
                 <button 
                   onClick={confirmStatusChange}
-                  disabled={isUpdatingStatus || statusReason === "<p></p>" || statusReason.trim() === ""}
+                  disabled={isUpdatingStatus || statusReason === "<p></p>" || statusReason.trim() === "" || (targetStatus === "OBSERVED" && observedFieldPaths.length === 0)}
                   className={`flex-1 py-3.5 rounded-xl text-white font-black tracking-wide text-sm shadow-[0_8px_20px_-6px_rgba(0,0,0,0.2)] hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:shadow-none ${targetStatus === "OBSERVED" ? "bg-amber-500 hover:bg-amber-600 hover:shadow-[0_12px_25px_-6px_rgba(245,158,11,0.5)]" : targetStatus === "REJECTED" ? "bg-red-600 hover:bg-red-700 hover:shadow-[0_12px_25px_-6px_rgba(220,38,38,0.5)]" : "bg-gradient-to-r from-[#dca45c] to-[#c39254] hover:shadow-[0_12px_25px_-6px_rgba(197,160,89,0.7)]"}`}
                 >
                   {isUpdatingStatus ? "Actualizando..." : "Sí, confirmar"}
