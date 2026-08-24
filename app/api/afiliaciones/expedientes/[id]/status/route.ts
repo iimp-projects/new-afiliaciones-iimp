@@ -1,10 +1,10 @@
-import { expedientesApi } from './../../../../../../modules/afiliaciones/expedientes/Services/ExpedientesApi';
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ValidationStatus, ValidationAction } from "@prisma/client";
 import { contextService } from "@/modules/auth/context/service";
 import { ApplicationStatusCalculatorService } from "@/modules/afiliaciones/postulacion/Services/ApplicationStatusCalculatorService";
-import { NotifyComiteService } from "@/modules/afiliaciones/expedientes/Services/NotifyComiteService"; 
+import { NotifyComiteService } from "@/modules/afiliaciones/expedientes/Services/NotifyComiteService";
+
 
 export async function PATCH(
     request: NextRequest,
@@ -14,16 +14,22 @@ export async function PATCH(
         const { id } = await params;
         const appId = parseInt(id, 10);
         const body = await request.json();
-        const { newStatus, reason } = body;
+        const { newStatus, reason, attachmentUrl } = body;
 
         const currentUser = await contextService.getCurrentUser().catch(() => null);
         const userDept = currentUser ? currentUser.role.slug : 'SISTEMA';
-        
+
+        // 1. Ampliamos el mapa para que no falle si evalúa un Admin
         const roleDeptMap: Record<string, string> = {
             "LOGISTICA": "LOGISTICA",
             "ATENCION_ASOCIADO": "ASOCIADOS",
-            "COMITE_EVALUADOR": "COMITE"
+            "COMUNICACIONES": "COMUNICACIONES",
+            "LEGAL": "LEGAL",
+            "COMITE_EVALUADOR": "COMITE",
+            "SUPER_ADMIN": "ASOCIADOS", 
+            "SYSTEM_ADMIN": "ASOCIADOS" 
         };
+
         const deptCode = roleDeptMap[userDept];
 
         let targetAreaStatus: ValidationStatus | null = null;
@@ -41,7 +47,7 @@ export async function PATCH(
         } else if (newStatus === "REJECTED") {
             targetAreaStatus = ValidationStatus.REJECTED;
             actionEnum = ValidationAction.REJECTED;
-        } else if (newStatus === "PENDING") { 
+        } else if (newStatus === "PENDING") {
             targetAreaStatus = ValidationStatus.PENDING;
             actionEnum = ValidationAction.REOPENED;
         }
@@ -51,14 +57,19 @@ export async function PATCH(
         }
 
         await prisma.$transaction(async (tx) => {
+            let departmentName = deptCode || "GENERAL";
+
             if (deptCode) {
                 const department = await tx.membershipDepartment.findUnique({ where: { code: deptCode } });
+
                 if (department) {
+                    departmentName = department.name;
                     const validation = await tx.membershipValidation.findUnique({
                         where: { applicationId_departmentId: { applicationId: appId, departmentId: department.id } }
                     });
 
                     if (validation) {
+                        // A) Actualizamos la validación
                         await tx.membershipValidation.update({
                             where: { id: validation.id },
                             data: {
@@ -68,6 +79,7 @@ export async function PATCH(
                             }
                         });
 
+                        // B) Registramos en el Historial (Log de acciones)
                         await tx.membershipValidationHistory.create({
                             data: {
                                 validationId: validation.id,
@@ -80,21 +92,30 @@ export async function PATCH(
                 }
             }
 
+            // C) Guardamos en Observaciones para que se listen "por área" en el frontend
+            if (newStatus === "OBSERVED" && reason) {
+                await tx.membershipObservation.create({
+                    data: {
+                        applicationId: appId,
+                        reviewDepartment: departmentName,
+                        errorDescription: reason,
+                        attachmentUrl: attachmentUrl,
+                        status: 'PENDING'
+                    }
+                });
+            }
+
             const calculator = new ApplicationStatusCalculatorService();
             await calculator.recalculate(appId, tx);
         });
 
-        // ==============================================================
-        // 2. DISPARAMOS EL SERVICIO DE NOTIFICACIÓN COMO EVENTO AISLADO
-        // ==============================================================
+        // Evento aislado de notificación
         if (targetAreaStatus === ValidationStatus.APPROVED) {
             const notifyService = new NotifyComiteService();
-            // Lo lanzamos sin 'await' para no bloquear la respuesta HTTP al cliente
             notifyService.execute(appId).catch(console.error);
         }
 
-        return NextResponse.json({ success: true, message: "Estado actualizado y recalculado correctamente." }, { status: 200 });
-
+        return NextResponse.json({ success: true, message: "Estado y observaciones actualizadas correctamente." }, { status: 200 });
     } catch (error: any) {
         console.error("[Update Status Error]:", error);
         return NextResponse.json({ success: false, message: error.message || "Error al actualizar el estado." }, { status: 500 });

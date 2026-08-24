@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Search, Filter, Trash2, ChevronDown, Calendar, ArrowDownUp } from "lucide-react";
+import { createPortal } from "react-dom";
+import { Search, Filter, Trash2, ChevronDown, Calendar, ArrowDownUp, X, Settings } from "lucide-react";
 
 interface ExpedientesFilterBarProps {
   filters: any;
@@ -9,7 +10,6 @@ interface ExpedientesFilterBarProps {
   totalResults: number;
 }
 
-// Valores extraídos estrictamente de tu schema.prisma
 const ESTADOS_GENERALES = [
   { value: "Todos", label: "Todos los estados" },
   { value: "PENDING", label: "Pendiente" },
@@ -27,8 +27,18 @@ const MODALIDADES = [
   { value: "STUDENT", label: "Asociado Estudiante" },
 ];
 
+// Nombres completos de las áreas sin el prefijo "Val."
+const AREAS_EVALUACION = [
+  { value: "Todos", label: "Todas las áreas" },
+  { value: "associateValidation", label: "Atención al Asociado" },
+  { value: "logisticValidation", label: "Logística" },
+  { value: "comiteValidation", label: "Comité Evaluador" },
+  { value: "legalValidation", label: "Asesoría Legal" },
+  { value: "comunicacionesValidation", label: "Comunicaciones" },
+];
+
 const ESTADOS_AREA = [
-  { value: "Todos", label: "Cualquier estado" },
+  { value: "Todos", label: "Todos los estados" },
   { value: "PENDING", label: "Pendiente" },
   { value: "UNDER_EVALUATION", label: "En Evaluación" },
   { value: "OBSERVED", label: "Observado" },
@@ -51,9 +61,9 @@ const ORDENAR_POR = [
 ];
 
 // ==========================================
-// COMPONENTE: CUSTOM DROPDOWN (Adiós al azul nativo)
+// COMPONENTE: CUSTOM DROPDOWN
 // ==========================================
-const CustomDropdown = ({ value, options, onChange, topLabel, className = "" }: any) => {
+const CustomDropdown = ({ value, options, onChange, topLabel, className = "", heightClass = "h-10", disabled = false }: any) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -72,20 +82,21 @@ const CustomDropdown = ({ value, options, onChange, topLabel, className = "" }: 
   return (
     <div className={`relative ${className}`} ref={dropdownRef}>
       {topLabel && (
-        <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest z-10">
+        <span className={`absolute -top-2 left-3 px-1 text-[10px] font-bold uppercase tracking-widest z-10 transition-colors ${disabled ? 'text-slate-300 bg-slate-50' : 'text-slate-400 bg-white'}`}>
           {topLabel}
         </span>
       )}
       <button
         type="button"
+        disabled={disabled}
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full h-12 pl-4 pr-10 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:outline-none focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059] transition-all flex items-center justify-between"
+        className={`w-full ${heightClass} pl-4 pr-10 border border-slate-200 rounded-xl text-sm font-bold focus:outline-none focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059] transition-all flex items-center justify-between ${disabled ? 'bg-slate-50 text-slate-400 cursor-not-allowed border-slate-100' : 'bg-white text-slate-700'}`}
       >
         <span className="truncate">{selectedOption.label}</span>
         <ChevronDown size={16} className={`absolute right-3.5 transition-transform duration-300 ${isOpen ? 'rotate-180 text-[#C5A059]' : 'text-slate-400'}`} />
       </button>
 
-      {isOpen && (
+      {isOpen && !disabled && (
         <div className="absolute top-full left-0 w-full mt-1.5 bg-white border border-slate-100 rounded-xl shadow-xl z-[100] py-1.5 max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 scrollbar-thin scrollbar-thumb-slate-200">
           {options.map((opt: any) => (
             <button
@@ -110,172 +121,201 @@ const CustomDropdown = ({ value, options, onChange, topLabel, className = "" }: 
   );
 };
 
-export function ExpedientesFilterBar({
-  filters,
-  onFilterChange,
-  totalResults,
-}: ExpedientesFilterBarProps) {
+export function ExpedientesFilterBar({ filters, onFilterChange, totalResults }: ExpedientesFilterBarProps) {
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showAreaSettings, setShowAreaSettings] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  
+  const popoverRef = useRef<HTMLDivElement>(null);
+  const areaSettingsRef = useRef<HTMLDivElement>(null);
 
-  const activeFiltersCount = Object.entries(filters).filter(
-    ([key, val]) =>
-      val !== "Todos" &&
-      val !== "" &&
-      key !== "search" &&
-      key !== "orderBy"
-  ).length;
+  useEffect(() => { setIsMounted(true); }, []);
 
-  const handleClear = () => {
-    onFilterChange("search", "");
-    onFilterChange("status", "Todos");
-    onFilterChange("modality", "Todos");
-    onFilterChange("logisticValidation", "Todos");
-    onFilterChange("associateValidation", "Todos");
-    onFilterChange("comiteValidation", "Todos");
-    onFilterChange("paymentStatus", "Todos");
-    onFilterChange("dateFrom", "");
-    onFilterChange("dateTo", "");
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (popoverRef.current && !popoverRef.current.contains(event.target as Node)) setShowAdvanced(false);
+      if (areaSettingsRef.current && !areaSettingsRef.current.contains(event.target as Node)) setShowAreaSettings(false);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showAdvanced, showAreaSettings]);
+
+  // LÓGICA INTELIGENTE: Detectar cuántas áreas están siendo filtradas
+  const areaKeys = ["associateValidation", "logisticValidation", "comiteValidation", "legalValidation", "comunicacionesValidation"];
+  const activeAreas = areaKeys.filter((k) => filters[k] && filters[k] !== "Todos");
+  const activeAreasCount = activeAreas.length;
+
+  // Determinar qué mostrar en el Select rápido
+  let activeAreaKey = "Todos";
+  let activeAreaStatus = "Todos";
+
+  if (activeAreasCount === 1) {
+    activeAreaKey = activeAreas[0];
+    activeAreaStatus = filters[activeAreas[0]];
+  } else if (activeAreasCount > 1) {
+    activeAreaKey = "multiple";
+  }
+
+  // Clonamos las áreas de evaluación para no mutar la constante global y añadimos la opción múltiple si aplica
+  const areasOptions = [...AREAS_EVALUACION];
+  if (activeAreasCount > 1) areasOptions.push({ value: "multiple", label: "Varias áreas activas" });
+
+  const handleQuickAreaChange = (newAreaKey: string) => {
+    if (newAreaKey === "multiple") return;
+    // Si elige una sola área en el select rápido, limpiamos las demás (Single-select mode)
+    areaKeys.forEach((k) => {
+      if (filters[k] !== "Todos" && k !== newAreaKey) onFilterChange(k, "Todos");
+    });
+    if (newAreaKey !== "Todos") {
+      const statusToApply = activeAreaStatus !== "Todos" ? activeAreaStatus : "PENDING";
+      onFilterChange(newAreaKey, statusToApply);
+    } else {
+      onFilterChange(activeAreaKey, "Todos"); 
+    }
+  };
+
+  const handleQuickAreaStatusChange = (newStatus: string) => {
+    if (activeAreasCount === 1) onFilterChange(activeAreaKey, newStatus);
+  };
+
+  const advancedActiveCount = [filters.paymentStatus, filters.dateFrom, filters.dateTo].filter((val) => val && val !== "Todos" && val !== "").length;
+  const hasActiveFilters = filters.search !== "" || filters.status !== "Todos" || filters.modality !== "Todos" || activeAreasCount > 0 || advancedActiveCount > 0;
+
+  const handleClearAll = () => {
+    onFilterChange("search", ""); onFilterChange("status", "Todos"); onFilterChange("modality", "Todos");
+    areaKeys.forEach(k => onFilterChange(k, "Todos"));
+    onFilterChange("paymentStatus", "Todos"); onFilterChange("dateFrom", ""); onFilterChange("dateTo", "");
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm mb-6 relative z-30">
-      {/* BARRA PRINCIPAL */}
-      <div className="p-4 sm:p-5 flex flex-col xl:flex-row gap-4">
-        {/* Buscador */}
-        <div className="relative flex-1">
-          <Search
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
-            size={18}
-          />
+    <div className="flex flex-col w-full relative z-20">
+      <div className="px-5 py-3 flex flex-col xl:flex-row gap-3">
+        
+        {/* BUSCADOR (Más ancho: max-w-lg) */}
+        <div className="relative flex-1 w-full xl:max-w-lg min-w-[200px]">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
           <input
             type="text"
-            placeholder="Buscar por DNI, Nombre o Código APP..."
+            placeholder="Buscar por DNI, Nombre o APP..."
             value={filters.search}
             onChange={(e) => onFilterChange("search", e.target.value)}
-            className="w-full pl-10 pr-4 h-12 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059] transition-all placeholder:text-slate-400"
+            className="w-full pl-10 pr-4 h-10 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059] transition-all placeholder:text-slate-400"
           />
         </div>
 
-        {/* Filtros Rápidos y Botones */}
-        <div className="flex flex-wrap items-center gap-3">
-          
-          <CustomDropdown 
-            options={ESTADOS_GENERALES} 
-            value={filters.status} 
-            onChange={(val: string) => onFilterChange("status", val)} 
-            topLabel="Estado General" 
-            className="min-w-[180px] z-50"
-          />
+        {/* CONTROLES */}
+        <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
+          <CustomDropdown options={ESTADOS_GENERALES} value={filters.status} onChange={(val: string) => onFilterChange("status", val)} topLabel="Estado Gral." className="min-w-[150px] z-[60]" />
+          <CustomDropdown options={MODALIDADES} value={filters.modality} onChange={(val: string) => onFilterChange("modality", val)} topLabel="Modalidad" className="min-w-[160px] z-[50]" />
+
+          {/* GRUPO ÁREAS: DROPDOWN + RUEDITA MULTI-ÁREA */}
+          <div className="flex items-center gap-1.5 z-[40]" ref={areaSettingsRef}>
+            <CustomDropdown 
+              options={areasOptions} 
+              value={activeAreaKey} 
+              onChange={handleQuickAreaChange} 
+              topLabel="Área Evaluación" 
+              className="min-w-[180px]" 
+              disabled={activeAreasCount > 1} 
+            />
+            
+            <div className="relative">
+              <button 
+                title="Gestor Multi-Área" 
+                onClick={() => setShowAreaSettings(!showAreaSettings)}
+                className={`h-10 w-10 flex items-center justify-center border rounded-xl shadow-sm transition-all outline-none relative ${activeAreasCount > 1 || showAreaSettings ? 'bg-[#fdfaf5] border-[#E8D09E] text-[#7f561e]' : 'bg-white border-slate-200 text-slate-400 hover:text-[#C5A059] hover:bg-orange-50'}`}
+              >
+                <Settings size={16} />
+                {activeAreasCount > 1 && (
+                  <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-[#C5A059] text-white text-[9px] font-black rounded-full flex items-center justify-center shadow-sm">
+                    {activeAreasCount}
+                  </span>
+                )}
+              </button>
+
+              {/* POPOVER MULTI-ÁREA (LA RUEDITA) */}
+              {showAreaSettings && (
+                <div className="absolute right-0 top-full mt-2 w-[280px] bg-white border border-slate-200 shadow-2xl rounded-2xl z-[100] animate-in fade-in slide-in-from-top-2 p-5 space-y-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-widest">Filtros Multi-Área</h3>
+                    <button onClick={() => setShowAreaSettings(false)} className="text-slate-400 hover:text-slate-600"><X size={16}/></button>
+                  </div>
+                  <CustomDropdown options={ESTADOS_AREA} value={filters.associateValidation} onChange={(v: string) => onFilterChange("associateValidation", v)} topLabel="Atención al Asociado" heightClass="h-9" />
+                  <CustomDropdown options={ESTADOS_AREA} value={filters.logisticValidation} onChange={(v: string) => onFilterChange("logisticValidation", v)} topLabel="Logística" heightClass="h-9" />
+                  <CustomDropdown options={ESTADOS_AREA} value={filters.comiteValidation} onChange={(v: string) => onFilterChange("comiteValidation", v)} topLabel="Comité Evaluador" heightClass="h-9" />
+                  <CustomDropdown options={ESTADOS_AREA} value={filters.legalValidation} onChange={(v: string) => onFilterChange("legalValidation", v)} topLabel="Asesoría Legal" heightClass="h-9" />
+                  <CustomDropdown options={ESTADOS_AREA} value={filters.comunicacionesValidation} onChange={(v: string) => onFilterChange("comunicacionesValidation", v)} topLabel="Comunicaciones" heightClass="h-9" />
+                  
+                  <div className="pt-2 border-t border-slate-100 flex justify-end">
+                     <button onClick={() => areaKeys.forEach(k => onFilterChange(k, "Todos"))} className="text-[11px] font-bold text-slate-400 hover:text-red-500">Limpiar áreas</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
 
           <CustomDropdown 
-            options={MODALIDADES} 
-            value={filters.modality} 
-            onChange={(val: string) => onFilterChange("modality", val)} 
-            topLabel="Modalidad" 
-            className="min-w-[190px] z-40"
+            options={ESTADOS_AREA} 
+            value={activeAreaStatus} 
+            onChange={handleQuickAreaStatusChange} 
+            topLabel="Est. del Área" 
+            className="min-w-[140px] z-[30]" 
+            disabled={activeAreasCount !== 1} 
           />
 
-          <button
-            onClick={() => setShowAdvanced(!showAdvanced)}
-            className={`h-12 px-5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all border outline-none ${
-              activeFiltersCount > 0 || showAdvanced
-                ? "bg-[#fdfaf5] border-[#E8D09E] text-[#7f561e]"
-                : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
-            }`}
-          >
-            <Filter size={16} />
-            Filtros Avanzados
-            {activeFiltersCount > 0 && (
-              <span className="w-5 h-5 rounded-full bg-[#C5A059] text-white text-[10px] flex items-center justify-center ml-1">
-                {activeFiltersCount}
-              </span>
-            )}
-          </button>
-
-          {(activeFiltersCount > 0 || filters.search) && (
+          {/* FILTROS AVANZADOS (Pagos y Fechas) */}
+          <div className="relative z-[20]" ref={popoverRef}>
             <button
-              onClick={handleClear}
-              className="h-12 px-5 rounded-xl border border-red-200 bg-red-50 text-red-600 hover:bg-red-500 hover:text-white transition-all flex items-center gap-2 text-sm font-bold shadow-sm outline-none"
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className={`h-10 px-4 ml-auto lg:ml-0 rounded-xl text-sm font-bold flex items-center gap-2 transition-all border outline-none relative ${advancedActiveCount > 0 || showAdvanced ? "bg-[#fdfaf5] border-[#E8D09E] text-[#7f561e]" : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"}`}
             >
-              <Trash2 size={16} /> Limpiar
+              <Filter size={16} /> Avanzados
+              {advancedActiveCount > 0 && <span className="w-5 h-5 rounded-full bg-[#C5A059] text-white text-[10px] flex items-center justify-center ml-1">{advancedActiveCount}</span>}
             </button>
+
+            {showAdvanced && (
+              <div className="absolute right-0 top-full mt-2 w-[300px] sm:w-[320px] bg-white border border-slate-200 shadow-2xl rounded-2xl z-[100] animate-in fade-in slide-in-from-top-2 overflow-hidden">
+                <div className="px-5 py-4 border-b border-slate-100 flex justify-between bg-slate-50/50">
+                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest">Filtros Secundarios</h3>
+                  <button onClick={() => setShowAdvanced(false)} className="text-slate-400 hover:text-slate-700"><X size={16} /></button>
+                </div>
+                <div className="p-5 space-y-5">
+                  <CustomDropdown options={ESTADOS_PAGO} value={filters.paymentStatus} onChange={(val: string) => onFilterChange("paymentStatus", val)} topLabel="Estado de Pago" heightClass="h-10" />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="relative">
+                      <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest z-10">Desde</span>
+                      <input type="date" value={filters.dateFrom} onChange={(e) => onFilterChange("dateFrom", e.target.value)} className="w-full h-10 px-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:border-[#C5A059] transition-all" />
+                    </div>
+                    <div className="relative">
+                      <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest z-10">Hasta</span>
+                      <input type="date" value={filters.dateTo} onChange={(e) => onFilterChange("dateTo", e.target.value)} className="w-full h-10 px-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:border-[#C5A059] transition-all" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* BOTÓN LIMPIAR TODO */}
+          {hasActiveFilters && (
+             <button onClick={handleClearAll} className="h-10 px-4 rounded-xl border border-red-200 bg-red-50 text-red-600 hover:bg-red-500 hover:text-white transition-all flex items-center gap-2 text-sm font-bold shadow-sm outline-none ml-auto xl:ml-0">
+               <Trash2 size={16} /> Limpiar
+             </button>
           )}
         </div>
       </div>
 
-      {/* FILTROS AVANZADOS (Desplegable) */}
-      {showAdvanced && (
-        <div className="p-5 border-t border-slate-100 bg-slate-50/50 rounded-b-2xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-5 animate-in slide-in-from-top-2 z-20 relative">
-          
-          <CustomDropdown 
-            options={ESTADOS_AREA} 
-            value={filters.associateValidation} 
-            onChange={(val: string) => onFilterChange("associateValidation", val)} 
-            topLabel="Val. Asociados" 
-          />
-
-          <CustomDropdown 
-            options={ESTADOS_AREA} 
-            value={filters.logisticValidation} 
-            onChange={(val: string) => onFilterChange("logisticValidation", val)} 
-            topLabel="Val. Logística" 
-          />
-
-          <CustomDropdown 
-            options={ESTADOS_AREA} 
-            value={filters.comiteValidation} 
-            onChange={(val: string) => onFilterChange("comiteValidation", val)} 
-            topLabel="Val. Comité" 
-          />
-
-          <CustomDropdown 
-            options={ESTADOS_PAGO} 
-            value={filters.paymentStatus} 
-            onChange={(val: string) => onFilterChange("paymentStatus", val)} 
-            topLabel="Estado de Pago" 
-          />
-
-          <div className="relative">
-            <span className="absolute -top-2 left-3 bg-slate-50 px-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest z-10">Desde</span>
-            <Calendar size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-            <input 
-              type="date" 
-              value={filters.dateFrom} 
-              onChange={(e) => onFilterChange("dateFrom", e.target.value)} 
-              className="w-full h-12 pl-10 pr-3 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 focus:outline-none focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059] accent-[#C5A059] transition-all" 
-            />
-          </div>
-
-          <div className="relative">
-            <span className="absolute -top-2 left-3 bg-slate-50 px-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest z-10">Hasta</span>
-            <Calendar size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-            <input 
-              type="date" 
-              value={filters.dateTo} 
-              onChange={(e) => onFilterChange("dateTo", e.target.value)} 
-              className="w-full h-12 pl-10 pr-3 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 focus:outline-none focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059] accent-[#C5A059] transition-all" 
-            />
-          </div>
-
-        </div>
-      )}
-
-      {/* FOOTER DEL FILTRO (Con el CustomSelect para el orden) */}
-      <div className="px-5 py-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between bg-slate-50 rounded-b-2xl gap-3">
+      <div className="px-5 py-2 border-t border-slate-100 flex flex-row items-center justify-between bg-slate-50/50 rounded-b-2xl h-[42px]">
         <span className="text-xs font-bold text-slate-500 flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-[#C5A059]"></span>
-          {totalResults} expedientes encontrados
+          <span className="w-1.5 h-1.5 rounded-full bg-[#C5A059] animate-pulse"></span>
+          {totalResults} expediente{totalResults !== 1 ? 's' : ''} encontrado{totalResults !== 1 ? 's' : ''}
         </span>
-        <div className="flex items-center gap-3">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-            <ArrowDownUp size={14} /> Ordenar:
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <span className="hidden sm:flex text-[10px] font-black text-slate-400 uppercase tracking-widest items-center gap-1">
+            <ArrowDownUp size={12} /> Ordenar:
           </span>
-          <div className="w-[160px]">
-            <CustomDropdown 
-              options={ORDENAR_POR} 
-              value={filters.orderBy} 
-              onChange={(val: string) => onFilterChange("orderBy", val)} 
-            />
+          <div className="w-[140px] sm:w-[150px]">
+            <CustomDropdown options={ORDENAR_POR} value={filters.orderBy} onChange={(val: string) => onFilterChange("orderBy", val)} heightClass="h-8 !border-none !bg-transparent !pl-0 !pr-6 text-right !text-slate-700 hover:!text-[#C5A059]" />
           </div>
         </div>
       </div>

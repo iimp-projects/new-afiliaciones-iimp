@@ -1,171 +1,153 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ChevronDown } from "lucide-react";
+import React from "react";
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Pin, PinOff } from "lucide-react";
 
-interface PaginationProps {
+interface ExpedientesPaginationProps {
   meta: { total: number; page: number; pageSize: number; totalPages: number };
   onPageChange: (page: number) => void;
-  onPageSizeChange: (size: number) => void;
+  onPageSizeChange: (pageSize: number) => void;
+  isSticky?: boolean;
+  onToggleSticky?: () => void;
 }
 
-export function ExpedientesPagination({ meta, onPageChange, onPageSizeChange }: PaginationProps) {
-  const { page, totalPages, pageSize } = meta;
+export function ExpedientesPagination({
+  meta,
+  onPageChange,
+  onPageSizeChange,
+  isSticky = false,
+  onToggleSticky,
+}: ExpedientesPaginationProps) {
+  const { page: currentPage, totalPages, total, pageSize } = meta;
 
-  // Manejadores de navegación
-  const handleFirst = () => { if (page > 1) onPageChange(1); };
-  const handlePrev = () => { if (page > 1) onPageChange(page - 1); };
-  const handleNext = () => { if (page < totalPages) onPageChange(page + 1); };
-  const handleLast = () => { if (page < totalPages) onPageChange(totalPages); };
-
-  // Lógica para mostrar siempre 3 números alrededor de la página actual
-  const getVisiblePages = () => {
-    let start = Math.max(1, page - 1);
-    let end = Math.min(totalPages, page + 1);
-
-    if (page === 1 && totalPages >= 3) end = 3;
-    if (page === totalPages && totalPages >= 3) start = totalPages - 2;
-
+  const getPageNumbers = () => {
     const pages = [];
-    for (let i = start; i <= end; i++) {
-      pages.push(i);
+    const delta = 1; 
+
+    if (totalPages <= 5) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (currentPage > 3) pages.push("...");
+
+      let start = Math.max(2, currentPage - delta);
+      let end = Math.min(totalPages - 1, currentPage + delta);
+
+      if (currentPage === 1) end = 3;
+      if (currentPage === totalPages) start = totalPages - 2;
+
+      for (let i = start; i <= end; i++) pages.push(i);
+
+      if (currentPage < totalPages - 2) pages.push("...");
+      pages.push(totalPages);
     }
     return pages;
   };
 
-  const visiblePages = getVisiblePages();
+  if (total === 0) return null;
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between w-full mt-6">
+    // La tarjeta ahora ocupa el ancho completo (w-full) y su sombra cambia si está anclada
+    <div className={`flex flex-col lg:flex-row items-center justify-between gap-4 bg-white px-6 py-3.5 rounded-2xl border transition-all duration-300 w-full ${isSticky ? 'border-slate-200 shadow-[0_10px_40px_-15px_rgba(0,0,0,0.3)]' : 'border-slate-200 shadow-sm'}`}>
       
-      {/* Columna Izquierda: Espaciador invisible para mantener el centrado perfecto en Desktop */}
-      <div className="hidden sm:block flex-1 text-sm font-medium text-slate-500">
-        Página {page} de {totalPages || 1}
+      {/* 1. INFORMACIÓN IZQUIERDA */}
+      <div className="text-sm font-semibold text-slate-500 whitespace-nowrap">
+        Página <span className="text-slate-800 font-black mx-1">{currentPage}</span> de{" "}
+        <span className="text-slate-800 font-black ml-1">{totalPages}</span>
+        <span className="hidden md:inline font-medium ml-2 opacity-70">
+          ({total} expedientes)
+        </span>
       </div>
 
-      {/* Columna Central: Controles de Paginación */}
-      <div className="flex items-center gap-1.5 flex-1 justify-center mb-4 sm:mb-0">
-        
-        {/* Botón Inicio */}
-        <button 
-          onClick={handleFirst} 
-          disabled={page === 1}
-          title="Ir al inicio"
-          className="w-9 h-9 flex items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-[#C5A059]/10 hover:text-[#C5A059] hover:border-[#C5A059]/30 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+      {/* 2. CONTROLES DE PAGINACIÓN (CENTRO) */}
+      <div className="flex items-center gap-1.5 sm:gap-2">
+        <button
+          onClick={() => onPageChange(1)}
+          disabled={currentPage === 1}
+          className="hidden sm:flex items-center gap-1 px-3 py-2 text-xs font-bold rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors focus:outline-none"
         >
-          <ChevronsLeft size={18} strokeWidth={2.5} />
+          <ChevronsLeft size={16} /> Inicio
+        </button>
+        <button
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="flex items-center gap-1 px-3 py-2 text-xs font-bold rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors focus:outline-none"
+        >
+          <ChevronLeft size={16} /> Atrás
         </button>
 
-        {/* Botón Atrás */}
-        <button 
-          onClick={handlePrev} 
-          disabled={page === 1}
-          title="Página anterior"
-          className="w-9 h-9 flex items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-[#C5A059]/10 hover:text-[#C5A059] hover:border-[#C5A059]/30 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        <div className="flex items-center gap-1 mx-1">
+          {getPageNumbers().map((p, i) => (
+            <button
+              key={i}
+              onClick={() => (typeof p === "number" ? onPageChange(p) : null)}
+              disabled={p === "..."}
+              className={`min-w-[36px] h-9 flex items-center justify-center rounded-xl text-sm transition-all focus:outline-none ${
+                p === currentPage
+                  ? "bg-slate-800 text-white font-black shadow-md scale-110 z-10"
+                  : p === "..."
+                  ? "text-slate-400 font-black cursor-default bg-transparent"
+                  : "text-slate-600 font-bold hover:bg-slate-100 border border-transparent hover:border-slate-200"
+              }`}
+            >
+              {p}
+            </button>
+          ))}
+        </div>
+
+        <button
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="flex items-center gap-1 px-3 py-2 text-xs font-bold rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors focus:outline-none"
         >
-          <ChevronLeft size={18} strokeWidth={2.5} />
+          Adelante <ChevronRight size={16} />
         </button>
-        
-        {/* Números Dinámicos */}
-        {visiblePages.map(p => (
-          <button 
-            key={p}
-            onClick={() => onPageChange(p)}
-            className={`w-9 h-9 flex items-center justify-center rounded-lg text-sm transition-colors ${
-              page === p 
-                ? "bg-[#2F3136] text-white font-bold shadow-md" 
-                : "bg-white border border-slate-200 text-slate-600 font-medium hover:bg-[#C5A059]/10 hover:text-[#C5A059] hover:border-[#C5A059]/30"
+        <button
+          onClick={() => onPageChange(totalPages)}
+          disabled={currentPage === totalPages}
+          className="hidden sm:flex items-center gap-1 px-3 py-2 text-xs font-bold rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors focus:outline-none"
+        >
+          Fin <ChevronsRight size={16} />
+        </button>
+      </div>
+
+      {/* 3. CONFIGURACIÓN (DERECHA) */}
+      <div className="flex items-center gap-3 text-sm font-semibold text-slate-500 whitespace-nowrap">
+        <div className="flex items-center gap-2">
+          <span className="hidden sm:inline">Mostrar</span>
+          <select
+            value={pageSize}
+            onChange={(e) => onPageSizeChange(Number(e.target.value))}
+            className="h-9 px-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 font-bold focus:outline-none focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059] cursor-pointer outline-none transition-all"
+          >
+            <option value={8}>8</option>
+            <option value={16}>16</option>
+            <option value={32}>32</option>
+            <option value={64}>64</option>
+          </select>
+          <span className="hidden sm:inline">por página</span>
+        </div>
+
+        {/* Separador Visual */}
+        <div className="w-px h-6 bg-slate-200 hidden sm:block mx-1"></div>
+
+        {/* Botón de Fijar/Soltar Paginación */}
+        {onToggleSticky && (
+          <button
+            onClick={onToggleSticky}
+            title={isSticky ? "Desanclar paginación de la pantalla" : "Anclar paginación flotante"}
+            className={`hidden sm:flex items-center gap-2 px-3 h-9 rounded-xl transition-all outline-none text-xs font-bold ${
+              isSticky 
+                ? "bg-[#C5A059] text-white shadow-md hover:bg-[#a67c46]" 
+                : "bg-white border border-slate-200 text-slate-400 hover:text-[#C5A059] hover:bg-orange-50"
             }`}
           >
-            {p}
+            {isSticky ? <PinOff size={14} /> : <Pin size={14} />}
+            {isSticky ? "Fijo" : "Fijar"}
           </button>
-        ))}
-
-        {/* Botón Siguiente */}
-        <button 
-          onClick={handleNext} 
-          disabled={page === totalPages || totalPages === 0}
-          title="Página siguiente"
-          className="w-9 h-9 flex items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-[#C5A059]/10 hover:text-[#C5A059] hover:border-[#C5A059]/30 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-        >
-          <ChevronRight size={18} strokeWidth={2.5} />
-        </button>
-
-        {/* Botón Final */}
-        <button 
-          onClick={handleLast} 
-          disabled={page === totalPages || totalPages === 0}
-          title="Ir al final"
-          className="w-9 h-9 flex items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-[#C5A059]/10 hover:text-[#C5A059] hover:border-[#C5A059]/30 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-        >
-          <ChevronsRight size={18} strokeWidth={2.5} />
-        </button>
+        )}
       </div>
 
-      {/* Columna Derecha: Selector de cantidad personalizado */}
-      <div className="flex items-center gap-3 text-sm font-medium text-slate-500 flex-1 justify-end">
-        <span>Mostrar</span>
-        <CustomSelect 
-          value={pageSize} 
-          options={[8, 16, 24, 48]} 
-          onChange={(val) => onPageSizeChange(val)} 
-        />
-        <span>por página</span>
-      </div>
-    </div>
-  );
-}
-
-// ============================================================================
-// COMPONENTE: Selector Personalizado (Elimina el azul genérico del navegador)
-// ============================================================================
-function CustomSelect({ value, options, onChange }: { value: number, options: number[], onChange: (val: number) => void }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  // Cerrar al hacer clic fuera
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-    if (isOpen) document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isOpen]);
-
-  return (
-    <div className="relative" ref={containerRef}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-between w-[68px] h-9 bg-white border border-slate-200 rounded-lg px-3 text-sm font-bold text-slate-700 hover:border-[#C5A059] focus:outline-none focus:ring-2 focus:ring-[#C5A059]/20 transition-all"
-      >
-        {value}
-        <ChevronDown size={14} className={`text-slate-400 transition-transform duration-200 ${isOpen ? "rotate-180 text-[#C5A059]" : ""}`} />
-      </button>
-
-      {isOpen && (
-        <div className="absolute bottom-full mb-2 left-0 w-full bg-white border border-slate-200 rounded-xl shadow-[0_10px_40px_-15px_rgba(0,0,0,0.15)] overflow-hidden z-[100] animate-in fade-in zoom-in-95">
-          <ul className="flex flex-col p-1">
-            {options.map((opt) => (
-              <li
-                key={opt}
-                onClick={() => {
-                  onChange(opt);
-                  setIsOpen(false);
-                }}
-                className={`px-3 py-2 text-sm font-bold rounded-lg cursor-pointer transition-colors text-center ${
-                  value === opt
-                    ? "bg-[#C5A059] text-white"
-                    : "text-slate-600 hover:bg-[#C5A059]/10 hover:text-[#C5A059]"
-                }`}
-              >
-                {opt}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
     </div>
   );
 }
