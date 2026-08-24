@@ -155,7 +155,7 @@ export class ReviewEndorsementService {
             <!-- Encabezado con Logo e Identidad -->
             <tr>
               <td align="center" style="padding: 40px 40px 20px 40px;">
-                <img src="https://s3-iimp-gestor-de-archivos-v3.s3.sa-east-1.amazonaws.com/boletines/images/IMG20260807_134823.png" alt="Instituto de Ingenieros de Minas del Perú" width="160" style="display: block; margin-bottom: 20px; border: 0;">
+                <img src="https://s3-iimp-gestor-de-archivos-v3.s3.sa-east-1.amazonaws.com/boletines/images/IMG20260817_120138.png" alt="Instituto de Ingenieros de Minas del Perú" width="160" style="display: block; margin-bottom: 20px; border: 0;">
                 <p style="margin: 0; font-size: 11px; font-weight: 700; color: #5c768d; letter-spacing: 1.5px; text-transform: uppercase;">
                   ECOSISTEMA DIGITAL DE AFILIACIONES
                 </p>

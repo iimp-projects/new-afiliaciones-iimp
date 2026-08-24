@@ -3,8 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { ValidationStatus, ValidationAction } from "@prisma/client";
 import { contextService } from "@/modules/auth/context/service";
 import { ApplicationStatusCalculatorService } from "@/modules/afiliaciones/postulacion/Services/ApplicationStatusCalculatorService";
-import { NotifyComiteService } from "@/modules/afiliaciones/expedientes/Services/NotifyComiteService";
-
+import { NotifyComiteService } from "@/modules/afiliaciones/expedientes/Services/NotifyComiteService"; 
+import { NotifyApplicantService } from "@/modules/afiliaciones/postulacion/Services/NotifyApplicantService";
+import { OBSERVATION_FIELD_KEYS } from "@/modules/afiliaciones/observations/ObservationFields";
 
 export async function PATCH(
     request: NextRequest,
@@ -14,7 +15,14 @@ export async function PATCH(
         const { id } = await params;
         const appId = parseInt(id, 10);
         const body = await request.json();
-        const { newStatus, reason, attachmentUrl } = body;
+        const { newStatus, reason, fieldPaths = [] } = body;
+        const normalizedFieldPaths = Array.isArray(fieldPaths)
+            ? [...new Set(fieldPaths.filter((field): field is string => typeof field === "string" && OBSERVATION_FIELD_KEYS.has(field)))]
+            : [];
+
+        if (newStatus === "OBSERVED" && normalizedFieldPaths.length === 0) {
+            return NextResponse.json({ success: false, message: "Seleccione al menos un campo observado." }, { status: 400 });
+        }
 
         const currentUser = await contextService.getCurrentUser().catch(() => null);
         const userDept = currentUser ? currentUser.role.slug : 'SISTEMA';
@@ -88,21 +96,19 @@ export async function PATCH(
                                 comment: reason || 'Actualización de estado del área'
                             }
                         });
+
+                        if (targetAreaStatus === ValidationStatus.OBSERVED) {
+                            await tx.membershipObservation.create({
+                                data: {
+                                    applicationId: appId,
+                                    reviewDepartment: deptCode,
+                                    errorDescription: reason || "Se requiere subsanación.",
+                                    fieldPaths: normalizedFieldPaths,
+                                }
+                            });
+                        }
                     }
                 }
-            }
-
-            // C) Guardamos en Observaciones para que se listen "por área" en el frontend
-            if (newStatus === "OBSERVED" && reason) {
-                await tx.membershipObservation.create({
-                    data: {
-                        applicationId: appId,
-                        reviewDepartment: departmentName,
-                        errorDescription: reason,
-                        attachmentUrl: attachmentUrl,
-                        status: 'PENDING'
-                    }
-                });
             }
 
             const calculator = new ApplicationStatusCalculatorService();
@@ -113,6 +119,9 @@ export async function PATCH(
         if (targetAreaStatus === ValidationStatus.APPROVED) {
             const notifyService = new NotifyComiteService();
             notifyService.execute(appId).catch(console.error);
+        } else if (targetAreaStatus === ValidationStatus.OBSERVED) {
+            const notifyApplicant = new NotifyApplicantService();
+            notifyApplicant.notifyObservationCreated(appId, reason, normalizedFieldPaths).catch(console.error);
         }
 
         return NextResponse.json({ success: true, message: "Estado y observaciones actualizadas correctamente." }, { status: 200 });

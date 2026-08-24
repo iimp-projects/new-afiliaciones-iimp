@@ -28,7 +28,9 @@ export class ApplicationStatusCalculatorService {
     // ==========================================
     // 1. EVALUAR AVALES (Tabla externa)
     // ==========================================
-    const approvedApprovalsCount = app.approvals.filter((a: any) => a.status === EndorsementStatus.APPROVED).length;
+    const activeApprovals = app.approvals.filter((a: any) => String(a.status) !== "INACTIVE");
+    const approvedApprovalsCount = activeApprovals.filter((a: any) => a.status === EndorsementStatus.APPROVED).length;
+    const hasRejectedApproval = activeApprovals.some((a: any) => String(a.status) === "REJECTED");
     const areApprovalsReady = isStudent || approvedApprovalsCount >= 2;
 
     // =========================================================================
@@ -61,9 +63,7 @@ export class ApplicationStatusCalculatorService {
     // ==========================================
     // 2. EXTRAER MÉTRICAS ACTUALIZADAS
     // ==========================================
-    const hasRejectedValidation = app.validations.some((v: any) => v.status === ValidationStatus.REJECTED);
-    const hasRejectedApproval = app.approvals.some((a: any) => a.status === EndorsementStatus.REJECTED);
-    
+    const hasRejectedValidation = app.validations.some((v: any) => v.status === ValidationStatus.REJECTED);    
     const hasObservedValidation = app.validations.some((v: any) => v.status === ValidationStatus.OBSERVED);
     const hasResolvedValidation = app.validations.some((v: any) => v.status === ValidationStatus.RESOLVED);
 
@@ -81,14 +81,17 @@ export class ApplicationStatusCalculatorService {
     // ==========================================
     let newGeneralStatus: ApplicationStatus = ApplicationStatus.PENDING;
 
-    if (hasRejectedValidation || hasRejectedApproval) {
+    if (hasRejectedValidation) {
+        // Si un área interna/comité rechaza la postulación, se rechaza definitivamente.
         newGeneralStatus = ApplicationStatus.REJECTED;
-    } else if (hasObservedValidation) {
+    } else if (hasObservedValidation || hasRejectedApproval) {
+        // Si un área la observa O SI UN AVAL RECHAZA, pasa a ser OBSERVADO
+        // para que el postulante pueda ingresar a la web y reemplazar al aval.
         newGeneralStatus = ApplicationStatus.OBSERVED;
     } else if (hasResolvedValidation) {
         newGeneralStatus = ApplicationStatus.RESOLVED;
     } else if (allMandatoryApproved && areApprovalsReady) {
-        // [!] ESTE ES TU OBJETIVO: Los 4 Ok -> Se va directo a Pago
+        // Los 4 Ok -> Se va directo a Pago
         newGeneralStatus = isPaymentResolved ? ApplicationStatus.COMPLETED : ApplicationStatus.READY_FOR_PAYMENT;
     } else if (hasAnyActivity) {
         newGeneralStatus = ApplicationStatus.UNDER_EVALUACION;

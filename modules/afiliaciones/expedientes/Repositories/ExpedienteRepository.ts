@@ -104,448 +104,125 @@ export class ExpedienteRepository {
   // PAGINACIÓN
   // ============================================================
 
-  async getPaginated(
-    filters: ExpedienteFilters
-  ) {
-
+  // ============================================================
+  // PAGINACIÓN Y FILTROS
+  // ============================================================
+  async getPaginated(filters: ExpedienteFilters) {
     const {
-      page,
-      pageSize,
-      search,
-      status,
-      modality,
-      dateFrom,
-      dateTo,
-      orderBy,
-      logisticValidation,
-      associateValidation,
-      comiteValidation,
-      legalValidation,
-      comunicacionesValidation,
-      paymentStatus,
+      page, pageSize, search, status, modality, dateFrom, dateTo,
+      orderBy, logisticValidation, associateValidation, comiteValidation,
+      legalValidation, comunicacionesValidation, paymentStatus,
     } = filters;
 
-    const skip =
-      (page - 1) * pageSize;
+    const skip = (page - 1) * pageSize;
 
     const where: Prisma.MembershipApplicationWhereInput = {
       deletedAt: null,
-
       status: {
         not: ApplicationStatus.DRAFT,
       },
     };
 
-    // ============================================================
-    // BÚSQUEDA
-    // ============================================================
-
+    // --- BÚSQUEDA ---
     if (search) {
-
       where.OR = [
-
-        {
-          applicationCode: {
-            contains: search,
-            mode: "insensitive",
-          },
-        },
-
-        {
-          documentNumber: {
-            contains: search,
-            mode: "insensitive",
-          },
-        },
-
+        { applicationCode: { contains: search, mode: "insensitive" } },
+        { documentNumber: { contains: search, mode: "insensitive" } },
         {
           person: {
             OR: [
-
-              {
-                firstName: {
-                  contains: search,
-                  mode: "insensitive",
-                },
-              },
-
-              {
-                paternalLastName: {
-                  contains: search,
-                  mode: "insensitive",
-                },
-              },
-
-              {
-                maternalLastName: {
-                  contains: search,
-                  mode: "insensitive",
-                },
-              },
-
+              { firstName: { contains: search, mode: "insensitive" } },
+              { paternalLastName: { contains: search, mode: "insensitive" } },
+              { maternalLastName: { contains: search, mode: "insensitive" } },
             ],
           },
         },
-
       ];
     }
 
-    // ============================================================
-    // ESTADO
-    // ============================================================
-
-    if (
-      status &&
-      status !== "Todos"
-    ) {
-
-      where.status =
-        status as ApplicationStatus;
+    // --- ESTADO Y MODALIDAD ---
+    if (status && status !== "Todos") {
+      where.status = status as ApplicationStatus;
+    }
+    if (modality && modality !== "Todos") {
+      where.affiliateType = modality === "Estudiante" ? "STUDENT" : "ACTIVE";
     }
 
-    // ============================================================
-    // MODALIDAD
-    // ============================================================
-
-    if (
-      modality &&
-      modality !== "Todos"
-    ) {
-
-      where.affiliateType =
-        modality === "Estudiante"
-          ? "STUDENT"
-          : "ACTIVE";
+    // --- FECHAS ---
+    if (dateFrom || dateTo) {
+      const createdAtFilter: Prisma.DateTimeFilter = {};
+      if (dateFrom) createdAtFilter.gte = new Date(`${dateFrom}T00:00:00.000Z`);
+      if (dateTo) createdAtFilter.lte = new Date(`${dateTo}T23:59:59.999Z`);
+      where.createdAt = createdAtFilter;
     }
 
-    // ============================================================
-    // FECHAS
-    // ============================================================
-
-    if (
-      dateFrom ||
-      dateTo
-    ) {
-
-      where.createdAt = {};
-
-      if (dateFrom) {
-
-        where.createdAt.gte =
-          new Date(
-            `${dateFrom}T00:00:00.000Z`
-          );
-      }
-
-      if (dateTo) {
-
-        where.createdAt.lte =
-          new Date(
-            `${dateTo}T23:59:59.999Z`
-          );
-      }
-    }
-
-    // ============================================================
-    // PAGOS
-    // ============================================================
-
-    if (
-      paymentStatus &&
-      paymentStatus !== "Todos"
-    ) {
-
+    // --- PAGOS ---
+    if (paymentStatus && paymentStatus !== "Todos") {
       where.payments = {
-        some: {
-          status:
-            paymentStatus as PaymentStatus,
-        },
+        some: { status: paymentStatus as PaymentStatus },
       };
     }
 
-    // ============================================================
-    // VALIDACIONES POR ÁREA
-    // ============================================================
+    // --- VALIDACIONES POR ÁREA ---
+    const areaConditions: Prisma.MembershipApplicationWhereInput[] = [];
 
-    const areaConditions:
-      Prisma.MembershipApplicationWhereInput[] =
-      [];
-
-    if (
-      logisticValidation &&
-      logisticValidation !== "Todos"
-    ) {
-
-      areaConditions.push({
-
-        validations: {
-          some: {
-
-            department: {
-              code: "LOGISTICA",
-            },
-
-            status:
-              logisticValidation as ValidationStatus,
-
-          },
-        },
-
-      });
+    if (logisticValidation && logisticValidation !== "Todos") {
+      areaConditions.push({ validations: { some: { department: { code: "LOGISTICA" }, status: logisticValidation as ValidationStatus } } });
+    }
+    if (associateValidation && associateValidation !== "Todos") {
+      areaConditions.push({ validations: { some: { department: { code: "ASOCIADOS" }, status: associateValidation as ValidationStatus } } });
+    }
+    if (comiteValidation && comiteValidation !== "Todos") {
+      areaConditions.push({ validations: { some: { department: { code: "COMITE" }, status: comiteValidation as ValidationStatus } } });
+    }
+    if (legalValidation && legalValidation !== "Todos") {
+      areaConditions.push({ validations: { some: { department: { code: "LEGAL" }, status: legalValidation as ValidationStatus } } });
+    }
+    if (comunicacionesValidation && comunicacionesValidation !== "Todos") {
+      areaConditions.push({ validations: { some: { department: { code: "COMUNICACIONES" }, status: comunicacionesValidation as ValidationStatus } } });
     }
 
-    if (
-      associateValidation &&
-      associateValidation !== "Todos"
-    ) {
-
-      areaConditions.push({
-
-        validations: {
-          some: {
-
-            department: {
-              code: "ASOCIADOS",
-            },
-
-            status:
-              associateValidation as ValidationStatus,
-
-          },
-        },
-
-      });
+    if (areaConditions.length > 0) {
+      where.AND = areaConditions;
     }
 
-    if (
-      comiteValidation &&
-      comiteValidation !== "Todos"
-    ) {
+    // --- ORDEN ---
+    const orderByInput: Prisma.MembershipApplicationOrderByWithRelationInput = {
+      createdAt: orderBy === "Más antiguos" ? "asc" : "desc",
+    };
 
-      areaConditions.push({
-
-        validations: {
-          some: {
-
-            department: {
-              code: "COMITE",
-            },
-
-            status:
-              comiteValidation as ValidationStatus,
-
-          },
-        },
-
-      });
-    }
-
-    if (
-      legalValidation &&
-      legalValidation !== "Todos"
-    ) {
-
-      areaConditions.push({
-
-        validations: {
-          some: {
-
-            department: {
-              code: "LEGAL",
-            },
-
-            status:
-              legalValidation as ValidationStatus,
-
-          },
-        },
-
-      });
-    }
-
-    if (
-      comunicacionesValidation &&
-      comunicacionesValidation !== "Todos"
-    ) {
-
-      areaConditions.push({
-
-        validations: {
-          some: {
-
-            department: {
-              code: "COMUNICACIONES",
-            },
-
-            status:
-              comunicacionesValidation as ValidationStatus,
-
-          },
-        },
-
-      });
-    }
-
-    // ============================================================
-    // TODOS LOS FILTROS DE ÁREA
-    // ============================================================
-
-    if (
-      areaConditions.length > 0
-    ) {
-
-      where.AND =
-        areaConditions;
-    }
-
-    // ============================================================
-    // ORDEN
-    // ============================================================
-
-    let orderByInput:
-      Prisma.MembershipApplicationOrderByWithRelationInput =
-      {
-        createdAt: "desc",
-      };
-
-    if (
-      orderBy === "Más antiguos"
-    ) {
-
-      orderByInput = {
-        createdAt: "asc",
-      };
-    }
-
-    // ============================================================
-    // CONSULTA
-    // ============================================================
-
-    const [
-      total,
-      items,
-    ] = await Promise.all([
-
-      prisma.membershipApplication.count({
-        where,
-      }),
-
+    // --- EJECUCIÓN DE CONSULTA ---
+    const [total, items] = await Promise.all([
+      prisma.membershipApplication.count({ where }),
       prisma.membershipApplication.findMany({
-
         where,
-
         skip,
-
         take: pageSize,
-
-        orderBy:
-          orderByInput,
-
+        orderBy: orderByInput,
         include: {
-
           person: true,
-
-          payments: {
-            orderBy: {
-              createdAt: "desc",
-            },
-
-            take: 1,
-          },
-
-          approvals: {
-            include: {
-              sponsorPerson: true,
-            },
-          },
-
-          observations: {
-
-            where: {
-              status: "PENDING",
-            },
-
-            orderBy: {
-              createdAt: "desc",
-            },
-
-          },
-
+          payments: { orderBy: { createdAt: "desc" }, take: 1 },
+          approvals: { include: { sponsorPerson: true } },
+          observations: { where: { status: "PENDING" }, orderBy: { createdAt: "desc" } },
           documents: true,
-
-          areaValidations: {
-
-            include: {
-
-              validatedBy: {
-                include: {
-                  person: true,
-                },
-              },
-
-            },
-
-          },
-
-          history: {
-
-            orderBy: {
-              createdAt: "desc",
-            },
-
-            take: 5,
-
-          },
-
+          areaValidations: { include: { validatedBy: { include: { person: true } } } },
+          history: { orderBy: { createdAt: "desc" }, take: 5 },
           validations: {
-
-            include: {
-
-              department: true,
-
-              validatedBy: {
-                include: {
-                  person: true,
-                },
-              },
-
-            },
-
-            orderBy: {
-
-              department: {
-                displayOrder: "asc",
-              },
-
-            },
-
+            include: { department: true, validatedBy: { include: { person: true } } },
+            orderBy: { department: { displayOrder: "asc" } },
           },
-
         },
-
       }),
-
     ]);
 
     return {
-
       data: items,
-
       meta: {
-
         total,
-
         page,
-
         pageSize,
-
-        totalPages:
-          Math.ceil(
-            total / pageSize
-          ),
-
+        totalPages: Math.ceil(total / pageSize),
       },
-
     };
   }
 

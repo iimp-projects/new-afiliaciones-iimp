@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
 import { NextResponse } from "next/server";
+import type { NextRequest } from 'next/server';
 import { authConfig } from "@/lib/auth.config";
 
 const { auth } = NextAuth(authConfig);
@@ -16,6 +17,7 @@ export default auth((req) => {
    "/postulacion",
    "/afiliaciones",
    "/beneficios",
+   "/consulta",
   ];
 
   const isPublicRoute = publicRoutes.some((route) =>

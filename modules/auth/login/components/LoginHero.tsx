@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export function LoginHero() {
   return (
     <section className="hidden md:flex md:w-[55%] h-full flex-col justify-center items-center relative overflow-hidden bg-primary">
@@ -56,7 +58,7 @@ export function LoginHero() {
 
             Iniciar Afiliación
           </a>
-          <a  href="#" className="flex items-center gap-2 border-2 border-white/30 text-white px-6 h-12 rounded-xl font-bold hover:bg-white/10 transition-colors">
+          <a  href="/consulta" className="flex items-center gap-2 border-2 border-white/30 text-white px-6 h-12 rounded-xl font-bold hover:bg-white/10 transition-colors">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
             </svg>

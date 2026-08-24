@@ -493,6 +493,7 @@ model MembershipObservation {
   applicationId    Int                   @map("application_id")
   reviewDepartment String                @map("review_department") @db.VarChar(100)
   errorDescription String                @map("error_description")
+  fieldPaths       Json?                 @map("field_paths")
   attachmentUrl    String?               @map("attachment_url")
   resolutionComment String?              @map("resolution_comment") @db.Text
   status           ObservationStatus     @default(PENDING)
@@ -1080,6 +1081,7 @@ enum EndorsementStatus {
   PENDING
   APPROVED
   REJECTED
+  INACTIVE
 }
 
 enum ConfigDataType {
