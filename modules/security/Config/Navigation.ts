@@ -38,7 +38,7 @@ export const securityModuleDefinition: ModuleDefinition = {
                 {
                     id: "nav-afiliaciones-asociados",
                     title: "Asociados",
-                    href: "#", // Ajusta la ruta seg n tu proyecto
+                    href: "/intranet/asociados", // Ajusta la ruta seg n tu proyecto
                     icon: "UserCheck", // Icono est tico de Lucide
                     order: 2,
                     // Filtro exacto para ATENCION_ASOCIADO basado en tus seeds

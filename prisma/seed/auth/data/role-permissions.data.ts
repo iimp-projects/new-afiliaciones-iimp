@@ -3,147 +3,160 @@
 export type RolePermissionMatrix = Record<string, Array<[string, string]>>;
 
 export const rolePermissionsData: RolePermissionMatrix = {
-  SUPER_ADMIN: [
-    ["manage","all"],
-  ],
+  SUPER_ADMIN: [["manage", "all"]],
 
   SYSTEM_ADMIN: [
-    ["read","dashboard"],
+    ["read", "dashboard"],
 
-    ["create","users"],
-    ["read","users"],
-    ["update","users"],
-    ["delete","users"],
-    ["block","users"],
-    ["unlock","users"],
-    ["assign-role","users"],
+    ["create", "users"],
+    ["read", "users"],
+    ["update", "users"],
+    ["delete", "users"],
+    ["block", "users"],
+    ["unlock", "users"],
+    ["assign-role", "users"],
 
-    ["create","roles"],
-    ["read","roles"],
-    ["update","roles"],
-    ["assign-permissions","roles"],
+    ["create", "roles"],
+    ["read", "roles"],
+    ["update", "roles"],
+    ["assign-permissions", "roles"],
 
-    ["create","permissions"],
-    ["read","permissions"],
+    ["create", "permissions"],
+    ["read", "permissions"],
 
-    ["create","applications"],
-    ["read","applications"],
-    ["update","applications"],
-    ["approve","applications"],
-    ["reject","applications"],
-    ["observe","applications"],
-    ["assign","applications"],
-    ["export","applications"],
+    ["create", "applications"],
+    ["read", "applications"],
+    ["update", "applications"],
+    ["approve", "applications"],
+    ["reject", "applications"],
+    ["observe", "applications"],
+    ["assign", "applications"],
+    ["export", "applications"],
 
-    ["upload","documents"],
-    ["read","documents"],
-    ["validate","documents"],
-    ["download","documents"],
+    ["upload", "documents"],
+    ["read", "documents"],
+    ["validate", "documents"],
+    ["download", "documents"],
 
-    ["create","payments"],
-    ["read","payments"],
-    ["validate","payments"],
-    ["refund","payments"],
+    ["create", "payments"],
+    ["read", "payments"],
+    ["validate", "payments"],
+    ["refund", "payments"],
 
-    ["read","reports"],
-    ["export","reports"],
+    ["read", "reports"],
+    ["export", "reports"],
 
-    ["read","audit"],
+    ["read", "audit"],
 
-    ["send","notifications"],
+    ["send", "notifications"],
 
-    ["read","configuration"],
-    ["update","configuration"],
+    ["read", "configuration"],
+    ["update", "configuration"],
   ],
 
   COMITE_EVALUADOR: [
-    ["read","applications"],
-    ["approve","applications"],
-    ["reject","applications"],
-    ["observe","applications"],
-    ["read","documents"],
-    ["validate","documents"],
-    ["download","documents"],
+    ["read", "applications"],
+    ["approve", "applications"],
+    ["reject", "applications"],
+    ["observe", "applications"],
+    ["read", "documents"],
+    ["validate", "documents"],
+    ["download", "documents"],
   ],
 
   VALIDADOR: [
-    ["read","applications"],
-    ["approve","applications"],
-    ["reject","applications"],
-    ["read","documents"],
-    ["validate","documents"],
+    ["read", "applications"],
+    ["approve", "applications"],
+    ["reject", "applications"],
+    ["read", "documents"],
+    ["validate", "documents"],
   ],
 
   TESORERIA: [
-    ["read","payments"],
-    ["validate","payments"],
-    ["refund","payments"],
-    ["read","reports"],
-    ["export","reports"],
+    ["read", "payments"],
+    ["validate", "payments"],
+    ["refund", "payments"],
+    ["read", "reports"],
+    ["export", "reports"],
   ],
 
   CONTABILIDAD: [
-    ["read","payments"],
-    ["export","payments"],
-    ["read","reports"],
+    ["read", "payments"],
+    ["export", "payments"],
+    ["read", "reports"],
   ],
 
   CAJA: [
-    ["create","payments"],
-    ["read","payments"],
-    ["validate","payments"],
+    ["create", "payments"],
+    ["read", "payments"],
+    ["validate", "payments"],
   ],
 
   ATENCION_ASOCIADO: [
-    ["read","applications"],
-    ["update","applications"],
-    ["upload","documents"],
-    ["read","documents"],
-    ["read","memberships"],
+    ["read", "applications"],
+    ["update", "applications"],
+    ["upload", "documents"],
+    ["read", "documents"],
+    ["read", "memberships"],
   ],
 
   LOGISTICA: [
-    ["read","applications"],
-    ["update","applications"],
-    ["approve","applications"],
-    ["reject","applications"],
-    ["observe","applications"],
-    ["read","documents"],
-    ["validate","documents"],
+    ["read", "applications"],
+    ["update", "applications"],
+    ["approve", "applications"],
+    ["reject", "applications"],
+    ["observe", "applications"],
+    ["read", "documents"],
+    ["validate", "documents"],
   ],
-  
+
   MESA_PARTES: [
-    ["upload","documents"],
-    ["read","documents"],
+    ["upload", "documents"],
+    ["read", "documents"],
   ],
 
   AUDITOR: [
-    ["read","audit"],
-    ["export","audit"],
-    ["read","reports"],
+    ["read", "audit"],
+    ["export", "audit"],
+    ["read", "reports"],
   ],
 
   POSTULANTE: [
-    ["create","applications"],
-    ["read","applications"],
-    ["submit","applications"],
-    ["upload","documents"],
-    ["read","documents"],
+    ["create", "applications"],
+    ["read", "applications"],
+    ["submit", "applications"],
+    ["upload", "documents"],
+    ["read", "documents"],
   ],
 
   ASOCIADO_ACTIVO: [
-    ["read","documents"],
-    ["read","memberships"],
+    ["read", "documents"],
+    ["read", "memberships"],
   ],
 
   ASOCIADO_ESTUDIANTE: [
-    ["read","documents"],
-    ["read","memberships"],
+    ["read", "documents"],
+    ["read", "memberships"],
   ],
 
-  INVITADO: [
-    ["read","dashboard"],
+  INVITADO: [["read", "dashboard"]],
+
+  LEGAL: [
+    ["read", "applications"],
+    ["update", "applications"],
+    ["approve", "applications"],
+    ["reject", "applications"],
+    ["observe", "applications"],
+    ["read", "documents"],
+    ["validate", "documents"],
   ],
-
-
+  COMUNICACIONES: [
+    ["read", "applications"],
+    ["update", "applications"],
+    ["approve", "applications"],
+    ["reject", "applications"],
+    ["observe", "applications"],
+    ["read", "documents"],
+    ["validate", "documents"],
+  ],
 };

@@ -67,7 +67,7 @@ export function LoginForm() {
             className="block text-sm font-bold text-on-surface-variant mb-2 ml-1"
             htmlFor="email"
           >
-            Correo Electrónico / DNI
+            Correo Electrónico
           </label>
           <div className="relative group">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-secondary group-focus-within:text-primary transition-colors">
