@@ -4,6 +4,7 @@ import { IApplicationRepository } from "../Repositories/Interfaces/IApplicationR
 import { prisma } from "@/lib/prisma";
 import { ObservationStatus, ValidationAction, ValidationStatus } from "@prisma/client";
 import { ApplicationStatusCalculatorService } from "./ApplicationStatusCalculatorService";
+import { NotifyApplicantService } from "./NotifyApplicantService";
 
 export class UpdateDraftService {
 
@@ -29,6 +30,13 @@ export class UpdateDraftService {
         if (application.status === "OBSERVED") {
             await this.syncPersistedEntities(Number(application.id), dto.draftData);
             await this.markCorrectionSubmitted(Number(application.id));
+
+            try {
+                const notifyService = new NotifyApplicantService();
+                await notifyService.notifyCorrectionReceived(application, dto.draftData);
+            } catch (err) {
+                console.error("[UpdateDraftService] Error enviando correo de confirmación de subsanación:", err);
+            }
         }
 
         return updatedApplication;

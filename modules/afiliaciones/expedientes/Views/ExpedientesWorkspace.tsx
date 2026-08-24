@@ -46,11 +46,7 @@ import {
   UploadCloud   // <-- AÑADIDO PARA ADJUNTOS
 } from "lucide-react";
 import { DynamicIcon } from "@/modules/layout/Utils/DynamicIcon";
-import { OBSERVATION_FIELDS } from "@/modules/afiliaciones/observations/ObservationFields";
-
-// ==========================================
-// 1. DICCIONARIO TRADUCTOR ESTRICTO
-// ==========================================
+import { OBSERVATION_FIELDS, OBSERVATION_CATEGORIES } from "@/modules/afiliaciones/observations/ObservationFields";
 const formatStatusName = (status: string) => {
   if (!status) return "";
   const normalizedStatus = status.toUpperCase().trim();
@@ -492,7 +488,7 @@ const WorkflowGuideModal = ({ onClose }: { onClose: () => void }) => {
                     { name: "Avales", val: "Aprobado" },
                     { name: "Asociados", val: "Aprobado" },
                     { name: "Logística", val: "Aprobado" },
-                    { name: "Comité", val: "Aprobado" },
+{ name: "Comité", val: "Aprobado" },
                     { name: "Pago", val: "Pendiente" },
                   ]}
                   result="APTO PARA PAGO"
@@ -562,6 +558,7 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [observedFieldPaths, setObservedFieldPaths] = useState<string[]>([]);
+  const [activeObservationCategory, setActiveObservationCategory] = useState<string>("personal");
 
   const [filters, setFilters] = useState({
     search: "",
@@ -1713,27 +1710,171 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
                 </div>
 
                 {targetStatus === "OBSERVED" && (
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-2 ml-1">
-                      Campos que debe corregir <span className="text-red-500">*</span>
-                    </label>
-                    <div className="max-h-52 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 rounded-xl border border-slate-200 bg-slate-50">
-                      {OBSERVATION_FIELDS.map((field) => {
-                        const checked = observedFieldPaths.includes(field.key);
-                        return (
-                          <label key={field.key} className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={checked}
-                              onChange={() => setObservedFieldPaths((current) => checked ? current.filter((key) => key !== field.key) : [...current, field.key])}
-                              className="accent-amber-500"
-                            />
-                            {field.label}
-                          </label>
-                        );
-                      })}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide ml-1">
+                        Campos que debe corregir <span className="text-red-500">*</span>
+                      </label>
+                      {observedFieldPaths.length > 0 && (
+                        <span className="text-[11px] font-bold text-amber-700 bg-amber-100/80 px-2 py-0.5 rounded-full">
+                          {observedFieldPaths.length} {observedFieldPaths.length === 1 ? "campo seleccionado" : "campos seleccionados"}
+                        </span>
+                      )}
                     </div>
-                    {observedFieldPaths.length === 0 && <p className="text-[11px] text-amber-700 mt-2">Seleccione los campos que el postulante podrá editar.</p>}
+
+                    {/* Categorías (Pills / Tabs) */}
+                    {(() => {
+                      const isModalApplicantStudent =
+                        drawerData?.payload?.affiliateType === "STUDENT" ||
+                        drawerData?.header?.identity?.categoryBadge?.label?.toUpperCase().includes("ESTUDIANTE");
+
+                      const activeCategories = OBSERVATION_CATEGORIES.map((cat) => ({
+                        ...cat,
+                        fields: cat.fields.filter((f) => !f.studentOnly || isModalApplicantStudent),
+                      })).filter((cat) => cat.fields.length > 0);
+
+                      const currentCategory =
+                        activeCategories.find((c) => c.id === activeObservationCategory) ||
+                        activeCategories[0];
+
+                      const allCurrentSelected = currentCategory.fields.every((f) =>
+                        observedFieldPaths.includes(f.key)
+                      );
+
+                      const toggleAllCategory = () => {
+                        if (allCurrentSelected) {
+                          const keysToRemove = new Set(currentCategory.fields.map((f) => f.key));
+                          setObservedFieldPaths((prev) => prev.filter((k) => !keysToRemove.has(k)));
+                        } else {
+                          const keysToAdd = currentCategory.fields.map((f) => f.key);
+                          setObservedFieldPaths((prev) => [...new Set([...prev, ...keysToAdd])]);
+                        }
+                      };
+
+                      return (
+                        <>
+                          <div className="flex flex-wrap gap-1.5 p-1 bg-slate-100 rounded-xl border border-slate-200">
+                            {activeCategories.map((cat) => {
+                              const count = cat.fields.filter((f) => observedFieldPaths.includes(f.key)).length;
+                              const isActive = currentCategory.id === cat.id;
+                              const CatIcon =
+                                cat.id === "personal"
+                                  ? User
+                                  : cat.id === "academic"
+                                  ? GraduationCap
+                                  : cat.id === "employment"
+                                  ? Briefcase
+                                  : cat.id === "documents"
+                                  ? FileText
+                                  : Users;
+
+                              return (
+                                <button
+                                  key={cat.id}
+                                  type="button"
+                                  onClick={() => setActiveObservationCategory(cat.id)}
+                                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                    isActive
+                                      ? "bg-white text-slate-900 shadow-sm border border-slate-200"
+                                      : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
+                                  }`}
+                                >
+                                  <CatIcon size={14} className={isActive ? "text-[#c39254]" : "text-slate-400"} />
+                                  <span>{cat.name}</span>
+                                  {count > 0 && (
+                                    <span className="ml-0.5 px-1.5 py-0.2 bg-[#c39254] text-white text-[10px] font-extrabold rounded-full">
+                                      {count}
+                                    </span>
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          {/* Contenido de la categoría seleccionada */}
+                          <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 space-y-2.5">
+                            <div className="flex items-center justify-between pb-2 border-b border-slate-200/70">
+                              <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                                {currentCategory.name} ({currentCategory.fields.length})
+                              </span>
+                              <button
+                                type="button"
+                                onClick={toggleAllCategory}
+                                className="text-[11px] font-bold text-[#c39254] hover:text-[#7f561e] transition-colors"
+                              >
+                                {allCurrentSelected ? "Deseleccionar todos" : "Seleccionar todos"}
+                              </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-44 overflow-y-auto pr-1">
+                              {currentCategory.fields.map((field) => {
+                                const checked = observedFieldPaths.includes(field.key);
+                                return (
+                                  <label
+                                    key={field.key}
+                                    className={`flex items-center gap-2 p-2 rounded-lg text-xs font-medium cursor-pointer transition-all border ${
+                                      checked
+                                        ? "bg-amber-50/80 border-amber-300 text-amber-900 font-semibold"
+                                        : "bg-white border-slate-200/80 text-slate-700 hover:border-slate-300 hover:bg-slate-50/60"
+                                    }`}
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={checked}
+                                      onChange={() =>
+                                        setObservedFieldPaths((current) =>
+                                          checked
+                                            ? current.filter((key) => key !== field.key)
+                                            : [...current, field.key]
+                                        )
+                                      }
+                                      className="accent-[#c39254] rounded w-3.5 h-3.5"
+                                    />
+                                    <span className="truncate">{field.label}</span>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </>
+                      );
+                    })()}
+
+                    {/* Resumen de campos seleccionados en todas las categorías */}
+                    {observedFieldPaths.length > 0 ? (
+                      <div className="space-y-1.5 pt-1">
+                        <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide block ml-1">
+                          Campos seleccionados en total:
+                        </span>
+                        <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto p-2 bg-white rounded-xl border border-slate-200">
+                          {observedFieldPaths.map((key) => {
+                            const fieldObj = OBSERVATION_FIELDS.find((f) => f.key === key);
+                            return (
+                              <span
+                                key={key}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 border border-amber-200 text-amber-900 rounded-lg text-[11px] font-semibold"
+                              >
+                                <span>{fieldObj?.label || key}</span>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setObservedFieldPaths((prev) => prev.filter((k) => k !== key))
+                                  }
+                                  className="text-amber-600 hover:text-red-600 hover:bg-amber-100 rounded-full p-0.5"
+                                  title="Quitar"
+                                >
+                                  <X size={12} />
+                                </button>
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-[11px] text-amber-700 font-medium ml-1">
+                        ⚠️ Seleccione al menos un campo para que el postulante pueda corregirlo.
+                      </p>
+                    )}
                   </div>
                 )}
 

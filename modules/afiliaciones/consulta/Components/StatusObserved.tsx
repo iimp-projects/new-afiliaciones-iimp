@@ -324,11 +324,18 @@ export const StatusObserved: React.FC<Props> = ({ data, onUploadSuccess }) => {
         {/* Observaciones del Comité */}
         <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-3">
           <div className="flex items-center gap-2 text-amber-800 font-semibold text-sm">
-            <span>⚠️</span> Observaciones del Comité
+            <span>⚠️</span> Observaciones del Evaluador
           </div>
           <ul className="text-xs text-slate-700 space-y-2 list-disc pl-4">
             {data.observations && data.observations.length > 0 ? (
-              data.observations.map((obs, idx) => <li key={idx}>{obs}</li>)
+              data.observations.map((obs, idx) => (
+                <li key={idx}>
+                  <span
+                    className="inline-block align-top [&>p]:inline [&>p]:m-0"
+                    dangerouslySetInnerHTML={{ __html: obs }}
+                  />
+                </li>
+              ))
             ) : (
               <li>Por favor, revise los requerimientos o avales rechazados e ingrese la nueva información.</li>
             )}

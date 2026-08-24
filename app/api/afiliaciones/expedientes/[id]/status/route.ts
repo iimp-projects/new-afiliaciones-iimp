@@ -5,6 +5,7 @@ import { ValidationStatus, ValidationAction } from "@prisma/client";
 import { contextService } from "@/modules/auth/context/service";
 import { ApplicationStatusCalculatorService } from "@/modules/afiliaciones/postulacion/Services/ApplicationStatusCalculatorService";
 import { NotifyComiteService } from "@/modules/afiliaciones/expedientes/Services/NotifyComiteService"; 
+import { NotifyApplicantService } from "@/modules/afiliaciones/postulacion/Services/NotifyApplicantService";
 import { OBSERVATION_FIELD_KEYS } from "@/modules/afiliaciones/observations/ObservationFields";
 
 export async function PATCH(
@@ -110,6 +111,9 @@ export async function PATCH(
             const notifyService = new NotifyComiteService();
             // Lo lanzamos sin 'await' para no bloquear la respuesta HTTP al cliente
             notifyService.execute(appId).catch(console.error);
+        } else if (targetAreaStatus === ValidationStatus.OBSERVED) {
+            const notifyApplicant = new NotifyApplicantService();
+            notifyApplicant.notifyObservationCreated(appId, reason, normalizedFieldPaths).catch(console.error);
         }
 
         return NextResponse.json({ success: true, message: "Estado actualizado y recalculado correctamente." }, { status: 200 });

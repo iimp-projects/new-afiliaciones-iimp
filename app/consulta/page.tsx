@@ -115,7 +115,17 @@ export default function ConsultaPage() {
 
       <section className="relative z-10 w-full max-w-xl my-auto pt-6 pb-4">
         {!statusData ? (
-          <ConsultationForm onSubmit={handleConsult} loading={loading} />
+          <div className="space-y-4">
+            <ConsultationForm onSubmit={handleConsult} loading={loading} />
+            <div className="text-center pt-2">
+              <Link
+                href="/postulacion"
+                className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-[#C39254] font-semibold transition-colors bg-white/60 hover:bg-white px-4 py-2 rounded-full border border-slate-200/60 shadow-sm"
+              >
+                ← Ir a página de inicio de postulación
+              </Link>
+            </div>
+          </div>
         ) : (
           <div className="w-full bg-white rounded-2xl p-6 sm:p-8 shadow-xl border border-slate-200/80">
             {currentStatus === "IN_REVIEW" && (
@@ -143,13 +153,20 @@ export default function ConsultaPage() {
               <StatusRejected data={statusData} />
             )}
 
-            <div className="text-center mt-6 pt-5 border-t border-slate-100">
+            <div className="flex items-center justify-center gap-4 sm:gap-6 mt-6 pt-5 border-t border-slate-100 flex-wrap">
               <button
                 onClick={() => setStatusData(null)}
-                className="inline-flex items-center gap-2 text-xs text-[#C39254] hover:text-[#A1743B] font-bold transition-colors"
+                className="inline-flex items-center gap-1.5 text-xs text-[#C39254] hover:text-[#A1743B] font-bold transition-colors"
               >
                 ← Realizar otra consulta
               </button>
+              <span className="text-slate-200 hidden sm:inline">|</span>
+              <Link
+                href="/postulacion"
+                className="inline-flex items-center gap-1.5 text-xs text-slate-600 hover:text-[#C39254] font-bold transition-colors"
+              >
+                Ir a página de inicio de postulación →
+              </Link>
             </div>
           </div>
         )}
