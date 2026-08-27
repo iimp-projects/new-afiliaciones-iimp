@@ -3,9 +3,12 @@ import { OtpRecoveryService } from "@/modules/afiliaciones/postulacion/Services/
 
 export async function POST(request: NextRequest) {
   try {
-    const { trackingCode } = await request.json();
+    // ✅ Ahora recibimos el trackingCode Y el channel ("EMAIL" o "SMS")
+    const { trackingCode, channel } = await request.json();
+    
     const service = new OtpRecoveryService();
-    await service.generateAndSendOtp(trackingCode);
+    await service.generateAndSendOtp(trackingCode, channel);
+    
     return NextResponse.json({ success: true, message: "Código enviado." });
   } catch (error: any) {
     return NextResponse.json({ message: error.message }, { status: 400 });

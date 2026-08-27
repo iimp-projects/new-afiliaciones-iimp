@@ -9,23 +9,22 @@ interface FetchAsociadosParams {
   pageSize?: number;
   search?: string;
   membershipType?: string;
+  sort?: string; // ✅ Añadido
 }
 
 export async function fetchAsociadosAction(params: FetchAsociadosParams) {
   try {
     await contextService.requirePermission("read", "memberships");
 
-    const { page = 1, pageSize = 12, search, membershipType } = params;
+    const { page = 1, pageSize = 12, search, membershipType, sort = "desc" } = params;
     const skip = (page - 1) * pageSize;
     
-    // Filtro estricto: Solo afiliados aprobados y activos
     const baseWhere: any = { 
         type: UserType.AFFILIATE,
         deletedAt: null,
         status: "ACTIVE" 
     };
 
-    // Buscador global
     if (search) {
       baseWhere.OR = [
         { email: { contains: search, mode: "insensitive" } },
@@ -35,11 +34,13 @@ export async function fetchAsociadosAction(params: FetchAsociadosParams) {
       ];
     }
 
-    // Filtro por tipo de membresía
     if (membershipType && membershipType !== "ALL") {
       const expectedSlug = membershipType === "ACTIVE" ? "ASOCIADO_ACTIVO" : "ASOCIADO_ESTUDIANTE";
       baseWhere.role = { slug: expectedSlug };
     }
+
+    // ✅ Ordenamiento Dinámico
+    const orderByConfig = sort === "desc" ? { updatedAt: "desc" as const } : { updatedAt: "asc" as const };
 
     const [data, total] = await Promise.all([
       prisma.user.findMany({
@@ -57,7 +58,7 @@ export async function fetchAsociadosAction(params: FetchAsociadosParams) {
           },
           role: true,
         },
-        orderBy: { updatedAt: "desc" },
+        orderBy: orderByConfig,
       }),
       prisma.user.count({ where: baseWhere })
     ]);

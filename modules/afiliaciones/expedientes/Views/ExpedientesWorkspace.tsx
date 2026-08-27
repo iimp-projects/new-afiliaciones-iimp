@@ -107,7 +107,8 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
   const [meta, setMeta] = useState({ total: 0, page: 1, pageSize: 8, totalPages: 1 });
   const [isMounted, setIsMounted] = useState(false);
 
-  const [isPaginationSticky, setIsPaginationSticky] = useState(true);
+  // Inicializamos en false para que nazca pegado al fondo
+  const [isPaginationSticky, setIsPaginationSticky] = useState(false);
 
   const [drawerData, setDrawerData] = useState<DrawerData<any> | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -189,8 +190,6 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
     const myDepartmentName = getDepartmentLabelByRole(currentUser?.role?.slug);
     const myValidation = validations.find((v: any) => v.label.toLowerCase() === myDepartmentName.toLowerCase()) || validations[0];
 
-    // FIX LÓGICA: Solo consideramos "Ya evaluado" a los estados finales genuinos (Aprobado o Rechazado).
-    // Si está en 'RESOLVED' (subsanado), el usuario tiene que volver a evaluarlo, por lo que NO está "already evaluated".
     const hasAlreadyValidated = myValidation && ["APPROVED", "check", "REJECTED", "error"].includes(myValidation.status);
 
     const dniMatch = cardData.identity.subtitle.match(/DNI\s*(\d+)/i);
@@ -399,7 +398,6 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
   });
 
   const areaStatus = myValidationRaw?.status || "PENDING";
-  // OJO: Solo bloqueamos la UI de evaluación si el área ya dio veredicto final. Si está 'RESOLVED' (subsanado), permitimos accionar de nuevo.
   const isAreaFinal = ["APPROVED", "check", "REJECTED", "error"].includes(areaStatus);
   const isAreaObserved = ["OBSERVED", "review", "alert"].includes(areaStatus);
 
@@ -450,18 +448,9 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
     const completedCount = validations.filter((v: any) => v.status === "check" || v.status === "APPROVED").length;
     const progressPercentage = validations.length > 0 ? Math.round((completedCount / validations.length) * 100) : 0;
 
-    const hasAlreadyValidated = header?.metadata?.isAlreadyEvaluatedByMe;
-    const draft = payload.draftData || {};
-    const personalInfo = draft.personalInformation || {};
-    const academicStudy = draft.academicStudies?.[0] || {};
-    const employmentInfo = draft.employmentInformation || {};
-    const endorsements = draft.endorsements || {};
-    const approvals = payload.approvals || [];
-
     const submittedDate = payload.submittedAt ? new Date(payload.submittedAt).toLocaleString("es-PE", { dateStyle: "medium", timeStyle: "short" }) : "No enviado";
     const payment = payload.payments?.[0];
     const paymentMethod = payment?.gateway ? payment.gateway.toLowerCase().replace(/_/g, " ") : isStudent ? "Beca Pregrado" : "Pendiente";
-    const invoiceType = payment?.billing?.invoice?.type || (isStudent ? "No aplica" : "Boleta");
     const amount = payment?.totalAmount ? `${payment.currency || "PEN"} ${payment.totalAmount}` : isStudent ? "Gratuito" : "S/ 0.00";
 
     if (activeTab === "resumen") {
@@ -528,62 +517,18 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
               </dl>
             </div>
           </div>
-
-          <div>
-            <h3 className="text-[13px] font-bold text-slate-800 mb-3">Acciones de Evaluación</h3>
-
-            {isComite && !isReadyForComite && (
-              <div className="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-2 text-xs font-bold text-amber-700 shadow-sm">
-                <Clock size={16} className="shrink-0" />
-                Esperando conformidad de Logística, Asociados y Avales para habilitar su revisión.
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <button
-                onClick={() => { setTargetStatus("APPROVED"); setShowStatusModal(true); }}
-                disabled={disableApproveButton}
-                className={`flex flex-col items-center justify-center gap-1.5 px-2 py-3 bg-[#fdfaf5] border-2 border-[#E8D09E] text-[#7f561e] rounded-xl text-[11px] font-black transition-all shadow-sm focus:outline-none ${disableApproveButton ? "opacity-50 cursor-not-allowed grayscale" : "hover:bg-[#C5A059] hover:text-white hover:border-[#C5A059]"}`}
-              >
-                <ShieldCheck size={18} strokeWidth={2.5} /> Otorgar Conformidad
-              </button>
-              <button
-                onClick={() => { setTargetStatus("OBSERVED"); setShowStatusModal(true); }}
-                disabled={disableObserveButton}
-                className={`flex flex-col items-center justify-center gap-1.5 px-2 py-3 border border-amber-200 rounded-xl text-[11px] font-black transition-colors shadow-sm focus:outline-none ${disableObserveButton ? "bg-gray-50 text-gray-400 cursor-not-allowed border-gray-200 grayscale opacity-60" : "bg-amber-50 text-amber-700 hover:bg-amber-500 hover:text-white"}`}
-              >
-                <AlertCircle size={18} strokeWidth={2.5} /> Observar
-              </button>
-              <button
-                onClick={() => { setTargetStatus("REJECTED"); setShowStatusModal(true); }}
-                disabled={disableRejectButton}
-                className={`flex flex-col items-center justify-center gap-1.5 px-2 py-3 border border-red-200 rounded-xl text-[11px] font-black transition-colors shadow-sm focus:outline-none ${disableRejectButton ? "bg-gray-50 text-gray-400 cursor-not-allowed border-gray-200 grayscale opacity-60" : "bg-red-50 text-red-700 hover:bg-red-600 hover:border-red-600 hover:text-white"}`}
-              >
-                <XCircle size={18} strokeWidth={2.5} /> Rechazar Definitivo
-              </button>
-            </div>
-
-            {hasAlreadyValidated && !isClosedFinal && (
-              <div className="mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-center gap-2 text-emerald-700 font-bold text-xs shadow-sm">
-                <CheckCircle2 size={16} />
-                Su área ({reviewerArea}) ya evaluó este expediente de forma final.
-              </div>
-            )}
-            
-            {payload.status === "REJECTED" && (
-              <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-xl flex items-center justify-center gap-2 text-red-700 font-bold text-xs shadow-sm animate-in fade-in">
-                <XCircle size={16} /> Este expediente fue rechazado y el proceso ha finalizado.
-              </div>
-            )}
-          </div>
         </div>
       );
     }
 
     if (activeTab === "datos") return <DatosTab payload={payload} />;
-    if (activeTab === "documentos") return <DocumentosTab documents={payload.documents || []} onOpenDocument={handleOpenSecureDocument} />;
+    
+    // ✅ AQUÍ ESTÁ LA SOLUCIÓN: Pasamos directamente el payload como espera DocumentosTab
+    if (activeTab === "documentos") return <DocumentosTab payload={payload} />;
+    
     if (activeTab === "observaciones") return <ObservacionesTab payload={payload} onResolveObservation={handleResolveSingleObservation} />;
     if (activeTab === "avales") return <AvalesTab payload={payload} onReplaceAval={handleReplaceAval} />;
+    
     if (activeTab === "historial") {
       const timelineEvents = generateTimeline(payload);
       return (
@@ -686,7 +631,7 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
 
       {isMounted && showWorkflowGuide && <WorkflowGuideModal onClose={() => setShowWorkflowGuide(false)} />}
 
-      {/* MODAL DE ACTUALIZACIÓN DE ESTADO (OBSERVAR / APROBAR / ETC) */}
+      {/* MODAL DE ACTUALIZACIÓN DE ESTADO */}
       {isMounted && showStatusModal && createPortal(
           <div className="fixed inset-0 z-[999999] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
             <div className="bg-white rounded-3xl w-full max-w-xl shadow-2xl overflow-hidden animate-in zoom-in-95 flex flex-col max-h-[90vh]">
@@ -703,9 +648,8 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
                 </p>
               </div>
 
-              {/* Cuerpo del Formulario con Scroll */}
+              {/* Cuerpo del Formulario */}
               <div className="p-6 space-y-5 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 flex-1">
-                {/* Editor TipTap */}
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-2 ml-1">
                     Motivo o Comentario <span className="text-red-500">*</span>
@@ -731,7 +675,6 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
                       )}
                     </div>
 
-                    {/* Categorías (Tabs) */}
                     {(() => {
                       const isModalApplicantStudent = drawerData?.payload?.affiliateType === "STUDENT" || 
                         drawerData?.header?.identity?.categoryBadge?.label?.toUpperCase().includes("ESTUDIANTE");
@@ -810,7 +753,6 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
                       );
                     })()}
 
-                    {/* Resumen de seleccionados */}
                     {observedFieldPaths.length === 0 && (
                       <p className="text-[11px] text-amber-700 font-medium ml-1">
                         ⚠️ Seleccione al menos un campo para que el postulante sepa qué corregir.
@@ -866,7 +808,7 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
                 </div>
               </div>
 
-              {/* Footer (Botones) */}
+              {/* Footer */}
               <div className="p-6 pt-4 border-t border-gray-100 flex gap-3 shrink-0 bg-white">
                 <button
                   onClick={() => { setShowStatusModal(false); setAttachments([]); setStatusReason(""); setObservedFieldPaths([]); }}

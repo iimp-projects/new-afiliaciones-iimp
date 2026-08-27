@@ -15,7 +15,7 @@ export function ExpedientesPagination({
   meta,
   onPageChange,
   onPageSizeChange,
-  isSticky = false,
+  isSticky = true,
   onToggleSticky,
 }: ExpedientesPaginationProps) {
   const { page: currentPage, totalPages, total, pageSize } = meta;

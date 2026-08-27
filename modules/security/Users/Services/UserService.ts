@@ -1,35 +1,39 @@
 import bcrypt from "bcryptjs";
 import { UserRepository } from "../Repositories/UserRepository";
-import type { CreateUserInput } from "../DTOs/user.schema";
+import type { CreateUserInput, UpdateUserInput } from "../DTOs/user.schema";
 
 export class UserService {
   private repository = new UserRepository();
 
-  async getList(page: number = 1, pageSize: number = 10, search?: string) {
-    return await this.repository.getPaginatedUsers(page, pageSize, search);
+ async getList(page: number = 1, pageSize: number = 10, search?: string, status?: string, roleId?: number) {
+    return await this.repository.getPaginatedUsers(page, pageSize, search, status, roleId);
   }
 
-  async createUser(input: CreateUserInput) {
+  async createUser(input: CreateUserInput, imageUrl?: string) {
     const { emailExists, documentExists } = await this.repository.checkExistingUser(input.email, input.documentNumber);
     
-    if (emailExists) {
-      throw new Error("El correo electrónico ya se encuentra registrado.");
-    }
-    if (documentExists) {
-      throw new Error("El número de documento ya se encuentra registrado en el sistema.");
-    }
+    if (emailExists) throw new Error("El correo electrónico ya se encuentra registrado.");
+    if (documentExists) throw new Error("El número de documento ya se encuentra registrado en el sistema.");
 
     const defaultPassword = "Cambiar123!"; 
     const hashedPassword = await bcrypt.hash(defaultPassword, 12);
+    
+    return await this.repository.createUserWithPerson(input, hashedPassword, imageUrl);
+  }
 
-    return await this.repository.createUserWithPerson(input, hashedPassword);
+  async updateUser(input: UpdateUserInput, imageUrl?: string) {
+    const { emailExists, documentExists } = await this.repository.checkExistingUser(input.email, input.documentNumber, input.id);
+    
+    if (emailExists) throw new Error("El correo electrónico ya está en uso por otro usuario.");
+    if (documentExists) throw new Error("El número de documento ya está en uso por otro usuario.");
+
+    return await this.repository.updateUserWithPerson(input, imageUrl);
   }
 
   async toggleStatus(userId: number, currentStatus: any) {
     return await this.repository.toggleUserStatus(userId, currentStatus);
   }
 
-  // --- NUEVA FUNCIÓN ---
   async deleteUser(userId: number) {
     return await this.repository.softDeleteUser(userId);
   }
