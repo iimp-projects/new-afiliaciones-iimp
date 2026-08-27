@@ -1,6 +1,6 @@
 import { contextService } from "@/modules/auth/context/service";
 import { fetchAsociadosAction } from "@/modules/afiliaciones/asociados/Actions/asociados.actions";
-import { AsociadosWorkspace } from "@/modules/afiliaciones/asociados/Views/AsociadosWorkspace.tsx";
+import { AsociadosWorkspace } from "@/modules/afiliaciones/asociados/Views/AsociadosWorkspace.tsx"; // Ojo, sin .tsx al final
 
 export const metadata = {
   title: "Directorio de Asociados | Intranet IIMP",
@@ -9,23 +9,22 @@ export const metadata = {
 export default async function AsociadosPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; q?: string; type?: string }>;
+  searchParams: Promise<{ page?: string; q?: string; type?: string; sort?: string }>;
 }) {
-  // 1. Validar permiso de seguridad
   await contextService.requirePermission("read", "memberships");
 
-  // 2. Resolver parámetros de búsqueda y paginación
   const resolvedParams = await searchParams;
   const page = Number(resolvedParams.page) || 1;
   const query = resolvedParams.q || "";
   const membershipType = resolvedParams.type || "ALL";
+  const sort = resolvedParams.sort || "desc";
 
-  // 3. Ejecutar la acción contra la base de datos (Traemos 12 por página para que el Grid 4x3 sea perfecto)
   const { data, total } = await fetchAsociadosAction({
     page,
     pageSize: 12,
     search: query,
     membershipType,
+    sort,
   });
 
   return (
@@ -36,6 +35,7 @@ export default async function AsociadosPage({
         currentPage={page}
         query={query}
         membershipType={membershipType}
+        sort={sort}
       />
     </div>
   );

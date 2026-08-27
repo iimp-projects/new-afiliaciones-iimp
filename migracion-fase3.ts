@@ -117,12 +117,17 @@ async function migrarFichas() {
     where: { isRequired: true },
   });
 
+  // =========================================================
+  // ✅ DICCIONARIO INTELIGENTE: BUSCANDO A LOS RESPONSABLES
+  // =========================================================
   const usrAsociados = await prisma.user.findFirst({ where: { email: "liset.otoya@iimp.org.pe" } });
-  const usrLogistica = await prisma.user.findFirst({ where: { email: "helen.loaiza@iimp.org.pe" } });
+  const usrLogistica = await prisma.user.findFirst({ where: { email: "lesly.alvarado@iimp.org.pe" } }); // Modificado a Lesly
+  const usrComunicaciones = await prisma.user.findFirst({ where: { email: "pedro.villanueva@iimp.org.pe" } }); // ⚠️ Verifica su correo exacto
+  const usrLegal = await prisma.user.findFirst({ where: { email: "araceli.basurco@iimp.org.pe" } }); // ⚠️ Verifica su correo exacto
   const usrComite = await prisma.user.findFirst({ where: { email: "rgaray@rgblasting.pe" } });
   const usrDefaultAdmin = await prisma.user.findFirst({ where: { email: "max.ichajaya@iimp.org.pe" } });
 
-  // DICCIONARIO INTELIGENTE: CRUZANDO DNI CON SOCIOS APROBADOS ('I')
+  // DICCIONARIO CRUZANDO DNI CON SOCIOS APROBADOS ('I')
   const dniToNameMap = new Map<string, string>();
   const sociosRes = await oldDb.query(`
     SELECT nrodoc, nombre, apellido, apellidom
@@ -183,14 +188,11 @@ async function migrarFichas() {
       }
     }
 
-    // ==========================================
-    // MEJORA: TRADUCCIÓN DE GEOGRAFÍA (75 -> PERÚ -> id)
-    // ==========================================
     const paisOld = oldPaises.find(p => String(p.idpais) === String(ficha.pais));
     const paisName = paisOld ? paisOld.pais.trim().toUpperCase() : null;
     const matchedCountry = dbCountries.find(c => c.name.toUpperCase() === paisName);
     const finalCountryId = matchedCountry ? matchedCountry.id : peruId;
-    const isoCode = matchedCountry ? matchedCountry.isoCode.toLowerCase() : "pe"; // ISO PARA LA BANDERA
+    const isoCode = matchedCountry ? matchedCountry.isoCode.toLowerCase() : "pe";
 
     const depaOld = oldDepas.find(d => String(d.idpais) === String(ficha.pais) && String(d.dptocod) === String(ficha.depa));
     const matchedDept = depaOld ? dbDepts.find(d => d.name.toUpperCase() === depaOld.dpto.trim().toUpperCase() && d.countryId === finalCountryId) : null;
@@ -201,18 +203,13 @@ async function migrarFichas() {
     const distOld = oldDists.find(d => String(d.idpais) === String(ficha.pais) && String(d.dptocod) === String(ficha.depa) && String(d.prvcod) === String(ficha.prov) && String(d.discod) === String(ficha.dist));
     const matchedDist = (distOld && matchedProv) ? dbDists.find(d => d.name.toUpperCase() === distOld.dis.trim().toUpperCase() && d.provinceId === matchedProv.id) : null;
 
-    // ==========================================
-    // MEJORA: SEPARACIÓN ESTUDIANTE/PROFESIONAL
-    // ==========================================
     const especialidadName = affiliateType === "STUDENT" ? ficha.espe2 : ficha.espe;
-    const uniLegacyName = affiliateType === "STUDENT" ? ficha.univ2 : ficha.univ; // Aunque nomuni a veces trae el texto
+    const uniLegacyName = affiliateType === "STUDENT" ? ficha.univ2 : ficha.univ;
     const anioIngreso = ficha.anioi ? parseInt(ficha.anioi) : null;
     const anioEgreso = ficha.anioe ? parseInt(ficha.anioe) : null;
 
-    // Resolvemos el ID de la universidad por el texto guardado en nomuni (que vimos en tu captura)
     const uniText = ficha.nomuni ? String(ficha.nomuni).trim().toUpperCase() : null;
     const institutionId = uniText ? (univMap.get(uniText) || null) : null;
-
 
     try {
       await prisma.$transaction(async (tx) => {
@@ -235,7 +232,7 @@ async function migrarFichas() {
           },
         });
 
-        // B. CREAR AVALES (Si aplican)
+        // B. CREAR AVALES
         let firstEndorsementObj: any = undefined;
         let secondEndorsementObj: any = undefined;
         let sponsorPerson1Id: number | null = null;
@@ -268,11 +265,8 @@ async function migrarFichas() {
             sponsorPerson1Id = sponsorPerson1.id;
 
             firstEndorsementObj = {
-              sponsorDocumentNumber: dni1,
-              sponsorPersonId: sponsorPerson1.id,
-              sponsorCode: code1,
-              sponsorFullName: name1,
-              sponsorEmail: email1
+              sponsorDocumentNumber: dni1, sponsorPersonId: sponsorPerson1.id,
+              sponsorCode: code1, sponsorFullName: name1, sponsorEmail: email1
             };
           }
 
@@ -299,16 +293,12 @@ async function migrarFichas() {
             sponsorPerson2Id = sponsorPerson2.id;
 
             secondEndorsementObj = {
-              sponsorDocumentNumber: dni2,
-              sponsorPersonId: sponsorPerson2.id,
-              sponsorCode: code2,
-              sponsorFullName: name2,
-              sponsorEmail: email2
+              sponsorDocumentNumber: dni2, sponsorPersonId: sponsorPerson2.id,
+              sponsorCode: code2, sponsorFullName: name2, sponsorEmail: email2
             };
           }
         }
 
-        // LÓGICA DE ORO: SI HAY AVANCE, PASAR A 'EN EVALUACIÓN'
         const hasAvalAprobado = (intest1 === 1 || intest2 === 1);
         const hasAreaValidada = (Number(ficha.val_asociados) === 1 || Number(ficha.val_logistica) === 1);
         
@@ -323,7 +313,7 @@ async function migrarFichas() {
         if (firstEndorsementObj) endorsementsDraft.firstEndorsement = firstEndorsementObj;
         if (secondEndorsementObj) endorsementsDraft.secondEndorsement = secondEndorsementObj;
 
-        // C. CREAR EL DRAFT FINAL (JSON) - CON ISOS Y AÑOS CORREGIDOS
+        // C. CREAR EL DRAFT FINAL
         const draftData = {
           membershipType: affiliateType,
           personalInformation: {
@@ -335,7 +325,7 @@ async function migrarFichas() {
             departmentId: matchedDept?.id || null,
             provinceId: matchedProv?.id || null,
             districtId: matchedDist?.id || null,
-            isoCode: isoCode, // ISO PARA LA BANDERA EN EL DASHBOARD
+            isoCode: isoCode, 
             photo: ficha.fotoper ? { url: `${BASE_S3_URL}/${ficha.fotoper}`, name: ficha.fotoper, type: "image/jpeg" } : null,
           },
           academicStudies: [
@@ -371,22 +361,36 @@ async function migrarFichas() {
           },
         });
 
-        // E. INSERTAR ESTADOS DE AVALES
+        // E. INSERTAR ESTADOS DE AVALES CON FECHA HISTÓRICA
         if (sponsorPerson1Id) {
           let indStatus1 = (intest1 === 1 || appStatus === "COMPLETED") ? "APPROVED" : sponsorStatus;
           await tx.membershipApproval.create({
-            data: { applicationId: app.id, sponsorPersonId: sponsorPerson1Id, sponsorCode: code1, status: indStatus1 },
+            data: { 
+              applicationId: app.id, 
+              sponsorPersonId: sponsorPerson1Id, 
+              sponsorCode: code1, 
+              status: indStatus1,
+              transactionDate: ficha.fectraaval1 ? new Date(ficha.fectraaval1) : null,
+              createdAt: ficha.fectraaval1 ? new Date(ficha.fectraaval1) : (ficha.fechareg ? new Date(ficha.fechareg) : new Date()),
+            },
           });
         }
 
         if (sponsorPerson2Id) {
           let indStatus2 = (intest2 === 1 || appStatus === "COMPLETED") ? "APPROVED" : sponsorStatus;
           await tx.membershipApproval.create({
-            data: { applicationId: app.id, sponsorPersonId: sponsorPerson2Id, sponsorCode: code2, status: indStatus2 },
+            data: { 
+              applicationId: app.id, 
+              sponsorPersonId: sponsorPerson2Id, 
+              sponsorCode: code2, 
+              status: indStatus2,
+              transactionDate: ficha.fectraaval2 ? new Date(ficha.fectraaval2) : null,
+              createdAt: ficha.fectraaval2 ? new Date(ficha.fectraaval2) : (ficha.fechareg ? new Date(ficha.fechareg) : new Date()),
+            },
           });
         }
 
-        // F. RELACIONES ACADÉMICAS Y LABORALES REALES EN PRISMA
+        // F. RELACIONES ACADÉMICAS Y LABORALES
         if (ficha.titulo || uniText) {
           await tx.academicInfo.create({
             data: {
@@ -429,11 +433,11 @@ async function migrarFichas() {
           }
         }
 
-        // H. VALIDACIONES DE ÁREAS (Historial)
+        // H. VALIDACIONES DE ÁREAS (Historial para las Gráficas)
         if (requiredDepartments.length > 0) {
           const applyingDepartments = requiredDepartments.filter((dept) => {
             if (affiliateType === "STUDENT") return ["ASOCIADOS", "LOGISTICA", "COMITE"].includes(dept.code);
-            return true;
+            return true; // Si es Activo, aplican todas
           });
 
           for (const dept of applyingDepartments) {
@@ -449,17 +453,24 @@ async function migrarFichas() {
 
             let finalStatus: any = appStatus === "REJECTED" ? "REJECTED" : (isDeptApproved ? "APPROVED" : "PENDING");
             
+            // ✅ ASIGNACIÓN DE LOS NUEVOS RESPONSABLES POR ÁREA
             if (finalStatus === "APPROVED" || finalStatus === "REJECTED") {
               if (dept.code === "ASOCIADOS") validatedById = usrAsociados?.id;
               else if (dept.code === "LOGISTICA") validatedById = usrLogistica?.id;
+              else if (dept.code === "COMUNICACIONES") validatedById = usrComunicaciones?.id; 
+              else if (dept.code === "LEGAL") validatedById = usrLegal?.id; 
               else if (dept.code === "COMITE") validatedById = usrComite?.id;
               else validatedById = usrDefaultAdmin?.id; 
             }
 
+            const historicalDate = ficha.fechaparob ? new Date(ficha.fechaparob) : (ficha.fechareg ? new Date(ficha.fechareg) : new Date());
+
             const validation = await tx.membershipValidation.create({
               data: {
                 applicationId: app.id, departmentId: dept.id, status: finalStatus,
-                validatedById: validatedById, validatedAt: validatedById ? (ficha.fechareg ? new Date(ficha.fechareg) : new Date()) : null,
+                validatedById: validatedById, 
+                validatedAt: validatedById ? historicalDate : null,
+                createdAt: ficha.fechareg ? new Date(ficha.fechareg) : new Date(), 
               },
             });
 
@@ -468,21 +479,25 @@ async function migrarFichas() {
                 data: {
                   validationId: validation.id, userId: validatedById, action: finalStatus,
                   comment: finalStatus === "APPROVED" ? "Aprobado en sistema Legacy." : "Rechazado en sistema Legacy.",
+                  createdAt: historicalDate
                 },
               });
             }
           }
         }
 
-        // I. PAGOS
+        // I. PAGOS CON FECHA HISTÓRICA
         if (ficha.montot && parseFloat(ficha.montot) > 0) {
+          const historicalPayDate = ficha.fechapago ? new Date(ficha.fechapago) : (ficha.fechareg ? new Date(ficha.fechareg) : new Date());
+          
           await tx.payment.create({
             data: {
               applicationId: app.id, gateway: "BANK_TRANSFER", totalAmount: parseFloat(ficha.montot),
               currency: ficha.moneda === "Dolares" ? "USD" : "PEN", status: appStatus === "COMPLETED" ? "PAID" : "PENDING",
               paymentDate: ficha.fechapago ? new Date(ficha.fechapago) : null,
+              createdAt: historicalPayDate,
               billing: ficha.compruc ? {
-                  create: { taxId: ficha.compruc, businessName: ficha.comprazon || "Legacy", billingAddress: ficha.compdirec, billingEmail: ficha.compcorreo },
+                  create: { taxId: ficha.compruc, businessName: ficha.comprazon || "Legacy", billingAddress: ficha.compdirec, billingEmail: ficha.compcorreo, createdAt: historicalPayDate },
                 } : undefined,
             },
           });

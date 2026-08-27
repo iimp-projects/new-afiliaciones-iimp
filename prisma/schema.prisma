@@ -1095,6 +1095,7 @@ enum ConfigDataType {
 enum VerificationChannel {
   EMAIL
   SMS
+  WHATSAPP
 }
 
 enum VerificationPurpose {

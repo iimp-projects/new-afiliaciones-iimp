@@ -1,10 +1,8 @@
 import { prisma } from '@/lib/prisma';
 import type { CurrentUserDTO } from './types';
+import { S3StorageService } from '@/modules/shared/Services/S3StorageService'; // ✅ IMPORTAMOS EL SERVICIO DE S3
 
 export class ContextRepository {
-  /**
-   * Obtiene el árbol completo de identidad (User + Person + Role + Permissions).
-   */
   async getHydratedUser(userId: number): Promise<CurrentUserDTO | null> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -22,7 +20,17 @@ export class ContextRepository {
 
     if (!user || !user.person || !user.role) return null;
 
-    // Convertimos el array de permisos en un Set<string> para optimizar búsquedas O(1)
+    // ✅ FIRMAMOS LA URL DE LA IMAGEN SI EXISTE
+    let finalImageUrl = user.image;
+    if (finalImageUrl) {
+      try {
+        const s3Service = new S3StorageService();
+        finalImageUrl = await s3Service.getPresignedUrl(finalImageUrl);
+      } catch (e) {
+        console.error("Error al firmar URL del avatar principal", e);
+      }
+    }
+
     const permissionsSet = new Set<string>();
     for (const rp of user.role.rolePermissions) {
       permissionsSet.add(`${rp.permission.action}:${rp.permission.subject}`);
@@ -31,6 +39,7 @@ export class ContextRepository {
     return {
       id: user.id,
       email: user.email,
+      image: finalImageUrl, 
       type: user.type,
       status: user.status,
       person: {

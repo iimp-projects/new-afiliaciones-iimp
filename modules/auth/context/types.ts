@@ -5,6 +5,7 @@ export interface CurrentUserDTO {
   email: string;
   type: UserType;
   status: UserStatus;
+  image: string | null;
   person: {
     firstName: string;
     paternalLastName: string;

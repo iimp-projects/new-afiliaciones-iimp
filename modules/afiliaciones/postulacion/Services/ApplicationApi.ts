@@ -75,12 +75,19 @@ export class ApplicationApi {
     );
   }
 
-  async sendRecoveryOtp(trackingCode: string): Promise<{ message: string }> {
-    return this.request<{ message: string }>(`${this.baseUrl}/send-otp`, {
+
+/**
+   * ============================================
+   * Enviar código OTP (Soporta EMAIL o SMS)
+   * ============================================
+   */
+ async sendRecoveryOtp(trackingCode: string, channel: 'EMAIL' | 'SMS' | 'WHATSAPP' = 'EMAIL'): Promise<{ success: boolean; message: string }> {
+    return this.request<{ success: boolean; message: string }>(`${this.baseUrl}/send-otp`, {
       method: "POST",
-      body: JSON.stringify({ trackingCode }),
+      body: JSON.stringify({ trackingCode, channel }),
     });
   }
+
 
   async verifyRecoveryOtp(
     trackingCode: string,
@@ -91,6 +98,8 @@ export class ApplicationApi {
       body: JSON.stringify({ trackingCode, code }),
     });
   }
+
+
 
   /**
    * ============================================

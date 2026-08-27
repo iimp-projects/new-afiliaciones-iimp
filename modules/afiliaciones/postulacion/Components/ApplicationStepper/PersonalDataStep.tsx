@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useState, forwardRef, useImperativeHandle, useRef } from "react";
+import {
+  useEffect,
+  useState,
+  forwardRef,
+  useImperativeHandle,
+  useRef,
+} from "react";
 import { useRouter } from "next/navigation";
 import {
   Fingerprint,
@@ -18,7 +24,9 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  Calendar
+  Calendar,
+  Mail,
+  Smartphone,
 } from "lucide-react";
 import type { PersonalInformation } from "../../Models/PersonalInformation";
 import { PersonalInformationValidator } from "../../Validators/PersonalInformationValidator";
@@ -82,7 +90,10 @@ const MiniSelect = ({
 
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
@@ -104,7 +115,10 @@ const MiniSelect = ({
         className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 text-slate-700 text-sm font-bold rounded-lg px-3 py-1.5 hover:border-[#C5A059] transition-colors focus:outline-none"
       >
         <span>{selectedLabel}</span>
-        <ChevronDown size={14} className={`text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+        <ChevronDown
+          size={14}
+          className={`text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
+        />
       </button>
 
       {isOpen && (
@@ -155,18 +169,31 @@ const PremiumDatePicker = ({
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Fecha máxima: exactamente 18 años atrás desde hoy[cite: 8]
   const today = new Date();
-  const maxDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+  const maxDate = new Date(
+    today.getFullYear() - 18,
+    today.getMonth(),
+    today.getDate(),
+  );
   maxDate.setHours(0, 0, 0, 0);
-  const maxDateString = maxDate.toISOString().split("T")[0];
 
-  const initialValue = value ? value.split("-") : [maxDate.getFullYear().toString(), (maxDate.getMonth() + 1).toString(), maxDate.getDate().toString()];
-  const [viewDate, setViewDate] = useState(new Date(Number(initialValue[0]), Number(initialValue[1]) - 1, 1));
+  const initialValue = value
+    ? value.split("-")
+    : [
+        maxDate.getFullYear().toString(),
+        (maxDate.getMonth() + 1).toString(),
+        maxDate.getDate().toString(),
+      ];
+  const [viewDate, setViewDate] = useState(
+    new Date(Number(initialValue[0]), Number(initialValue[1]) - 1, 1),
+  );
 
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
         setIsOpen(false);
         if (onBlur) onBlur();
       }
@@ -177,7 +204,7 @@ const PremiumDatePicker = ({
 
   const handleDateSelect = (day: number) => {
     const newDate = new Date(viewDate.getFullYear(), viewDate.getMonth(), day);
-    if (newDate > maxDate) return; 
+    if (newDate > maxDate) return;
 
     const yyyy = newDate.getFullYear();
     const mm = String(newDate.getMonth() + 1).padStart(2, "0");
@@ -186,24 +213,52 @@ const PremiumDatePicker = ({
     setIsOpen(false);
   };
 
-  const nextMonth = () => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1));
-  const prevMonth = () => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1));
+  const nextMonth = () =>
+    setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1));
+  const prevMonth = () =>
+    setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1));
 
-  const daysInMonth = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate();
-  const firstDayIndex = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1).getDay();
+  const daysInMonth = new Date(
+    viewDate.getFullYear(),
+    viewDate.getMonth() + 1,
+    0,
+  ).getDate();
+  const firstDayIndex = new Date(
+    viewDate.getFullYear(),
+    viewDate.getMonth(),
+    1,
+  ).getDay();
 
-  const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+  const months = [
+    "Enero",
+    "Febrero",
+    "Marzo",
+    "Abril",
+    "Mayo",
+    "Junio",
+    "Julio",
+    "Agosto",
+    "Septiembre",
+    "Octubre",
+    "Noviembre",
+    "Diciembre",
+  ];
   const minYear = today.getFullYear() - 100;
   const maxYear = maxDate.getFullYear();
-  const years = Array.from({ length: maxYear - minYear + 1 }, (_, i) => maxYear - i);
+  const years = Array.from(
+    { length: maxYear - minYear + 1 },
+    (_, i) => maxYear - i,
+  );
 
-  const displayValue = value ? `${value.split("-")[2]}/${value.split("-")[1]}/${value.split("-")[0]}` : "DD/MM/YYYY";
+  const displayValue = value
+    ? `${value.split("-")[2]}/${value.split("-")[1]}/${value.split("-")[0]}`
+    : "DD/MM/YYYY";
 
   const baseClass = disabled
     ? "bg-gray-50 border-gray-200 text-slate-400 cursor-not-allowed"
     : hasError
-    ? "border-red-500 bg-red-50/30 text-red-900"
-    : "border-gray-300 bg-white text-slate-700 hover:border-[#C5A059]";
+      ? "border-red-500 bg-red-50/30 text-red-900"
+      : "border-gray-300 bg-white text-slate-700 hover:border-[#C5A059]";
 
   return (
     <div className="relative w-full" ref={containerRef}>
@@ -213,37 +268,62 @@ const PremiumDatePicker = ({
         }`}
         onClick={() => !disabled && setIsOpen(!isOpen)}
       >
-        <span className={!value ? "text-gray-400 font-normal tracking-wide" : "tracking-wide"}>{displayValue}</span>
-        <Calendar size={18} className={disabled ? "text-gray-400" : "text-[#C5A059]"} />
+        <span
+          className={
+            !value ? "text-gray-400 font-normal tracking-wide" : "tracking-wide"
+          }
+        >
+          {displayValue}
+        </span>
+        <Calendar
+          size={18}
+          className={disabled ? "text-gray-400" : "text-[#C5A059]"}
+        />
       </div>
 
       {isOpen && !disabled && (
         <div className="absolute z-[100] w-[320px] mt-2 bg-white border border-gray-200 rounded-2xl shadow-[0_15px_50px_-15px_rgba(0,0,0,0.2)] p-4 animate-in fade-in slide-in-from-top-2">
-          {/* Cabecera: Mes y Año con Custom Selects */}
           <div className="flex items-center justify-between mb-4">
-            <button type="button" onClick={prevMonth} className="p-1.5 rounded-lg hover:bg-gray-100 text-slate-600 transition-colors">
+            <button
+              type="button"
+              onClick={prevMonth}
+              className="p-1.5 rounded-lg hover:bg-gray-100 text-slate-600 transition-colors"
+            >
               <ChevronLeft size={18} />
             </button>
             <div className="flex gap-2">
               <MiniSelect
                 value={viewDate.getMonth()}
                 options={months.map((m, i) => ({ value: i, label: m }))}
-                onChange={(val) => setViewDate(new Date(viewDate.getFullYear(), val, 1))}
+                onChange={(val) =>
+                  setViewDate(new Date(viewDate.getFullYear(), val, 1))
+                }
               />
               <MiniSelect
                 value={viewDate.getFullYear()}
-                options={years.map(y => ({ value: y, label: y.toString() }))}
-                onChange={(val) => setViewDate(new Date(val, viewDate.getMonth(), 1))}
+                options={years.map((y) => ({ value: y, label: y.toString() }))}
+                onChange={(val) =>
+                  setViewDate(new Date(val, viewDate.getMonth(), 1))
+                }
               />
             </div>
-            <button type="button" onClick={nextMonth} className="p-1.5 rounded-lg hover:bg-gray-100 text-slate-600 transition-colors">
+            <button
+              type="button"
+              onClick={nextMonth}
+              className="p-1.5 rounded-lg hover:bg-gray-100 text-slate-600 transition-colors"
+            >
               <ChevronRight size={18} />
             </button>
           </div>
 
           <div className="grid grid-cols-7 gap-1 text-center mb-2">
-            {["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sa"].map(d => (
-              <span key={d} className="text-[10px] font-bold text-gray-400 uppercase">{d}</span>
+            {["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sa"].map((d) => (
+              <span
+                key={d}
+                className="text-[10px] font-bold text-gray-400 uppercase"
+              >
+                {d}
+              </span>
             ))}
           </div>
 
@@ -253,9 +333,15 @@ const PremiumDatePicker = ({
             ))}
             {Array.from({ length: daysInMonth }).map((_, i) => {
               const day = i + 1;
-              const dateOfCell = new Date(viewDate.getFullYear(), viewDate.getMonth(), day);
-              const isOver18 = dateOfCell <= maxDate; 
-              const isSelected = value === `${viewDate.getFullYear()}-${String(viewDate.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+              const dateOfCell = new Date(
+                viewDate.getFullYear(),
+                viewDate.getMonth(),
+                day,
+              );
+              const isOver18 = dateOfCell <= maxDate;
+              const isSelected =
+                value ===
+                `${viewDate.getFullYear()}-${String(viewDate.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 
               return (
                 <button
@@ -267,8 +353,8 @@ const PremiumDatePicker = ({
                     !isOver18
                       ? "text-gray-300 cursor-not-allowed bg-transparent hover:bg-transparent"
                       : isSelected
-                      ? "bg-[#C5A059] text-white font-bold shadow-md shadow-[#C5A059]/40"
-                      : "text-slate-700 font-medium hover:bg-[#C5A059]/10 hover:text-[#C5A059]"
+                        ? "bg-[#C5A059] text-white font-bold shadow-md shadow-[#C5A059]/40"
+                        : "text-slate-700 font-medium hover:bg-[#C5A059]/10 hover:text-[#C5A059]"
                   }`}
                 >
                   {day}
@@ -283,7 +369,7 @@ const PremiumDatePicker = ({
 };
 
 // ========================================================
-// COMPONENTE: SELECT SIMPLE (Sin búsqueda, solo lista)
+// COMPONENTE: SELECT SIMPLE
 // ========================================================
 const SimpleSelect = ({
   options,
@@ -311,7 +397,10 @@ const SimpleSelect = ({
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
         if (onBlur) onBlur();
       }
@@ -325,8 +414,8 @@ const SimpleSelect = ({
   const baseClass = disabled
     ? "bg-gray-50 border-gray-200 text-slate-400 cursor-not-allowed"
     : hasError
-    ? "border-red-500 bg-red-50/30 text-red-900"
-    : "border-gray-300 bg-white text-slate-700 hover:border-[#C5A059]";
+      ? "border-red-500 bg-red-50/30 text-red-900"
+      : "border-gray-300 bg-white text-slate-700 hover:border-[#C5A059]";
 
   const roundedClass = isGrouped ? "rounded-l-xl border-r-0" : "rounded-xl";
 
@@ -340,7 +429,9 @@ const SimpleSelect = ({
           if (!disabled) setIsOpen(!isOpen);
         }}
       >
-        <span className={`truncate ${!selectedOption ? "text-gray-400 font-normal" : ""}`}>
+        <span
+          className={`truncate ${!selectedOption ? "text-gray-400 font-normal" : ""}`}
+        >
           {selectedOption ? selectedOption.name : placeholder}
         </span>
         <ChevronDown
@@ -366,7 +457,9 @@ const SimpleSelect = ({
                 }}
               >
                 <span className="truncate pr-2">{option.name}</span>
-                {value === option.id && <CheckCircle2 size={14} className="shrink-0" />}
+                {value === option.id && (
+                  <CheckCircle2 size={14} className="shrink-0" />
+                )}
               </div>
             ))}
           </div>
@@ -390,7 +483,7 @@ const SearchableSelect = ({
   emptyMessage = "No se encontraron resultados",
 }: {
   options: CatalogItem[];
-  value: number | string | null | undefined; 
+  value: number | string | null | undefined;
   onChange: (val: any) => void;
   onBlur?: () => void;
   disabled?: boolean;
@@ -404,7 +497,10 @@ const SearchableSelect = ({
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
         if (onBlur) onBlur();
       }
@@ -415,14 +511,14 @@ const SearchableSelect = ({
 
   const selectedOption = options.find((o) => o.id === value);
   const filteredOptions = options.filter((o) =>
-    o.name.toLowerCase().includes(searchTerm.toLowerCase())
+    o.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const baseClass = disabled
     ? "bg-gray-50 border-gray-200 text-slate-400 cursor-not-allowed"
     : hasError
-    ? "border-red-500 bg-red-50/30 text-red-900"
-    : "border-gray-300 bg-white text-slate-700 hover:border-[#C5A059]";
+      ? "border-red-500 bg-red-50/30 text-red-900"
+      : "border-gray-300 bg-white text-slate-700 hover:border-[#C5A059]";
 
   return (
     <div className="relative w-full" ref={containerRef}>
@@ -437,7 +533,9 @@ const SearchableSelect = ({
           }
         }}
       >
-        <span className={`truncate ${!selectedOption ? "text-gray-400 font-normal" : ""}`}>
+        <span
+          className={`truncate ${!selectedOption ? "text-gray-400 font-normal" : ""}`}
+        >
           {selectedOption ? selectedOption.name : placeholder}
         </span>
         <ChevronDown
@@ -450,7 +548,10 @@ const SearchableSelect = ({
         <div className="absolute z-[100] w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-[0_10px_40px_-15px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2">
           <div className="p-2 border-b border-gray-100 bg-gray-50/50">
             <div className="relative">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Search
+                size={14}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              />
               <input
                 type="text"
                 className="w-full bg-white border border-gray-200 rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059]/30 transition-all placeholder:text-gray-400"
@@ -478,7 +579,9 @@ const SearchableSelect = ({
                   }}
                 >
                   <span className="truncate pr-2">{option.name}</span>
-                  {value === option.id && <CheckCircle2 size={14} className="shrink-0" />}
+                  {value === option.id && (
+                    <CheckCircle2 size={14} className="shrink-0" />
+                  )}
                 </div>
               ))
             ) : (
@@ -496,7 +599,6 @@ const SearchableSelect = ({
 
 const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
   ({ value, saving = false, onSave, onNext, onValidityChange }, ref) => {
-    
     const router = useRouter();
     const [form, setForm] = useState<PersonalInformation>(
       value ?? emptyPersonalInformation,
@@ -507,14 +609,27 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
     const [touched, setTouched] = useState<Record<string, boolean>>({});
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [globalError, setGlobalError] = useState<string | null>(null);
-    const [searchFeedback, setSearchFeedback] = useState<{ type: 'success' | 'warning', message: string } | null>(null);
+    const [searchFeedback, setSearchFeedback] = useState<{
+      type: "success" | "warning";
+      message: string;
+    } | null>(null);
 
     const [isSearching, setIsSearching] = useState(false);
     const [isFormEnabled, setIsFormEnabled] = useState(false);
-    const [flowStatus, setFlowStatus] = useState<ValidationFlowStatus | null>(null);
-    const [recoveryData, setRecoveryData] = useState<{ trackingCode: string; email: string } | null>(null);
+    const [flowStatus, setFlowStatus] = useState<ValidationFlowStatus | null>(
+      null,
+    );
+
+    // ✅ NUEVOS ESTADOS PARA OTP Y CANAL DE COMUNICACIÓN
+    const [recoveryData, setRecoveryData] = useState<{
+      trackingCode: string;
+      email: string;
+      phone?: string;
+    } | null>(null);
+   const [channel, setChannel] = useState<'EMAIL' | 'SMS' | 'WHATSAPP'>('WHATSAPP');
+
     const [isUploadingFiles, setIsUploadingFiles] = useState(false);
-    
+
     const [securePhotoUrl, setSecurePhotoUrl] = useState<string | null>(null);
     const [secureDniUrl, setSecureDniUrl] = useState<string | null>(null);
 
@@ -545,18 +660,34 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
 
     useEffect(() => {
       const fetchSecureUrls = async () => {
-        if (form.photo && !(form.photo instanceof File) && (form.photo as any).url) {
+        if (
+          form.photo &&
+          !(form.photo instanceof File) &&
+          (form.photo as any).url
+        ) {
           try {
-            const url = await applicationApi.getSecureFileUrl((form.photo as any).url);
+            const url = await applicationApi.getSecureFileUrl(
+              (form.photo as any).url,
+            );
             setSecurePhotoUrl(url);
-          } catch (e) { console.error("Error al cargar foto de S3"); }
+          } catch (e) {
+            console.error("Error al cargar foto de S3");
+          }
         }
 
-        if (form.identityDocument && !(form.identityDocument instanceof File) && (form.identityDocument as any).url) {
+        if (
+          form.identityDocument &&
+          !(form.identityDocument instanceof File) &&
+          (form.identityDocument as any).url
+        ) {
           try {
-            const url = await applicationApi.getSecureFileUrl((form.identityDocument as any).url);
+            const url = await applicationApi.getSecureFileUrl(
+              (form.identityDocument as any).url,
+            );
             setSecureDniUrl(url);
-          } catch (e) { console.error("Error al cargar documento de S3"); }
+          } catch (e) {
+            console.error("Error al cargar documento de S3");
+          }
         }
       };
 
@@ -574,18 +705,17 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
         .catch((err) => console.error("Error cargando países:", err));
     }, []);
 
-    // 1. Cargar Departamentos según País
     useEffect(() => {
       if (form.countryId && form.countryId !== 0) {
         fetch(`/api/catalogs/${form.countryId}/departments`)
           .then(async (res) => {
-            if (!res.ok) throw new Error(`Error API Departamentos: ${res.status}`);
+            if (!res.ok)
+              throw new Error(`Error API Departamentos: ${res.status}`);
             return res.json();
           })
           .then((data: CatalogItem[]) => {
             setDepartments(data);
 
-            // Si el país no tiene departamentos (ej. Andorra, Mónaco, Vatican)
             if (data.length === 0) {
               setForm((prev) => ({
                 ...prev,
@@ -607,7 +737,6 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
       }
     }, [form.countryId]);
 
-    // 2. Cargar Provincias según Departamento
     useEffect(() => {
       if (form.departmentId) {
         fetch(`/api/catalogs/${form.departmentId}/provinces`)
@@ -618,7 +747,6 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
           .then((data: CatalogItem[]) => {
             setProvinces(data);
 
-            // Si el departamento no tiene provincias
             if (data.length === 0) {
               setForm((prev) => ({
                 ...prev,
@@ -638,7 +766,6 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
       }
     }, [form.departmentId]);
 
-    // 3. Cargar Distritos según Provincia
     useEffect(() => {
       if (form.provinceId) {
         fetch(`/api/catalogs/${form.provinceId}/districts`)
@@ -649,7 +776,6 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
           .then((data: CatalogItem[]) => {
             setDistricts(data);
 
-            // Si la provincia no tiene distritos
             if (data.length === 0) {
               setForm((prev) => ({ ...prev, districtId: null }));
               setErrors((prev) => ({ ...prev, districtId: "" }));
@@ -662,15 +788,25 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
     }, [form.provinceId]);
 
     const handleSearchDocument = async () => {
-      setTouched((prev) => ({ ...prev, documentType: true, documentNumber: true }));
-      
+      setTouched((prev) => ({
+        ...prev,
+        documentType: true,
+        documentNumber: true,
+      }));
+
       const validator = new PersonalInformationValidator();
       const currentResult = validator.validate(form);
-      const docTypeError = currentResult.errors.find(e => e.field === "documentType");
-      const docNumError = currentResult.errors.find(e => e.field === "documentNumber");
+      const docTypeError = currentResult.errors.find(
+        (e) => e.field === "documentType",
+      );
+      const docNumError = currentResult.errors.find(
+        (e) => e.field === "documentNumber",
+      );
 
       if (docTypeError || docNumError) {
-        setGlobalError("Revise los errores en el tipo o número de documento antes de buscar.");
+        setGlobalError(
+          "Revise los errores en el tipo o número de documento antes de buscar.",
+        );
         return;
       }
 
@@ -680,7 +816,10 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
       setIsFormEnabled(false);
 
       try {
-        const response = await applicationApi.validateDocument(form.documentType, form.documentNumber);
+        const response = await applicationApi.validateDocument(
+          form.documentType,
+          form.documentNumber,
+        );
         setFlowStatus(response.status);
 
         switch (response.status) {
@@ -688,8 +827,11 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
             setIsFormEnabled(true);
             if (response.person?.firstName) {
               setIsReniecFetched(true);
-              setSearchFeedback({ type: 'success', message: 'Datos identificados exitosamente.' });
-              setForm(prev => ({
+              setSearchFeedback({
+                type: "success",
+                message: "Datos identificados exitosamente.",
+              });
+              setForm((prev) => ({
                 ...prev,
                 names: response.person!.firstName,
                 fatherLastName: response.person!.paternalLastName,
@@ -697,19 +839,26 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
               }));
             } else {
               setIsReniecFetched(false);
-              setSearchFeedback({ type: 'warning', message: 'Documento no encontrado. Por favor, ingrese sus datos manualmente.' });
+              setSearchFeedback({
+                type: "warning",
+                message:
+                  "Documento no encontrado. Por favor, ingrese sus datos manualmente.",
+              });
             }
             break;
           case "REJECTED":
             setIsFormEnabled(true);
-            // Si la respuesta incluye nombres cargados previamente de RENIEC, se bloquea; de lo contrario no
             if (response.person?.firstName) {
               setIsReniecFetched(true);
             } else {
               setIsReniecFetched(false);
             }
-            setSearchFeedback({ type: 'warning', message: 'Existe una solicitud anterior no procedente. Puede iniciar una nueva postulación.' });
-            setForm(prev => ({
+            setSearchFeedback({
+              type: "warning",
+              message:
+                "Existe una solicitud anterior no procedente. Puede iniciar una nueva postulación.",
+            });
+            setForm((prev) => ({
               ...prev,
               names: response.person?.firstName || "",
               fatherLastName: response.person?.paternalLastName || "",
@@ -719,7 +868,12 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
           case "DRAFT":
             setIsReniecFetched(false);
             if (response.trackingCode && response.email) {
-              setRecoveryData({ trackingCode: response.trackingCode, email: response.email });
+              // ✅ Guardamos email y teléfono para el selector de OTP
+              setRecoveryData({
+                trackingCode: response.trackingCode,
+                email: response.email,
+                phone: (response as any).phone || form.phone,
+              });
               setShowDraftModal(true);
             }
             break;
@@ -731,17 +885,24 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
         }
       } catch (err: any) {
         setIsReniecFetched(false);
-        setGlobalError("Ocurrió un error al consultar el documento en el servidor.");
+        setGlobalError(
+          "Ocurrió un error al consultar el documento en el servidor.",
+        );
       } finally {
         setIsSearching(false);
       }
     };
 
+    // ✅ ACTUALIZAMOS HANDLER PARA ENVIAR EL CANAL
     const handleSendOtp = async () => {
       if (!recoveryData) return;
       setIsOtpProcessing(true);
       try {
-        await applicationApi.sendRecoveryOtp(recoveryData.trackingCode);
+        // Envíamos al backend trackingCode + canal seleccionado
+        await applicationApi.sendRecoveryOtp(
+          recoveryData.trackingCode,
+          channel as any,
+        );
         setShowDraftModal(false);
         setShowOtpModal(true);
       } catch (err: any) {
@@ -756,7 +917,10 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
       setIsOtpProcessing(true);
       setOtpError("");
       try {
-        await applicationApi.verifyRecoveryOtp(recoveryData.trackingCode, otpCode);
+        await applicationApi.verifyRecoveryOtp(
+          recoveryData.trackingCode,
+          otpCode,
+        );
         window.location.href = `?trackingCode=${recoveryData.trackingCode}`;
       } catch (err: any) {
         setOtpError(err.message || "Código incorrecto.");
@@ -774,31 +938,34 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
 
       if (typeof rawValue === "string") {
         if (["names", "fatherLastName", "motherLastName"].includes(field)) {
-          sanitizedValue = rawValue.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, "").slice(0, 100) as any;
+          sanitizedValue = rawValue
+            .replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, "")
+            .slice(0, 100) as any;
         } else if (field === "phone") {
           sanitizedValue = rawValue.replace(/\D/g, "").slice(0, 9) as any;
         } else if (field === "documentNumber") {
           if (form.documentType === "DNI") {
             sanitizedValue = rawValue.replace(/\D/g, "").slice(0, 8) as any;
           } else {
-            sanitizedValue = rawValue.replace(/[^A-Za-z0-9]/gi, "").slice(0, 12) as any;
+            sanitizedValue = rawValue
+              .replace(/[^A-Za-z0-9]/gi, "")
+              .slice(0, 12) as any;
           }
         } else if (field === "address") {
-          sanitizedValue = rawValue.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s,.\-°]/g, "").slice(0, 250) as any;
+          sanitizedValue = rawValue
+            .replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s,.\-°]/g, "")
+            .slice(0, 250) as any;
         }
       }
 
       const newForm = { ...form, [field]: sanitizedValue };
 
-      // Reseteos en cascada al cambiar ubicación
       if (field === "documentType") {
         newForm.documentNumber = "";
-        // Si selecciona Carné de Extranjería o Pasaporte, se activa la edición manual
         if (sanitizedValue === "CE" || sanitizedValue === "PASSPORT") {
           setIsFormEnabled(true);
           setIsReniecFetched(false);
         } else if (sanitizedValue === "DNI") {
-          // Si selecciona DNI, se bloquea el formulario a la espera de la búsqueda RENIEC
           setIsFormEnabled(false);
           setIsReniecFetched(false);
         }
@@ -832,9 +999,6 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
       setTouched((prev) => ({ ...prev, [field]: true }));
     }
 
-    // ========================================================
-    // LOGICA DE SUBIDA A S3 Y GUARDADO 
-    // ========================================================
     useImperativeHandle(ref, () => ({
       submit: async () => {
         setGlobalError(null);
@@ -860,39 +1024,53 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
 
         try {
           setIsUploadingFiles(true);
-          
+
           let photoPayload: any = form.photo;
           let identityDocPayload: any = form.identityDocument;
 
-          if (typeof window !== "undefined" && form.photo instanceof window.File) {
-            photoPayload = await applicationApi.uploadFile(form.photo as File, "afiliaciones/fotos");
+          if (
+            typeof window !== "undefined" &&
+            form.photo instanceof window.File
+          ) {
+            photoPayload = await applicationApi.uploadFile(
+              form.photo as File,
+              "afiliaciones/fotos",
+            );
           }
 
-          if (typeof window !== "undefined" && form.identityDocument instanceof window.File) {
-            identityDocPayload = await applicationApi.uploadFile(form.identityDocument as File, "afiliaciones/documentos");
+          if (
+            typeof window !== "undefined" &&
+            form.identityDocument instanceof window.File
+          ) {
+            identityDocPayload = await applicationApi.uploadFile(
+              form.identityDocument as File,
+              "afiliaciones/documentos",
+            );
           }
 
           const formWithS3Urls: any = {
             ...form,
             photo: photoPayload,
-            identityDocument: identityDocPayload
+            identityDocument: identityDocPayload,
           };
 
           await onSave(formWithS3Urls);
           onNext();
-
         } catch (error: any) {
-          setGlobalError(error.message || "Ocurrió un error al subir los archivos a S3 o guardar los datos.");
+          setGlobalError(
+            error.message ||
+              "Ocurrió un error al subir los archivos a S3 o guardar los datos.",
+          );
         } finally {
           setIsUploadingFiles(false);
         }
       },
     }));
 
-    // ========================================================
-    // CLASES VISUALES DINÁMICAS
-    // ========================================================
-    const getSearchInputClass = (field: keyof PersonalInformation, isGrouped: boolean = false) => {
+    const getSearchInputClass = (
+      field: keyof PersonalInformation,
+      isGrouped: boolean = false,
+    ) => {
       const hasError = touched[field] && errors[field];
       const baseRounded = isGrouped ? "rounded-l-xl border-r-0" : "rounded-xl";
       return `w-full h-12 px-3 text-sm focus:outline-none focus:ring-2 relative focus:z-10 font-medium transition-colors ${baseRounded} ${
@@ -902,8 +1080,10 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
       }`;
     };
 
-    const getInputClass = (field: keyof PersonalInformation, isDisabledField: boolean = false) => {
-      //Estado Bloqueado (ya sea por Formulario deshabilitado o por RENIEC)
+    const getInputClass = (
+      field: keyof PersonalInformation,
+      isDisabledField: boolean = false,
+    ) => {
       if (!isFormEnabled || isDisabledField) {
         return "w-full h-11 px-3 rounded-xl border border-gray-200 bg-gray-100 text-slate-500 font-medium cursor-not-allowed focus:outline-none transition-colors select-none";
       }
@@ -916,7 +1096,12 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
     };
 
     const getErrorText = (field: keyof PersonalInformation) => {
-      if (!isFormEnabled && field !== "documentType" && field !== "documentNumber") return null;
+      if (
+        !isFormEnabled &&
+        field !== "documentType" &&
+        field !== "documentNumber"
+      )
+        return null;
       return touched[field] && errors[field] ? (
         <span className="text-red-500 text-xs mt-1.5 font-bold block animate-in fade-in slide-in-from-top-1">
           {errors[field]}
@@ -930,11 +1115,12 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
       }
       const hasError = touched[field] && errors[field];
       return `group cursor-pointer relative overflow-hidden h-[260px] w-full border-2 border-dashed rounded-2xl p-6 transition-all duration-300 flex flex-col items-center justify-center text-center ${
-        hasError ? "border-red-400 bg-red-50/30" : "border-gray-300 hover:border-[#C5A059] hover:bg-gray-50 bg-white"
+        hasError
+          ? "border-red-400 bg-red-50/30"
+          : "border-gray-300 hover:border-[#C5A059] hover:bg-gray-50 bg-white"
       }`;
     };
 
-    // Construcción de Previsualizaciones (Local vs S3)
     let fotoPreviewFinal: string | null = null;
     if (typeof window !== "undefined" && form.photo instanceof window.File) {
       fotoPreviewFinal = URL.createObjectURL(form.photo as File);
@@ -942,8 +1128,12 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
       fotoPreviewFinal = securePhotoUrl;
     }
 
-    let dniPreviewFinal: { name: string; url: string; type: string } | null = null;
-    if (typeof window !== "undefined" && form.identityDocument instanceof window.File) {
+    let dniPreviewFinal: { name: string; url: string; type: string } | null =
+      null;
+    if (
+      typeof window !== "undefined" &&
+      form.identityDocument instanceof window.File
+    ) {
       dniPreviewFinal = {
         name: (form.identityDocument as File).name,
         url: URL.createObjectURL(form.identityDocument as File),
@@ -957,43 +1147,144 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
       };
     }
 
-    // LOGICA DE DESHABILITACIÓN EN CASCADA
-    const isDeptDisabled = !isFormEnabled || !form.countryId || departments.length === 0;
-    const isProvDisabled = isDeptDisabled || !form.departmentId || provinces.length === 0;
-    const isDistDisabled = isProvDisabled || !form.provinceId || districts.length === 0;
+    const isDeptDisabled =
+      !isFormEnabled || !form.countryId || departments.length === 0;
+    const isProvDisabled =
+      isDeptDisabled || !form.departmentId || provinces.length === 0;
+    const isDistDisabled =
+      isProvDisabled || !form.provinceId || districts.length === 0;
 
     return (
       <div className="space-y-8">
-
         {isUploadingFiles && (
           <div className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
             <div className="bg-white rounded-3xl p-8 flex flex-col items-center shadow-2xl animate-in zoom-in-95">
-              <svg className="animate-spin h-12 w-12 text-[#C5A059] mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              <svg
+                className="animate-spin h-12 w-12 text-[#C5A059] mb-4"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
               </svg>
-              <h3 className="text-lg font-bold text-[#2F3136]">Subiendo documentos...</h3>
-              <p className="text-sm text-gray-500 mt-2">Asegurando sus archivos en la nube de AWS.</p>
+              <h3 className="text-lg font-bold text-[#2F3136]">
+                Subiendo documentos...
+              </h3>
+              <p className="text-sm text-gray-500 mt-2">
+                Asegurando sus archivos en la nube de AWS.
+              </p>
             </div>
           </div>
         )}
-        
-        {/* MODALES REACTIVOS */}
+
+        {/* ✅ MODAL DE BORRADOR ACTUALIZADO CON OPCIONES EMAIL / SMS */}
         {showDraftModal && (
           <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
             <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl animate-in zoom-in-95">
               <div className="w-16 h-16 bg-[#C5A059]/10 rounded-full flex items-center justify-center mb-6 mx-auto">
                 <Clock className="w-8 h-8 text-[#C5A059]" />
               </div>
-              <h3 className="text-xl font-bold text-center text-[#2F3136] mb-3">Encontramos una postulación en proceso</h3>
+              <h3 className="text-xl font-bold text-center text-[#2F3136] mb-3">
+                Encontramos una postulación en proceso
+              </h3>
               <p className="text-sm text-gray-500 text-center mb-6 leading-relaxed">
-                Hemos encontrado una solicitud en estado de borrador asociada al documento ingresado. Enviaremos un código de seguridad a <strong>{recoveryData?.email}</strong> para que puedas continuar donde te quedaste.
+                Hemos encontrado una solicitud en estado de borrador asociada al
+                documento ingresado. Selecciona cómo deseas recibir tu código de
+                seguridad para continuar.
               </p>
+
+              {/* OPCIONES DE ENVÍO */}
+              <div className="mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  
+                  {/* Opción WhatsApp */}
+                  <label 
+                    className={`flex flex-col items-center justify-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                      channel === 'WHATSAPP' 
+                      ? 'border-[#25D366] bg-[#25D366]/5 shadow-sm' 
+                      : 'border-slate-200 hover:border-[#25D366]/50 bg-white'
+                    }`}
+                    onClick={() => setChannel('WHATSAPP')}
+                  >
+                    <div className="relative">
+                      {/* SVG Oficial de WhatsApp */}
+                      <svg viewBox="0 0 24 24" width="28" height="28" className={channel === 'WHATSAPP' ? 'fill-[#25D366]' : 'fill-slate-400'}>
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.452-.885-.77-1.482-1.72-1.655-2.018-.173-.298-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51h-.57c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                      </svg>
+                      {channel === 'WHATSAPP' && <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[#25D366] rounded-full border-2 border-white"></div>}
+                    </div>
+                    <div className="flex flex-col items-center text-center">
+                      <span className={`text-[13px] font-bold ${channel === 'WHATSAPP' ? 'text-[#1da851]' : 'text-slate-600'}`}>WhatsApp</span>
+                    </div>
+                  </label>
+
+                  {/* Opción Correo */}
+                  <label 
+                    className={`flex flex-col items-center justify-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                      channel === 'EMAIL' 
+                      ? 'border-[#C5A059] bg-[#C5A059]/5 shadow-sm' 
+                      : 'border-slate-200 hover:border-[#C5A059]/50 bg-white'
+                    }`}
+                    onClick={() => setChannel('EMAIL')}
+                  >
+                    <div className="relative">
+                      <Mail size={28} className={channel === 'EMAIL' ? 'text-[#C5A059]' : 'text-slate-400'} />
+                      {channel === 'EMAIL' && <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[#C5A059] rounded-full border-2 border-white"></div>}
+                    </div>
+                    <div className="flex flex-col items-center text-center">
+                      <span className={`text-[13px] font-bold ${channel === 'EMAIL' ? 'text-[#a3722a]' : 'text-slate-600'}`}>Correo</span>
+                    </div>
+                  </label>
+
+                  {/* Opción SMS */}
+                  <label 
+                    className={`flex flex-col items-center justify-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                      channel === 'SMS' 
+                      ? 'border-[#C5A059] bg-[#C5A059]/5 shadow-sm' 
+                      : 'border-slate-200 hover:border-[#C5A059]/50 bg-white'
+                    }`}
+                    onClick={() => setChannel('SMS')}
+                  >
+                    <div className="relative">
+                      <Smartphone size={28} className={channel === 'SMS' ? 'text-[#C5A059]' : 'text-slate-400'} />
+                      {channel === 'SMS' && <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[#C5A059] rounded-full border-2 border-white"></div>}
+                    </div>
+                    <div className="flex flex-col items-center text-center">
+                      <span className={`text-[13px] font-bold ${channel === 'SMS' ? 'text-[#a3722a]' : 'text-slate-600'}`}>SMS</span>
+                    </div>
+                  </label>
+
+                </div>
+              </div>
+
+
+
               <div className="flex flex-col gap-3">
-                <button onClick={handleSendOtp} disabled={isOtpProcessing} className="w-full h-12 bg-[#2F3136] text-white rounded-xl font-bold text-sm hover:bg-black transition-colors flex items-center justify-center">
-                  {isOtpProcessing ? "Enviando..." : "Enviar código de verificación"}
+                <button
+                  onClick={handleSendOtp}
+                  disabled={isOtpProcessing}
+                  className="w-full h-12 bg-[#2F3136] text-white rounded-xl font-bold text-sm hover:bg-black transition-colors flex items-center justify-center"
+                >
+                  {isOtpProcessing
+                    ? "Enviando..."
+                    : `Enviar código por ${channel === "EMAIL" ? "Correo" : "SMS"}`}
                 </button>
-                <button onClick={() => setShowDraftModal(false)} className="w-full h-12 bg-white border border-gray-200 text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-50 transition-colors">
+                <button
+                  onClick={() => setShowDraftModal(false)}
+                  className="w-full h-12 bg-white border border-gray-200 text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-50 transition-colors"
+                >
                   Cancelar
                 </button>
               </div>
@@ -1007,25 +1298,41 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
               <div className="w-16 h-16 bg-[#2F3136]/5 rounded-full flex items-center justify-center mb-6 mx-auto">
                 <ShieldAlert className="w-8 h-8 text-[#2F3136]" />
               </div>
-              <h3 className="text-xl font-bold text-center text-[#2F3136] mb-2">Verificación de Seguridad</h3>
-              <p className="text-sm text-gray-500 text-center mb-6">Ingresa el código de 6 dígitos enviado a tu correo.</p>
-              
-              {otpError && <p className="text-xs text-red-500 text-center mb-4 font-bold">{otpError}</p>}
-              
-              <input 
-                type="text" 
-                maxLength={6} 
+              <h3 className="text-xl font-bold text-center text-[#2F3136] mb-2">
+                Verificación de Seguridad
+              </h3>
+              <p className="text-sm text-gray-500 text-center mb-6">
+                Ingresa el código de 6 dígitos enviado a tu{" "}
+                {channel === "EMAIL" ? "correo" : "celular"}.
+              </p>
+
+              {otpError && (
+                <p className="text-xs text-red-500 text-center mb-4 font-bold">
+                  {otpError}
+                </p>
+              )}
+
+              <input
+                type="text"
+                maxLength={6}
                 value={otpCode}
-                onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
                 className="w-full h-14 bg-gray-50 border border-gray-200 rounded-xl text-center text-2xl tracking-[0.5em] font-bold text-[#C5A059] focus:outline-none focus:border-[#C5A059] focus:ring-2 focus:ring-[#C5A059]/20 mb-6"
                 placeholder="------"
               />
 
               <div className="flex flex-col gap-3">
-                <button onClick={handleVerifyOtp} disabled={isOtpProcessing || otpCode.length < 6} className="w-full h-12 bg-[#C5A059] text-white rounded-xl font-bold text-sm hover:bg-[#b58f48] disabled:opacity-50 transition-colors">
+                <button
+                  onClick={handleVerifyOtp}
+                  disabled={isOtpProcessing || otpCode.length < 6}
+                  className="w-full h-12 bg-[#C5A059] text-white rounded-xl font-bold text-sm hover:bg-[#b58f48] disabled:opacity-50 transition-colors"
+                >
                   {isOtpProcessing ? "Verificando..." : "Validar Código"}
                 </button>
-                <button onClick={() => setShowOtpModal(false)} className="w-full h-12 bg-white text-gray-500 font-bold text-sm hover:underline transition-colors">
+                <button
+                  onClick={() => setShowOtpModal(false)}
+                  className="w-full h-12 bg-white text-gray-500 font-bold text-sm hover:underline transition-colors"
+                >
                   Cancelar
                 </button>
               </div>
@@ -1039,15 +1346,25 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
               <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mb-6 mx-auto">
                 <UserCircle2 className="w-8 h-8 text-emerald-600" />
               </div>
-              <h3 className="text-xl font-bold text-center text-[#2F3136] mb-3">Ya eres parte del IIMP</h3>
+              <h3 className="text-xl font-bold text-center text-[#2F3136] mb-3">
+                Ya eres parte del IIMP
+              </h3>
               <p className="text-sm text-gray-500 text-center mb-8 leading-relaxed">
-                El documento ingresado pertenece a un Asociado Activo o tiene una postulación aprobada. No es necesario registrar una nueva solicitud.
+                El documento ingresado pertenece a un Asociado Activo o tiene
+                una postulación aprobada. No es necesario registrar una nueva
+                solicitud.
               </p>
               <div className="flex flex-col gap-3">
-                <button onClick={() => router.push("/login")} className="w-full h-12 bg-[#2F3136] text-white rounded-xl font-bold text-sm hover:bg-black transition-colors">
+                <button
+                  onClick={() => router.push("/login")}
+                  className="w-full h-12 bg-[#2F3136] text-white rounded-xl font-bold text-sm hover:bg-black transition-colors"
+                >
                   Ir al Portal del Asociado
                 </button>
-                <button onClick={() => setShowAssociateModal(false)} className="w-full h-12 bg-white border border-gray-200 text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-50 transition-colors">
+                <button
+                  onClick={() => setShowAssociateModal(false)}
+                  className="w-full h-12 bg-white border border-gray-200 text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-50 transition-colors"
+                >
                   Cerrar
                 </button>
               </div>
@@ -1063,8 +1380,14 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
         )}
 
         {searchFeedback && (
-          <div className={`p-4 rounded-xl border font-bold text-sm flex items-center gap-3 shadow-sm ${searchFeedback.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-amber-50 border-amber-200 text-amber-700'}`}>
-            {searchFeedback.type === 'success' ? <CheckCircle2 className="w-5 h-5 shrink-0" /> : <Info className="w-5 h-5 shrink-0" />}
+          <div
+            className={`p-4 rounded-xl border font-bold text-sm flex items-center gap-3 shadow-sm ${searchFeedback.type === "success" ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-amber-50 border-amber-200 text-amber-700"}`}
+          >
+            {searchFeedback.type === "success" ? (
+              <CheckCircle2 className="w-5 h-5 shrink-0" />
+            ) : (
+              <Info className="w-5 h-5 shrink-0" />
+            )}
             {searchFeedback.message}
           </div>
         )}
@@ -1112,7 +1435,7 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
                 options={[
                   { id: "DNI", name: "DNI" },
                   { id: "CE", name: "Carné de Extranjería" },
-                  { id: "PASSPORT", name: "Pasaporte" }
+                  { id: "PASSPORT", name: "Pasaporte" },
                 ]}
                 placeholder="Seleccionar documento"
                 value={form.documentType}
@@ -1134,24 +1457,48 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
                   type="text"
                   placeholder="Ingrese número de documento"
                   value={form.documentNumber}
-                  onChange={(e) => updateField("documentNumber", e.target.value)}
+                  onChange={(e) =>
+                    updateField("documentNumber", e.target.value)
+                  }
                   onBlur={() => handleBlur("documentNumber")}
                   className={`h-12 ${getSearchInputClass("documentNumber", true)}`}
                 />
                 <button
                   type="button"
                   onClick={handleSearchDocument}
-                  disabled={ isSearching || !form.documentNumber || form.documentType !== "DNI" }
+                  disabled={
+                    isSearching ||
+                    !form.documentNumber ||
+                    form.documentType !== "DNI"
+                  }
                   className={`h-12 px-5 flex items-center justify-center rounded-r-xl transition-all duration-300 border-y border-r shadow-sm z-0 ${
-                    isSearching || !form.documentNumber || form.documentType !== "DNI"
+                    isSearching ||
+                    !form.documentNumber ||
+                    form.documentType !== "DNI"
                       ? "bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed shadow-none"
                       : "bg-[#D4A353] hover:bg-[#C5A059] text-white border-[#D4A353] hover:border-[#C5A059]"
                   }`}
                 >
                   {isSearching ? (
-                    <svg className="animate-spin h-5 w-5 text-white/70" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <svg
+                      className="animate-spin h-5 w-5 text-white/70"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
                     </svg>
                   ) : (
                     <Search size={20} strokeWidth={2.5} />
@@ -1254,7 +1601,7 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
                   <SimpleSelect
                     options={[
                       { id: "MALE", name: "Masculino" },
-                      { id: "FEMALE", name: "Femenino" }
+                      { id: "FEMALE", name: "Femenino" },
                     ]}
                     placeholder="Seleccione..."
                     value={form.gender}
@@ -1326,11 +1673,11 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
                   <div className="bg-blue-50 text-blue-700 border border-blue-100 text-[11px] px-3 py-1.5 rounded-full font-bold flex items-center gap-1.5 shadow-sm">
                     <Info size={14} className="shrink-0" />
                     <span>
-                      {!form.countryId 
-                        ? "Seleccione un país para desglosar sus subdivisiones." 
-                        : departments.length === 0 
-                        ? "El país seleccionado no requiere subdivisiones adicionales." 
-                        : "Las opciones se habilitan según la disponibilidad del país seleccionado."}
+                      {!form.countryId
+                        ? "Seleccione un país para desglosar sus subdivisiones."
+                        : departments.length === 0
+                          ? "El país seleccionado no requiere subdivisiones adicionales."
+                          : "Las opciones se habilitan según la disponibilidad del país seleccionado."}
                     </span>
                   </div>
                 )}
@@ -1345,7 +1692,9 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
                     options={countries}
                     placeholder="Seleccione..."
                     value={form.countryId}
-                    onChange={(val) => updateField("countryId", val === "" ? 0 : val)}
+                    onChange={(val) =>
+                      updateField("countryId", val === "" ? 0 : val)
+                    }
                     onBlur={() => handleBlur("countryId")}
                     disabled={!isFormEnabled}
                     hasError={touched.countryId && !!errors.countryId}
@@ -1365,11 +1714,13 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
                       !form.countryId
                         ? "Seleccione..."
                         : departments.length === 0
-                        ? "País sin departamentos"
-                        : "Seleccione..."
+                          ? "País sin departamentos"
+                          : "Seleccione..."
                     }
                     value={form.departmentId}
-                    onChange={(val) => updateField("departmentId", val === "" ? undefined : val)}
+                    onChange={(val) =>
+                      updateField("departmentId", val === "" ? undefined : val)
+                    }
                     onBlur={() => handleBlur("departmentId")}
                     disabled={isDeptDisabled}
                     hasError={touched.departmentId && !!errors.departmentId}
@@ -1390,11 +1741,13 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
                       !form.departmentId
                         ? "Seleccione..."
                         : provinces.length === 0
-                        ? "Departamento sin provincias"
-                        : "Seleccione..."
+                          ? "Departamento sin provincias"
+                          : "Seleccione..."
                     }
                     value={form.provinceId}
-                    onChange={(val) => updateField("provinceId", val === "" ? undefined : val)}
+                    onChange={(val) =>
+                      updateField("provinceId", val === "" ? undefined : val)
+                    }
                     onBlur={() => handleBlur("provinceId")}
                     disabled={isProvDisabled}
                     hasError={touched.provinceId && !!errors.provinceId}
@@ -1415,11 +1768,13 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
                       !form.provinceId
                         ? "Seleccione..."
                         : districts.length === 0
-                        ? "Provincia sin distritos"
-                        : "Seleccione..."
+                          ? "Provincia sin distritos"
+                          : "Seleccione..."
                     }
                     value={form.districtId}
-                    onChange={(val) => updateField("districtId", val === "" ? undefined : val)}
+                    onChange={(val) =>
+                      updateField("districtId", val === "" ? undefined : val)
+                    }
                     onBlur={() => handleBlur("districtId")}
                     disabled={isDistDisabled}
                     hasError={touched.districtId && !!errors.districtId}
@@ -1494,13 +1849,19 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
                     </div>
                   ) : (
                     <>
-                      <div className={`w-14 h-14 rounded-full flex items-center justify-center mb-4 transition-colors ${!isFormEnabled ? "bg-[#e2e8f0] text-[#9ca3af]" : "bg-gray-100 text-gray-400 group-hover:bg-[#C5A059]/10 group-hover:text-[#C5A059]"}`}>
+                      <div
+                        className={`w-14 h-14 rounded-full flex items-center justify-center mb-4 transition-colors ${!isFormEnabled ? "bg-[#e2e8f0] text-[#9ca3af]" : "bg-gray-100 text-gray-400 group-hover:bg-[#C5A059]/10 group-hover:text-[#C5A059]"}`}
+                      >
                         <ImageIcon className="w-6 h-6" />
                       </div>
-                      <h3 className={`text-sm font-bold mb-1 ${!isFormEnabled ? "text-[#9ca3af]" : "text-[#2F3136]"}`}>
+                      <h3
+                        className={`text-sm font-bold mb-1 ${!isFormEnabled ? "text-[#9ca3af]" : "text-[#2F3136]"}`}
+                      >
                         Fotografía Personal
                       </h3>
-                      <p className={`text-xs mb-4 max-w-[200px] ${!isFormEnabled ? "text-[#9ca3af]" : "text-gray-500"}`}>
+                      <p
+                        className={`text-xs mb-4 max-w-[200px] ${!isFormEnabled ? "text-[#9ca3af]" : "text-gray-500"}`}
+                      >
                         Tamaño carnet o pasaporte, fondo claro y alta
                         resolución.
                       </p>
@@ -1568,10 +1929,14 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
                       </div>
                     ) : (
                       <div className="flex flex-col items-center justify-center h-full w-full relative z-10">
-                        <div className={`w-14 h-14 rounded-full flex items-center justify-center mb-4 transition-colors ${!isFormEnabled ? "bg-[#e2e8f0] text-[#9ca3af]" : "bg-emerald-50 text-emerald-500"}`}>
+                        <div
+                          className={`w-14 h-14 rounded-full flex items-center justify-center mb-4 transition-colors ${!isFormEnabled ? "bg-[#e2e8f0] text-[#9ca3af]" : "bg-emerald-50 text-emerald-500"}`}
+                        >
                           <CheckCircle2 className="w-7 h-7" />
                         </div>
-                        <h3 className={`text-sm font-bold mb-1 ${!isFormEnabled ? "text-[#9ca3af]" : "text-[#2F3136]"}`}>
+                        <h3
+                          className={`text-sm font-bold mb-1 ${!isFormEnabled ? "text-[#9ca3af]" : "text-[#2F3136]"}`}
+                        >
                           Documento Cargado
                         </h3>
                         <p
@@ -1584,13 +1949,19 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
                     )
                   ) : (
                     <>
-                      <div className={`w-14 h-14 rounded-full flex items-center justify-center mb-4 transition-colors ${!isFormEnabled ? "bg-[#e2e8f0] text-[#9ca3af]" : "bg-gray-100 text-gray-400 group-hover:bg-[#C5A059]/10 group-hover:text-[#C5A059]"}`}>
+                      <div
+                        className={`w-14 h-14 rounded-full flex items-center justify-center mb-4 transition-colors ${!isFormEnabled ? "bg-[#e2e8f0] text-[#9ca3af]" : "bg-gray-100 text-gray-400 group-hover:bg-[#C5A059]/10 group-hover:text-[#C5A059]"}`}
+                      >
                         <FileText className="w-6 h-6" />
                       </div>
-                      <h3 className={`text-sm font-bold mb-1 ${!isFormEnabled ? "text-[#9ca3af]" : "text-[#2F3136]"}`}>
+                      <h3
+                        className={`text-sm font-bold mb-1 ${!isFormEnabled ? "text-[#9ca3af]" : "text-[#2F3136]"}`}
+                      >
                         Documento de Identidad
                       </h3>
-                      <p className={`text-xs mb-4 max-w-[200px] ${!isFormEnabled ? "text-[#9ca3af]" : "text-gray-500"}`}>
+                      <p
+                        className={`text-xs mb-4 max-w-[200px] ${!isFormEnabled ? "text-[#9ca3af]" : "text-gray-500"}`}
+                      >
                         Adjunte DNI (ambos lados), CE o Pasaporte vigente.
                       </p>
                       {isFormEnabled && (
@@ -1606,10 +1977,9 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
             </div>
           </div>
         </section>
-
       </div>
     );
-  }
+  },
 );
 
 PersonalDataStep.displayName = "PersonalDataStep";
