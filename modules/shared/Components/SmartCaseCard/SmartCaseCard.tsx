@@ -2,8 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import { 
-  MoreVertical, CheckCircle2, Clock, XCircle, 
-  MinusCircle, AlertCircle, Eye
+    MoreVertical, CheckCircle2, Clock, XCircle, 
+    MinusCircle, AlertCircle, Eye, Users, Send, Mail 
 } from "lucide-react";
 import type { SmartCaseCardProps } from "./types";
 import { FallbackAvatar } from "./FallbackAvatar";
@@ -27,8 +27,15 @@ const StatusIcon = ({ status, className = "" }: { status: string; className?: st
   return null;
 };
 
-export function SmartCaseCard({ data, onClick }: SmartCaseCardProps) {
+export function SmartCaseCard({ 
+  data, 
+  onClick, 
+  onViewAvales, 
+  onNotifyCommittee, 
+  onResendApplicant 
+}: SmartCaseCardProps) {
   const { identity, primaryBadge, atomicValidations, metadata, topBorderColorClass, subStatus } = data;
+  
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -76,16 +83,80 @@ export function SmartCaseCard({ data, onClick }: SmartCaseCardProps) {
           >
             <MoreVertical size={20} strokeWidth={2.5} />
           </button>
-
+          
           {isMenuOpen && (
-            <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-slate-100 rounded-xl shadow-[0_10px_40px_-15px_rgba(0,0,0,0.2)] py-1.5 z-[100] animate-in fade-in zoom-in-95">
-              <button onClick={(e) => { e.stopPropagation(); setIsMenuOpen(false); onClick?.(); }} className="w-full flex items-center gap-2.5 px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-[#C5A059] transition-colors"><Eye size={16} /> Ver expediente</button>
+            <div className="absolute right-0 top-full mt-1 w-64 bg-white border border-slate-100 rounded-xl shadow-[0_10px_40px_-15px_rgba(0,0,0,0.2)] py-1.5 z-[100] animate-in fade-in zoom-in-95">
+              
+              {/* 1. Ver Expediente */}
+              <button onClick={(e) => { e.stopPropagation(); setIsMenuOpen(false); onClick?.(); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-[#C5A059] transition-colors outline-none">
+                <Eye size={15} strokeWidth={2.5} /> Ver expediente
+              </button>
+
+              {/* 2. Revisar Avales (Deshabilitable para Estudiantes) */}
+              <button 
+                onClick={(e) => { 
+                  e.stopPropagation(); 
+                  if (onViewAvales) {
+                    setIsMenuOpen(false); 
+                    onViewAvales(); 
+                  }
+                }} 
+                className={`w-full flex items-start gap-2.5 px-4 py-2.5 text-sm font-bold outline-none transition-colors ${
+                  !onViewAvales 
+                    ? "text-slate-300 cursor-not-allowed bg-slate-50" 
+                    : "text-slate-600 hover:bg-slate-50 hover:text-[#C5A059]"
+                }`}
+              >
+                <Users size={15} className="mt-0.5 shrink-0" strokeWidth={2.5} /> 
+                <div className="flex flex-col items-start text-left">
+                  <span>Revisar Avales</span>
+                  {!onViewAvales && (
+                    <span className="text-[9px] font-semibold text-slate-400 leading-tight mt-0.5">
+                      No aplica para la modalidad Estudiante
+                    </span>
+                  )}
+                </div>
+              </button>
+
+              <div className="h-px bg-slate-100 my-1 mx-2"></div>
+
+              {/* 3. Notificar al Comité (Deshabilitable condicional) */}
+              <button 
+                onClick={(e) => { 
+                  e.stopPropagation(); 
+                  if (onNotifyCommittee) {
+                    setIsMenuOpen(false); 
+                    onNotifyCommittee(); 
+                  }
+                }} 
+                className={`w-full flex items-start gap-2.5 px-4 py-2.5 text-sm font-bold outline-none transition-colors ${
+                  !onNotifyCommittee 
+                    ? "text-slate-300 cursor-not-allowed bg-slate-50" 
+                    : "text-slate-600 hover:bg-indigo-50 hover:text-indigo-600"
+                }`}
+              >
+                <Send size={15} className="mt-0.5 shrink-0" strokeWidth={2.5} /> 
+                <div className="flex flex-col items-start text-left">
+                  <span>Notificar al Comité</span>
+                  {!onNotifyCommittee && (
+                    <span className="text-[9px] font-semibold text-slate-400 leading-tight mt-0.5 pr-2">
+                      Habilitado cuando las demás áreas aprueben
+                    </span>
+                  )}
+                </div>
+              </button>
+
+              {/* 4. Reenviar a Postulante */}
+              <button onClick={(e) => { e.stopPropagation(); setIsMenuOpen(false); onResendApplicant?.(); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-[#C5A059] transition-colors outline-none">
+                <Mail size={15} strokeWidth={2.5} /> Reenviar a Postulante
+              </button>
+
             </div>
           )}
         </div>
       </div>
 
-      {/* IDENTIDAD DEL POSTULANTE (SIN CÓDIGO LARGO) */}
+      {/* IDENTIDAD DEL POSTULANTE */}
       <div className="flex items-center gap-4 mb-6">
         <div className="w-[56px] h-[56px] shrink-0 rounded-full overflow-hidden border border-slate-100 relative">
           {identity.avatarUrl ? (

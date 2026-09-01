@@ -1,20 +1,3 @@
-/**
- * IMPORTANTE
- *
- * Este servicio NO debe conocer:
- *
- * - React
- * - Next.js
- * - Tailwind
- * - Prisma
- * - Auth.js
- * - Cookies
- * - Session
- *
- * Su única responsabilidad es construir
- * el árbol de navegación autorizado.
- *
- */
 import type { NavigationNode } from "../Models/NavigationNode";
 import type { IAuthorizationProvider } from "../Ports/IAuthorizationProvider";
 import { navigationRegistry } from "../Registry/NavigationRegistry";
@@ -24,22 +7,16 @@ export class NavigationService {
         private readonly authProvider: IAuthorizationProvider
     ) {}
 
-    /**
-     * Construye el árbol de navegación autorizado y ordenado.
-     */
     public async getAuthorizedTree(): Promise<NavigationNode[]> {
         const rawTree = navigationRegistry.getRawNavigationTree();
         return await this.filterAndSortTree(rawTree);
     }
 
-    /**
-     * Algoritmo recursivo para podar nodos no autorizados.
-     */
     private async filterAndSortTree(nodes: NavigationNode[]): Promise<NavigationNode[]> {
         const result: NavigationNode[] = [];
 
         for (const node of nodes) {
-            // 1. Evaluar Permiso si existe
+            // 1. Evaluar Permiso si el nodo lo requiere
             if (node.permission) {
                 const hasAccess = await this.authProvider.hasPermission(
                     node.permission.action, 
@@ -54,6 +31,14 @@ export class NavigationService {
             // 2. Procesar hijos recursivamente
             if (node.children && node.children.length > 0) {
                 const authorizedChildren = await this.filterAndSortTree(node.children);
+                
+                // 🛑 CORRECCIÓN DEL GRUPO FANTASMA:
+                // Si este nodo es un "grupo" pero se quedó sin hijos tras filtrar los permisos, 
+                // entonces NO lo agregamos a la navegación (lo omitimos por completo).
+                if (authorizedNode.type === "group" && authorizedChildren.length === 0) {
+                    continue;
+                }
+                
                 authorizedNode.children = authorizedChildren.length > 0 ? authorizedChildren : undefined;
             }
 

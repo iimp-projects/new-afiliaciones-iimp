@@ -15,7 +15,10 @@ export async function PATCH(
         const { id } = await params;
         const appId = parseInt(id, 10);
         const body = await request.json();
-        const { newStatus, reason, fieldPaths = [] } = body;
+        
+        // 1. Extraemos el targetDepartmentCode que ahora envía el Modal del SuperAdmin
+        const { newStatus, reason, fieldPaths = [], targetDepartmentCode } = body;
+        
         const normalizedFieldPaths = Array.isArray(fieldPaths)
             ? [...new Set(fieldPaths.filter((field): field is string => typeof field === "string" && OBSERVATION_FIELD_KEYS.has(field)))]
             : [];
@@ -27,19 +30,28 @@ export async function PATCH(
         const currentUser = await contextService.getCurrentUser().catch(() => null);
         const userDept = currentUser ? currentUser.role.slug : 'SISTEMA';
 
-        // 1. Ampliamos el mapa para que no falle si evalúa un Admin
+        // 2. Mapa estricto de roles normales a departamentos
         const roleDeptMap: Record<string, string> = {
             "LOGISTICA": "LOGISTICA",
             "ATENCION_ASOCIADO": "ASOCIADOS",
             "COMUNICACIONES": "COMUNICACIONES",
             "LEGAL": "LEGAL",
             "COMITE_EVALUADOR": "COMITE",
-            "SUPER_ADMIN": "ASOCIADOS", 
-            "SYSTEM_ADMIN": "ASOCIADOS" 
         };
 
-        const deptCode = roleDeptMap[userDept];
+        // 3. Asignación Dinámica del Área
+        let deptCode = roleDeptMap[userDept];
 
+        // Magia para Administradores: Si envían un área objetivo, sobreescribimos la suya
+        if ((userDept === "SUPER_ADMIN" || userDept === "SYSTEM_ADMIN") && targetDepartmentCode) {
+            deptCode = targetDepartmentCode; 
+        }
+
+        if (!deptCode) {
+            return NextResponse.json({ success: false, message: "No se pudo determinar el área de revisión o faltan permisos." }, { status: 400 });
+        }
+
+        // 4. Mapeo de Estados
         let targetAreaStatus: ValidationStatus | null = null;
         let actionEnum: ValidationAction = ValidationAction.START_REVIEW;
 
@@ -64,58 +76,59 @@ export async function PATCH(
             return NextResponse.json({ success: false, message: "Estado de área inválido." }, { status: 400 });
         }
 
+        // 5. Transacción de Base de Datos
         await prisma.$transaction(async (tx) => {
             let departmentName = deptCode || "GENERAL";
 
-            if (deptCode) {
-                const department = await tx.membershipDepartment.findUnique({ where: { code: deptCode } });
+            const department = await tx.membershipDepartment.findUnique({ where: { code: deptCode } });
 
-                if (department) {
-                    departmentName = department.name;
-                    const validation = await tx.membershipValidation.findUnique({
-                        where: { applicationId_departmentId: { applicationId: appId, departmentId: department.id } }
+            if (department) {
+                departmentName = department.name;
+                const validation = await tx.membershipValidation.findUnique({
+                    where: { applicationId_departmentId: { applicationId: appId, departmentId: department.id } }
+                });
+
+                if (validation) {
+                    // A) Actualizamos la validación individual del área
+                    await tx.membershipValidation.update({
+                        where: { id: validation.id },
+                        data: {
+                            status: targetAreaStatus,
+                            validatedById: currentUser?.id,
+                            validatedAt: new Date()
+                        }
                     });
 
-                    if (validation) {
-                        // A) Actualizamos la validación
-                        await tx.membershipValidation.update({
-                            where: { id: validation.id },
-                            data: {
-                                status: targetAreaStatus,
-                                validatedById: currentUser?.id,
-                                validatedAt: new Date()
-                            }
-                        });
-
-                        // B) Registramos en el Historial (Log de acciones)
-                        await tx.membershipValidationHistory.create({
-                            data: {
-                                validationId: validation.id,
-                                userId: currentUser?.id,
-                                action: actionEnum,
-                                comment: reason || 'Actualización de estado del área'
-                            }
-                        });
-
-                        if (targetAreaStatus === ValidationStatus.OBSERVED) {
-                            await tx.membershipObservation.create({
-                                data: {
-                                    applicationId: appId,
-                                    reviewDepartment: deptCode,
-                                    errorDescription: reason || "Se requiere subsanación.",
-                                    fieldPaths: normalizedFieldPaths,
-                                }
-                            });
+                    // B) Registramos en el Historial inmutable (Log de acciones)
+                    await tx.membershipValidationHistory.create({
+                        data: {
+                            validationId: validation.id,
+                            userId: currentUser?.id,
+                            action: actionEnum,
+                            comment: reason || 'Actualización de estado del área'
                         }
+                    });
+
+                    // C) Si fue observado, creamos el registro de la observación para el postulante
+                    if (targetAreaStatus === ValidationStatus.OBSERVED) {
+                        await tx.membershipObservation.create({
+                            data: {
+                                applicationId: appId,
+                                reviewDepartment: deptCode,
+                                errorDescription: reason || "Se requiere subsanación.",
+                                fieldPaths: normalizedFieldPaths,
+                            }
+                        });
                     }
                 }
             }
 
+            // D) Recalculamos automáticamente el estado general del expediente
             const calculator = new ApplicationStatusCalculatorService();
             await calculator.recalculate(appId, tx);
         });
 
-        // Evento aislado de notificación
+        // 6. Lanzamiento de Eventos / Notificaciones (Fuera de la transacción para no bloquear)
         if (targetAreaStatus === ValidationStatus.APPROVED) {
             const notifyService = new NotifyComiteService();
             notifyService.execute(appId).catch(console.error);

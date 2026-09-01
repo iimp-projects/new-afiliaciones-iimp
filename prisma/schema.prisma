@@ -477,6 +477,9 @@ model MembershipApproval {
   sponsorPersonId Int                   @map("sponsor_person_id")
   sponsorCode     String?               @map("sponsor_code") @db.VarChar(50)
   status          EndorsementStatus     @default(PENDING)
+  rejectionReason String?               @map("rejection_reason") @db.Text
+  resendHistory   Json?                 @map("resend_history")
+  chatMessages    Json?                 @map("chat_messages") 
   transactionDate DateTime?             @map("transaction_date")
   createdAt       DateTime              @default(now()) @map("created_at")
   updatedAt       DateTime              @updatedAt @map("updated_at")

@@ -21,7 +21,13 @@ export function SidebarItem({ item, isNested = false, isCollapsed = false, onMob
     // ==========================================
     // 1. RENDERIZADO DE GRUPOS (Ej. MENÚ PRINCIPAL)
     // ==========================================
-    if (item.type === "group" || (!item.href && hasChildren && !isNested)) {
+   if (item.type === "group" || (!item.href && hasChildren && !isNested)) {
+        
+        // 🛑 PROTECCIÓN VISUAL: Si el grupo llega vacío, no renderizamos absolutamente nada.
+        if (!item.children || item.children.length === 0) {
+            return null;
+        }
+
         return (
             <div className="mb-6 mt-4">
                 {!isCollapsed ? (

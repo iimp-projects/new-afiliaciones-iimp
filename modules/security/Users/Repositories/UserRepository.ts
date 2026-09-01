@@ -202,4 +202,16 @@ export class UserRepository {
       },
     });
   }
+
+  async updateUserPassword(userId: number, hashedPassword: string) {
+    return prisma.credential.updateMany({
+      where: { 
+        userId: userId, 
+        type: CredentialType.PASSWORD 
+      },
+      data: { 
+        secret: hashedPassword 
+      },
+    });
+  }
 }

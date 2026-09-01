@@ -122,3 +122,15 @@ export async function revokeUserSessionsAction(userId: number) {
     return { success: false, message: "No se pudieron cerrar las sesiones del usuario." };
   }
 }
+
+export async function changeUserPasswordAction(userId: number, newPasswordPlain: string) {
+  try {
+    await contextService.requirePermission("update", "users");
+    const service = new UserService();
+    await service.changeUserPassword(userId, newPasswordPlain);
+    
+    return { success: true, message: "Contraseña actualizada correctamente." };
+  } catch (error: any) {
+    return { success: false, message: "No se pudo actualizar la contraseña." };
+  }
+}

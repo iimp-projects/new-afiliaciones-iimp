@@ -59,7 +59,7 @@ export class ExpedienteMapper {
     const oldObservations = app.observations || [];
 
     const formatAssignee = (v: any) => {
-      if (!v?.validatedBy?.person) return "Administrador";
+      if (!v?.validatedBy?.person) return "Falta Revision";
       const p = v.validatedBy.person;
       return `${p.firstName.split(" ")[0]} ${p.paternalLastName}`;
     };
@@ -310,7 +310,7 @@ export class ExpedienteMapper {
           ? "bg-emerald-50 text-emerald-700"
           : "bg-amber-50 text-amber-700",
         assignee: {
-          name: isStudent ? "Pregrado" : isPaid ? "Pasarela" : "Sin asignar",
+          name: isStudent ? "" : isPaid ? "Pasarela" : "",
           timeRelative: "",
         },
       },

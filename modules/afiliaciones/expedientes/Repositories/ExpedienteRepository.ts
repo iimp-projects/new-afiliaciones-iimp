@@ -1,15 +1,6 @@
-import {
-  Prisma,
-  ApplicationStatus,
-  ValidationStatus,
-  PaymentStatus,
-} from "@prisma/client";
-
+import { Prisma, ApplicationStatus, ValidationStatus, PaymentStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-
-import {
-  getCountryCode,
-} from "countries-list";
+import { getCountryCode } from "countries-list";
 
 export interface ExpedienteFilters {
   page: number;
@@ -30,79 +21,24 @@ export interface ExpedienteFilters {
 }
 
 export class ExpedienteRepository {
-
   // ============================================================
-  // RESOLVER CÓDIGO ISO DEL PAÍS
-  //
-  // Ejemplos:
-  //
-  // Perú       -> PE
-  // Colombia   -> CO
-  // Argentina  -> AR
-  // Chile      -> CL
-  // Canadá     -> CA
-  //
-  // No hacemos IF por país.
+  // RESOLVER CÓDIGO ISO DEL PAÍS (Ej. Perú -> PE)
   // ============================================================
-
-  private resolveCountryCode(
-    countryName: string
-  ): string | null {
-
-    if (
-      !countryName ||
-      countryName === "No registrado"
-    ) {
-      return null;
-    }
+  private resolveCountryCode(countryName: string): string | null {
+    if (!countryName || countryName === "No registrado") return null;
 
     try {
-
-      const normalizedName =
-        countryName
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .trim();
-
-      // ==========================================================
-      // Primero intentamos con el nombre original.
-      // ==========================================================
-
-      let code =
-        getCountryCode(countryName);
-
-      // ==========================================================
-      // Si no encuentra el nombre con tilde,
-      // intentamos con el nombre normalizado.
-      // ==========================================================
-
-      if (!code) {
-        code =
-          getCountryCode(normalizedName);
-      }
-
-      // ==========================================================
-      // Retornamos siempre en mayúsculas.
-      // ==========================================================
-
-      return code
-        ? code.toUpperCase()
-        : null;
-
+      const normalizedName = countryName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+      let code = getCountryCode(countryName);
+      
+      if (!code) code = getCountryCode(normalizedName);
+      
+      return code ? code.toUpperCase() : null;
     } catch (error) {
-
-      console.error(
-        `[COUNTRY] Error resolviendo "${countryName}":`,
-        error
-      );
-
+      console.error(`[COUNTRY] Error resolviendo "${countryName}":`, error);
       return null;
     }
   }
-
-  // ============================================================
-  // PAGINACIÓN
-  // ============================================================
 
   // ============================================================
   // PAGINACIÓN Y FILTROS
@@ -115,12 +51,9 @@ export class ExpedienteRepository {
     } = filters;
 
     const skip = (page - 1) * pageSize;
-
     const where: Prisma.MembershipApplicationWhereInput = {
       deletedAt: null,
-      status: {
-        not: ApplicationStatus.DRAFT,
-      },
+      status: { not: ApplicationStatus.DRAFT },
     };
 
     // --- BÚSQUEDA ---
@@ -144,8 +77,10 @@ export class ExpedienteRepository {
     if (status && status !== "Todos") {
       where.status = status as ApplicationStatus;
     }
+    
+    // 👇 AQUÍ ESTÁ LA CORRECCIÓN: Le pasamos directamente el valor que envía el frontend ("ACTIVE" o "STUDENT")
     if (modality && modality !== "Todos") {
-      where.affiliateType = modality === "Estudiante" ? "STUDENT" : "ACTIVE";
+      where.affiliateType = modality as "ACTIVE" | "STUDENT";
     }
 
     // --- FECHAS ---
@@ -158,33 +93,18 @@ export class ExpedienteRepository {
 
     // --- PAGOS ---
     if (paymentStatus && paymentStatus !== "Todos") {
-      where.payments = {
-        some: { status: paymentStatus as PaymentStatus },
-      };
+      where.payments = { some: { status: paymentStatus as PaymentStatus } };
     }
 
     // --- VALIDACIONES POR ÁREA ---
     const areaConditions: Prisma.MembershipApplicationWhereInput[] = [];
+    if (logisticValidation && logisticValidation !== "Todos") areaConditions.push({ validations: { some: { department: { code: "LOGISTICA" }, status: logisticValidation as ValidationStatus } } });
+    if (associateValidation && associateValidation !== "Todos") areaConditions.push({ validations: { some: { department: { code: "ASOCIADOS" }, status: associateValidation as ValidationStatus } } });
+    if (comiteValidation && comiteValidation !== "Todos") areaConditions.push({ validations: { some: { department: { code: "COMITE" }, status: comiteValidation as ValidationStatus } } });
+    if (legalValidation && legalValidation !== "Todos") areaConditions.push({ validations: { some: { department: { code: "LEGAL" }, status: legalValidation as ValidationStatus } } });
+    if (comunicacionesValidation && comunicacionesValidation !== "Todos") areaConditions.push({ validations: { some: { department: { code: "COMUNICACIONES" }, status: comunicacionesValidation as ValidationStatus } } });
 
-    if (logisticValidation && logisticValidation !== "Todos") {
-      areaConditions.push({ validations: { some: { department: { code: "LOGISTICA" }, status: logisticValidation as ValidationStatus } } });
-    }
-    if (associateValidation && associateValidation !== "Todos") {
-      areaConditions.push({ validations: { some: { department: { code: "ASOCIADOS" }, status: associateValidation as ValidationStatus } } });
-    }
-    if (comiteValidation && comiteValidation !== "Todos") {
-      areaConditions.push({ validations: { some: { department: { code: "COMITE" }, status: comiteValidation as ValidationStatus } } });
-    }
-    if (legalValidation && legalValidation !== "Todos") {
-      areaConditions.push({ validations: { some: { department: { code: "LEGAL" }, status: legalValidation as ValidationStatus } } });
-    }
-    if (comunicacionesValidation && comunicacionesValidation !== "Todos") {
-      areaConditions.push({ validations: { some: { department: { code: "COMUNICACIONES" }, status: comunicacionesValidation as ValidationStatus } } });
-    }
-
-    if (areaConditions.length > 0) {
-      where.AND = areaConditions;
-    }
+    if (areaConditions.length > 0) where.AND = areaConditions;
 
     // --- ORDEN ---
     const orderByInput: Prisma.MembershipApplicationOrderByWithRelationInput = {
@@ -195,10 +115,7 @@ export class ExpedienteRepository {
     const [total, items] = await Promise.all([
       prisma.membershipApplication.count({ where }),
       prisma.membershipApplication.findMany({
-        where,
-        skip,
-        take: pageSize,
-        orderBy: orderByInput,
+        where, skip, take: pageSize, orderBy: orderByInput,
         include: {
           person: true,
           payments: { orderBy: { createdAt: "desc" }, take: 1 },
@@ -217,290 +134,73 @@ export class ExpedienteRepository {
 
     return {
       data: items,
-      meta: {
-        total,
-        page,
-        pageSize,
-        totalPages: Math.ceil(total / pageSize),
-      },
+      meta: { total, page, pageSize, totalPages: Math.ceil(total / pageSize) },
     };
   }
 
   // ============================================================
-  // OBTENER EXPEDIENTE POR ID
+  // OBTENER EXPEDIENTE POR ID Y RESOLVER DATOS GEOGRÁFICOS
   // ============================================================
-
-  async getById(
-    id: number
-  ) {
-
-    const expediente =
-      await prisma.membershipApplication.findUnique({
-
-        where: {
-          id,
+  async getById(id: number) {
+    const expediente = await prisma.membershipApplication.findUnique({
+      where: { id },
+      include: {
+        person: {
+          include: {
+            academicInfos: { include: { university: true } },
+            employmentInfos: true,
+          },
         },
-
-        include: {
-
-          person: {
-
-            include: {
-
-              academicInfos: {
-                include: {
-                  university: true,
-                },
-              },
-
-              employmentInfos: true,
-
-            },
-
-          },
-
-          payments: {
-
-            orderBy: {
-              createdAt: "desc",
-            },
-
-          },
-
-          approvals: {
-
-            include: {
-              sponsorPerson: true,
-            },
-
-          },
-
-          observations: {
-
-            orderBy: {
-              createdAt: "desc",
-            },
-
-          },
-
-          documents: true,
-
-          areaValidations: {
-
-            include: {
-
-              validatedBy: {
-
-                include: {
-                  person: true,
-                },
-
-              },
-
-            },
-
-          },
-
-          history: {
-
-            orderBy: {
-              createdAt: "desc",
-            },
-
-          },
-
-          validations: {
-
-            include: {
-
-              department: true,
-
-              validatedBy: {
-
-                include: {
-                  person: true,
-                },
-
-              },
-
-            },
-
-            orderBy: {
-
-              department: {
-                displayOrder: "asc",
-              },
-
-            },
-
-          },
-
+        payments: { orderBy: { createdAt: "desc" } },
+        approvals: { include: { sponsorPerson: true } },
+        observations: { orderBy: { createdAt: "desc" } },
+        documents: true,
+        areaValidations: { include: { validatedBy: { include: { person: true } } } },
+        history: { orderBy: { createdAt: "desc" } },
+        validations: {
+          include: { department: true, validatedBy: { include: { person: true } } },
+          orderBy: { department: { displayOrder: "asc" } },
         },
+      },
+    });
 
-      });
+    if (!expediente) return null;
 
-    if (!expediente) {
-      return null;
-    }
-
-    // ============================================================
-    // RESOLUCIÓN DE DATOS GEOGRÁFICOS
-    // ============================================================
-
-    if (
-      expediente.draftData
-    ) {
-
-      const draft =
-        expediente.draftData as any;
-
-      const personal =
-        draft.personalInformation;
+    if (expediente.draftData) {
+      const draft = expediente.draftData as any;
+      const personal = draft.personalInformation;
 
       if (personal) {
-
-        // ========================================================
-        // PAÍS
-        // ========================================================
-
-        if (
-          personal.countryId
-        ) {
-
-          const country =
-            await prisma.country.findUnique({
-
-              where: {
-                id: Number(
-                  personal.countryId
-                ),
-              },
-
-            });
-
-          const countryName =
-            country?.name ||
-            "No registrado";
-
-          // ------------------------------------------------------
-          // NOMBRE
-          // ------------------------------------------------------
-
-          personal.resolvedCountry =
-            countryName;
-
-          // ------------------------------------------------------
-          // CÓDIGO ISO
-          // ------------------------------------------------------
-
-          const countryCode =
-            this.resolveCountryCode(
-              countryName
-            );
-
-          personal.resolvedCountryCode =
-            countryCode;
-
-          console.log(
-            "[EXPEDIENTE - PAÍS]",
-            {
-              countryId:
-                personal.countryId,
-
-              countryName,
-
-              countryCode,
-            }
-          );
-
+        // --- PAÍS ---
+        if (personal.countryId) {
+          const country = await prisma.country.findUnique({ where: { id: Number(personal.countryId) } });
+          const countryName = country?.name || "No registrado";
+          personal.resolvedCountry = countryName;
+          personal.resolvedCountryCode = this.resolveCountryCode(countryName);
         } else {
-
-          personal.resolvedCountry =
-            "No registrado";
-
-          personal.resolvedCountryCode =
-            null;
+          personal.resolvedCountry = "No registrado";
+          personal.resolvedCountryCode = null;
         }
 
-        // ========================================================
-        // DEPARTAMENTO
-        // ========================================================
-
-        if (
-          personal.departmentId
-        ) {
-
-          const dept =
-            await prisma.department.findUnique({
-
-              where: {
-                id: Number(
-                  personal.departmentId
-                ),
-              },
-
-            });
-
-          personal.resolvedDepartment =
-            dept?.name ||
-            null;
+        // --- DEPARTAMENTO ---
+        if (personal.departmentId) {
+          const dept = await prisma.department.findUnique({ where: { id: Number(personal.departmentId) } });
+          personal.resolvedDepartment = dept?.name || null;
         }
 
-        // ========================================================
-        // PROVINCIA
-        // ========================================================
-
-        if (
-          personal.provinceId
-        ) {
-
-          const prov =
-            await prisma.province.findUnique({
-
-              where: {
-                id: Number(
-                  personal.provinceId
-                ),
-              },
-
-            });
-
-          personal.resolvedProvince =
-            prov?.name ||
-            null;
+        // --- PROVINCIA ---
+        if (personal.provinceId) {
+          const prov = await prisma.province.findUnique({ where: { id: Number(personal.provinceId) } });
+          personal.resolvedProvince = prov?.name || null;
         }
 
-        // ========================================================
-        // DISTRITO
-        // ========================================================
-
-        if (
-          personal.districtId
-        ) {
-
-          const dist =
-            await prisma.district.findUnique({
-
-              where: {
-                id: Number(
-                  personal.districtId
-                ),
-              },
-
-            });
-
-          personal.resolvedDistrict =
-            dist?.name ||
-            null;
+        // --- DISTRITO ---
+        if (personal.districtId) {
+          const dist = await prisma.district.findUnique({ where: { id: Number(personal.districtId) } });
+          personal.resolvedDistrict = dist?.name || null;
         }
       }
-
-      // ==========================================================
-      // GUARDAMOS DATA RESUELTA
-      // ==========================================================
-
-      expediente.draftData =
-        draft;
+      expediente.draftData = draft;
     }
 
     return expediente;

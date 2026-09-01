@@ -2,10 +2,11 @@
 
 import { useState, useRef, useEffect, useTransition } from "react";
 import { createPortal } from "react-dom";
-import { toast } from "sonner"; // ✅ IMPORTAMOS SONNER
-import { MoreVertical, Shield, Mail, Activity, Lock, Unlock, Edit, Trash2, IdCard, LogOut, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
+import { toast } from "sonner";
+import { MoreVertical, Shield, Mail, Activity, Lock, Unlock, Edit, Trash2, IdCard, LogOut, CheckCircle2, XCircle, AlertTriangle, KeyRound } from "lucide-react";
 import { toggleUserStatusAction, deleteUserAction, revokeUserSessionsAction } from "../Actions/user.actions"; 
 import { EditUserModal } from "./EditUserModal"; 
+import { ChangePasswordModal } from "./ChangePasswordModal"; // <-- NUEVA IMPORTACIÓN
 
 const getRoleBadgeColor = (slug?: string) => {
   if (!slug) return "text-slate-500 bg-slate-100 border-slate-200";
@@ -32,7 +33,7 @@ const getRoleBadgeColor = (slug?: string) => {
   }
 };
 
-function UserCard({ user, onEdit, onConfirmAction }: { user: any, onEdit: (u: any) => void, onConfirmAction: (actionData: any) => void }) {
+function UserCard({ user, onEdit, onChangePassword, onConfirmAction }: { user: any, onEdit: (u: any) => void, onChangePassword: (u: any) => void, onConfirmAction: (actionData: any) => void }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const [isPending, startTransition] = useTransition();
@@ -98,6 +99,10 @@ function UserCard({ user, onEdit, onConfirmAction }: { user: any, onEdit: (u: an
             <button onClick={() => { setIsMenuOpen(false); onEdit(user); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-bold text-slate-600 hover:bg-slate-50 hover:text-[#C5A059] transition-colors outline-none">
               <Edit size={15} /> Editar Datos
             </button>
+            <button onClick={() => { setIsMenuOpen(false); onChangePassword(user); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-bold text-amber-600 hover:bg-amber-50 transition-colors outline-none">
+               <KeyRound size={15} /> Cambiar Contraseña
+             </button>
+             <div className="h-px bg-slate-100 my-1 mx-2"></div>
             
             <button onClick={handleToggleStatus} className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-bold transition-colors outline-none ${isActive ? "text-slate-600 hover:bg-amber-50 hover:text-amber-600" : "text-slate-600 hover:bg-emerald-50 hover:text-emerald-600"}`}>
               {isActive ? <><Lock size={15} /> Bloquear Acceso</> : <><Unlock size={15} /> Desbloquear Acceso</>}
@@ -168,10 +173,9 @@ function UserCard({ user, onEdit, onConfirmAction }: { user: any, onEdit: (u: an
   );
 }
 
-// ❌ Quitamos el showToast de los props, usamos sonner nativo
 export function UsersGrid({ users, roles, onActionSuccess }: { users: any[], roles: { id: number; name: string }[], onActionSuccess: () => void }) {
   const [editingUser, setEditingUser] = useState<any | null>(null);
-  
+  const [changingPasswordUser, setChangingPasswordUser] = useState<any | null>(null); // <-- NUEVO ESTADO AGREGADO
   const [confirmDialog, setConfirmDialog] = useState<any | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -180,10 +184,10 @@ export function UsersGrid({ users, roles, onActionSuccess }: { users: any[], rol
     try {
       const res = await confirmDialog.action();
       if (res.success) {
-        toast.success(res.message); // ✅ TOAST SONNER DIRECTO
+        toast.success(res.message); 
         onActionSuccess(); 
       } else {
-        toast.error(res.message); // ✅ TOAST SONNER DIRECTO
+        toast.error(res.message); 
       }
     } catch (e) {
       toast.error("Ocurrió un error inesperado.");
@@ -211,7 +215,13 @@ export function UsersGrid({ users, roles, onActionSuccess }: { users: any[], rol
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
         {users.map((user) => (
-          <UserCard key={user.id} user={user} onEdit={setEditingUser} onConfirmAction={setConfirmDialog} />
+          <UserCard 
+            key={user.id} 
+            user={user} 
+            onEdit={setEditingUser} 
+            onChangePassword={setChangingPasswordUser} // <-- PROP MAPEADA
+            onConfirmAction={setConfirmDialog} 
+          />
         ))}
       </div>
 
@@ -221,7 +231,15 @@ export function UsersGrid({ users, roles, onActionSuccess }: { users: any[], rol
             roles={roles} 
             onClose={() => setEditingUser(null)} 
             onSuccess={() => { setEditingUser(null); onActionSuccess(); }}
-            // ❌ Sin pasar showToast
+        />
+      )}
+
+      {/* NUEVO RENDERIZADO DEL MODAL */}
+      {changingPasswordUser && (
+        <ChangePasswordModal
+          user={changingPasswordUser}
+          onClose={() => setChangingPasswordUser(null)}
+          onSuccess={() => { setChangingPasswordUser(null); onActionSuccess(); }}
         />
       )}
 

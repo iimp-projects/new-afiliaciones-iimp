@@ -10,7 +10,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     console.log("📦 BODY RECIBIDO EN BACKEND:", body);
 
-    const { application_id, sponsor_person_id, sponsor_code } = body;
+    const { application_id, approval_id, sponsor_person_id, sponsor_code } = body;
 
     if (!application_id || !sponsor_person_id) {
       return NextResponse.json(
@@ -21,11 +21,12 @@ export async function POST(req: Request) {
 
     const appId = Number(application_id);
     const sponsorId = Number(sponsor_person_id);
+    const approvalIdNum = approval_id ? Number(approval_id) : null;
 
     // 🔍 1. Validar Solicitud
     const application = await prisma.membershipApplication.findUnique({
       where: { id: appId },
-      include: { person: true },
+      include: { person: true, approvals: true },
     });
 
     if (!application) {
@@ -33,6 +34,15 @@ export async function POST(req: Request) {
         { success: false, error: `No existe el expediente ID ${appId} en la base de datos.` },
         { status: 404 }
       );
+    }
+
+    // Identificar cuál aval estamos reemplazando (para actualizar correctamente el draft)
+    let targetApprovalRecord = null;
+    if (approvalIdNum) {
+      targetApprovalRecord = application.approvals.find(a => a.id === approvalIdNum);
+    }
+    if (!targetApprovalRecord) {
+      targetApprovalRecord = application.approvals.find(a => a.status === EndorsementStatus.REJECTED || a.status === "PENDING");
     }
 
     // 📄 Parsear el borrador/draft guardado en la base de datos
@@ -82,16 +92,24 @@ export async function POST(req: Request) {
 
     // 🔄 4. Transacción
     const result = await prisma.$transaction(async (tx) => {
-      // Desactivar el aval rechazado previamente
-      await tx.membershipApproval.updateMany({
-        where: {
-          applicationId: appId,
-          status: EndorsementStatus.REJECTED,
-        },
-        data: {
-          status: EndorsementStatus.INACTIVE,
-        },
-      });
+      if (approvalIdNum) {
+        // Desactivar específicamente el aval seleccionado mediante su ID único
+        await tx.membershipApproval.update({
+          where: { id: approvalIdNum },
+          data: { status: EndorsementStatus.INACTIVE },
+        });
+      } else {
+        // Fallback: desactivar si hay alguno pendiente o rechazado
+        await tx.membershipApproval.updateMany({
+          where: {
+            applicationId: appId,
+            status: { in: [EndorsementStatus.REJECTED, EndorsementStatus.PENDING] },
+          },
+          data: {
+            status: EndorsementStatus.INACTIVE,
+          },
+        });
+      }
 
       // Crear el nuevo registro de aval en PENDING
       const newApproval = await tx.membershipApproval.create({
@@ -134,13 +152,21 @@ export async function POST(req: Request) {
 
     // 📄 6.0. ACTUALIZAR EL DRAFT CON EL NUEVO AVAL
     const updatedDraft = JSON.parse(JSON.stringify(applicationDraft || {}));
-
     const sponsorDni = sponsorPerson.documentNumber || "";
 
     if (updatedDraft.endorsements) {
-      // Detectamos cuál aval fue rechazado (el que estamos reemplazando)
-      const isFirstRejected = updatedDraft.endorsements.firstEndorsement?.status === 'REJECTED';
-      const targetEndorsementKey = isFirstRejected ? 'firstEndorsement' : 'secondEndorsement';
+      let targetEndorsementKey = 'firstEndorsement';
+      if (targetApprovalRecord && updatedDraft.endorsements.secondEndorsement) {
+        const firstId = updatedDraft.endorsements.firstEndorsement?.sponsorPersonId;
+        if (firstId && firstId !== targetApprovalRecord.sponsorPersonId) {
+          targetEndorsementKey = 'secondEndorsement';
+        }
+      } else {
+        const isFirstPendingOrRejected = 
+          updatedDraft.endorsements.firstEndorsement?.status === 'REJECTED' || 
+          updatedDraft.endorsements.firstEndorsement?.status === 'PENDING';
+        targetEndorsementKey = isFirstPendingOrRejected ? 'firstEndorsement' : 'secondEndorsement';
+      }
 
       updatedDraft.endorsements[targetEndorsementKey] = {
         ...updatedDraft.endorsements[targetEndorsementKey],
@@ -168,7 +194,7 @@ export async function POST(req: Request) {
         sponsorEmail: sponsorEmail,
         sponsorFullName: sponsorFullName,
         applicantName: applicantFullName,
-        draft: updatedDraft, // 👈 Se envía el borrador ya modificado
+        draft: updatedDraft,
       });
     } else {
       console.error(`⚠️ No se encontró email de usuario ni contacto para el aval ID ${sponsorId}`);
@@ -185,6 +211,8 @@ export async function POST(req: Request) {
     } else {
       console.error(`⚠️ No se encontró email registrado en la solicitud ID ${appId}`);
     }
+
+    
 
     return NextResponse.json({
       success: true,

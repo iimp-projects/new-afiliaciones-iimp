@@ -34,7 +34,7 @@ export class ApplicationStatusCalculatorService {
     const areApprovalsReady = isStudent || approvedApprovalsCount >= 2;
 
     // =========================================================================
-    // [!] FIX: AUTO-APROBAR AVALES EN LA TABLA DE VALIDACIONES SIN ROMPER PRISMA
+    // [!] AUTO-APROBAR AVALES EN LA TABLA DE VALIDACIONES SIN ROMPER PRISMA
     // =========================================================================
     const avalesValidation = app.validations.find((v: any) => v.department.code === 'AVALES');
     if (avalesValidation && avalesValidation.status !== ValidationStatus.APPROVED && areApprovalsReady) {
@@ -63,14 +63,23 @@ export class ApplicationStatusCalculatorService {
     // ==========================================
     // 2. EXTRAER MÉTRICAS ACTUALIZADAS
     // ==========================================
+    // Función auxiliar para obtener el estado de un área específica
+    const getStatus = (code: string) => {
+      const v = app.validations.find((val: any) => val.department.code === code);
+      return v ? v.status : ValidationStatus.PENDING;
+    };
+
+    // Evaluamos el estado explícito de las áreas de tu flujo (Acepta APPROVED y RESOLVED)
+    const logisticaOk = ["APPROVED", "RESOLVED"].includes(getStatus("LOGISTICA"));
+    const asociadosOk = ["APPROVED", "RESOLVED"].includes(getStatus("ASOCIADOS"));
+    const comiteOk = ["APPROVED", "RESOLVED"].includes(getStatus("COMITE"));
+
+    // El flujo está completado si las 3 áreas obligatorias y los avales dieron conformidad
+    const isFlowCompleted = logisticaOk && asociadosOk && comiteOk && areApprovalsReady;
+
     const hasRejectedValidation = app.validations.some((v: any) => v.status === ValidationStatus.REJECTED);    
     const hasObservedValidation = app.validations.some((v: any) => v.status === ValidationStatus.OBSERVED);
     const hasResolvedValidation = app.validations.some((v: any) => v.status === ValidationStatus.RESOLVED);
-
-    // ¿Están todas las áreas obligatorias aprobadas? (Incluyendo AVALES que se auto-aprobó arriba)
-    const mandatoryValidations = app.validations.filter((v: any) => v.department.isRequired);
-    const allMandatoryApproved = mandatoryValidations.length > 0 && mandatoryValidations.every((v: any) => v.status === ValidationStatus.APPROVED);
-
     const hasAnyActivity = app.validations.some((v: any) => v.status !== ValidationStatus.PENDING) || approvedApprovalsCount > 0;
     
     const isPaid = app.payments.length > 0 && app.payments[0].status === PaymentStatus.PAID;
@@ -86,13 +95,12 @@ export class ApplicationStatusCalculatorService {
         newGeneralStatus = ApplicationStatus.REJECTED;
     } else if (hasObservedValidation || hasRejectedApproval) {
         // Si un área la observa O SI UN AVAL RECHAZA, pasa a ser OBSERVADO
-        // para que el postulante pueda ingresar a la web y reemplazar al aval.
         newGeneralStatus = ApplicationStatus.OBSERVED;
+    } else if (isFlowCompleted) {
+        // Los 4 pilares están Ok -> Se va directo a Pago (o Completado si ya pagó / es estudiante)
+        newGeneralStatus = isPaymentResolved ? ApplicationStatus.COMPLETED : ApplicationStatus.READY_FOR_PAYMENT;
     } else if (hasResolvedValidation) {
         newGeneralStatus = ApplicationStatus.RESOLVED;
-    } else if (allMandatoryApproved && areApprovalsReady) {
-        // Los 4 Ok -> Se va directo a Pago
-        newGeneralStatus = isPaymentResolved ? ApplicationStatus.COMPLETED : ApplicationStatus.READY_FOR_PAYMENT;
     } else if (hasAnyActivity) {
         newGeneralStatus = ApplicationStatus.UNDER_EVALUACION;
     }
