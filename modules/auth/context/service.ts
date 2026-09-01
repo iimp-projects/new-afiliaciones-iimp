@@ -1,10 +1,11 @@
-import { cache } from 'react';
-import { redirect } from 'next/navigation';
-import { sessionService, type SessionDTO } from '../session';
-import { AuthenticationError, AuthorizationError } from '../errors';
-import { contextRepository } from './repository';
-import { authAdapter } from './adapter';
-import type { CurrentUserDTO } from './types';
+import { cache } from "react";
+import { redirect } from "next/navigation";
+import { sessionService, type SessionDTO } from "../session";
+import { AuthenticationError, AuthorizationError } from "../errors";
+import { contextRepository } from "./repository";
+import { authAdapter } from "./adapter";
+import type { CurrentUserDTO } from "./types";
+import { cookies } from "next/headers";
 
 class ContextService {
   /**
@@ -19,14 +20,14 @@ class ContextService {
     if (!sessionId) return null;
 
     const session = await sessionService.getSessionById(sessionId);
-    
+
     // Validación remota en tiempo real (Revocación / Expiración)
     if (!sessionService.isSessionValid(session)) return null;
 
     // NUEVO: Registrar que el usuario acaba de interactuar con el sistema
     // El método internamente sabe que solo debe actualizar la BD cada 5 minutos
     await sessionService.touchSession(sessionId);
-    
+
     return session;
   });
 
@@ -47,14 +48,19 @@ class ContextService {
    */
   public requireAuth = async (): Promise<CurrentUserDTO> => {
     const user = await this.getCurrentUser();
+    // if (!user) {
+    //   // redirect() en Next.js App Router arroja un error interno (NEXT_REDIRECT)
+    //   // que cancela la ejecución del código subyacente de forma segura.
+    //   redirect('/login');
+    // }
+
     if (!user) {
-      // redirect() en Next.js App Router arroja un error interno (NEXT_REDIRECT)
-      // que cancela la ejecución del código subyacente de forma segura.
-      redirect('/login');
+      // En lugar de redirigir al login, redirigimos a nuestra API limpiadora
+      redirect("/api/auth/session-expired");
     }
-    
-    if (user.status !== 'ACTIVE') {
-      throw new AuthenticationError('Tu cuenta no se encuentra activa.');
+
+    if (user.status !== "ACTIVE") {
+      throw new AuthenticationError("Tu cuenta no se encuentra activa.");
     }
 
     return user;
@@ -75,19 +81,24 @@ class ContextService {
   public requireRole = async (roleSlugs: string[]): Promise<void> => {
     const has = await this.hasRole(roleSlugs);
     if (!has) {
-      throw new AuthorizationError('No tienes el nivel de acceso necesario para realizar esta acción.');
+      throw new AuthorizationError(
+        "No tienes el nivel de acceso necesario para realizar esta acción.",
+      );
     }
   };
 
   /**
    * Evalúa RBAC en O(1). Soporta comodín de super administrador ("manage:all").
    */
-  public hasPermission = async (action: string, subject: string): Promise<boolean> => {
+  public hasPermission = async (
+    action: string,
+    subject: string,
+  ): Promise<boolean> => {
     const user = await this.getCurrentUser();
     if (!user) return false;
 
     // Privilegio absoluto de administración
-    if (user.permissions.has('manage:all')) return true;
+    if (user.permissions.has("manage:all")) return true;
 
     return user.permissions.has(`${action}:${subject}`);
   };
@@ -95,10 +106,15 @@ class ContextService {
   /**
    * Detiene la ejecución si el usuario no posee el permiso exacto.
    */
-  public requirePermission = async (action: string, subject: string): Promise<void> => {
+  public requirePermission = async (
+    action: string,
+    subject: string,
+  ): Promise<void> => {
     const has = await this.hasPermission(action, subject);
     if (!has) {
-      throw new AuthorizationError(`Permiso denegado: se requiere el privilegio [${action}] sobre [${subject}].`);
+      throw new AuthorizationError(
+        `Permiso denegado: se requiere el privilegio [${action}] sobre [${subject}].`,
+      );
     }
   };
 }

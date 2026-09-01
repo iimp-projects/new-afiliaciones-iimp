@@ -67,4 +67,7 @@
   .tiptap strong {
     font-weight: 700;
   }
+  html {
+    font-size: 85%; /* El equivalente exacto a tener el zoom al 80% */
+  }
 }

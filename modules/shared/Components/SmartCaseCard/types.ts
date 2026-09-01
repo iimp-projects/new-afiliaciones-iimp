@@ -70,8 +70,8 @@ export interface SmartCaseCardData {
   metadata: {
    priority: CasePriority;
     lastUpdatedRelative: string;
-    isAlreadyEvaluatedByMe?: boolean; // <-- NUEVO: Controla si se bloquean los botones
-    reviewerArea?: string;            // <-- NUEVO: Nombre del área (Ej. "Logística")
+    isAlreadyEvaluatedByMe?: boolean; 
+    reviewerArea?: string;       
     assignedTo?: {
       name: string;
       initial: string;
@@ -84,4 +84,8 @@ export interface SmartCaseCardData {
 export interface SmartCaseCardProps {
   data: SmartCaseCardData;
   onClick?: () => void;
+  onViewAvales?: () => void;
+  onNotifyCommittee?: () => void;
+  onResendApplicant?: () => void;
+  isComiteReady?: boolean;
 }

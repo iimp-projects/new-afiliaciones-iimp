@@ -21,6 +21,17 @@ const BASE_S3_URL =
 // ---------------------------------------------------------
 // 1. FUNCIONES AUXILIARES Y MAPEADORES
 // ---------------------------------------------------------
+
+// Función para quitar tildes y normalizar textos
+function normalizeStr(str: string | null | undefined) {
+  if (!str) return "";
+  return String(str)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // Quita las tildes
+    .trim()
+    .toUpperCase();
+}
+
 function parseFullName(fullName: string) {
   const parts = fullName.trim().replace(/\s+/g, " ").split(" ");
   if (parts.length === 0 || parts[0] === "") return { first: "Aval", paternal: "Por Definir", maternal: "" };
@@ -101,7 +112,7 @@ async function migrarFichas() {
   const oldPaises = (await oldDb.query(`SELECT idpais, pais FROM app_pais`)).rows;
   const oldDepas = (await oldDb.query(`SELECT idpais, dptocod, dpto FROM app_departamento`)).rows;
   const oldProvs = (await oldDb.query(`SELECT idpais, dptocod, prvcod, prv FROM app_provincia`)).rows;
-  const oldDists = (await oldDb.query(`SELECT idpais, dptocod, prvcod, discod, dis FROM app_distrito`)).rows;
+  const oldDists = (await oldDb.query(`SELECT idpais, dptocod, discod, dis FROM app_distrito`)).rows;
 
   const dbCountries = await prisma.country.findMany();
   const dbDepts = await prisma.department.findMany();
@@ -121,9 +132,9 @@ async function migrarFichas() {
   // ✅ DICCIONARIO INTELIGENTE: BUSCANDO A LOS RESPONSABLES
   // =========================================================
   const usrAsociados = await prisma.user.findFirst({ where: { email: "liset.otoya@iimp.org.pe" } });
-  const usrLogistica = await prisma.user.findFirst({ where: { email: "lesly.alvarado@iimp.org.pe" } }); // Modificado a Lesly
-  const usrComunicaciones = await prisma.user.findFirst({ where: { email: "pedro.villanueva@iimp.org.pe" } }); // ⚠️ Verifica su correo exacto
-  const usrLegal = await prisma.user.findFirst({ where: { email: "araceli.basurco@iimp.org.pe" } }); // ⚠️ Verifica su correo exacto
+  const usrLogistica = await prisma.user.findFirst({ where: { email: "lesly.alvarado@iimp.org.pe" } }); 
+  const usrComunicaciones = await prisma.user.findFirst({ where: { email: "pedro.villanueva@iimp.org.pe" } }); 
+  const usrLegal = await prisma.user.findFirst({ where: { email: "araceli.basurco@iimp.org.pe" } }); 
   const usrComite = await prisma.user.findFirst({ where: { email: "rgaray@rgblasting.pe" } });
   const usrDefaultAdmin = await prisma.user.findFirst({ where: { email: "max.ichajaya@iimp.org.pe" } });
 
@@ -176,7 +187,11 @@ async function migrarFichas() {
     if (codeInUse) safeApplicationCode = `${safeApplicationCode}-DUP-${ficha.fichnro}`;
 
     const trackingCode = `TRK-${ficha.fichnro}-${Date.now().toString().slice(-4)}`;
-    const mainPhone = (ficha.celular || ficha.telefono || "000000000").trim();
+    
+    // EXTRACCIÓN DE TELÉFONOS
+    const celular = ficha.celular ? String(ficha.celular).trim() : null;
+    const telefonoFijo = ficha.telefono ? String(ficha.telefono).trim() : null;
+    const mainPhone = celular || telefonoFijo || "000000000";
 
     let parsedBirthDate = null;
     let uiBirthDateString = null;
@@ -188,20 +203,24 @@ async function migrarFichas() {
       }
     }
 
+    // MATCH GEOGRÁFICO INTELIGENTE (IGNORANDO TILDES)
     const paisOld = oldPaises.find(p => String(p.idpais) === String(ficha.pais));
-    const paisName = paisOld ? paisOld.pais.trim().toUpperCase() : null;
-    const matchedCountry = dbCountries.find(c => c.name.toUpperCase() === paisName);
+    const paisNameNorm = normalizeStr(paisOld?.pais);
+    const matchedCountry = dbCountries.find(c => normalizeStr(c.name) === paisNameNorm);
     const finalCountryId = matchedCountry ? matchedCountry.id : peruId;
     const isoCode = matchedCountry ? matchedCountry.isoCode.toLowerCase() : "pe";
 
     const depaOld = oldDepas.find(d => String(d.idpais) === String(ficha.pais) && String(d.dptocod) === String(ficha.depa));
-    const matchedDept = depaOld ? dbDepts.find(d => d.name.toUpperCase() === depaOld.dpto.trim().toUpperCase() && d.countryId === finalCountryId) : null;
+    const depaNameNorm = normalizeStr(depaOld?.dpto);
+    const matchedDept = depaOld ? dbDepts.find(d => normalizeStr(d.name) === depaNameNorm && d.countryId === finalCountryId) : null;
 
     const provOld = oldProvs.find(p => String(p.idpais) === String(ficha.pais) && String(p.dptocod) === String(ficha.depa) && String(p.prvcod) === String(ficha.prov));
-    const matchedProv = (provOld && matchedDept) ? dbProvs.find(p => p.name.toUpperCase() === provOld.prv.trim().toUpperCase() && p.departmentId === matchedDept.id) : null;
+    const provNameNorm = normalizeStr(provOld?.prv);
+    const matchedProv = (provOld && matchedDept) ? dbProvs.find(p => normalizeStr(p.name) === provNameNorm && p.departmentId === matchedDept.id) : null;
 
     const distOld = oldDists.find(d => String(d.idpais) === String(ficha.pais) && String(d.dptocod) === String(ficha.depa) && String(d.prvcod) === String(ficha.prov) && String(d.discod) === String(ficha.dist));
-    const matchedDist = (distOld && matchedProv) ? dbDists.find(d => d.name.toUpperCase() === distOld.dis.trim().toUpperCase() && d.provinceId === matchedProv.id) : null;
+    const distNameNorm = normalizeStr(distOld?.dis);
+    const matchedDist = (distOld && matchedProv) ? dbDists.find(d => normalizeStr(d.name) === distNameNorm && d.provinceId === matchedProv.id) : null;
 
     const especialidadName = affiliateType === "STUDENT" ? ficha.espe2 : ficha.espe;
     const uniLegacyName = affiliateType === "STUDENT" ? ficha.univ2 : ficha.univ;
@@ -211,12 +230,42 @@ async function migrarFichas() {
     const uniText = ficha.nomuni ? String(ficha.nomuni).trim().toUpperCase() : null;
     const institutionId = uniText ? (univMap.get(uniText) || null) : null;
 
+    // CONFIGURAR ARREGLO DE CONTACTOS DINÁMICOS
+    const contactsData: {
+      phoneType: "MOBILE" | "LANDLINE" | "WORK" | "OTHER";
+      phoneNumber: string;
+      email: string | null;
+      isPrimary: boolean;
+    }[] = [];
+    
+    // Contacto Principal
+    contactsData.push({
+      phoneType: celular ? "MOBILE" : (telefonoFijo ? "LANDLINE" : "MOBILE"),
+      phoneNumber: mainPhone,
+      email: ficha.correo ? String(ficha.correo).trim() : null,
+      isPrimary: true
+    });
+    // Contacto Secundario (Si hay fijo + celular, o si hay correo2)
+    if ((telefonoFijo && celular) || ficha.correo2) {
+      contactsData.push({
+        phoneType: "LANDLINE",
+        phoneNumber: (celular && telefonoFijo) ? telefonoFijo : "000000000",
+        email: ficha.correo2 ? String(ficha.correo2).trim() : null,
+        isPrimary: false
+      });
+    }
+
     try {
       await prisma.$transaction(async (tx) => {
         // A. CREAR O ACTUALIZAR PERSONA PRINCIPAL
         const person = await tx.person.upsert({
           where: { documentType_documentNumber: { documentType, documentNumber: docNumber } },
-          update: { gender, birthDate: parsedBirthDate, nationalityId: finalCountryId },
+          update: { 
+            gender, 
+            birthDate: parsedBirthDate, 
+            birthPlace: ficha.lugarnac || null,
+            nationalityId: finalCountryId 
+          },
           create: {
             documentType,
             documentNumber: docNumber,
@@ -224,12 +273,16 @@ async function migrarFichas() {
             paternalLastName: ficha.apellido || "Sin Apellido",
             maternalLastName: ficha.apellidom || "",
             birthDate: parsedBirthDate,
+            birthPlace: ficha.lugarnac || null,
             gender,
             nationalityId: finalCountryId,
-            contacts: {
-              create: [{ phoneType: "MOBILE", phoneNumber: mainPhone, email: ficha.correo, isPrimary: true }],
-            },
           },
+        });
+
+        // Limpiar y recrear contactos para evitar duplicados en el upsert
+        await tx.personContact.deleteMany({ where: { personId: person.id } });
+        await tx.personContact.createMany({
+          data: contactsData.map(c => ({ ...c, personId: person.id }))
         });
 
         // B. CREAR AVALES
@@ -313,13 +366,18 @@ async function migrarFichas() {
         if (firstEndorsementObj) endorsementsDraft.firstEndorsement = firstEndorsementObj;
         if (secondEndorsementObj) endorsementsDraft.secondEndorsement = secondEndorsementObj;
 
-        // C. CREAR EL DRAFT FINAL
+        // C. CREAR EL DRAFT FINAL (Mapeo completo a la vista)
         const draftData = {
           membershipType: affiliateType,
           personalInformation: {
             documentType, documentNumber: docNumber,
             names: ficha.nombre, fatherLastName: ficha.apellido, motherLastName: ficha.apellidom,
-            birthDate: uiBirthDateString, primaryEmail: ficha.correo, phone: mainPhone,
+            birthDate: uiBirthDateString, 
+            birthPlace: ficha.lugarnac || null,
+            primaryEmail: ficha.correo ? String(ficha.correo).trim() : null, 
+            secondaryEmail: ficha.correo2 ? String(ficha.correo2).trim() : null,
+            phone: celular ? celular : mainPhone, 
+            landline: (telefonoFijo && celular) ? telefonoFijo : (celular ? null : telefonoFijo),
             address: ficha.direccion, gender,
             countryId: finalCountryId,
             departmentId: matchedDept?.id || null,
@@ -341,8 +399,13 @@ async function migrarFichas() {
           employmentInformation: {
             isUnemployed: !ficha.empresa,
             companyId: ficha.empresa ? compMap.get(String(ficha.empresa).trim().toUpperCase()) : null,
-            companyName: ficha.empresa, positionName: ficha.cargo, area: ficha.area,
-            companyTaxId: ficha.rucemp, workPhone: ficha.tlfemp, workEmail: ficha.correoemp,
+            companyName: ficha.empresa, 
+            positionName: ficha.cargo, 
+            area: ficha.area,
+            companyTaxId: ficha.rucemp, 
+            workPhone: ficha.tlfemp, 
+            workEmail: ficha.correoemp,
+            workingAddress: ficha.direcemp ? String(ficha.direcemp).trim() : null, // 🟢 NUEVO: Dirección de la empresa mapeada correctamente
           },
           endorsements: endorsementsDraft
         };

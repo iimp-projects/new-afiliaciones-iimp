@@ -1,58 +1,107 @@
 import { prisma } from "@/lib/prisma";
 import { MailService } from "@/modules/shared/Services/MailService";
+import { DeclarationPdfService } from "@/modules/afiliaciones/postulacion/Services/DeclarationPdfService";
+import { ValidationAction } from "@prisma/client";
 
 export class NotifyComiteService {
-    private readonly mailService = new MailService();
+  async execute(applicationId: number, isManualResend: boolean = false, targetUserId?: number, actorId?: number, actorName?: string) {
+    const app = await prisma.membershipApplication.findUnique({
+      where: { id: applicationId },
+      include: {
+        person: true,
+        approvals: { include: { sponsorPerson: true } },
+        validations: { include: { department: true, validatedBy: { include: { person: true } } } }
+      }
+    });
 
-    async execute(applicationId: number): Promise<void> {
-        try {
-            // 1. Obtenemos la data fresca del expediente
-            const fullApp = await prisma.membershipApplication.findUnique({
-                where: { id: applicationId },
-                include: { 
-                    validations: { include: { department: true } }, 
-                    approvals: true,
-                    person: true 
-                }
-            });
+    if (!app) throw new Error("Solicitud no encontrada.");
 
-            if (!fullApp) return;
+    const isStudent = app.affiliateType === "STUDENT";
+    const logistica = app.validations.find(v => v.department?.code === "LOGISTICA");
+    const asociados = app.validations.find(v => v.department?.code === "ASOCIADOS");
 
-            // 2. Extraemos el estado de las áreas
-            const isStudent = fullApp.affiliateType === 'STUDENT';
-            const logistica = fullApp.validations.find(v => v.department.code === 'LOGISTICA');
-            const asociados = fullApp.validations.find(v => v.department.code === 'ASOCIADOS');
-            const comite = fullApp.validations.find(v => v.department.code === 'COMITE');
+    const logOk = logistica?.status === "APPROVED" || logistica?.status === "RESOLVED";
+    const asocOk = asociados?.status === "APPROVED" || asociados?.status === "RESOLVED";
+    const avalesAprobados = app.approvals.filter(a => a.status === "APPROVED");
+    const avalesOk = isStudent || avalesAprobados.length >= 2;
 
-            const logisticaOk = logistica?.status === 'APPROVED';
-            const asociadosOk = asociados?.status === 'APPROVED';
-            const avalesOk = isStudent || fullApp.approvals.filter(a => a.status === 'APPROVED').length >= 2;
-
-            // 3. REGLA DE NEGOCIO: Si TODO está OK y el Comité AÚN no lo ha revisado
-            if (logisticaOk && asociadosOk && avalesOk && comite?.status === 'PENDING') {
-                
-                // [!] Puedes usar variables de entorno para los correos del comité
-                const comiteEmails = process.env.COMITE_EMAILS || "comite1@iimp.org.pe, comite2@iimp.org.pe"; 
-                const postulanteNombre = `${fullApp.person?.firstName} ${fullApp.person?.paternalLastName}`;
-
-                // 4. Enviamos el correo
-                await this.mailService.sendMail({
-                    to: comiteEmails,
-                    subject: "Nuevo Expediente Listo para Evaluación Final - IIMP",
-                    html: `
-                        <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
-                            <h2 style="color: #7f561e;">Expediente Listo para el Comité</h2>
-                            <p>Estimado Comité Evaluador,</p>
-                            <p>El expediente de <strong>${postulanteNombre}</strong> (DNI: ${fullApp.documentNumber}) ha sido aprobado exitosamente por las áreas de Logística, Atención al Asociado y cuenta con los avales requeridos en regla.</p>
-                            <p>Ya se encuentra visible y disponible en su bandeja de entrada de la Intranet para su revisión y conformidad final.</p>
-                            <br/>
-                            <p>Saludos cordiales,<br/>Sistema de Afiliaciones IIMP</p>
-                        </div>
-                    `
-                });
-            }
-        } catch (error) {
-            console.error("[NotifyComiteService] Error al notificar al comité:", error);
-        }
+    if (!logOk || !asocOk || !avalesOk) {
+      if (isManualResend) throw new Error("El expediente aún no tiene todas las aprobaciones previas (Logística, Asociados y Avales).");
+      return; 
     }
+
+    const logName = logistica?.validatedBy?.person ? `${logistica.validatedBy.person.firstName} ${logistica.validatedBy.person.paternalLastName}` : "Aprobación Automática";
+    const asocName = asociados?.validatedBy?.person ? `${asociados.validatedBy.person.firstName} ${asociados.validatedBy.person.paternalLastName}` : "Aprobación Automática";
+    const avalesNames = isStudent ? "N/A (Aplica como Estudiante)" : avalesAprobados.map(a => `${a.sponsorPerson?.firstName} ${a.sponsorPerson?.paternalLastName}`).join(" y ");
+    const postulanteName = `${app.person?.firstName} ${app.person?.paternalLastName}`;
+
+    const draft = typeof app.draftData === 'string' ? JSON.parse(app.draftData) : app.draftData;
+    const pdfService = new DeclarationPdfService();
+    const pdfBuffer = await pdfService.generate(draft);
+
+    // Filtramos si se eligió a un usuario específico o a todos
+    const userWhereClause = targetUserId 
+        ? { id: targetUserId, status: "ACTIVE" as any } 
+        : { role: { slug: "COMITE_EVALUADOR" }, status: "ACTIVE" as any };
+
+    const comiteUsers = await prisma.user.findMany({
+      where: userWhereClause,
+      include: { person: true }
+    });
+    
+    const comiteEmails = comiteUsers.map(u => u.email).filter(Boolean).join(",");
+    if (!comiteEmails) {
+      if (isManualResend) throw new Error("No hay usuarios válidos en el comité para enviar el correo.");
+      return;
+    }
+
+    const mailService = new MailService();
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eaeaea; border-radius: 8px; overflow: hidden;">
+        <div style="background-color: #7f561e; padding: 20px; text-align: center;">
+          <h2 style="color: #ffffff; margin: 0;">Expediente Listo para Evaluación</h2>
+        </div>
+        <div style="padding: 30px; color: #333; line-height: 1.6;">
+          <p>Estimados miembros del Comité Evaluador,</p>
+          <p>El expediente de <strong>${postulanteName}</strong> (Cód: ${app.applicationCode}) ha superado exitosamente los filtros administrativos previos y está listo para su veredicto final.</p>
+
+          <div style="background-color: #f9f9f9; border-left: 4px solid #c39254; padding: 15px; margin: 20px 0; border-radius: 4px;">
+            <h4 style="color: #7f561e; margin-top: 0; margin-bottom: 10px;">Resumen de Aprobaciones:</h4>
+            <ul style="list-style: none; padding: 0; margin: 0; font-size: 14px;">
+              <li style="margin-bottom: 8px;">✅ <strong>Avales:</strong> Confirmados por ${avalesNames}</li>
+              <li style="margin-bottom: 8px;">✅ <strong>Atención al Asociado:</strong> Revisado por ${asocName}</li>
+              <li style="margin-bottom: 0px;">✅ <strong>Logística:</strong> Validado por ${logName}</li>
+            </ul>
+          </div>
+
+          <p>Se adjunta la ficha de postulación en formato PDF para su respectiva revisión técnica.</p>
+        </div>
+      </div>
+    `;
+
+    await mailService.sendMail({
+      to: comiteEmails,
+      subject: `Nuevo Expediente para Comité - ${postulanteName}`,
+      html,
+      attachments: [{
+        filename: `Expediente_${app.applicationCode}.pdf`,
+        content: Buffer.from(pdfBuffer as any),
+        contentType: "application/pdf"
+      }]
+    });
+
+    // ¡LA MAGIA DEL HISTORIAL!: Inyectamos el evento en la Línea de Tiempo del expediente
+    const comiteValidation = app.validations.find(v => v.department?.code === "COMITE");
+    if (comiteValidation) {
+        const destNames = comiteUsers.map(u => `${u.person?.firstName} ${u.person?.paternalLastName}`).join(', ');
+        await prisma.membershipValidationHistory.create({
+            data: {
+                validationId: comiteValidation.id,
+                userId: actorId || null,
+                action: ValidationAction.START_REVIEW,
+                comment: `Se envió una notificación y el expediente por correo a: ${destNames}. (Enviado por: ${actorName || 'Sistema'})`
+            }
+        });
+    }
+  }
 }

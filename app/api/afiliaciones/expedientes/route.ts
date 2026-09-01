@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const page = parseInt(searchParams.get("page") || "1");
     const pageSize = parseInt(searchParams.get("pageSize") || "8");
+
     const search = searchParams.get("search") || undefined;
     const status = searchParams.get("status") || undefined;
     const modality = searchParams.get("modality") || undefined;
@@ -19,65 +20,63 @@ export async function GET(request: NextRequest) {
     const legalValidation = searchParams.get("legalValidation") || undefined;
     const comunicacionesValidation = searchParams.get("comunicacionesValidation") || undefined;
 
-    // Filtros Extras
     const paymentStatus = searchParams.get("paymentStatus") || undefined;
     const orderBy = searchParams.get("orderBy") || undefined;
     const dateFrom = searchParams.get("dateFrom") || undefined;
     const dateTo = searchParams.get("dateTo") || undefined;
 
-    // 1. Identificamos quién está pidiendo la lista
+    // 1. Identificamos el rol
     const currentUser = await contextService.getCurrentUser().catch(() => null);
+    const isComite = currentUser?.role?.slug === "COMITE_EVALUADOR";
+
+    // SOLUCIÓN PAGINACIÓN: Si es el comité, traemos 1000 registros de la BD 
+    // para que el filtro en memoria no corte expedientes válidos ocultos en otras páginas.
+    const dbPage = isComite ? 1 : page;
+    const dbPageSize = isComite ? 1000 : pageSize; 
 
     const repository = new ExpedienteRepository();
     const result = await repository.getPaginated({
-      page,
-      pageSize,
+      page: dbPage,
+      pageSize: dbPageSize,
       search,
       status,
       modality,
       logisticValidation,
       associateValidation,
-      comiteValidation,           // <-- ¡FALTABA ESTO!
-      legalValidation,            // <-- ¡FALTABA ESTO!
-      comunicacionesValidation,   // <-- ¡FALTABA ESTO!
-      paymentStatus,              // <-- ¡FALTABA ESTO!
+      comiteValidation,           
+      legalValidation,            
+      comunicacionesValidation,   
+      paymentStatus,              
       orderBy,
       dateFrom,
       dateTo,
     });
 
-    // 2. EL FILTRO MÁGICO PARA EL COMITÉ
     let expedientesFiltrados = result.data;
+    let finalTotal = result.meta.total;
 
-    if (currentUser?.role.slug === "COMITE_EVALUADOR") {
+    // 2. EL FILTRO MÁGICO PARA EL COMITÉ (A prueba de errores y estados subsanados)
+    if (isComite) {
       expedientesFiltrados = expedientesFiltrados.filter((app: any) => {
-        const isStudent = app.affiliateType === "STUDENT";
+        const isStudent = String(app.affiliateType).toUpperCase() === "STUDENT";
 
-        // Buscamos el estado de cada área
-        const logistica = app.validations.find((v: any) => v.department.code === "LOGISTICA");
-        const asociados = app.validations.find((v: any) => v.department.code === "ASOCIADOS");
-        const legal = app.validations.find((v: any) => v.department.code === "LEGAL");
-        const comunicaciones = app.validations.find((v: any) => v.department.code === "COMUNICACIONES");
+        const logistica = app.validations?.find((v: any) => String(v.department?.code).toUpperCase() === "LOGISTICA");
+        const asociados = app.validations?.find((v: any) => String(v.department?.code).toUpperCase() === "ASOCIADOS");
 
-        // Verificamos si están aprobadas
-        const logisticaAprobada = logistica?.status === "APPROVED";
-        const asociadosAprobado = asociados?.status === "APPROVED";
-        const legalAprobada = legal?.status === "APPROVED";
-        const comunicacionesAprobada = comunicaciones?.status === "APPROVED";
+        // SOLUCIÓN ESTADO: Aceptamos "APPROVED" (Aprobado directo) o "RESOLVED" (Subsanado)
+        const logisticaOk = logistica?.status === "APPROVED" || logistica?.status === "RESOLVED";
+        const asociadosOk = asociados?.status === "APPROVED" || asociados?.status === "RESOLVED";
 
-        // Verificamos avales
         const avalesAprobados = app.approvals?.filter((a: any) => a.status === "APPROVED").length || 0;
         const avalesListos = isStudent || avalesAprobados >= 2;
 
-        // SOLO pasará si TODAS las áreas paralelas previas ya aprobaron
-        return (
-          logisticaAprobada &&
-          asociadosAprobado &&
-          legalAprobada &&
-          comunicacionesAprobada &&
-          avalesListos
-        );
+        return logisticaOk && asociadosOk && avalesListos;
       });
+
+      // Recalculamos la paginación en memoria para el frontend
+      finalTotal = expedientesFiltrados.length;
+      const startIndex = (page - 1) * pageSize;
+      expedientesFiltrados = expedientesFiltrados.slice(startIndex, startIndex + pageSize);
     }
 
     // 3. Mapeamos la data resultante
@@ -90,11 +89,10 @@ export async function GET(request: NextRequest) {
         success: true,
         data: mappedData,
         meta: { 
-          ...result.meta, 
-          // SOLUCIÓN AL BUG DEL "8": El total real lo trae result.meta.total, solo lo sobrescribimos si es el Comité.
-          total: currentUser?.role.slug === "COMITE_EVALUADOR" 
-            ? expedientesFiltrados.length 
-            : result.meta.total 
+          total: finalTotal,
+          page,
+          pageSize,
+          totalPages: Math.ceil(finalTotal / pageSize)
         }, 
       },
       { status: 200 },

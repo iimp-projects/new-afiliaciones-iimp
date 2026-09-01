@@ -37,4 +37,9 @@ export class UserService {
   async deleteUser(userId: number) {
     return await this.repository.softDeleteUser(userId);
   }
+
+  async changeUserPassword(userId: number, newPasswordPlain: string) {
+    const hashedPassword = await bcrypt.hash(newPasswordPlain, 12);
+    return await this.repository.updateUserPassword(userId, hashedPassword);
+  }
 }
