@@ -108,6 +108,10 @@ export const StatusObserved: React.FC<Props> = ({ data, onUploadSuccess }) => {
   // Estado de carga por campo de archivo (key = path del campo)
   const [uploadingField, setUploadingField] = useState<Record<string, boolean>>({});
   const [savingCorrection, setSavingCorrection] = useState(false);
+  // Estado de carga de URL pre-firmada para ver archivo actual (key = path)
+  const [openingFile, setOpeningFile] = useState<Record<string, boolean>>({});
+  // Vista previa local del archivo recién seleccionado (key = path, value = {objectUrl, name, type})
+  const [localPreview, setLocalPreview] = useState<Record<string, { objectUrl: string; name: string; type: string }>>({});
 
   // Estados para búsqueda de Aval Sustituto
   const [sponsorDni, setSponsorDni] = useState("");
@@ -133,6 +137,25 @@ export const StatusObserved: React.FC<Props> = ({ data, onUploadSuccess }) => {
   // ─────────────────────────────────────────────────────────────────────
   // Sube UN archivo a S3 y actualiza el draft local con el objeto {url,name,type}
   // ─────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────
+  // Abre el archivo actual usando una URL pre-firmada (evita AccessDenied en S3)
+  // ─────────────────────────────────────────────────────────────────────
+  const openCurrentFile = async (path: string, s3Url: string) => {
+    setOpeningFile((prev) => ({ ...prev, [path]: true }));
+    try {
+      const res = await fetch(
+        `/api/afiliaciones/postulacion/file?url=${encodeURIComponent(s3Url)}`
+      );
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.message || "No se pudo obtener el archivo.");
+      window.open(json.data.url, "_blank", "noopener,noreferrer");
+    } catch (error: any) {
+      setErrorMessage(error.message || "No se pudo abrir el archivo.");
+    } finally {
+      setOpeningFile((prev) => ({ ...prev, [path]: false }));
+    }
+  };
+
   const uploadCorrectionFile = async (path: string, file?: File) => {
     if (!file) return;
     const trackingCode = (data as any).trackingCode;
@@ -142,6 +165,11 @@ export const StatusObserved: React.FC<Props> = ({ data, onUploadSuccess }) => {
     }
     setErrorMessage(null);
     setUploadingField((prev) => ({ ...prev, [path]: true }));
+
+    // Vista previa local inmediata antes de subir
+    const objectUrl = URL.createObjectURL(file);
+    setLocalPreview((prev) => ({ ...prev, [path]: { objectUrl, name: file.name, type: file.type } }));
+
     try {
       const formData = new FormData();
       formData.append("file", file);
@@ -165,6 +193,12 @@ export const StatusObserved: React.FC<Props> = ({ data, onUploadSuccess }) => {
       setCorrectionDraft((prev) => writePath(prev, path, newValue));
     } catch (error: any) {
       setErrorMessage(error.message || "No se pudo subir el archivo.");
+      // Limpiar preview si falló la subida
+      setLocalPreview((prev) => {
+        const next = { ...prev };
+        delete next[path];
+        return next;
+      });
     } finally {
       setUploadingField((prev) => ({ ...prev, [path]: false }));
     }
@@ -359,24 +393,32 @@ export const StatusObserved: React.FC<Props> = ({ data, onUploadSuccess }) => {
                   const currentUrl = extractUrl(currentValue);
                   const isUploading = uploadingField[path] ?? false;
 
+                  const preview = localPreview[path];
+                  const origUrl = extractUrl(readPath(originalDraft, path));
+                  const newUrl = extractUrl(readPath(correctionDraft, path));
+                  const isNewFile = newUrl && newUrl !== origUrl;
+                  const isImage = preview
+                    ? preview.type.startsWith("image/")
+                    : typeof currentValue === "object" && currentValue?.type?.startsWith("image/");
+
                   return (
                     <div key={path} className="col-span-1 sm:col-span-2 space-y-2">
                       <span className="text-xs font-semibold text-slate-700 block">{label}</span>
 
-                      {/* Archivo actualmente guardado */}
+                      {/* Archivo actualmente guardado — se abre vía URL pre-firmada */}
                       {currentUrl ? (
-                        <a
-                          href={currentUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-1.5 text-[11px] text-blue-600 hover:text-blue-800 font-medium underline"
+                        <button
+                          type="button"
+                          onClick={() => openCurrentFile(path, currentUrl)}
+                          disabled={openingFile[path]}
+                          className="inline-flex items-center gap-1.5 text-[11px] text-blue-600 hover:text-blue-800 font-medium underline disabled:opacity-50 disabled:cursor-wait"
                         >
                           <ExternalLink className="w-3 h-3" />
-                          Ver archivo actual
+                          {openingFile[path] ? "Abriendo..." : "Ver archivo actual"}
                           {typeof currentValue === "object" && currentValue?.name
                             ? ` (${currentValue.name})`
                             : ""}
-                        </a>
+                        </button>
                       ) : (
                         <p className="text-[11px] text-slate-400">Sin archivo cargado.</p>
                       )}
@@ -414,19 +456,32 @@ export const StatusObserved: React.FC<Props> = ({ data, onUploadSuccess }) => {
                         </div>
                       </label>
 
-                      {/* Confirmación de archivo recién subido */}
-                      {(() => {
-                        const origUrl = extractUrl(readPath(originalDraft, path));
-                        const newUrl = extractUrl(readPath(correctionDraft, path));
-                        if (newUrl && newUrl !== origUrl) {
-                          return (
-                            <p className="text-[11px] text-emerald-600 font-medium flex items-center gap-1">
+                      {/* Miniatura / confirmación del archivo recién cargado */}
+                      {isNewFile && preview && (
+                        <div className="flex items-center gap-3 p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl">
+                          {/* Miniatura */}
+                          {isImage ? (
+                            <img
+                              src={preview.objectUrl}
+                              alt="Vista previa"
+                              className="w-14 h-14 object-cover rounded-lg border border-emerald-300 shrink-0"
+                            />
+                          ) : (
+                            <div className="w-14 h-14 flex flex-col items-center justify-center bg-red-100 rounded-lg border border-red-200 shrink-0 text-red-500">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM8.5 15h7v1h-7v-1zm0-2h7v1h-7v-1zm0-2h4v1h-4v-1z" />
+                              </svg>
+                              <span className="text-[8px] font-bold mt-0.5">PDF</span>
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[11px] text-emerald-700 font-bold flex items-center gap-1">
                               ✅ Archivo nuevo cargado y listo para guardar.
                             </p>
-                          );
-                        }
-                        return null;
-                      })()}
+                            <p className="text-[10px] text-slate-500 truncate mt-0.5">{preview.name}</p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   );
                 }

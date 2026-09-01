@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Play, MapPin, Calendar, Sparkles, ExternalLink } from "lucide-react";
+import { ArrowLeft, Play, MapPin, Calendar, Sparkles, ExternalLink, CheckCircle2, GraduationCap, Briefcase, ArrowRight } from "lucide-react";
 
 interface BenefitData {
   id: string;
@@ -12,14 +13,85 @@ interface BenefitData {
   redirectUrl?: string | null;
 }
 
+// ─── DATOS DE BENEFICIOS DISGREGADOS POR SLUG Y TIPO ───
+
+type BenefitItemsByType = {
+  asociado: string[];
+  estudiante: string[];
+};
+
+const benefitsBySlug: Record<string, BenefitItemsByType> = {
+  "networking-alto-nivel": {
+    asociado: [
+      "Participación preferencial en los Jueves Mineros presenciales e ingreso al Restobar Minero acompañado de sus invitados.",
+      "Uso de las Salas de reuniones y Sala VIP ubicadas en la sede del IIMP, previa coordinación con el área de Asociados y Eventos.",
+      "Participación en la ceremonia de Bienvenida con entrega de certificado y pin institucional — excelente oportunidad de networking.",
+      "Oportunidad de participar en sorteos donde podrá obtener libros, accesos gratuitos a cursos, eventos, seminarios, etc.",
+      "Precios preferenciales en el alquiler de ambientes de la sede institucional.",
+      "Saludo por su onomástico en la red oficial del IIMP - Facebook (en conjunto).",
+    ],
+    estudiante: [
+      "Participación en los Jueves Mineros, Encuentros Mineros, Seccionales, Webinars, entre otras actividades.",
+      "Oportunidad de participar en sorteos donde podrá obtener libros, accesos gratuitos a cursos, eventos, seminarios, etc.",
+      "Se considera el tiempo como Asociado Estudiante para el cálculo de los 30 años que se requiere para ser Asociado Vitalicio.",
+    ],
+  },
+  "recursos-digitales": {
+    asociado: [
+      "Usuario y Contraseña para acceder a la intranet del IIMP, con ingreso a la biblioteca virtual OneMine (más de 120,000 publicaciones de la industria minera).",
+      "Envío mensual de la Revista Minería (virtual) que cuenta con más de 80,000 seguidores.",
+      "Envío de la Edición Semanal de la Revista Minería (virtual).",
+      "Oportunidad de publicar un artículo técnico en la revista, previa evaluación del comité editorial.",
+      "De lunes a viernes, recepción de boletines del IIMP, mailings y comunicaciones relacionadas al sector.",
+    ],
+    estudiante: [
+      "Recepción virtual de la Revista Minería y su Edición Semanal, que cuenta con más de 80,000 seguidores.",
+      "Recepción de lunes a viernes, vía mail, del Boletín IIMP al Día.",
+      "Contraseña para acceder a la intranet del IIMP, donde podrá actualizar datos y visualizar presentaciones del Jueves Minero, Encuentro Minero, entre otras actividades.",
+    ],
+  },
+  "eventos-top": {
+    asociado: [
+      "Tarifas preferenciales para inscripción a PERUMIN.",
+      "Tarifas preferenciales para inscripción a proEXPLO.",
+      "Participación en el Almuerzo Anual Minero del IIMP (requiere 03 meses de antigüedad).",
+      "Acceso a Turimin (Turismo Minero).",
+      "Asistencia gratuita a la exhibición de las ferias tecnológicas de los eventos (requiere 03 años de antigüedad).",
+    ],
+    estudiante: [
+      "Tarifas preferenciales en los eventos organizados por el IIMP, ya sean presenciales o virtuales.",
+    ],
+  },
+  "desarrollo-profesional": {
+    asociado: [
+      "Tarifas preferenciales en los cursos cortos especializados organizados por el IIMP, ya sean presenciales o virtuales.",
+      "Entrega de certificados digitales.",
+      "Participación como mentor en el \"Programa Mentoring\".",
+    ],
+    estudiante: [
+      "Participación como mentorizado en el \"Programa Mentoring\", organizado por el IIMP.",
+      "Opción de participar en el programa \"Coaching\", para los estudiantes que cuenten con la mejor evaluación en el Programa de Mentoring.",
+      "Opción de participar en el programa \"Cantera de Talentos para la Minería\", previa selección por su universidad.",
+      "Tarifas preferenciales en los cursos cortos especializados organizados por el IIMP, ya sean presenciales o virtuales.",
+      "Se considera el tiempo como Asociado Estudiante para el cálculo de los 30 años que se requiere para ser Asociado Vitalicio.",
+    ],
+  },
+};
+
+// ─── DATOS DE MARQUEE, HIGHLIGHTS Y HERO (sin cambios estructurales) ───
+
 export default function BenefitDetailHero({ benefit }: { benefit: BenefitData }) {
+  const [activeTab, setActiveTab] = useState<"asociado" | "estudiante">("asociado");
+
   // 1. Identificar el tipo de beneficio actual
   const isRecursos = benefit.slug === "recursos-digitales";
   const isEventos = benefit.slug === "eventos-top";
   const isDesarrollo = benefit.slug === "desarrollo-profesional";
 
+  // 2. Obtener beneficios para el slug actual
+  const currentBenefits = benefitsBySlug[benefit.slug] || { asociado: [], estudiante: [] };
 
-  // 2. Ticker / Marquee dinámico
+  // 3. Ticker / Marquee dinámico
   const marqueeItems = isRecursos
     ? [
         "◆ MÁS DE 150,000 ARTÍCULOS TÉCNICOS",
@@ -48,7 +120,7 @@ export default function BenefitDetailHero({ benefit }: { benefit: BenefitData })
         "◆ JUEVES MINEROS CON EXPOSITORES VIP",
       ];
 
-  // 3. Galería de eventos o recursos destacados (3 Cards)
+  // 4. Galería de eventos o recursos destacados (3 Cards)
   const highlights = isRecursos
     ? [
         {
@@ -325,23 +397,156 @@ export default function BenefitDetailHero({ benefit }: { benefit: BenefitData })
         </div>
       </section>
 
-      {/* 5. CTA FINAL */}
-      <section className="py-16 px-6 max-w-5xl mx-auto mb-16">
-        <div className="bg-white border border-gray-200 rounded-3xl p-8 sm:p-12 text-center relative overflow-hidden shadow-xl">
-          <h2 className="text-3xl sm:text-4xl font-black mb-4 text-[#3E3E3D]">
-            ¿Listo para formar parte de la red minera más grande?
+      {/* ═══════════════════════════════════════════════════
+          5. BENEFICIOS DETALLADOS POR TIPO DE MEMBRESÍA
+      ═══════════════════════════════════════════════════ */}
+      <section className="py-20 px-6 lg:px-12 max-w-7xl mx-auto">
+        {/* Encabezado de sección */}
+        <div className="text-center mb-12">
+          <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-[#C39254]/20 text-[#C39254] text-xs font-extrabold uppercase tracking-widest mb-5 shadow-sm">
+            <Sparkles size={14} /> Beneficios por Membresía
+          </span>
+          <h2 className="text-3xl sm:text-5xl font-black mb-4 text-[#3E3E3D] tracking-tight">
+            ¿Qué incluye este beneficio{" "}
+            <span className="text-[#C39254]">para ti</span>?
           </h2>
-          <p className="text-gray-600 max-w-xl mx-auto mb-8 font-medium">
-            Forma parte del Instituto de Ingenieros de Minas del Perú y accede inmediatamente a todos estos beneficios.
+          <p className="text-gray-600 font-medium text-lg max-w-2xl mx-auto">
+            Selecciona tu tipo de membresía para ver los beneficios específicos que recibirás en esta categoría.
           </p>
-          <Link
-            href="/postulacion#planes-afiliacion"
-            className="inline-block px-8 py-4 rounded-xl bg-[#C39254] text-white font-black uppercase tracking-wider text-sm hover:bg-[#b08146] hover:scale-105 transition-all shadow-lg shadow-[#C39254]/20"
-          >
-            Iniciar Mi Afiliación
-          </Link>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex justify-center mb-10">
+          <div className="inline-flex bg-white border border-gray-200 rounded-2xl p-1.5 shadow-sm">
+            <button
+              onClick={() => setActiveTab("asociado")}
+              className={`
+                flex items-center gap-2.5 px-6 py-3.5 rounded-xl text-sm font-extrabold uppercase tracking-wider transition-all duration-300
+                ${activeTab === "asociado"
+                  ? "bg-[#C39254] text-white shadow-lg shadow-[#C39254]/25"
+                  : "text-gray-500 hover:text-[#C39254] hover:bg-[#C39254]/5"
+                }
+              `}
+            >
+              <Briefcase size={18} />
+              Asociado Activo
+            </button>
+            <button
+              onClick={() => setActiveTab("estudiante")}
+              className={`
+                flex items-center gap-2.5 px-6 py-3.5 rounded-xl text-sm font-extrabold uppercase tracking-wider transition-all duration-300
+                ${activeTab === "estudiante"
+                  ? "bg-[#3E3E3D] text-white shadow-lg shadow-[#3E3E3D]/25"
+                  : "text-gray-500 hover:text-[#3E3E3D] hover:bg-gray-100"
+                }
+              `}
+            >
+              <GraduationCap size={18} />
+              Estudiante
+            </button>
+          </div>
+        </div>
+
+        {/* Panel de Beneficios */}
+        <div className="max-w-4xl mx-auto">
+          {/* Header contextual del tab */}
+          <div className={`
+            rounded-t-3xl px-8 py-6 border border-b-0
+            ${activeTab === "asociado" 
+              ? "bg-gradient-to-r from-[#C39254] to-[#D6A84A] border-[#C39254]/30" 
+              : "bg-gradient-to-r from-[#3E3E3D] to-[#5a5a59] border-[#3E3E3D]/30"
+            }
+          `}>
+            <div className="flex items-center gap-3">
+              {activeTab === "asociado" ? (
+                <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                  <Briefcase size={24} className="text-white" />
+                </div>
+              ) : (
+                <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                  <GraduationCap size={24} className="text-white" />
+                </div>
+              )}
+              <div>
+                <h3 className="text-xl font-black text-white">
+                  {activeTab === "asociado" ? "Asociado Activo" : "Asociado Estudiante"}
+                </h3>
+                <p className="text-sm text-white/80 font-medium">
+                  {activeTab === "asociado"
+                    ? "Profesionales, egresados y bachilleres del sector minero"
+                    : "Estudiantes de pregrado del 7mo al 10mo ciclo (Ing. Minas, Metalurgia, Geología)"}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Lista de beneficios */}
+          <div className={`
+            bg-white rounded-b-3xl border px-8 py-8 shadow-xl
+            ${activeTab === "asociado" ? "border-[#C39254]/20" : "border-[#3E3E3D]/20"}
+          `}>
+            {activeTab === "asociado" && (
+              <div className="mb-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#C39254]/10 border border-[#C39254]/20 text-[#C39254] text-xs font-extrabold uppercase tracking-widest">
+                Inversión: S/. 300.00 (primer año) — Renovación anual: S/. 150.00
+              </div>
+            )}
+            {activeTab === "estudiante" && (
+              <div className="mb-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-extrabold uppercase tracking-widest">
+                ✦ Afiliación sin costo — membresía gratuita mientras seas estudiante de pregrado
+              </div>
+            )}
+
+            <ul className="space-y-4 mt-6">
+              {(activeTab === "asociado" ? currentBenefits.asociado : currentBenefits.estudiante).map(
+                (item, idx) => (
+                  <li
+                    key={idx}
+                    className="flex items-start gap-3.5 group"
+                  >
+                    <CheckCircle2
+                      size={22}
+                      className={`shrink-0 mt-0.5 transition-colors ${
+                        activeTab === "asociado"
+                          ? "text-[#C39254]"
+                          : "text-[#3E3E3D]"
+                      }`}
+                    />
+                    <span className="text-[#3E3E3D] font-medium leading-relaxed text-[15px] group-hover:text-[#C39254] transition-colors">
+                      {item}
+                    </span>
+                  </li>
+                )
+              )}
+            </ul>
+
+            {/* CTA del tab */}
+            <div className="mt-10 pt-8 border-t border-gray-100 flex flex-col sm:flex-row items-center gap-4">
+              <Link
+                href={activeTab === "asociado" ? "/postulacion/asociado" : "/postulacion/estudiante"}
+                className={`
+                  inline-flex items-center gap-2 px-8 py-4 rounded-xl font-black uppercase tracking-wider text-sm hover:scale-105 transition-all shadow-lg text-center
+                  ${activeTab === "asociado"
+                    ? "bg-[#C39254] text-white hover:bg-[#b08146] shadow-[#C39254]/20"
+                    : "bg-[#3E3E3D] text-white hover:bg-[#2a2a2a] shadow-[#3E3E3D]/20"
+                  }
+                `}
+              >
+                {activeTab === "asociado"
+                  ? "Comenzar Afiliación"
+                  : "Afiliación Estudiantil Gratuita"}
+                <ArrowRight size={18} />
+              </Link>
+              <p className="text-sm text-gray-500 font-medium">
+                {activeTab === "asociado"
+                  ? "Proceso 100% digital. Requiere 2 avales."
+                  : "Solo necesitas tu constancia de matrícula vigente."}
+              </p>
+            </div>
+          </div>
         </div>
       </section>
+
+
 
     </div>
   );
