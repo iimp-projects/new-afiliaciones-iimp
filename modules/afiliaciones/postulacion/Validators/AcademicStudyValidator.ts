@@ -27,6 +27,9 @@ export class AcademicStudyValidator extends BaseValidator {
     }
 
     private validateAcademicInformation(data: AcademicStudy, membershipType: MembershipType): void {
+        if (membershipType !== MembershipType.STUDENT && (!data.degreeId || data.degreeId <= 0)) {
+            this.addError("degreeId", "REQ", "Seleccione un grado académico.");
+        }
 
         // 👇 REGLAS PARA ESTUDIANTE
        // 👇 REGLAS PARA ESTUDIANTE
@@ -45,7 +48,7 @@ export class AcademicStudyValidator extends BaseValidator {
             ValidationRules.maxLength(data.degreeTitle, 200, "degreeTitle", this, "MAX", "Máximo 200 caracteres.");
         }
 
-        if (ValidationRules.required(data.specialty, "specialty", this, "REQ", "Seleccione o ingrese una especialidad.")) {
+        if (!data.specialtyId && ValidationRules.required(data.specialty, "specialty", this, "REQ", "Seleccione o ingrese una especialidad.")) {
             ValidationRules.minLength(data.specialty, 4, "specialty", this, "MIN", "Mínimo 4 caracteres.");
             ValidationRules.maxLength(data.specialty, 150, "specialty", this, "MAX", "Máximo 150 caracteres.");
         }

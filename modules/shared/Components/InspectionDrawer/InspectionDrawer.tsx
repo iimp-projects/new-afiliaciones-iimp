@@ -66,6 +66,7 @@ function DrawerInner({
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isAvatarZoomed, setIsAvatarZoomed] = useState(false);
+  const [avatarFailed, setAvatarFailed] = useState(false);
 
   useEffect(() => {
     if (data?.defaultTabId) setActiveTab(data.defaultTabId);
@@ -144,9 +145,10 @@ function DrawerInner({
               >
                 <X size={28} />
               </button>
-              {header.identity.avatarUrl ? (
+              {header.identity.avatarUrl && !avatarFailed ? (
                 <img
                   src={header.identity.avatarUrl}
+                  onError={() => setAvatarFailed(true)}
                   alt="Avatar"
                   className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl animate-in zoom-in-95 duration-300"
                 />
@@ -216,9 +218,10 @@ function DrawerInner({
               <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
                 <Maximize2 size={24} className="text-white" />
               </div>
-              {header.identity.avatarUrl ? (
+              {header.identity.avatarUrl && !avatarFailed ? (
                 <img
                   src={header.identity.avatarUrl}
+                  onError={() => setAvatarFailed(true)}
                   alt=""
                   className="w-full h-full object-cover object-center"
                 />
@@ -383,7 +386,7 @@ function DrawerInner({
 
           <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-50/70 relative">
             <div
-              className={`shrink-0 px-2 sm:px-6 flex w-full bg-white border-b-2 border-slate-100 overflow-x-auto overflow-y-hidden scrollbar-hide ${isTheaterMode ? "pt-4" : "pt-2"}`}
+              className={`shrink-0 flex w-full gap-0 overflow-x-auto overflow-y-hidden border-b-2 border-slate-100 bg-white px-2 scrollbar-hide md:justify-between md:overflow-x-hidden ${isTheaterMode ? "pt-4 sm:px-6" : "pt-2 sm:px-6"}`}
             >
               {availableTabs.map((tab) => (
                 <button

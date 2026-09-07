@@ -380,7 +380,7 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
             </div>
           </div>
         ) : expedientes.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+          <div className="grid min-w-0 grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
             {expedientes.map((exp) => {
               const isCardStudent = exp.identity.categoryBadge?.label?.toLowerCase().includes("estudiante");
 

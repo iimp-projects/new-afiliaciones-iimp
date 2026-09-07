@@ -39,6 +39,7 @@ import { ApplicationApi } from "../Services/ApplicationApi";
 import type { ApplicationDraft } from "../Models/ApplicationDraft";
 import type { PersonalInformation } from "../Models/PersonalInformation";
 import { MembershipType } from "../Types/MembershipType";
+import { ProcessLoadingOverlay } from "@/modules/shared/Components/ProcessLoadingOverlay";
 
 interface ApplicationViewProps {
   membershipType: MembershipType;
@@ -207,6 +208,7 @@ export default function ApplicationView({
 
   const submitFinalApplication = async (): Promise<void> => {
     if (!application) return;
+    setSaving(true);
     try {
       await api.submit(application);
 
@@ -239,6 +241,8 @@ export default function ApplicationView({
       }, 250);
     } catch (error) {
       throw error;
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -517,6 +521,11 @@ export default function ApplicationView({
 
   return (
     <div className="w-full min-h-screen bg-[#F7F8FA] relative font-sans antialiased pb-24">
+      <ProcessLoadingOverlay
+        open={saving}
+        title={currentStep === 1 ? "Guardando tus datos personales" : currentStep === 2 ? "Guardando tu información académica" : currentStep === 3 ? "Guardando tu información" : currentStep === 4 ? "Guardando tu información" : "Enviando tu postulación"}
+        description={currentStep === 1 ? "Estamos preparando la información académica. Esto tomará solo unos segundos." : currentStep === 2 ? "Estamos preparando la información laboral de tu postulación." : currentStep === 3 ? "Estamos preparando la sección de avales y términos." : currentStep === 4 ? "Estamos preparando la declaración final de tu postulación." : "Estamos registrando tu solicitud. Por favor, no cierres esta ventana."}
+      />
       <ApplicationHeader
         membershipType={membershipType}
         currentStep={currentStep}

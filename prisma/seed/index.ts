@@ -14,6 +14,7 @@ export { seedUniversities } from './education/universities.seed';
 export { seedSpecialties } from './education/specialties.seed';
 export { seedBenefits } from './benefits/benefits.seed';
 export { seedMembershipDepartments } from './catalogs/membership-departments.seed';
+export { seedSystemSettings } from './system/system-settings.seed';
 // export { seedCompanies } from './geography/companies.seed';
 
 // // System

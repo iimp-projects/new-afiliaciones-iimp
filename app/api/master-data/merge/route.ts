@@ -1,0 +1,4 @@
+import { NextRequest, NextResponse } from "next/server";
+import { contextService } from "@/modules/auth/context/service";
+import { MasterDataMergeService } from "@/modules/master-data/Services/MasterDataMergeService";
+export async function POST(request: NextRequest) { try { const user = await contextService.getCurrentUser(); await contextService.requirePermission("merge", "catalogs"); if (!user) return NextResponse.json({ success: false, message: "No autorizado." }, { status: 403 }); const body = await request.json(); const result = await new MasterDataMergeService().merge({ ...body, userId: user.id }); return NextResponse.json({ success: true, data: result }); } catch (error) { const status = error instanceof Error && "status" in error ? Number((error as { status: number }).status) : 400; return NextResponse.json({ success: false, message: error instanceof Error ? error.message : "No se pudo fusionar." }, { status }); } }

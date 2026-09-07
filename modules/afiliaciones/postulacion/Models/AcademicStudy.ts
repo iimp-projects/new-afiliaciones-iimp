@@ -1,4 +1,6 @@
 export interface AcademicStudy {
+    degreeId?: number;
+    specialtyId?: number;
 
     /**
      * Identificador de la institución.

@@ -1,0 +1,5707 @@
+{
+  "generatedAt": "2026-09-07T04:43:35.285Z",
+  "readOnly": true,
+  "status": "PROPOSAL_ONLY",
+  "expectedActiveCanonicalCount": 6,
+  "studyLevelNote": "El enum StudyLevel no contiene PROFESSIONAL_TITLE; Título profesional se propone temporalmente como OTHER hasta aprobación.",
+  "excludedFromAutomaticCreation": [
+    "Segunda especialidad",
+    "Diplomado"
+  ],
+  "canonicals": [
+    {
+      "canonicalId": null,
+      "name": "Técnico",
+      "code": null,
+      "abbreviation": null,
+      "studyLevel": "TECHNICAL",
+      "description": null,
+      "action": "CREATE_CANONICAL",
+      "aliases": [
+        "TECNICO EN COMPUTACION",
+        "PROFESIONAL TECNICO EN EXPLOTACION DE MINAS",
+        "TECNICO CIVIL",
+        "TECNICO EN EXPLOTACION DE MINAS",
+        "TECNICO MECANICO"
+      ],
+      "legacyRecords": [
+        {
+          "id": 55,
+          "name": "TECNICO EN COMPUTACION",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 374,
+          "name": "PROFESIONAL TECNICO EN EXPLOTACION DE MINAS",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 427,
+          "name": "TECNICO CIVIL",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 458,
+          "name": "TECNICO EN EXPLOTACION DE MINAS",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 481,
+          "name": "TECNICO MECANICO",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        }
+      ]
+    },
+    {
+      "canonicalId": 425,
+      "name": "Bachiller",
+      "code": null,
+      "abbreviation": null,
+      "studyLevel": "BACHELOR",
+      "description": null,
+      "action": "KEEP_CANONICAL",
+      "aliases": [
+        "BACHILLER EN CIENCIAS MARÍTIMAS",
+        "BACHILLER EN DERECHO",
+        "BACHILLER EN INGENIERÍA DE MINAS",
+        "BACHILLER ADMINISTRACIÓN DE EMPRESAS",
+        "BACHILLER EN CIENCIAS AMBIENTALES",
+        "BACHILLER EN CIENCIAS CON MENCIÓN EN INGENIERÍA MECÁNICA",
+        "BACHILLER EN ECONOMÍA CON ESPECIALIDAD EN ECONOMÍA DE EMPRESA",
+        "BACHILLER EN DERECHO Y CIENCIAS POLITICAS",
+        "BACHILLER EN INGENIERIA METALURGICA",
+        "BACHILLER EN CIENCIAS - ECONOMÍA",
+        "BACHILLER PROFESIONAL EN CIENCIAS ADMINISTRATIVAS",
+        "BACHILLER INGENIERÍA INDUSTRIAL",
+        "BACHILLER INGENIERIA DE MINAS",
+        "BACHILLER EN INGENIERÍA GEOLÓGICA",
+        "BACHILLER EN INGENIERIA GEOLOGICA",
+        "BACHILLER EN ECONOMÍA",
+        "BACHILLER EN INGENIERÍA QUÍMICA",
+        "BACHILLER EN INGENIERÍA AMBIENTAL",
+        "BACHILLER / MASTER",
+        "BACHILLER DE INGENIERÍA DE MINAS",
+        "BACHILLER EN CIENCIAS CON MENCIÓN EN INGENIERÍA GEOLÓGICA",
+        "BACHILLER EN INGENIERÍA CIVIL",
+        "BACHILLER EN CIENCIAS",
+        "BACHILLER DE INGENIERÍA MECÁNICA ELÉCTRICA",
+        "BACHILLER DE INGENIERÍA CIVIL",
+        "BACHILLER EN DESARROLLO INTERNACIONAL",
+        "BACHILLER EN INGENIERIA GEOLÓGICA",
+        "BACHILLER EN INGENIERIA CIVIL",
+        "BACHILLER INGENIERÍA MECATRÓNICA",
+        "BACHILLER  EN CIENCIAS CONTABLES",
+        "BACH INGENIERO MECANICO",
+        "BACHILLER INGENIERIA INDUSTRIAL",
+        "BACHILLER EN CIENCIAS GEOFÍSICAS",
+        "BACHILLER EN QUÍMICA",
+        "BACHILLER EN INGENIERÍA METALÚRGICA",
+        "BACHILLER DE INGENIERIA GEOLÓGICA",
+        "BACHILLER MARKETING",
+        "BACHILLER EN ADMINISTRACIÓN DE EMPRESAS",
+        "BACHILLER EN CIENCIAS POLÍTICAS",
+        "BACHILLER ECONOMIA",
+        "BACHILLER EN CIENCIAS CON MENCIÓN EN INGENIERÍA MECATRÓNICA",
+        "BACHILLER EN GEOLOGÍA",
+        "BACH INGENIERO INDUSTRIAL",
+        "BACHILLER INGENIERÍA METALÚRGICA",
+        "BACHILLER EN INGENIERIA INDUSTRIAL",
+        "BACHILLER EN CIENCIAS INGENIERÍA DE MINAS",
+        "BACHILLER EN ADMINISTRACION",
+        "GRADO BACHILLER EN INGENIERÍA DE MINAS",
+        "BACHILLER EN GEOGRAFÍA Y MEDIO AMBIENTE",
+        "BACHILLER DE INGENIERÍA AMBIENTAL",
+        "BACHILLER 273",
+        "BACHILLER EN INGENIERÍA INDUSTRIAL",
+        "BACHILLER EN INGENIERÍA ELECTRÓNICA",
+        "BACHILLER EN INGENIERÍA MECÁNICA",
+        "BACHILLER EN EDUCACION",
+        "BACHILLER EN ARQUITECTURA",
+        "BACHILLER EN INGENIERIA AMBIENTAL",
+        "BACHILLER EN ADMINISTRACIÓN",
+        "BACHILLER EN DERECHO Y CIENCIAS POLÍTICAS",
+        "BACHILLER EN INGENIERIA MECATRONICA",
+        "DIPLOMA DE BACHILLER",
+        "BACHILLER EN INGENIERIA DE MINAS",
+        "BACHILLER DE INGENIERÍA INDUSTRIAL",
+        "BACHILLER EN CIENCIAS DE LA INGENIERÍA DE MINAS",
+        "BACHILLER INGENIERIA METALURGICA",
+        "BACHILLER EN ECONOMIA",
+        "BACHILLER EN CIENCIAS - AGRONOMÍA.",
+        "BACHILLER EN COMUNICACIÓN SOCIAL",
+        "BACHILLER EN INGENIERÍA DE SEGURIDAD INDUSTRIAL Y MINERA"
+      ],
+      "legacyRecords": [
+        {
+          "id": 11,
+          "name": "BACHILLER EN CIENCIAS MARÍTIMAS",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 16,
+          "name": "BACHILLER EN DERECHO",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 20,
+          "name": "BACHILLER EN INGENIERÍA DE MINAS",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 33,
+          "name": "BACHILLER ADMINISTRACIÓN DE EMPRESAS",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 37,
+          "name": "BACHILLER EN CIENCIAS AMBIENTALES",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 40,
+          "name": "BACHILLER EN CIENCIAS CON MENCIÓN EN INGENIERÍA MECÁNICA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 43,
+          "name": "BACHILLER EN ECONOMÍA CON ESPECIALIDAD EN ECONOMÍA DE EMPRESA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 57,
+          "name": "BACHILLER EN DERECHO Y CIENCIAS POLITICAS",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 61,
+          "name": "BACHILLER EN INGENIERIA METALURGICA",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 66,
+          "name": "BACHILLER EN CIENCIAS - ECONOMÍA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 75,
+          "name": "BACHILLER PROFESIONAL EN CIENCIAS ADMINISTRATIVAS",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 78,
+          "name": "BACHILLER INGENIERÍA INDUSTRIAL",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 81,
+          "name": "BACHILLER INGENIERIA DE MINAS",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 90,
+          "name": "BACHILLER EN INGENIERÍA GEOLÓGICA",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 94,
+          "name": "BACHILLER EN INGENIERIA GEOLOGICA",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 101,
+          "name": "BACHILLER EN ECONOMÍA",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 102,
+          "name": "BACHILLER EN INGENIERÍA QUÍMICA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 109,
+          "name": "BACHILLER EN INGENIERÍA AMBIENTAL",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 114,
+          "name": "BACHILLER / MASTER",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 122,
+          "name": "BACHILLER DE INGENIERÍA DE MINAS",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 127,
+          "name": "BACHILLER EN CIENCIAS CON MENCIÓN EN INGENIERÍA GEOLÓGICA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 141,
+          "name": "BACHILLER EN INGENIERÍA CIVIL",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 146,
+          "name": "BACHILLER EN CIENCIAS",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 154,
+          "name": "BACHILLER DE INGENIERÍA MECÁNICA ELÉCTRICA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 166,
+          "name": "BACHILLER DE INGENIERÍA CIVIL",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 167,
+          "name": "BACHILLER EN DESARROLLO INTERNACIONAL",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 170,
+          "name": "BACHILLER EN INGENIERIA GEOLÓGICA",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 188,
+          "name": "BACHILLER EN INGENIERIA CIVIL",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 193,
+          "name": "BACHILLER INGENIERÍA MECATRÓNICA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 202,
+          "name": "BACHILLER  EN CIENCIAS CONTABLES",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 225,
+          "name": "BACH INGENIERO MECANICO",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 229,
+          "name": "BACHILLER INGENIERIA INDUSTRIAL",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 231,
+          "name": "BACHILLER EN CIENCIAS GEOFÍSICAS",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 233,
+          "name": "BACHILLER EN QUÍMICA",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 236,
+          "name": "BACHILLER EN INGENIERÍA METALÚRGICA",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 246,
+          "name": "BACHILLER DE INGENIERIA GEOLÓGICA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 251,
+          "name": "BACHILLER MARKETING",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 273,
+          "name": "BACHILLER EN ADMINISTRACIÓN DE EMPRESAS",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 274,
+          "name": "BACHILLER EN CIENCIAS POLÍTICAS",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 275,
+          "name": "BACHILLER ECONOMIA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 276,
+          "name": "BACHILLER EN CIENCIAS CON MENCIÓN EN INGENIERÍA MECATRÓNICA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 281,
+          "name": "BACHILLER EN GEOLOGÍA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 308,
+          "name": "BACH INGENIERO INDUSTRIAL",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 320,
+          "name": "BACHILLER INGENIERÍA METALÚRGICA",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 324,
+          "name": "BACHILLER EN INGENIERIA INDUSTRIAL",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 332,
+          "name": "BACHILLER EN CIENCIAS INGENIERÍA DE MINAS",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 353,
+          "name": "BACHILLER EN ADMINISTRACION",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 359,
+          "name": "GRADO BACHILLER EN INGENIERÍA DE MINAS",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 380,
+          "name": "BACHILLER EN GEOGRAFÍA Y MEDIO AMBIENTE",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 388,
+          "name": "BACHILLER DE INGENIERÍA AMBIENTAL",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 392,
+          "name": "BACHILLER 273",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 398,
+          "name": "BACHILLER EN INGENIERÍA INDUSTRIAL",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 401,
+          "name": "BACHILLER EN INGENIERÍA ELECTRÓNICA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 412,
+          "name": "BACHILLER EN INGENIERÍA MECÁNICA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 418,
+          "name": "BACHILLER EN EDUCACION",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 421,
+          "name": "BACHILLER EN ARQUITECTURA",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 422,
+          "name": "BACHILLER EN INGENIERIA AMBIENTAL",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 433,
+          "name": "BACHILLER EN ADMINISTRACIÓN",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 434,
+          "name": "BACHILLER EN DERECHO Y CIENCIAS POLÍTICAS",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 435,
+          "name": "BACHILLER EN INGENIERIA MECATRONICA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 436,
+          "name": "DIPLOMA DE BACHILLER",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 447,
+          "name": "BACHILLER EN INGENIERIA DE MINAS",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 462,
+          "name": "BACHILLER DE INGENIERÍA INDUSTRIAL",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 480,
+          "name": "BACHILLER EN CIENCIAS DE LA INGENIERÍA DE MINAS",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 489,
+          "name": "BACHILLER INGENIERIA METALURGICA",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 502,
+          "name": "BACHILLER EN ECONOMIA",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 503,
+          "name": "BACHILLER EN CIENCIAS - AGRONOMÍA.",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 507,
+          "name": "BACHILLER EN COMUNICACIÓN SOCIAL",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 508,
+          "name": "BACHILLER EN INGENIERÍA DE SEGURIDAD INDUSTRIAL Y MINERA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        }
+      ]
+    },
+    {
+      "canonicalId": null,
+      "name": "Título profesional",
+      "code": null,
+      "abbreviation": null,
+      "studyLevel": "OTHER",
+      "description": null,
+      "action": "CREATE_CANONICAL",
+      "aliases": [
+        "DOCTOR INGENIERO METALURGISTA",
+        "INGENIERO ELECTRO MECANICO",
+        "INGENIERO DE PETROLEO Y GAS NATURAL",
+        "PROFESIONAL EN INGENIERA INDUTRIAL",
+        "TITULO INGENIERO MECANICO ELECTRICISTA",
+        "BACHILLER EN INGENIERÍA DE MINAS",
+        "INGENIERA QUÍMICA",
+        "LICENCIADA EN MKT",
+        "INGENIERO MECANICO -  ELECTRICO",
+        "ABOGADO",
+        "CONTADOR PUBLICO",
+        "LICENCIADA EN COMUNICACIÓN SOCIAL",
+        "LICENCIADA EN ADMINISTRACION Y NEGOCIOS INTERNACIONALES",
+        "INGENIERIA MECATRONICA",
+        "BACHILLER EN CIENCIAS CON MENCIÓN EN INGENIERÍA MECÁNICA",
+        "INGENIERO GEOLOGO",
+        "INGENIERÍA Y GESTIÓN AMBIENTAL",
+        "INGENIERIA",
+        "LICENCIADO EN GEOLOGÍA",
+        "INGENIERO DE SEGURIDAD INDUSTRIAL Y MINERA",
+        "INGENIERO CIVIL INDUSTRIAL",
+        "TÍTULO DE ABOGADO",
+        "ABOGADA",
+        "INGENIERO AMBIENTAL Y RECURSOS NATURALES",
+        "INGENIERO INDUSTRIAL Y COMERCIAL",
+        "BACHILLER EN INGENIERIA METALURGICA",
+        "INGENIERÍA MECATRÓNICA",
+        "LICENCIADO EN CIENCIAS MILITARES CON MENCIÓN EN PLANEAMIENTO ESTRATÉGICO Y TOMA DE DECISIONES",
+        "ARQUITECTO",
+        "INGENIERO  MECANICO",
+        "LICENCIADA EN BIOLOGÍA",
+        "INGENIERO CIVIL",
+        "EGRESADA DE INGENIERÍA QUÍMICA",
+        "BACHILLER INGENIERÍA INDUSTRIAL",
+        "INGENIERO INDUSTRIAL",
+        "BACHILLER INGENIERIA DE MINAS",
+        "INGENIERA FORESTAL",
+        "EGRESADO DE INGENIERÍA DE MINAS",
+        "INGENIERA ZOOTECNISTA",
+        "LICENCIADA EN ADMINISTRACIÓN DE EMPRESAS",
+        "INGENIERA GEOLOGA",
+        "BACHILLER EN INGENIERÍA GEOLÓGICA",
+        "INGENIERO METALÚRGICO",
+        "BACHILLER EN INGENIERIA GEOLOGICA",
+        "INGENIERO DE HIGIENE Y SEGURIDAD INDUSTRIAL",
+        "INGENIERO ELECTRICISTA",
+        "INGENIERA QUIMICA",
+        "BACHILLER EN INGENIERÍA QUÍMICA",
+        "INGENIERA DE MINAS",
+        "INGENIERÍA CIVIL",
+        "LICENCIADO INGENIERÍA DE PRODUCCIÓN",
+        "INGENIERO METALURGISTA Y DE MATERIALES",
+        "BACHILLER EN INGENIERÍA AMBIENTAL",
+        "TITULADO EN INGENIERÍA INDUSTRIAL",
+        "MÁSTER EN INGENIERÍA DE MINAS",
+        "TITULO DE ABOGADO",
+        "INGENIERO EN ENERGÍA",
+        "INGENIERIA GEOFISICA",
+        "INGENIERO MINERO",
+        "INGENIERÍA EMPRESARIAL Y SISTEMAS",
+        "BACHILLER DE INGENIERÍA DE MINAS",
+        "INGENIERO METALURGICO",
+        "INGENIERO",
+        "INGENIERO METLURGISTA",
+        "BACHILLER EN CIENCIAS CON MENCIÓN EN INGENIERÍA GEOLÓGICA",
+        "LICENCIADA EN PSICOLOGÍA",
+        "INGENIERO QUÍMICO",
+        "INGENIERO MECANICO DE FLUIDOS",
+        "INGENIERIA AMBIENTAL",
+        "MBA - INGENIERO MECÁNICO",
+        "BACHILLER EN INGENIERÍA CIVIL",
+        "INGENIERIO AMBIENTAL",
+        "INGENIERIA GEOLOGICA",
+        "LICENCIADA EN MERCADOTECNIA",
+        "INGENIERO DE MATERIALES",
+        "INGENIERA INDUTRIAL",
+        "INGENIERIA ELECTRONICA",
+        "BACHILLER DE INGENIERÍA MECÁNICA ELÉCTRICA",
+        "LICENCIADO EN CIENCIAS MARITIMAS NAVALES",
+        "TÍTULO PROFESIONAL DE INGENIERO AMBIENTAL",
+        "EGRESADA DE INGENIERIA METALÚRGICA",
+        "INGENIERO METALÚRGICO Y DE MATERIALES",
+        "INGENIERO MECÁNICO",
+        "ESTUDIANTE DE INGENIERÍA AMBIENTAL",
+        "ESTUDIANTE DE INGENIERÍA INDUSTRIAL",
+        "MBA  INGENIERO DE MINAS",
+        "BACHILLER DE INGENIERÍA CIVIL",
+        "INGENIERÍA DE SISTEMAS E INFORMÁTICA",
+        "BACHILLER EN INGENIERIA GEOLÓGICA",
+        "LICENCIADA",
+        "MAESTRIA EN INGENIERÍA ELECTRÓNICA",
+        "EGRESADA DE LA ESCUELA PROFESIONAL DE INGENIERÍA AMBIENTAL",
+        "LICENCIADA ADMINISTRACIÓN DE NEGOCIOS INTERNACIONALES",
+        "INGENIERO MECANICO - ELECTRICISTA",
+        "BACHILLER EN INGENIERIA CIVIL",
+        "INGENIERA INDUSTRIAL",
+        "INGENIERO AGRÓNOMO",
+        "BACHILLER INGENIERÍA MECATRÓNICA",
+        "INGENIERO CIVIL EN METALURGIA",
+        "INGENIERA QUÍMICO INDUSTRIAL",
+        "INGENIERÍA QUÍMICA",
+        "INGENIERO DE MINAA",
+        "INGENIERIA MECANICA, MECANICA ELECTRICA Y MECATRONICA",
+        "INGENIERO DE SISTEMAS",
+        "INGENIERO MECATRONICO",
+        "LICENCIADA EN QUÍMICA",
+        "INGENIERÍA INDUSTRIAL",
+        "INGENIERÍA DE GESTIÓN MINERA",
+        "INGENIERA METALURGISTA",
+        "TITULADO INGENIERÍA METALÚRGICA",
+        "INGENIERO DE MINAS",
+        "LICENCIADO EN CIENCIAS DE LA INGENIERÍA",
+        "BACH INGENIERO MECANICO",
+        "TITULADO EN INGENIERIA DE MINAS",
+        "BACHILLER INGENIERIA INDUSTRIAL",
+        "INGENIERA GEÓLOGA",
+        "EGRESADA DE INGENIERIA DE MINAS",
+        "BACHILLER EN INGENIERÍA METALÚRGICA",
+        "LICENCIADA EN ADMINISTRACIÓN",
+        "ARQUITECTURA",
+        "INGENIERO INDUSTRIAL Y DE SISTEMAS",
+        "INGENIERO DE SISTEMAS Y CÓMPUTO",
+        "INGENIERO HIDRÁULICO",
+        "TITULADO EN INGENIERIA INDUSTRIAL",
+        "BACHILLER DE INGENIERIA GEOLÓGICA",
+        "INGENIERIA AGRICOLA",
+        "INGENIERO MINAS-HIDROGEOLOGO",
+        "LICENCIADO EN ECONOMÍA",
+        "LICENCIADO EN CIENCIAS AMBIENTALES E INGENIERO AMBIENTAL",
+        "TITULO DE INGENIERO DE MINAS",
+        "INGENIERO DE MINA",
+        "INGENIERO GEOLOGA",
+        "TÍTULO DE INGENIERO GEÓLOGO",
+        "LICENCIADA EN PSICOLOGIA",
+        "INGENIERO ADMINISTRATIVO E INDUSTRIAL",
+        "INGENIERA AGRÓNOMA",
+        "INGENIERÍA AMBIENTAL",
+        "INGENIERO METALURGISTA",
+        "BCH INGENIERIA INDUSTRIAL",
+        "INGENIERÍA GEOLÓGICA",
+        "BACHILLER EN CIENCIAS CON MENCIÓN EN INGENIERÍA MECATRÓNICA",
+        "INGENIERIA CIVIL",
+        "INGENIERIA QUIMICA",
+        "INGENIERIO DE MINAS",
+        "EGRESADO EN INGENIERÍA METALÚRGICA",
+        "CIP_ INGENIERO GEOGRAFO",
+        "INGENIERO EN INFORMATICA Y DE SISTEMAS",
+        "INGENIERÍA GEOLÓGICA - GEOTECNICA",
+        "TITULO DE INGENIERO GEOLOGO",
+        "LICENCIADA EN DERECHO",
+        "INGENIERO QUIMICO",
+        "INGENIERIA INDUSTRIAL Y DE SISTEMAS",
+        "INGENIERO EN MINAS",
+        "BACH INGENIERO INDUSTRIAL",
+        "INGENIERIA DE MINAS",
+        "TÍTULO EN INGENIERO DE MINAS",
+        "INGENIERO DE MINAS DEL PERÚ",
+        "BACHILLER INGENIERÍA METALÚRGICA",
+        "INGENIERA COMERCIAL",
+        "BACHILLER EN INGENIERIA INDUSTRIAL",
+        "INGENIERÍA DE MINAS",
+        "INGENIERIA INDUSTRIAL",
+        "BACHILLER EN CIENCIAS INGENIERÍA DE MINAS",
+        "LICENCIATURA EN INGENIERIA DE MINAS",
+        "INGENIERO MECANICO ELECTRICISTA",
+        "INGENIERO DE GESTIÓN MINERA",
+        "TITULO DE INGENIERO INDUSTRIAL",
+        "TÍTULO PROFESIONAL DE INGENIERO CIVIL",
+        "INGENIERÍA DE SISTEMAS",
+        "INGENIERO DE EJECUCION EN METALURGIA",
+        "INGENIERO AGRICOLA",
+        "INGENIERO DE COMPUTACION Y SISTEMAS",
+        "DR. INGENIERO DE MINAS",
+        "INGENIERO CIVIL DE MINAS",
+        "INGENIERO DE SOFTWARE",
+        "INGENIERA GEÓGRAFA",
+        "INGENIERA AMBIENTAL",
+        "GRADO BACHILLER EN INGENIERÍA DE MINAS",
+        "INGENIERO MECÁNICO-ELECTRÍCO",
+        "INGENIERO ADMINISTRATIVO",
+        "INGENIERO EN GEOLOGÍA Y MINAS",
+        "INGENIERO MECÁNICO ELECTRICISTA",
+        "CONTADOR PÚBLICO",
+        "LICENCIADO EN COMPUTACIÓN",
+        "INGENIERA CIVIL",
+        "INGENIERO MECANICO",
+        "LICENCIADO EN ADMINISTRACIÓN DE EMPRESAS",
+        "TITULO EN DERECHO, PROFESIÓN ABOGADO",
+        "BACHILLER DE INGENIERÍA AMBIENTAL",
+        "TITULO INGENIERO DE MINAS",
+        "LICENCIADA EN ADMINISTRACION",
+        "LICENCIADO  EN TURISMO Y HITELERIA",
+        "INGENIERO ESTADÍSTICO",
+        "INGENIERO AMBIENTAL Y DE RECURSOS NATURALES",
+        "BACHILLER EN INGENIERÍA INDUSTRIAL",
+        "BACHILLER EN INGENIERÍA ELECTRÓNICA",
+        "INGENIERO GEÓLOGO",
+        "TÍTULO PROFESIONAL DE INGENIERO DE MINAS",
+        "INGENIERIA EN CIENCIAS ANIMALES",
+        "TITULO EN INGENIERIA DE MINAS",
+        "INGENIERO DE COMPUTACIÓN Y SISTEMAS",
+        "BACHILLER EN INGENIERÍA MECÁNICA",
+        "EGRESADO DE INGENIERÍA CIVIL",
+        "INGENIERO ELECTRONICO",
+        "INGENIERO CIVIL MATEMÁTICO, UNIVERSIDAD DE CHILE",
+        "INGENIERO ELECTRÓNICO",
+        "TITULADO EN INGENIERÍA DE MINAS",
+        "BACHILLER EN ARQUITECTURA",
+        "BACHILLER EN INGENIERIA AMBIENTAL",
+        "INGENIERO COMERCIAL",
+        "INGENIERA ELECTRÓNICA",
+        "INGENIERO DE MINAS / MBA",
+        "INGENIERO GEÓGRAFO",
+        "BACHILLER EN INGENIERIA MECATRONICA",
+        "INGENIERA DE HIGIENE Y SEGURIDAD INDUSTRIAL",
+        "BACHILER EN INGENIERÍA CIVIL",
+        "LICENCIADO EN ECONOMIA",
+        "INGENIERO FORESTAL",
+        "INGENIERÍA AMBIENTAL - FORESTAL",
+        "BACHILLER EN INGENIERIA DE MINAS",
+        "INGENIERO GEOFÍSICO",
+        "INGENIERO MINAS",
+        "EGRESADA DE LA CARRERA PROFESIONAL DE INGENIERÍA AMBIENTAL",
+        "INGENIERA QUIMICO INDUSTRIAL",
+        "LICENCIADA EN EDUCACIÓN.",
+        "BACHILLER DE INGENIERÍA INDUSTRIAL",
+        "INGENIERO METALURGICO Y SIDERURGICO",
+        "BACHILLLER EN INGENIERIA INDUSTRIAL",
+        "INGENIERIA DE SISTEMAS",
+        "ECONOMISTA",
+        "INGENIERÍA GEOGRÁFICA",
+        "INGENIERÍA MECÁNICA ELECTRICA",
+        "INGENIERO AGRÍCOLA",
+        "TITULADA EN INGENIERÍA INDUSTRIAL",
+        "INGENIERO INDUSTRIAS ALIMENTARIAS",
+        "LICENCIADO",
+        "MBA INGENIERO QUIMICO",
+        "INGENIERO METALURGICA",
+        "INGENIERO METALURGICO Y DE MATERIALES",
+        "BACHILLER EN CIENCIAS DE LA INGENIERÍA DE MINAS",
+        "LICENCIADA EN ADMINISTRCION",
+        "INGENIERÍA METALÚRGICA",
+        "INGENIERO GEOLÓGICO",
+        "BACHILLER INGENIERIA METALURGICA",
+        "LICENCIADO EN ING.MECANICA",
+        "INGENIERA DE LAS TELECOMUNICACIONES",
+        "INGENIERO AMBIENTAL",
+        "INGENIERIA METALÚRGICA",
+        "BR. INGENIERA DE MINAS",
+        "INGENIERO CIVIL INDUSTRIAL EN ELECTRÓNICA",
+        "INGENIERO ELECTRÓNICO Y TELECOMUNICACIONES",
+        "INGENIERO MECANICO ELECTRICISTA ESPECIALIZADO EN ELECTRICIDAD",
+        "BACHILLER EN INGENIERÍA DE SEGURIDAD INDUSTRIAL Y MINERA",
+        "CONTADOR",
+        "INGENIERO FORESTAL Y AMBIENTAL"
+      ],
+      "legacyRecords": [
+        {
+          "id": 4,
+          "name": "DOCTOR INGENIERO METALURGISTA",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 7,
+          "name": "INGENIERO ELECTRO MECANICO",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 12,
+          "name": "INGENIERO DE PETROLEO Y GAS NATURAL",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 14,
+          "name": "PROFESIONAL EN INGENIERA INDUTRIAL",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 19,
+          "name": "TITULO INGENIERO MECANICO ELECTRICISTA",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 20,
+          "name": "BACHILLER EN INGENIERÍA DE MINAS",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 21,
+          "name": "INGENIERA QUÍMICA",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 24,
+          "name": "LICENCIADA EN MKT",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 26,
+          "name": "INGENIERO MECANICO -  ELECTRICO",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 27,
+          "name": "ABOGADO",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 31,
+          "name": "CONTADOR PUBLICO",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 34,
+          "name": "LICENCIADA EN COMUNICACIÓN SOCIAL",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 35,
+          "name": "LICENCIADA EN ADMINISTRACION Y NEGOCIOS INTERNACIONALES",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 38,
+          "name": "INGENIERIA MECATRONICA",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 40,
+          "name": "BACHILLER EN CIENCIAS CON MENCIÓN EN INGENIERÍA MECÁNICA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 41,
+          "name": "INGENIERO GEOLOGO",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 42,
+          "name": "INGENIERÍA Y GESTIÓN AMBIENTAL",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 44,
+          "name": "INGENIERIA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 45,
+          "name": "LICENCIADO EN GEOLOGÍA",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 47,
+          "name": "INGENIERO DE SEGURIDAD INDUSTRIAL Y MINERA",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 48,
+          "name": "INGENIERO CIVIL INDUSTRIAL",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 51,
+          "name": "TÍTULO DE ABOGADO",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 52,
+          "name": "ABOGADA",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 54,
+          "name": "INGENIERO AMBIENTAL Y RECURSOS NATURALES",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 58,
+          "name": "INGENIERO INDUSTRIAL Y COMERCIAL",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 61,
+          "name": "BACHILLER EN INGENIERIA METALURGICA",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 62,
+          "name": "INGENIERÍA MECATRÓNICA",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 67,
+          "name": "LICENCIADO EN CIENCIAS MILITARES CON MENCIÓN EN PLANEAMIENTO ESTRATÉGICO Y TOMA DE DECISIONES",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 69,
+          "name": "ARQUITECTO",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 72,
+          "name": "INGENIERO  MECANICO",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 74,
+          "name": "LICENCIADA EN BIOLOGÍA",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 76,
+          "name": "INGENIERO CIVIL",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 77,
+          "name": "EGRESADA DE INGENIERÍA QUÍMICA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 78,
+          "name": "BACHILLER INGENIERÍA INDUSTRIAL",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 80,
+          "name": "INGENIERO INDUSTRIAL",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 81,
+          "name": "BACHILLER INGENIERIA DE MINAS",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 83,
+          "name": "INGENIERA FORESTAL",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 85,
+          "name": "EGRESADO DE INGENIERÍA DE MINAS",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 86,
+          "name": "INGENIERA ZOOTECNISTA",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 87,
+          "name": "LICENCIADA EN ADMINISTRACIÓN DE EMPRESAS",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 89,
+          "name": "INGENIERA GEOLOGA",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 90,
+          "name": "BACHILLER EN INGENIERÍA GEOLÓGICA",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 91,
+          "name": "INGENIERO METALÚRGICO",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 94,
+          "name": "BACHILLER EN INGENIERIA GEOLOGICA",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 96,
+          "name": "INGENIERO DE HIGIENE Y SEGURIDAD INDUSTRIAL",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 98,
+          "name": "INGENIERO ELECTRICISTA",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 100,
+          "name": "INGENIERA QUIMICA",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 102,
+          "name": "BACHILLER EN INGENIERÍA QUÍMICA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 104,
+          "name": "INGENIERA DE MINAS",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 105,
+          "name": "INGENIERÍA CIVIL",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 106,
+          "name": "LICENCIADO INGENIERÍA DE PRODUCCIÓN",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 107,
+          "name": "INGENIERO METALURGISTA Y DE MATERIALES",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 109,
+          "name": "BACHILLER EN INGENIERÍA AMBIENTAL",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 110,
+          "name": "TITULADO EN INGENIERÍA INDUSTRIAL",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 112,
+          "name": "MÁSTER EN INGENIERÍA DE MINAS",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 113,
+          "name": "TITULO DE ABOGADO",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 115,
+          "name": "INGENIERO EN ENERGÍA",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 116,
+          "name": "INGENIERIA GEOFISICA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 118,
+          "name": "INGENIERO MINERO",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 120,
+          "name": "INGENIERÍA EMPRESARIAL Y SISTEMAS",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 122,
+          "name": "BACHILLER DE INGENIERÍA DE MINAS",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 124,
+          "name": "INGENIERO METALURGICO",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 125,
+          "name": "INGENIERO",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 126,
+          "name": "INGENIERO METLURGISTA",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 127,
+          "name": "BACHILLER EN CIENCIAS CON MENCIÓN EN INGENIERÍA GEOLÓGICA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 130,
+          "name": "LICENCIADA EN PSICOLOGÍA",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 132,
+          "name": "INGENIERO QUÍMICO",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 133,
+          "name": "INGENIERO MECANICO DE FLUIDOS",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 139,
+          "name": "INGENIERIA AMBIENTAL",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 140,
+          "name": "MBA - INGENIERO MECÁNICO",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 141,
+          "name": "BACHILLER EN INGENIERÍA CIVIL",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 145,
+          "name": "INGENIERIO AMBIENTAL",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 147,
+          "name": "INGENIERIA GEOLOGICA",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 148,
+          "name": "LICENCIADA EN MERCADOTECNIA",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 151,
+          "name": "INGENIERO DE MATERIALES",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 152,
+          "name": "INGENIERA INDUTRIAL",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 153,
+          "name": "INGENIERIA ELECTRONICA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 154,
+          "name": "BACHILLER DE INGENIERÍA MECÁNICA ELÉCTRICA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 155,
+          "name": "LICENCIADO EN CIENCIAS MARITIMAS NAVALES",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 156,
+          "name": "TÍTULO PROFESIONAL DE INGENIERO AMBIENTAL",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 157,
+          "name": "EGRESADA DE INGENIERIA METALÚRGICA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 159,
+          "name": "INGENIERO METALÚRGICO Y DE MATERIALES",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 160,
+          "name": "INGENIERO MECÁNICO",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 161,
+          "name": "ESTUDIANTE DE INGENIERÍA AMBIENTAL",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 164,
+          "name": "ESTUDIANTE DE INGENIERÍA INDUSTRIAL",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 165,
+          "name": "MBA  INGENIERO DE MINAS",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 166,
+          "name": "BACHILLER DE INGENIERÍA CIVIL",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 168,
+          "name": "INGENIERÍA DE SISTEMAS E INFORMÁTICA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 170,
+          "name": "BACHILLER EN INGENIERIA GEOLÓGICA",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 175,
+          "name": "LICENCIADA",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 178,
+          "name": "MAESTRIA EN INGENIERÍA ELECTRÓNICA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 179,
+          "name": "EGRESADA DE LA ESCUELA PROFESIONAL DE INGENIERÍA AMBIENTAL",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 184,
+          "name": "LICENCIADA ADMINISTRACIÓN DE NEGOCIOS INTERNACIONALES",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 186,
+          "name": "INGENIERO MECANICO - ELECTRICISTA",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 188,
+          "name": "BACHILLER EN INGENIERIA CIVIL",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 190,
+          "name": "INGENIERA INDUSTRIAL",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 192,
+          "name": "INGENIERO AGRÓNOMO",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 193,
+          "name": "BACHILLER INGENIERÍA MECATRÓNICA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 195,
+          "name": "INGENIERO CIVIL EN METALURGIA",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 196,
+          "name": "INGENIERA QUÍMICO INDUSTRIAL",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 198,
+          "name": "INGENIERÍA QUÍMICA",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 204,
+          "name": "INGENIERO DE MINAA",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 205,
+          "name": "INGENIERIA MECANICA, MECANICA ELECTRICA Y MECATRONICA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 207,
+          "name": "INGENIERO DE SISTEMAS",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 209,
+          "name": "INGENIERO MECATRONICO",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 211,
+          "name": "LICENCIADA EN QUÍMICA",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 212,
+          "name": "INGENIERÍA INDUSTRIAL",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 214,
+          "name": "INGENIERÍA DE GESTIÓN MINERA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 217,
+          "name": "INGENIERA METALURGISTA",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 221,
+          "name": "TITULADO INGENIERÍA METALÚRGICA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 223,
+          "name": "INGENIERO DE MINAS",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 224,
+          "name": "LICENCIADO EN CIENCIAS DE LA INGENIERÍA",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 225,
+          "name": "BACH INGENIERO MECANICO",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 226,
+          "name": "TITULADO EN INGENIERIA DE MINAS",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 229,
+          "name": "BACHILLER INGENIERIA INDUSTRIAL",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 234,
+          "name": "INGENIERA GEÓLOGA",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 235,
+          "name": "EGRESADA DE INGENIERIA DE MINAS",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 236,
+          "name": "BACHILLER EN INGENIERÍA METALÚRGICA",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 237,
+          "name": "LICENCIADA EN ADMINISTRACIÓN",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 238,
+          "name": "ARQUITECTURA",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 240,
+          "name": "INGENIERO INDUSTRIAL Y DE SISTEMAS",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 242,
+          "name": "INGENIERO DE SISTEMAS Y CÓMPUTO",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 243,
+          "name": "INGENIERO HIDRÁULICO",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 244,
+          "name": "TITULADO EN INGENIERIA INDUSTRIAL",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 246,
+          "name": "BACHILLER DE INGENIERIA GEOLÓGICA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 247,
+          "name": "INGENIERIA AGRICOLA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 249,
+          "name": "INGENIERO MINAS-HIDROGEOLOGO",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 252,
+          "name": "LICENCIADO EN ECONOMÍA",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 254,
+          "name": "LICENCIADO EN CIENCIAS AMBIENTALES E INGENIERO AMBIENTAL",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 255,
+          "name": "TITULO DE INGENIERO DE MINAS",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 256,
+          "name": "INGENIERO DE MINA",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 259,
+          "name": "INGENIERO GEOLOGA",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 260,
+          "name": "TÍTULO DE INGENIERO GEÓLOGO",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 262,
+          "name": "LICENCIADA EN PSICOLOGIA",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 263,
+          "name": "INGENIERO ADMINISTRATIVO E INDUSTRIAL",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 266,
+          "name": "INGENIERA AGRÓNOMA",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 267,
+          "name": "INGENIERÍA AMBIENTAL",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 268,
+          "name": "INGENIERO METALURGISTA",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 270,
+          "name": "BCH INGENIERIA INDUSTRIAL",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 271,
+          "name": "INGENIERÍA GEOLÓGICA",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 276,
+          "name": "BACHILLER EN CIENCIAS CON MENCIÓN EN INGENIERÍA MECATRÓNICA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 280,
+          "name": "INGENIERIA CIVIL",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 282,
+          "name": "INGENIERIA QUIMICA",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 284,
+          "name": "INGENIERIO DE MINAS",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 285,
+          "name": "EGRESADO EN INGENIERÍA METALÚRGICA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 286,
+          "name": "CIP_ INGENIERO GEOGRAFO",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 287,
+          "name": "INGENIERO EN INFORMATICA Y DE SISTEMAS",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 292,
+          "name": "INGENIERÍA GEOLÓGICA - GEOTECNICA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 293,
+          "name": "TITULO DE INGENIERO GEOLOGO",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 294,
+          "name": "LICENCIADA EN DERECHO",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 297,
+          "name": "INGENIERO QUIMICO",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 298,
+          "name": "INGENIERIA INDUSTRIAL Y DE SISTEMAS",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 300,
+          "name": "INGENIERO EN MINAS",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 308,
+          "name": "BACH INGENIERO INDUSTRIAL",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 311,
+          "name": "INGENIERIA DE MINAS",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 315,
+          "name": "TÍTULO EN INGENIERO DE MINAS",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 319,
+          "name": "INGENIERO DE MINAS DEL PERÚ",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 320,
+          "name": "BACHILLER INGENIERÍA METALÚRGICA",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 321,
+          "name": "INGENIERA COMERCIAL",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 324,
+          "name": "BACHILLER EN INGENIERIA INDUSTRIAL",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 329,
+          "name": "INGENIERÍA DE MINAS",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 330,
+          "name": "INGENIERIA INDUSTRIAL",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 332,
+          "name": "BACHILLER EN CIENCIAS INGENIERÍA DE MINAS",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 333,
+          "name": "LICENCIATURA EN INGENIERIA DE MINAS",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 337,
+          "name": "INGENIERO MECANICO ELECTRICISTA",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 339,
+          "name": "INGENIERO DE GESTIÓN MINERA",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 341,
+          "name": "TITULO DE INGENIERO INDUSTRIAL",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 342,
+          "name": "TÍTULO PROFESIONAL DE INGENIERO CIVIL",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 344,
+          "name": "INGENIERÍA DE SISTEMAS",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 345,
+          "name": "INGENIERO DE EJECUCION EN METALURGIA",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 346,
+          "name": "INGENIERO AGRICOLA",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 347,
+          "name": "INGENIERO DE COMPUTACION Y SISTEMAS",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 348,
+          "name": "DR. INGENIERO DE MINAS",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 349,
+          "name": "INGENIERO CIVIL DE MINAS",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 350,
+          "name": "INGENIERO DE SOFTWARE",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 351,
+          "name": "INGENIERA GEÓGRAFA",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 357,
+          "name": "INGENIERA AMBIENTAL",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 359,
+          "name": "GRADO BACHILLER EN INGENIERÍA DE MINAS",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 360,
+          "name": "INGENIERO MECÁNICO-ELECTRÍCO",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 362,
+          "name": "INGENIERO ADMINISTRATIVO",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 364,
+          "name": "INGENIERO EN GEOLOGÍA Y MINAS",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 366,
+          "name": "INGENIERO MECÁNICO ELECTRICISTA",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 367,
+          "name": "CONTADOR PÚBLICO",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 369,
+          "name": "LICENCIADO EN COMPUTACIÓN",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 381,
+          "name": "INGENIERA CIVIL",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 382,
+          "name": "INGENIERO MECANICO",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 383,
+          "name": "LICENCIADO EN ADMINISTRACIÓN DE EMPRESAS",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 385,
+          "name": "TITULO EN DERECHO, PROFESIÓN ABOGADO",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 388,
+          "name": "BACHILLER DE INGENIERÍA AMBIENTAL",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 389,
+          "name": "TITULO INGENIERO DE MINAS",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 393,
+          "name": "LICENCIADA EN ADMINISTRACION",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 395,
+          "name": "LICENCIADO  EN TURISMO Y HITELERIA",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 396,
+          "name": "INGENIERO ESTADÍSTICO",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 397,
+          "name": "INGENIERO AMBIENTAL Y DE RECURSOS NATURALES",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 398,
+          "name": "BACHILLER EN INGENIERÍA INDUSTRIAL",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 401,
+          "name": "BACHILLER EN INGENIERÍA ELECTRÓNICA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 402,
+          "name": "INGENIERO GEÓLOGO",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 404,
+          "name": "TÍTULO PROFESIONAL DE INGENIERO DE MINAS",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 406,
+          "name": "INGENIERIA EN CIENCIAS ANIMALES",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 407,
+          "name": "TITULO EN INGENIERIA DE MINAS",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 410,
+          "name": "INGENIERO DE COMPUTACIÓN Y SISTEMAS",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 412,
+          "name": "BACHILLER EN INGENIERÍA MECÁNICA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 413,
+          "name": "EGRESADO DE INGENIERÍA CIVIL",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 414,
+          "name": "INGENIERO ELECTRONICO",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 415,
+          "name": "INGENIERO CIVIL MATEMÁTICO, UNIVERSIDAD DE CHILE",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 416,
+          "name": "INGENIERO ELECTRÓNICO",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 417,
+          "name": "TITULADO EN INGENIERÍA DE MINAS",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 421,
+          "name": "BACHILLER EN ARQUITECTURA",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 422,
+          "name": "BACHILLER EN INGENIERIA AMBIENTAL",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 424,
+          "name": "INGENIERO COMERCIAL",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 428,
+          "name": "INGENIERA ELECTRÓNICA",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 431,
+          "name": "INGENIERO DE MINAS / MBA",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 432,
+          "name": "INGENIERO GEÓGRAFO",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 435,
+          "name": "BACHILLER EN INGENIERIA MECATRONICA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 438,
+          "name": "INGENIERA DE HIGIENE Y SEGURIDAD INDUSTRIAL",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 440,
+          "name": "BACHILER EN INGENIERÍA CIVIL",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 441,
+          "name": "LICENCIADO EN ECONOMIA",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 443,
+          "name": "INGENIERO FORESTAL",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 444,
+          "name": "INGENIERÍA AMBIENTAL - FORESTAL",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 447,
+          "name": "BACHILLER EN INGENIERIA DE MINAS",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 450,
+          "name": "INGENIERO GEOFÍSICO",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 454,
+          "name": "INGENIERO MINAS",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 457,
+          "name": "EGRESADA DE LA CARRERA PROFESIONAL DE INGENIERÍA AMBIENTAL",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 459,
+          "name": "INGENIERA QUIMICO INDUSTRIAL",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 460,
+          "name": "LICENCIADA EN EDUCACIÓN.",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 462,
+          "name": "BACHILLER DE INGENIERÍA INDUSTRIAL",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 464,
+          "name": "INGENIERO METALURGICO Y SIDERURGICO",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 465,
+          "name": "BACHILLLER EN INGENIERIA INDUSTRIAL",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 466,
+          "name": "INGENIERIA DE SISTEMAS",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 467,
+          "name": "ECONOMISTA",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 468,
+          "name": "INGENIERÍA GEOGRÁFICA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 469,
+          "name": "INGENIERÍA MECÁNICA ELECTRICA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 470,
+          "name": "INGENIERO AGRÍCOLA",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 471,
+          "name": "TITULADA EN INGENIERÍA INDUSTRIAL",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 472,
+          "name": "INGENIERO INDUSTRIAS ALIMENTARIAS",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 474,
+          "name": "LICENCIADO",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 477,
+          "name": "MBA INGENIERO QUIMICO",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 478,
+          "name": "INGENIERO METALURGICA",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 479,
+          "name": "INGENIERO METALURGICO Y DE MATERIALES",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 480,
+          "name": "BACHILLER EN CIENCIAS DE LA INGENIERÍA DE MINAS",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 483,
+          "name": "LICENCIADA EN ADMINISTRCION",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 485,
+          "name": "INGENIERÍA METALÚRGICA",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 487,
+          "name": "INGENIERO GEOLÓGICO",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 489,
+          "name": "BACHILLER INGENIERIA METALURGICA",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 490,
+          "name": "LICENCIADO EN ING.MECANICA",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 492,
+          "name": "INGENIERA DE LAS TELECOMUNICACIONES",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 495,
+          "name": "INGENIERO AMBIENTAL",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 496,
+          "name": "INGENIERIA METALÚRGICA",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 498,
+          "name": "BR. INGENIERA DE MINAS",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 500,
+          "name": "INGENIERO CIVIL INDUSTRIAL EN ELECTRÓNICA",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 504,
+          "name": "INGENIERO ELECTRÓNICO Y TELECOMUNICACIONES",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 506,
+          "name": "INGENIERO MECANICO ELECTRICISTA ESPECIALIZADO EN ELECTRICIDAD",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 508,
+          "name": "BACHILLER EN INGENIERÍA DE SEGURIDAD INDUSTRIAL Y MINERA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 511,
+          "name": "CONTADOR",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 512,
+          "name": "INGENIERO FORESTAL Y AMBIENTAL",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        }
+      ]
+    },
+    {
+      "canonicalId": 32,
+      "name": "Maestría",
+      "code": null,
+      "abbreviation": null,
+      "studyLevel": "MASTER",
+      "description": null,
+      "action": "KEEP_CANONICAL",
+      "aliases": [
+        "MASTER EN ADMINISTRACIÓN ESTRATÉGICA",
+        "MASTRÍA MBA",
+        "MAGISTER EN PROJECT MANAGEMENT",
+        "MASTER EN MARKETING Y DIRECCIÓN COMERCIAL",
+        "MASTER EN DIRECCION DE EMPRESAS",
+        "MAGISTER EN MECATRONICA",
+        "MAESTRIA EN GEOLOGIA",
+        "BACHILLER / MASTER",
+        "MASTER OF SCIENCE IN CIVIL ENGINEERING",
+        "MAESTRIA EN COMERCIO INTERNACIONAL Y ADUANAS",
+        "MBA ADMINISTRACIÓN ESTRATÉGICA DE EMPRESA",
+        "MAGISTER EN ADMINISTRACIÓN DE NEGOCIOS",
+        "MBA - INGENIERO MECÁNICO",
+        "MASTER OF SCIENCE",
+        "MBA  INGENIERO DE MINAS",
+        "MASTER MBA",
+        "MAESTRIA EN INGENIERÍA ELECTRÓNICA",
+        "MBA DIRECCIÓN DE EMPRESAS",
+        "MAESTRÍA EN CIENCIAS DE LA TIERRA CON MENCIÓN EN EXPLORACIÓN GEOLÓGICA",
+        "MAESTRÍA EN REGULACIÓN, GESTIÓN Y ECONOMÍA MINERA",
+        "MAESTRÍA EN LA UNIVERSIDAD DE CAMBRIDGE",
+        "MASTER OF APPLIED SCIENCE",
+        "MBA ADMINISTRACION ESTRATEGICA DE EMPRESAS",
+        "MASTER OF SCIENCE ( GEOPHYSICS",
+        "MAESTRÍA EN SUPPLY CHAIN",
+        "MAGISTER EN ADMINISTRACION ESTRATEGICA DE EMPRESAS",
+        "MAGISTER EN CIENCIAS CON MENCIÓN EN MINERÍA Y MEDIO AMBIENTE",
+        "MASTER IN COMPUTER SCIENCE AND ENGINEERING",
+        "MAGISTER EN ADMINISTRACION DE NEGOCIOS",
+        "MASTER COMPUTER SCIENCE",
+        "MAESTRO EN ADMINISTRACIÓN",
+        "EGRESADO DE MAESTRIA",
+        "MASTER IN MINING ENGINEERING",
+        "MA FROM CAMBRIDGE UNIVERSITY AND AN MBA FROM THE UNIVERSITY OF CAPE TOWN",
+        "MAGISTER EN GERENCIA SOCIAL",
+        "MBA EN ADMINISTRACION",
+        "DESS MASTER VALORIZACIÓN DEL SUB SUELO",
+        "MAGISTER EN ADMINISTRACION ESTRATEGICA DE EMPRESAS - MBA",
+        "MAGISTER EN FINANZAS",
+        "INGENIERO DE MINAS / MBA",
+        "MASTER EN ADMINISTRACIÓN DE NEGOCIOS",
+        "MASTER EN DERECHO DE EMPRESAS",
+        "MAGISTER EN DIRECCIÓN DE EMPRESAS MBA",
+        "MAESTRO EN MINERÍA Y MEDIO AMBIENTE",
+        "MAESTRÍA EN MARKETING Y GESTIÓN COMERCIAL",
+        "MBA INGENIERO QUIMICO",
+        "MAGISTER EN ADMINISRACIÓN",
+        "MBA GERENCIAL",
+        "MAESTRIA EN GEOMETALURGIA",
+        "MBA",
+        "MBA - MAGISTER EN ADMINISTRACIÓN DE EMPRESAS"
+      ],
+      "legacyRecords": [
+        {
+          "id": 5,
+          "name": "MASTER EN ADMINISTRACIÓN ESTRATÉGICA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 18,
+          "name": "MASTRÍA MBA",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 22,
+          "name": "MAGISTER EN PROJECT MANAGEMENT",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 29,
+          "name": "MASTER EN MARKETING Y DIRECCIÓN COMERCIAL",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 59,
+          "name": "MASTER EN DIRECCION DE EMPRESAS",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 68,
+          "name": "MAGISTER EN MECATRONICA",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 95,
+          "name": "MAESTRIA EN GEOLOGIA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 114,
+          "name": "BACHILLER / MASTER",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 121,
+          "name": "MASTER OF SCIENCE IN CIVIL ENGINEERING",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 136,
+          "name": "MAESTRIA EN COMERCIO INTERNACIONAL Y ADUANAS",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 137,
+          "name": "MBA ADMINISTRACIÓN ESTRATÉGICA DE EMPRESA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 138,
+          "name": "MAGISTER EN ADMINISTRACIÓN DE NEGOCIOS",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 140,
+          "name": "MBA - INGENIERO MECÁNICO",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 163,
+          "name": "MASTER OF SCIENCE",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 165,
+          "name": "MBA  INGENIERO DE MINAS",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 169,
+          "name": "MASTER MBA",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 178,
+          "name": "MAESTRIA EN INGENIERÍA ELECTRÓNICA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 197,
+          "name": "MBA DIRECCIÓN DE EMPRESAS",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 206,
+          "name": "MAESTRÍA EN CIENCIAS DE LA TIERRA CON MENCIÓN EN EXPLORACIÓN GEOLÓGICA",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 208,
+          "name": "MAESTRÍA EN REGULACIÓN, GESTIÓN Y ECONOMÍA MINERA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 230,
+          "name": "MAESTRÍA EN LA UNIVERSIDAD DE CAMBRIDGE",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 239,
+          "name": "MASTER OF APPLIED SCIENCE",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 253,
+          "name": "MBA ADMINISTRACION ESTRATEGICA DE EMPRESAS",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 265,
+          "name": "MASTER OF SCIENCE ( GEOPHYSICS",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 277,
+          "name": "MAESTRÍA EN SUPPLY CHAIN",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 278,
+          "name": "MAGISTER EN ADMINISTRACION ESTRATEGICA DE EMPRESAS",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 279,
+          "name": "MAGISTER EN CIENCIAS CON MENCIÓN EN MINERÍA Y MEDIO AMBIENTE",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 302,
+          "name": "MASTER IN COMPUTER SCIENCE AND ENGINEERING",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 304,
+          "name": "MAGISTER EN ADMINISTRACION DE NEGOCIOS",
+          "classification": "DUPLICATE",
+          "references": 0
+        },
+        {
+          "id": 307,
+          "name": "MASTER COMPUTER SCIENCE",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 313,
+          "name": "MAESTRO EN ADMINISTRACIÓN",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 326,
+          "name": "EGRESADO DE MAESTRIA",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 334,
+          "name": "MASTER IN MINING ENGINEERING",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 335,
+          "name": "MA FROM CAMBRIDGE UNIVERSITY AND AN MBA FROM THE UNIVERSITY OF CAPE TOWN",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 340,
+          "name": "MAGISTER EN GERENCIA SOCIAL",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 354,
+          "name": "MBA EN ADMINISTRACION",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 375,
+          "name": "DESS MASTER VALORIZACIÓN DEL SUB SUELO",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 377,
+          "name": "MAGISTER EN ADMINISTRACION ESTRATEGICA DE EMPRESAS - MBA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 386,
+          "name": "MAGISTER EN FINANZAS",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 431,
+          "name": "INGENIERO DE MINAS / MBA",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 437,
+          "name": "MASTER EN ADMINISTRACIÓN DE NEGOCIOS",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 445,
+          "name": "MASTER EN DERECHO DE EMPRESAS",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 449,
+          "name": "MAGISTER EN DIRECCIÓN DE EMPRESAS MBA",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 452,
+          "name": "MAESTRO EN MINERÍA Y MEDIO AMBIENTE",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 476,
+          "name": "MAESTRÍA EN MARKETING Y GESTIÓN COMERCIAL",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 477,
+          "name": "MBA INGENIERO QUIMICO",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 482,
+          "name": "MAGISTER EN ADMINISRACIÓN",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 484,
+          "name": "MBA GERENCIAL",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 488,
+          "name": "MAESTRIA EN GEOMETALURGIA",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 493,
+          "name": "MBA",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 499,
+          "name": "MBA - MAGISTER EN ADMINISTRACIÓN DE EMPRESAS",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        }
+      ]
+    },
+    {
+      "canonicalId": null,
+      "name": "Doctorado",
+      "code": null,
+      "abbreviation": null,
+      "studyLevel": "DOCTORATE",
+      "description": null,
+      "action": "CREATE_CANONICAL",
+      "aliases": [
+        "DOCTOR INGENIERO METALURGISTA",
+        "PH.D. IN NATURAL RESOURCES ENGINEERING",
+        "PHD IN CIVIL ENGINEERING",
+        "DOCTOR EN ECONOMÍA",
+        "DOCTOR EN GESTION PUBLICA",
+        "PHD - CIVIL ENGINEERING",
+        "PHD IN MINING AND MINERALS ENGINEERING",
+        "DOCTOR CIENCIAS NATURALES ESPECIALIDAD GEOLOGIA",
+        "DOCTORADO EN DERECHO"
+      ],
+      "legacyRecords": [
+        {
+          "id": 4,
+          "name": "DOCTOR INGENIERO METALURGISTA",
+          "classification": "PROFESSIONAL_TITLE",
+          "references": 0
+        },
+        {
+          "id": 49,
+          "name": "PH.D. IN NATURAL RESOURCES ENGINEERING",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 50,
+          "name": "PHD IN CIVIL ENGINEERING",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 158,
+          "name": "DOCTOR EN ECONOMÍA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 185,
+          "name": "DOCTOR EN GESTION PUBLICA",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 215,
+          "name": "PHD - CIVIL ENGINEERING",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 322,
+          "name": "PHD IN MINING AND MINERALS ENGINEERING",
+          "classification": "REVIEW_REQUIRED",
+          "references": 0
+        },
+        {
+          "id": 336,
+          "name": "DOCTOR CIENCIAS NATURALES ESPECIALIDAD GEOLOGIA",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        },
+        {
+          "id": 423,
+          "name": "DOCTORADO EN DERECHO",
+          "classification": "SPECIALTY_OR_FIELD",
+          "references": 0
+        }
+      ]
+    },
+    {
+      "canonicalId": null,
+      "name": "Otro",
+      "code": null,
+      "abbreviation": null,
+      "studyLevel": "OTHER",
+      "description": null,
+      "action": "CREATE_CANONICAL",
+      "aliases": [],
+      "legacyRecords": []
+    }
+  ],
+  "proposedDeactivation": [
+    {
+      "id": 1,
+      "name": "TITULADO",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 2,
+      "name": "EGRESADO ING. DE MINAS",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 4,
+      "name": "DOCTOR INGENIERO METALURGISTA",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 5,
+      "name": "MASTER EN ADMINISTRACIÓN ESTRATÉGICA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 7,
+      "name": "INGENIERO ELECTRO MECANICO",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 9,
+      "name": "MINAS",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 12,
+      "name": "INGENIERO DE PETROLEO Y GAS NATURAL",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 14,
+      "name": "PROFESIONAL EN INGENIERA INDUTRIAL",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 16,
+      "name": "BACHILLER EN DERECHO",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 19,
+      "name": "TITULO INGENIERO MECANICO ELECTRICISTA",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 20,
+      "name": "BACHILLER EN INGENIERÍA DE MINAS",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 21,
+      "name": "INGENIERA QUÍMICA",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 24,
+      "name": "LICENCIADA EN MKT",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 26,
+      "name": "INGENIERO MECANICO -  ELECTRICO",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 27,
+      "name": "ABOGADO",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 31,
+      "name": "CONTADOR PUBLICO",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 33,
+      "name": "BACHILLER ADMINISTRACIÓN DE EMPRESAS",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 34,
+      "name": "LICENCIADA EN COMUNICACIÓN SOCIAL",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 35,
+      "name": "LICENCIADA EN ADMINISTRACION Y NEGOCIOS INTERNACIONALES",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 38,
+      "name": "INGENIERIA MECATRONICA",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 39,
+      "name": "ING. GEÓLOGO",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 40,
+      "name": "BACHILLER EN CIENCIAS CON MENCIÓN EN INGENIERÍA MECÁNICA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 41,
+      "name": "INGENIERO GEOLOGO",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 42,
+      "name": "INGENIERÍA Y GESTIÓN AMBIENTAL",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 43,
+      "name": "BACHILLER EN ECONOMÍA CON ESPECIALIDAD EN ECONOMÍA DE EMPRESA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 44,
+      "name": "INGENIERIA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 45,
+      "name": "LICENCIADO EN GEOLOGÍA",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 46,
+      "name": "GEÓLOGO",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 47,
+      "name": "INGENIERO DE SEGURIDAD INDUSTRIAL Y MINERA",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 48,
+      "name": "INGENIERO CIVIL INDUSTRIAL",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 51,
+      "name": "TÍTULO DE ABOGADO",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 52,
+      "name": "ABOGADA",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 54,
+      "name": "INGENIERO AMBIENTAL Y RECURSOS NATURALES",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 57,
+      "name": "BACHILLER EN DERECHO Y CIENCIAS POLITICAS",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 58,
+      "name": "INGENIERO INDUSTRIAL Y COMERCIAL",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 61,
+      "name": "BACHILLER EN INGENIERIA METALURGICA",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 62,
+      "name": "INGENIERÍA MECATRÓNICA",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 65,
+      "name": "QUIMICA",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 66,
+      "name": "BACHILLER EN CIENCIAS - ECONOMÍA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 67,
+      "name": "LICENCIADO EN CIENCIAS MILITARES CON MENCIÓN EN PLANEAMIENTO ESTRATÉGICO Y TOMA DE DECISIONES",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 69,
+      "name": "ARQUITECTO",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 70,
+      "name": "ING MECATRONICO",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 72,
+      "name": "INGENIERO  MECANICO",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 74,
+      "name": "LICENCIADA EN BIOLOGÍA",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 76,
+      "name": "INGENIERO CIVIL",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 77,
+      "name": "EGRESADA DE INGENIERÍA QUÍMICA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 78,
+      "name": "BACHILLER INGENIERÍA INDUSTRIAL",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 80,
+      "name": "INGENIERO INDUSTRIAL",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 81,
+      "name": "BACHILLER INGENIERIA DE MINAS",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 82,
+      "name": "EGRESADO ING. MINAS",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 83,
+      "name": "INGENIERA FORESTAL",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 84,
+      "name": "INGENERIA DE MINAS",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 85,
+      "name": "EGRESADO DE INGENIERÍA DE MINAS",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 86,
+      "name": "INGENIERA ZOOTECNISTA",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 87,
+      "name": "LICENCIADA EN ADMINISTRACIÓN DE EMPRESAS",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 88,
+      "name": "ECONOMÍA Y NEGOCIOS INTERNACIONALES",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 89,
+      "name": "INGENIERA GEOLOGA",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 90,
+      "name": "BACHILLER EN INGENIERÍA GEOLÓGICA",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 91,
+      "name": "INGENIERO METALÚRGICO",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 93,
+      "name": "PSICOLOGIA",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 94,
+      "name": "BACHILLER EN INGENIERIA GEOLOGICA",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 95,
+      "name": "MAESTRIA EN GEOLOGIA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 96,
+      "name": "INGENIERO DE HIGIENE Y SEGURIDAD INDUSTRIAL",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 98,
+      "name": "INGENIERO ELECTRICISTA",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 99,
+      "name": "ADMINISTRACIÓN  TURÍSTICA Y HOTELERIA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 100,
+      "name": "INGENIERA QUIMICA",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 101,
+      "name": "BACHILLER EN ECONOMÍA",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 102,
+      "name": "BACHILLER EN INGENIERÍA QUÍMICA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 104,
+      "name": "INGENIERA DE MINAS",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 105,
+      "name": "INGENIERÍA CIVIL",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 106,
+      "name": "LICENCIADO INGENIERÍA DE PRODUCCIÓN",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 107,
+      "name": "INGENIERO METALURGISTA Y DE MATERIALES",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 108,
+      "name": "QUÍMICA",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 109,
+      "name": "BACHILLER EN INGENIERÍA AMBIENTAL",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 110,
+      "name": "TITULADO EN INGENIERÍA INDUSTRIAL",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 112,
+      "name": "MÁSTER EN INGENIERÍA DE MINAS",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 113,
+      "name": "TITULO DE ABOGADO",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 115,
+      "name": "INGENIERO EN ENERGÍA",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 116,
+      "name": "INGENIERIA GEOFISICA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 117,
+      "name": "ECONOMÍA",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 118,
+      "name": "INGENIERO MINERO",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 120,
+      "name": "INGENIERÍA EMPRESARIAL Y SISTEMAS",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 122,
+      "name": "BACHILLER DE INGENIERÍA DE MINAS",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 124,
+      "name": "INGENIERO METALURGICO",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 125,
+      "name": "INGENIERO",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 126,
+      "name": "INGENIERO METLURGISTA",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 127,
+      "name": "BACHILLER EN CIENCIAS CON MENCIÓN EN INGENIERÍA GEOLÓGICA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 130,
+      "name": "LICENCIADA EN PSICOLOGÍA",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 131,
+      "name": "ADMINISTRACIÓN",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 132,
+      "name": "INGENIERO QUÍMICO",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 133,
+      "name": "INGENIERO MECANICO DE FLUIDOS",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 134,
+      "name": "GEOLOGO",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 137,
+      "name": "MBA ADMINISTRACIÓN ESTRATÉGICA DE EMPRESA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 138,
+      "name": "MAGISTER EN ADMINISTRACIÓN DE NEGOCIOS",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 139,
+      "name": "INGENIERIA AMBIENTAL",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 140,
+      "name": "MBA - INGENIERO MECÁNICO",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 141,
+      "name": "BACHILLER EN INGENIERÍA CIVIL",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 142,
+      "name": "CONTABILIDAD Y FINANZAS",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 147,
+      "name": "INGENIERIA GEOLOGICA",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 148,
+      "name": "LICENCIADA EN MERCADOTECNIA",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 151,
+      "name": "INGENIERO DE MATERIALES",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 152,
+      "name": "INGENIERA INDUTRIAL",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 153,
+      "name": "INGENIERIA ELECTRONICA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 154,
+      "name": "BACHILLER DE INGENIERÍA MECÁNICA ELÉCTRICA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 155,
+      "name": "LICENCIADO EN CIENCIAS MARITIMAS NAVALES",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 156,
+      "name": "TÍTULO PROFESIONAL DE INGENIERO AMBIENTAL",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 157,
+      "name": "EGRESADA DE INGENIERIA METALÚRGICA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 158,
+      "name": "DOCTOR EN ECONOMÍA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 159,
+      "name": "INGENIERO METALÚRGICO Y DE MATERIALES",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 160,
+      "name": "INGENIERO MECÁNICO",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 161,
+      "name": "ESTUDIANTE DE INGENIERÍA AMBIENTAL",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 164,
+      "name": "ESTUDIANTE DE INGENIERÍA INDUSTRIAL",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 165,
+      "name": "MBA  INGENIERO DE MINAS",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 166,
+      "name": "BACHILLER DE INGENIERÍA CIVIL",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 168,
+      "name": "INGENIERÍA DE SISTEMAS E INFORMÁTICA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 170,
+      "name": "BACHILLER EN INGENIERIA GEOLÓGICA",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 174,
+      "name": "CONTABILIDAD",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 175,
+      "name": "LICENCIADA",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 178,
+      "name": "MAESTRIA EN INGENIERÍA ELECTRÓNICA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 179,
+      "name": "EGRESADA DE LA ESCUELA PROFESIONAL DE INGENIERÍA AMBIENTAL",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 180,
+      "name": "ADMINISTRACION",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 181,
+      "name": "-",
+      "classification": "INVALID",
+      "references": 0
+    },
+    {
+      "id": 184,
+      "name": "LICENCIADA ADMINISTRACIÓN DE NEGOCIOS INTERNACIONALES",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 186,
+      "name": "INGENIERO MECANICO - ELECTRICISTA",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 188,
+      "name": "BACHILLER EN INGENIERIA CIVIL",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 190,
+      "name": "INGENIERA INDUSTRIAL",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 192,
+      "name": "INGENIERO AGRÓNOMO",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 193,
+      "name": "BACHILLER INGENIERÍA MECATRÓNICA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 195,
+      "name": "INGENIERO CIVIL EN METALURGIA",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 196,
+      "name": "INGENIERA QUÍMICO INDUSTRIAL",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 198,
+      "name": "INGENIERÍA QUÍMICA",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 200,
+      "name": "ING. MINAS",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 201,
+      "name": "GEOLOGÍA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 204,
+      "name": "INGENIERO DE MINAA",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 205,
+      "name": "INGENIERIA MECANICA, MECANICA ELECTRICA Y MECATRONICA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 207,
+      "name": "INGENIERO DE SISTEMAS",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 208,
+      "name": "MAESTRÍA EN REGULACIÓN, GESTIÓN Y ECONOMÍA MINERA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 209,
+      "name": "INGENIERO MECATRONICO",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 211,
+      "name": "LICENCIADA EN QUÍMICA",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 212,
+      "name": "INGENIERÍA INDUSTRIAL",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 214,
+      "name": "INGENIERÍA DE GESTIÓN MINERA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 217,
+      "name": "INGENIERA METALURGISTA",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 220,
+      "name": "ADMINISTRACIÓN DE EMPRESAS",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 221,
+      "name": "TITULADO INGENIERÍA METALÚRGICA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 223,
+      "name": "INGENIERO DE MINAS",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 224,
+      "name": "LICENCIADO EN CIENCIAS DE LA INGENIERÍA",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 225,
+      "name": "BACH INGENIERO MECANICO",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 226,
+      "name": "TITULADO EN INGENIERIA DE MINAS",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 228,
+      "name": "BALLICHER EN ECONOMIA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 229,
+      "name": "BACHILLER INGENIERIA INDUSTRIAL",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 234,
+      "name": "INGENIERA GEÓLOGA",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 235,
+      "name": "EGRESADA DE INGENIERIA DE MINAS",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 236,
+      "name": "BACHILLER EN INGENIERÍA METALÚRGICA",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 237,
+      "name": "LICENCIADA EN ADMINISTRACIÓN",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 240,
+      "name": "INGENIERO INDUSTRIAL Y DE SISTEMAS",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 241,
+      "name": "DERECHO Y CIENCIAS POLÍTICAS",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 242,
+      "name": "INGENIERO DE SISTEMAS Y CÓMPUTO",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 243,
+      "name": "INGENIERO HIDRÁULICO",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 244,
+      "name": "TITULADO EN INGENIERIA INDUSTRIAL",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 246,
+      "name": "BACHILLER DE INGENIERIA GEOLÓGICA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 247,
+      "name": "INGENIERIA AGRICOLA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 248,
+      "name": "REGULACIÓN, GESTIÓN Y ECONOMÍA MINERA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 249,
+      "name": "INGENIERO MINAS-HIDROGEOLOGO",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 250,
+      "name": "DIPLOMADO EN ADMINISTRACION",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 252,
+      "name": "LICENCIADO EN ECONOMÍA",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 253,
+      "name": "MBA ADMINISTRACION ESTRATEGICA DE EMPRESAS",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 254,
+      "name": "LICENCIADO EN CIENCIAS AMBIENTALES E INGENIERO AMBIENTAL",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 255,
+      "name": "TITULO DE INGENIERO DE MINAS",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 256,
+      "name": "INGENIERO DE MINA",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 259,
+      "name": "INGENIERO GEOLOGA",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 260,
+      "name": "TÍTULO DE INGENIERO GEÓLOGO",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 261,
+      "name": "ECONOMIA",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 262,
+      "name": "LICENCIADA EN PSICOLOGIA",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 263,
+      "name": "INGENIERO ADMINISTRATIVO E INDUSTRIAL",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 266,
+      "name": "INGENIERA AGRÓNOMA",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 267,
+      "name": "INGENIERÍA AMBIENTAL",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 268,
+      "name": "INGENIERO METALURGISTA",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 270,
+      "name": "BCH INGENIERIA INDUSTRIAL",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 271,
+      "name": "INGENIERÍA GEOLÓGICA",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 273,
+      "name": "BACHILLER EN ADMINISTRACIÓN DE EMPRESAS",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 275,
+      "name": "BACHILLER ECONOMIA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 276,
+      "name": "BACHILLER EN CIENCIAS CON MENCIÓN EN INGENIERÍA MECATRÓNICA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 278,
+      "name": "MAGISTER EN ADMINISTRACION ESTRATEGICA DE EMPRESAS",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 280,
+      "name": "INGENIERIA CIVIL",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 281,
+      "name": "BACHILLER EN GEOLOGÍA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 282,
+      "name": "INGENIERIA QUIMICA",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 284,
+      "name": "INGENIERIO DE MINAS",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 285,
+      "name": "EGRESADO EN INGENIERÍA METALÚRGICA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 286,
+      "name": "CIP_ INGENIERO GEOGRAFO",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 287,
+      "name": "INGENIERO EN INFORMATICA Y DE SISTEMAS",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 289,
+      "name": "ADMINISTRACION DE SERVICIOS HOTELEROS",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 291,
+      "name": "LIC. ADMINISTRACIÓN DE EMPRESAS",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 292,
+      "name": "INGENIERÍA GEOLÓGICA - GEOTECNICA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 293,
+      "name": "TITULO DE INGENIERO GEOLOGO",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 294,
+      "name": "LICENCIADA EN DERECHO",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 297,
+      "name": "INGENIERO QUIMICO",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 298,
+      "name": "INGENIERIA INDUSTRIAL Y DE SISTEMAS",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 299,
+      "name": "ADMINISTRACION DE EMPRESAS",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 300,
+      "name": "INGENIERO EN MINAS",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 303,
+      "name": "INGEMIERO DE MINAS",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 304,
+      "name": "MAGISTER EN ADMINISTRACION DE NEGOCIOS",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 305,
+      "name": "ING. MECATRÓNICO",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 308,
+      "name": "BACH INGENIERO INDUSTRIAL",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 311,
+      "name": "INGENIERIA DE MINAS",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 312,
+      "name": "INGNIERO DE MINAS",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 313,
+      "name": "MAESTRO EN ADMINISTRACIÓN",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 315,
+      "name": "TÍTULO EN INGENIERO DE MINAS",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 319,
+      "name": "INGENIERO DE MINAS DEL PERÚ",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 320,
+      "name": "BACHILLER INGENIERÍA METALÚRGICA",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 321,
+      "name": "INGENIERA COMERCIAL",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 324,
+      "name": "BACHILLER EN INGENIERIA INDUSTRIAL",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 328,
+      "name": "TÍTULO",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 329,
+      "name": "INGENIERÍA DE MINAS",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 330,
+      "name": "INGENIERIA INDUSTRIAL",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 332,
+      "name": "BACHILLER EN CIENCIAS INGENIERÍA DE MINAS",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 333,
+      "name": "LICENCIATURA EN INGENIERIA DE MINAS",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 336,
+      "name": "DOCTOR CIENCIAS NATURALES ESPECIALIDAD GEOLOGIA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 337,
+      "name": "INGENIERO MECANICO ELECTRICISTA",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 339,
+      "name": "INGENIERO DE GESTIÓN MINERA",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 341,
+      "name": "TITULO DE INGENIERO INDUSTRIAL",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 342,
+      "name": "TÍTULO PROFESIONAL DE INGENIERO CIVIL",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 344,
+      "name": "INGENIERÍA DE SISTEMAS",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 345,
+      "name": "INGENIERO DE EJECUCION EN METALURGIA",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 346,
+      "name": "INGENIERO AGRICOLA",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 347,
+      "name": "INGENIERO DE COMPUTACION Y SISTEMAS",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 348,
+      "name": "DR. INGENIERO DE MINAS",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 349,
+      "name": "INGENIERO CIVIL DE MINAS",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 350,
+      "name": "INGENIERO DE SOFTWARE",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 351,
+      "name": "INGENIERA GEÓGRAFA",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 352,
+      "name": "DIPLOMADO EN ADMINISTRACION DE EMPRESAS EMERGENTES",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 353,
+      "name": "BACHILLER EN ADMINISTRACION",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 354,
+      "name": "MBA EN ADMINISTRACION",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 357,
+      "name": "INGENIERA AMBIENTAL",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 359,
+      "name": "GRADO BACHILLER EN INGENIERÍA DE MINAS",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 360,
+      "name": "INGENIERO MECÁNICO-ELECTRÍCO",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 362,
+      "name": "INGENIERO ADMINISTRATIVO",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 364,
+      "name": "INGENIERO EN GEOLOGÍA Y MINAS",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 366,
+      "name": "INGENIERO MECÁNICO ELECTRICISTA",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 367,
+      "name": "CONTADOR PÚBLICO",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 368,
+      "name": "TITULADO EN ADMINISTRACION",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 369,
+      "name": "LICENCIADO EN COMPUTACIÓN",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 370,
+      "name": "DERECHO",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 372,
+      "name": "ING-AMBIENTAL",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 373,
+      "name": "LICENCIATURA EN ECONOMÍA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 374,
+      "name": "PROFESIONAL TECNICO EN EXPLOTACION DE MINAS",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 377,
+      "name": "MAGISTER EN ADMINISTRACION ESTRATEGICA DE EMPRESAS - MBA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 381,
+      "name": "INGENIERA CIVIL",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 382,
+      "name": "INGENIERO MECANICO",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 383,
+      "name": "LICENCIADO EN ADMINISTRACIÓN DE EMPRESAS",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 385,
+      "name": "TITULO EN DERECHO, PROFESIÓN ABOGADO",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 388,
+      "name": "BACHILLER DE INGENIERÍA AMBIENTAL",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 389,
+      "name": "TITULO INGENIERO DE MINAS",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 390,
+      "name": "ADMINISTRACIÓN DE TURISMO",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 393,
+      "name": "LICENCIADA EN ADMINISTRACION",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 395,
+      "name": "LICENCIADO  EN TURISMO Y HITELERIA",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 396,
+      "name": "INGENIERO ESTADÍSTICO",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 397,
+      "name": "INGENIERO AMBIENTAL Y DE RECURSOS NATURALES",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 398,
+      "name": "BACHILLER EN INGENIERÍA INDUSTRIAL",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 401,
+      "name": "BACHILLER EN INGENIERÍA ELECTRÓNICA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 402,
+      "name": "INGENIERO GEÓLOGO",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 404,
+      "name": "TÍTULO PROFESIONAL DE INGENIERO DE MINAS",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 406,
+      "name": "INGENIERIA EN CIENCIAS ANIMALES",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 407,
+      "name": "TITULO EN INGENIERIA DE MINAS",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 410,
+      "name": "INGENIERO DE COMPUTACIÓN Y SISTEMAS",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 411,
+      "name": "TÍTULADO",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 412,
+      "name": "BACHILLER EN INGENIERÍA MECÁNICA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 413,
+      "name": "EGRESADO DE INGENIERÍA CIVIL",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 414,
+      "name": "INGENIERO ELECTRONICO",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 415,
+      "name": "INGENIERO CIVIL MATEMÁTICO, UNIVERSIDAD DE CHILE",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 416,
+      "name": "INGENIERO ELECTRÓNICO",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 417,
+      "name": "TITULADO EN INGENIERÍA DE MINAS",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 419,
+      "name": "ADMINISTRACIÓN  DE TURISMO  Y HOTELERIA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 420,
+      "name": "ING. DE MINAS",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 422,
+      "name": "BACHILLER EN INGENIERIA AMBIENTAL",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 423,
+      "name": "DOCTORADO EN DERECHO",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 424,
+      "name": "INGENIERO COMERCIAL",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 426,
+      "name": "ING DE MINAS",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 428,
+      "name": "INGENIERA ELECTRÓNICA",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 430,
+      "name": "ING GEOLOGO",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 431,
+      "name": "INGENIERO DE MINAS / MBA",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 432,
+      "name": "INGENIERO GEÓGRAFO",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 433,
+      "name": "BACHILLER EN ADMINISTRACIÓN",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 434,
+      "name": "BACHILLER EN DERECHO Y CIENCIAS POLÍTICAS",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 435,
+      "name": "BACHILLER EN INGENIERIA MECATRONICA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 437,
+      "name": "MASTER EN ADMINISTRACIÓN DE NEGOCIOS",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 438,
+      "name": "INGENIERA DE HIGIENE Y SEGURIDAD INDUSTRIAL",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 439,
+      "name": "ADMINISTRACION DE NEGOCIOS INTERNACIONALES",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 440,
+      "name": "BACHILER EN INGENIERÍA CIVIL",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 441,
+      "name": "LICENCIADO EN ECONOMIA",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 443,
+      "name": "INGENIERO FORESTAL",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 444,
+      "name": "INGENIERÍA AMBIENTAL - FORESTAL",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 445,
+      "name": "MASTER EN DERECHO DE EMPRESAS",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 446,
+      "name": "PSICOLOGÍA",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 447,
+      "name": "BACHILLER EN INGENIERIA DE MINAS",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 450,
+      "name": "INGENIERO GEOFÍSICO",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 454,
+      "name": "INGENIERO MINAS",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 457,
+      "name": "EGRESADA DE LA CARRERA PROFESIONAL DE INGENIERÍA AMBIENTAL",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 458,
+      "name": "TECNICO EN EXPLOTACION DE MINAS",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 459,
+      "name": "INGENIERA QUIMICO INDUSTRIAL",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 460,
+      "name": "LICENCIADA EN EDUCACIÓN.",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 462,
+      "name": "BACHILLER DE INGENIERÍA INDUSTRIAL",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 464,
+      "name": "INGENIERO METALURGICO Y SIDERURGICO",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 465,
+      "name": "BACHILLLER EN INGENIERIA INDUSTRIAL",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 466,
+      "name": "INGENIERIA DE SISTEMAS",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 467,
+      "name": "ECONOMISTA",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 468,
+      "name": "INGENIERÍA GEOGRÁFICA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 469,
+      "name": "INGENIERÍA MECÁNICA ELECTRICA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 470,
+      "name": "INGENIERO AGRÍCOLA",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 471,
+      "name": "TITULADA EN INGENIERÍA INDUSTRIAL",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 472,
+      "name": "INGENIERO INDUSTRIAS ALIMENTARIAS",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 474,
+      "name": "LICENCIADO",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 475,
+      "name": "BA ECONOMÍA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 477,
+      "name": "MBA INGENIERO QUIMICO",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 478,
+      "name": "INGENIERO METALURGICA",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 479,
+      "name": "INGENIERO METALURGICO Y DE MATERIALES",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 480,
+      "name": "BACHILLER EN CIENCIAS DE LA INGENIERÍA DE MINAS",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 483,
+      "name": "LICENCIADA EN ADMINISTRCION",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 485,
+      "name": "INGENIERÍA METALÚRGICA",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 487,
+      "name": "INGENIERO GEOLÓGICO",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 489,
+      "name": "BACHILLER INGENIERIA METALURGICA",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 490,
+      "name": "LICENCIADO EN ING.MECANICA",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 492,
+      "name": "INGENIERA DE LAS TELECOMUNICACIONES",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 495,
+      "name": "INGENIERO AMBIENTAL",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 496,
+      "name": "INGENIERIA METALÚRGICA",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 497,
+      "name": "LLM DERECHO",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 498,
+      "name": "BR. INGENIERA DE MINAS",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 499,
+      "name": "MBA - MAGISTER EN ADMINISTRACIÓN DE EMPRESAS",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 500,
+      "name": "INGENIERO CIVIL INDUSTRIAL EN ELECTRÓNICA",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 502,
+      "name": "BACHILLER EN ECONOMIA",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 504,
+      "name": "INGENIERO ELECTRÓNICO Y TELECOMUNICACIONES",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 505,
+      "name": "TITULO",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 506,
+      "name": "INGENIERO MECANICO ELECTRICISTA ESPECIALIZADO EN ELECTRICIDAD",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 508,
+      "name": "BACHILLER EN INGENIERÍA DE SEGURIDAD INDUSTRIAL Y MINERA",
+      "classification": "SPECIALTY_OR_FIELD",
+      "references": 0
+    },
+    {
+      "id": 509,
+      "name": "ING. AMBIENTAL",
+      "classification": "DUPLICATE",
+      "references": 0
+    },
+    {
+      "id": 511,
+      "name": "CONTADOR",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    },
+    {
+      "id": 512,
+      "name": "INGENIERO FORESTAL Y AMBIENTAL",
+      "classification": "PROFESSIONAL_TITLE",
+      "references": 0
+    }
+  ],
+  "reviewRequired": [
+    {
+      "id": 3,
+      "name": "DIRECTOR GENERAL",
+      "references": 0
+    },
+    {
+      "id": 6,
+      "name": "ING. METALURGISTA",
+      "references": 0
+    },
+    {
+      "id": 8,
+      "name": "COLEGIATURA",
+      "references": 0
+    },
+    {
+      "id": 10,
+      "name": "ADMINISTRADOR",
+      "references": 0
+    },
+    {
+      "id": 11,
+      "name": "BACHILLER EN CIENCIAS MARÍTIMAS",
+      "references": 0
+    },
+    {
+      "id": 13,
+      "name": "INFORMATICA 2000",
+      "references": 0
+    },
+    {
+      "id": 15,
+      "name": "ADMINISTRADOR DE EMPRESAS Y FINANZAS",
+      "references": 0
+    },
+    {
+      "id": 17,
+      "name": "TEST",
+      "references": 0
+    },
+    {
+      "id": 18,
+      "name": "MASTRÍA MBA",
+      "references": 0
+    },
+    {
+      "id": 22,
+      "name": "MAGISTER EN PROJECT MANAGEMENT",
+      "references": 0
+    },
+    {
+      "id": 23,
+      "name": "GRADUADO",
+      "references": 0
+    },
+    {
+      "id": 25,
+      "name": "DOCENTE DE EDUCACIÓN SECUNDARIA",
+      "references": 0
+    },
+    {
+      "id": 28,
+      "name": "EGRESADO 2025 - 1",
+      "references": 0
+    },
+    {
+      "id": 29,
+      "name": "MASTER EN MARKETING Y DIRECCIÓN COMERCIAL",
+      "references": 0
+    },
+    {
+      "id": 30,
+      "name": "XX",
+      "references": 0
+    },
+    {
+      "id": 36,
+      "name": "EGRESADA DE IGENIERÍA QUÍMICA",
+      "references": 0
+    },
+    {
+      "id": 37,
+      "name": "BACHILLER EN CIENCIAS AMBIENTALES",
+      "references": 0
+    },
+    {
+      "id": 49,
+      "name": "PH.D. IN NATURAL RESOURCES ENGINEERING",
+      "references": 0
+    },
+    {
+      "id": 50,
+      "name": "PHD IN CIVIL ENGINEERING",
+      "references": 0
+    },
+    {
+      "id": 53,
+      "name": "ADMINISTRADORA DE EMPRESAS",
+      "references": 0
+    },
+    {
+      "id": 55,
+      "name": "TECNICO EN COMPUTACION",
+      "references": 0
+    },
+    {
+      "id": 56,
+      "name": "GOT",
+      "references": 0
+    },
+    {
+      "id": 59,
+      "name": "MASTER EN DIRECCION DE EMPRESAS",
+      "references": 0
+    },
+    {
+      "id": 60,
+      "name": "BACHILLERATO",
+      "references": 0
+    },
+    {
+      "id": 63,
+      "name": "BIOLOGA",
+      "references": 0
+    },
+    {
+      "id": 64,
+      "name": "MCS GEOCHEMISTRY",
+      "references": 0
+    },
+    {
+      "id": 68,
+      "name": "MAGISTER EN MECATRONICA",
+      "references": 0
+    },
+    {
+      "id": 71,
+      "name": "ASDAS",
+      "references": 0
+    },
+    {
+      "id": 73,
+      "name": "ING GEOLOGICA",
+      "references": 0
+    },
+    {
+      "id": 75,
+      "name": "BACHILLER PROFESIONAL EN CIENCIAS ADMINISTRATIVAS",
+      "references": 0
+    },
+    {
+      "id": 79,
+      "name": "OFICIAL DE MARINA",
+      "references": 0
+    },
+    {
+      "id": 92,
+      "name": "PSICÓLOGO",
+      "references": 0
+    },
+    {
+      "id": 97,
+      "name": "ING. GEÓLOGO GEOTÉCNICO",
+      "references": 0
+    },
+    {
+      "id": 103,
+      "name": "TÉCNICO MECÁNICO EN EQUIPO LIVIANO Y PESADO",
+      "references": 0
+    },
+    {
+      "id": 111,
+      "name": "GEOLOGY",
+      "references": 0
+    },
+    {
+      "id": 114,
+      "name": "BACHILLER / MASTER",
+      "references": 0
+    },
+    {
+      "id": 119,
+      "name": "DIPLOMA DE ESPECIALIZACIÓN EN LICITACIONES CONTRATACIONES Y ADQUISICIONES CON EL ESTADO",
+      "references": 0
+    },
+    {
+      "id": 121,
+      "name": "MASTER OF SCIENCE IN CIVIL ENGINEERING",
+      "references": 0
+    },
+    {
+      "id": 123,
+      "name": "ADMINSITRACIÓN DE NEGOCIOS INTERNACIONALES",
+      "references": 0
+    },
+    {
+      "id": 128,
+      "name": "INGENERIA PESQUERA",
+      "references": 0
+    },
+    {
+      "id": 129,
+      "name": "ING. QUIMICO",
+      "references": 0
+    },
+    {
+      "id": 135,
+      "name": "ADMINISTRADORA INDUSTRIAL",
+      "references": 0
+    },
+    {
+      "id": 136,
+      "name": "MAESTRIA EN COMERCIO INTERNACIONAL Y ADUANAS",
+      "references": 0
+    },
+    {
+      "id": 143,
+      "name": "CONSTANCIA DE EGRESADO",
+      "references": 0
+    },
+    {
+      "id": 144,
+      "name": "ASDASDASD",
+      "references": 0
+    },
+    {
+      "id": 145,
+      "name": "INGENIERIO AMBIENTAL",
+      "references": 0
+    },
+    {
+      "id": 146,
+      "name": "BACHILLER EN CIENCIAS",
+      "references": 0
+    },
+    {
+      "id": 149,
+      "name": "BSME",
+      "references": 0
+    },
+    {
+      "id": 150,
+      "name": "MECANICO",
+      "references": 0
+    },
+    {
+      "id": 162,
+      "name": "ADMINISTRADORA",
+      "references": 0
+    },
+    {
+      "id": 163,
+      "name": "MASTER OF SCIENCE",
+      "references": 0
+    },
+    {
+      "id": 167,
+      "name": "BACHILLER EN DESARROLLO INTERNACIONAL",
+      "references": 0
+    },
+    {
+      "id": 169,
+      "name": "MASTER MBA",
+      "references": 0
+    },
+    {
+      "id": 171,
+      "name": "FUNDAMENTAS OF MINE OPERATIONS AND ECONOMICS",
+      "references": 0
+    },
+    {
+      "id": 172,
+      "name": "UNIVERSIDAD NACIONAL AGRARIA DE LA SELVA",
+      "references": 0
+    },
+    {
+      "id": 173,
+      "name": "DDD",
+      "references": 0
+    },
+    {
+      "id": 176,
+      "name": "TÍTULO PROFESIONAL : 26.11.2013",
+      "references": 0
+    },
+    {
+      "id": 177,
+      "name": "TITULADA",
+      "references": 0
+    },
+    {
+      "id": 182,
+      "name": "SVSVS",
+      "references": 0
+    },
+    {
+      "id": 183,
+      "name": "COMUNICACIONES",
+      "references": 0
+    },
+    {
+      "id": 185,
+      "name": "DOCTOR EN GESTION PUBLICA",
+      "references": 0
+    },
+    {
+      "id": 187,
+      "name": "ACAFCV",
+      "references": 0
+    },
+    {
+      "id": 189,
+      "name": "ADAADA",
+      "references": 0
+    },
+    {
+      "id": 191,
+      "name": "ING. SISTEAS",
+      "references": 0
+    },
+    {
+      "id": 194,
+      "name": "GESTIÓN DE EMPRESAS DE HIDROCARBUROS",
+      "references": 0
+    },
+    {
+      "id": 197,
+      "name": "MBA DIRECCIÓN DE EMPRESAS",
+      "references": 0
+    },
+    {
+      "id": 199,
+      "name": "METALURGISTA",
+      "references": 0
+    },
+    {
+      "id": 202,
+      "name": "BACHILLER  EN CIENCIAS CONTABLES",
+      "references": 0
+    },
+    {
+      "id": 203,
+      "name": "ING. GEÓLOGA",
+      "references": 0
+    },
+    {
+      "id": 206,
+      "name": "MAESTRÍA EN CIENCIAS DE LA TIERRA CON MENCIÓN EN EXPLORACIÓN GEOLÓGICA",
+      "references": 0
+    },
+    {
+      "id": 210,
+      "name": "ESPECIALISTA DE MAQUINARIA PESADA",
+      "references": 0
+    },
+    {
+      "id": 213,
+      "name": "DIPLOMA",
+      "references": 0
+    },
+    {
+      "id": 215,
+      "name": "PHD - CIVIL ENGINEERING",
+      "references": 0
+    },
+    {
+      "id": 216,
+      "name": "MÁSTER EN GESTIÓN MINERA",
+      "references": 0
+    },
+    {
+      "id": 218,
+      "name": "ING. FISICA",
+      "references": 0
+    },
+    {
+      "id": 219,
+      "name": "MSC. CIENCIAS DE LA TIERRA, MENCIÓN EN GEOTECNIA",
+      "references": 0
+    },
+    {
+      "id": 222,
+      "name": "PROPIETARIOS DE EMPRESA",
+      "references": 0
+    },
+    {
+      "id": 227,
+      "name": "BIÓLOGO",
+      "references": 0
+    },
+    {
+      "id": 230,
+      "name": "MAESTRÍA EN LA UNIVERSIDAD DE CAMBRIDGE",
+      "references": 0
+    },
+    {
+      "id": 231,
+      "name": "BACHILLER EN CIENCIAS GEOFÍSICAS",
+      "references": 0
+    },
+    {
+      "id": 232,
+      "name": "ING. MECÁNICA DE FLUIDOS",
+      "references": 0
+    },
+    {
+      "id": 233,
+      "name": "BACHILLER EN QUÍMICA",
+      "references": 0
+    },
+    {
+      "id": 238,
+      "name": "ARQUITECTURA",
+      "references": 0
+    },
+    {
+      "id": 239,
+      "name": "MASTER OF APPLIED SCIENCE",
+      "references": 0
+    },
+    {
+      "id": 245,
+      "name": "SI",
+      "references": 0
+    },
+    {
+      "id": 251,
+      "name": "BACHILLER MARKETING",
+      "references": 0
+    },
+    {
+      "id": 257,
+      "name": "PROFESIONAL EN GESTIÓN DE MANTENIMIENTO DE EQUIPO PESADO",
+      "references": 0
+    },
+    {
+      "id": 258,
+      "name": "SISTEMAS",
+      "references": 0
+    },
+    {
+      "id": 264,
+      "name": "MECANICA FLUIDOS",
+      "references": 0
+    },
+    {
+      "id": 265,
+      "name": "MASTER OF SCIENCE ( GEOPHYSICS",
+      "references": 0
+    },
+    {
+      "id": 269,
+      "name": "CERTIFICADO DE ESTUDIOS",
+      "references": 0
+    },
+    {
+      "id": 272,
+      "name": "AUN NO TENGO",
+      "references": 0
+    },
+    {
+      "id": 274,
+      "name": "BACHILLER EN CIENCIAS POLÍTICAS",
+      "references": 0
+    },
+    {
+      "id": 277,
+      "name": "MAESTRÍA EN SUPPLY CHAIN",
+      "references": 0
+    },
+    {
+      "id": 279,
+      "name": "MAGISTER EN CIENCIAS CON MENCIÓN EN MINERÍA Y MEDIO AMBIENTE",
+      "references": 0
+    },
+    {
+      "id": 283,
+      "name": "ESTUDIANTE DEL 9 CICLO",
+      "references": 0
+    },
+    {
+      "id": 288,
+      "name": "SECRETARIA EJECUTIVA",
+      "references": 0
+    },
+    {
+      "id": 290,
+      "name": "CIENCIAS AERONAUTICAS",
+      "references": 0
+    },
+    {
+      "id": 295,
+      "name": "ELECTRICIDAD DOMICILIARIA",
+      "references": 0
+    },
+    {
+      "id": 296,
+      "name": "TEST UNI",
+      "references": 0
+    },
+    {
+      "id": 301,
+      "name": "INGENERIA INDUSTRIAL",
+      "references": 0
+    },
+    {
+      "id": 302,
+      "name": "MASTER IN COMPUTER SCIENCE AND ENGINEERING",
+      "references": 0
+    },
+    {
+      "id": 306,
+      "name": "MINERIA",
+      "references": 0
+    },
+    {
+      "id": 307,
+      "name": "MASTER COMPUTER SCIENCE",
+      "references": 0
+    },
+    {
+      "id": 309,
+      "name": "EGRESADO",
+      "references": 0
+    },
+    {
+      "id": 310,
+      "name": "ING.SISTEMAS",
+      "references": 0
+    },
+    {
+      "id": 314,
+      "name": "TÉCNICO EN GESTIÓN Y MANTENIMIENTO DE MAQUINARIA PESADA",
+      "references": 0
+    },
+    {
+      "id": 316,
+      "name": "XXXXX",
+      "references": 0
+    },
+    {
+      "id": 317,
+      "name": "SIIIIIIII",
+      "references": 0
+    },
+    {
+      "id": 318,
+      "name": "SEGURIDAD Y SALUD OCUPACIONAL",
+      "references": 0
+    },
+    {
+      "id": 322,
+      "name": "PHD IN MINING AND MINERALS ENGINEERING",
+      "references": 0
+    },
+    {
+      "id": 323,
+      "name": "SOCIOLOGO",
+      "references": 0
+    },
+    {
+      "id": 325,
+      "name": "NO TENGO TODAVIA TITULO",
+      "references": 0
+    },
+    {
+      "id": 326,
+      "name": "EGRESADO DE MAESTRIA",
+      "references": 0
+    },
+    {
+      "id": 327,
+      "name": "PERIODISTA",
+      "references": 0
+    },
+    {
+      "id": 331,
+      "name": "ADM DE EMPRESAS",
+      "references": 0
+    },
+    {
+      "id": 334,
+      "name": "MASTER IN MINING ENGINEERING",
+      "references": 0
+    },
+    {
+      "id": 335,
+      "name": "MA FROM CAMBRIDGE UNIVERSITY AND AN MBA FROM THE UNIVERSITY OF CAPE TOWN",
+      "references": 0
+    },
+    {
+      "id": 338,
+      "name": "ARQUEÓLOGO",
+      "references": 0
+    },
+    {
+      "id": 340,
+      "name": "MAGISTER EN GERENCIA SOCIAL",
+      "references": 0
+    },
+    {
+      "id": 343,
+      "name": "AYUDANTE",
+      "references": 0
+    },
+    {
+      "id": 355,
+      "name": "CIBERTEC",
+      "references": 0
+    },
+    {
+      "id": 356,
+      "name": "LIM",
+      "references": 0
+    },
+    {
+      "id": 358,
+      "name": "TUIRISMO",
+      "references": 0
+    },
+    {
+      "id": 361,
+      "name": "ADMINISTRADOR DE NEGOCIOS INTERNACIONALES",
+      "references": 0
+    },
+    {
+      "id": 363,
+      "name": "ING",
+      "references": 0
+    },
+    {
+      "id": 365,
+      "name": "DIPLOMADO",
+      "references": 0
+    },
+    {
+      "id": 371,
+      "name": "EN PROCESO",
+      "references": 0
+    },
+    {
+      "id": 375,
+      "name": "DESS MASTER VALORIZACIÓN DEL SUB SUELO",
+      "references": 0
+    },
+    {
+      "id": 376,
+      "name": "INGENERIA QUIMICA",
+      "references": 0
+    },
+    {
+      "id": 378,
+      "name": "ING. MECANICO DE FLUIDOS",
+      "references": 0
+    },
+    {
+      "id": 379,
+      "name": "LICENCIATURA EN COMUNICACIÓN",
+      "references": 0
+    },
+    {
+      "id": 380,
+      "name": "BACHILLER EN GEOGRAFÍA Y MEDIO AMBIENTE",
+      "references": 0
+    },
+    {
+      "id": 384,
+      "name": "TÉCNICO METALMECÁNICO",
+      "references": 0
+    },
+    {
+      "id": 386,
+      "name": "MAGISTER EN FINANZAS",
+      "references": 0
+    },
+    {
+      "id": 387,
+      "name": "EGRESADA",
+      "references": 0
+    },
+    {
+      "id": 391,
+      "name": "ESTUDIANTE",
+      "references": 0
+    },
+    {
+      "id": 392,
+      "name": "BACHILLER 273",
+      "references": 0
+    },
+    {
+      "id": 394,
+      "name": "ING. MECÁNICO",
+      "references": 0
+    },
+    {
+      "id": 399,
+      "name": "XXXX",
+      "references": 0
+    },
+    {
+      "id": 400,
+      "name": "MSC. ING. CIVIL",
+      "references": 0
+    },
+    {
+      "id": 403,
+      "name": "ING. DE HIGIENE Y SEGURIDAD INDUSTRIAL",
+      "references": 0
+    },
+    {
+      "id": 405,
+      "name": "NEGOCIOS INTERNACIONALES",
+      "references": 0
+    },
+    {
+      "id": 408,
+      "name": "INCOMPLETO",
+      "references": 0
+    },
+    {
+      "id": 409,
+      "name": "ADMINISTRADORA PUBLICA",
+      "references": 0
+    },
+    {
+      "id": 418,
+      "name": "BACHILLER EN EDUCACION",
+      "references": 0
+    },
+    {
+      "id": 421,
+      "name": "BACHILLER EN ARQUITECTURA",
+      "references": 0
+    },
+    {
+      "id": 427,
+      "name": "TECNICO CIVIL",
+      "references": 0
+    },
+    {
+      "id": 429,
+      "name": "NO",
+      "references": 0
+    },
+    {
+      "id": 436,
+      "name": "DIPLOMA DE BACHILLER",
+      "references": 0
+    },
+    {
+      "id": 442,
+      "name": "EDUCACIÓN",
+      "references": 0
+    },
+    {
+      "id": 448,
+      "name": "ING MECANICA",
+      "references": 0
+    },
+    {
+      "id": 449,
+      "name": "MAGISTER EN DIRECCIÓN DE EMPRESAS MBA",
+      "references": 0
+    },
+    {
+      "id": 451,
+      "name": "NEUROPSICOLOGA",
+      "references": 0
+    },
+    {
+      "id": 452,
+      "name": "MAESTRO EN MINERÍA Y MEDIO AMBIENTE",
+      "references": 0
+    },
+    {
+      "id": 453,
+      "name": "PROGRAMADOR DE COMPUTACION",
+      "references": 0
+    },
+    {
+      "id": 455,
+      "name": "ING. CIVIL",
+      "references": 0
+    },
+    {
+      "id": 456,
+      "name": "BACHELOR OF SCIENCE",
+      "references": 0
+    },
+    {
+      "id": 461,
+      "name": "LICENCIDA EN TRABAJO SOCIAL",
+      "references": 0
+    },
+    {
+      "id": 463,
+      "name": "MESTRIA EN SOLUCION DE CONFLICTOS",
+      "references": 0
+    },
+    {
+      "id": 473,
+      "name": "CURSOS",
+      "references": 0
+    },
+    {
+      "id": 476,
+      "name": "MAESTRÍA EN MARKETING Y GESTIÓN COMERCIAL",
+      "references": 0
+    },
+    {
+      "id": 481,
+      "name": "TECNICO MECANICO",
+      "references": 0
+    },
+    {
+      "id": 482,
+      "name": "MAGISTER EN ADMINISRACIÓN",
+      "references": 0
+    },
+    {
+      "id": 484,
+      "name": "MBA GERENCIAL",
+      "references": 0
+    },
+    {
+      "id": 486,
+      "name": "ING. INDUSTRIAL",
+      "references": 0
+    },
+    {
+      "id": 488,
+      "name": "MAESTRIA EN GEOMETALURGIA",
+      "references": 0
+    },
+    {
+      "id": 491,
+      "name": "ADMINISTRADOR DE EMPRESAS",
+      "references": 0
+    },
+    {
+      "id": 493,
+      "name": "MBA",
+      "references": 0
+    },
+    {
+      "id": 494,
+      "name": "INDUSTRIAL",
+      "references": 0
+    },
+    {
+      "id": 501,
+      "name": "DAS",
+      "references": 0
+    },
+    {
+      "id": 503,
+      "name": "BACHILLER EN CIENCIAS - AGRONOMÍA.",
+      "references": 0
+    },
+    {
+      "id": 507,
+      "name": "BACHILLER EN COMUNICACIÓN SOCIAL",
+      "references": 0
+    },
+    {
+      "id": 510,
+      "name": "PROFESIONAL TÉCNICO EN EXPLOTACIÓN MINERA",
+      "references": 0
+    }
+  ],
+  "notes": [
+    "No se ejecutan UPDATE ni DELETE.",
+    "Los 174 casos REVIEW_REQUIRED quedan fuera de la desactivación propuesta.",
+    "Los aliases son candidatos y requieren aprobación humana."
+  ]
+}

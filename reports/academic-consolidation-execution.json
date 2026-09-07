@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-09-06T21:44:58.064Z",
+  "mode": "EXECUTE",
+  "planFile": "config/academic-consolidation.approved-plan.v2.json",
+  "academicInfoBefore": 5130,
+  "expected": {
+    "university": 102,
+    "specialty": 955,
+    "total": 1057
+  },
+  "nullsBefore": {
+    "universityId": 84,
+    "specialtyId": 29
+  },
+  "degreeIdChanged": false,
+  "degreeTitleChanged": false,
+  "academicInfoAfter": 5130,
+  "updated": {
+    "university": 102,
+    "specialty": 955,
+    "total": 1057
+  },
+  "nullsAfter": {
+    "universityId": 84,
+    "specialtyId": 29
+  },
+  "duplicateIdsRemaining": {
+    "university": 0,
+    "specialty": 0
+  },
+  "rollback": false,
+  "status": "COMMITTED"
+}

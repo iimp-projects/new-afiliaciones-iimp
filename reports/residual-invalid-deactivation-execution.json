@@ -1,0 +1,23 @@
+{
+  "timestamp": "2026-09-06T22:17:13.483Z",
+  "mode": "EXECUTE",
+  "expected": {
+    "university": 32,
+    "specialty": 1
+  },
+  "referencesBefore": {
+    "university": 0,
+    "specialty": 0
+  },
+  "updated": {
+    "universityUpdated": 32,
+    "specialtyUpdated": 1,
+    "activeU": 0,
+    "activeS": 0,
+    "refsU": 0,
+    "refsS": 0
+  },
+  "rollback": false,
+  "status": "COMMITTED",
+  "manualRecords": 1498
+}

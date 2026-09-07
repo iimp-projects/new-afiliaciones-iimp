@@ -32,6 +32,8 @@ import type { PersonalInformation } from "../../Models/PersonalInformation";
 import { PersonalInformationValidator } from "../../Validators/PersonalInformationValidator";
 import { applicationApi } from "../../Services/ApplicationApi";
 import type { ValidationFlowStatus } from "../../DTOs/validation-response.dto";
+import { ProcessLoadingOverlay } from "@/modules/shared/Components/ProcessLoadingOverlay";
+import { DocumentPreviewLoader } from "@/modules/shared/Components/DocumentPreviewLoader";
 
 export interface StepRef {
   submit: () => Promise<void>;
@@ -632,6 +634,8 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
 
     const [securePhotoUrl, setSecurePhotoUrl] = useState<string | null>(null);
     const [secureDniUrl, setSecureDniUrl] = useState<string | null>(null);
+    const [previewState, setPreviewState] = useState({ photo: "idle" as "idle" | "loading" | "error", identity: "idle" as "idle" | "loading" | "error" });
+    const [previewVersion, setPreviewVersion] = useState({ photo: 0, identity: 0 });
 
     const [showDraftModal, setShowDraftModal] = useState(false);
     const [showOtpModal, setShowOtpModal] = useState(false);
@@ -665,13 +669,16 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
           !(form.photo instanceof File) &&
           (form.photo as any).url
         ) {
+          setPreviewState((previous) => ({ ...previous, photo: "loading" }));
           try {
             const url = await applicationApi.getSecureFileUrl(
               (form.photo as any).url,
             );
             setSecurePhotoUrl(url);
+            setPreviewState((previous) => ({ ...previous, photo: "loading" }));
           } catch (e) {
             console.error("Error al cargar foto de S3");
+            setPreviewState((previous) => ({ ...previous, photo: "error" }));
           }
         }
 
@@ -680,6 +687,7 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
           !(form.identityDocument instanceof File) &&
           (form.identityDocument as any).url
         ) {
+          setPreviewState((previous) => ({ ...previous, identity: "loading" }));
           try {
             const url = await applicationApi.getSecureFileUrl(
               (form.identityDocument as any).url,
@@ -687,6 +695,7 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
             setSecureDniUrl(url);
           } catch (e) {
             console.error("Error al cargar documento de S3");
+            setPreviewState((previous) => ({ ...previous, identity: "error" }));
           }
         }
       };
@@ -985,6 +994,13 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
       setSearchFeedback(null);
       setForm(newForm);
 
+      if (field === "photo" && sanitizedValue instanceof File) {
+        setPreviewState((previous) => ({ ...previous, photo: "loading" }));
+      }
+      if (field === "identityDocument" && sanitizedValue instanceof File) {
+        setPreviewState((previous) => ({ ...previous, identity: "loading" }));
+      }
+
       const validator = new PersonalInformationValidator();
       const result = validator.validate(newForm);
       const fieldError = result.errors.find((err) => err.field === field);
@@ -1156,38 +1172,11 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
 
     return (
       <div className="space-y-8">
-        {isUploadingFiles && (
-          <div className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-white rounded-3xl p-8 flex flex-col items-center shadow-2xl animate-in zoom-in-95">
-              <svg
-                className="animate-spin h-12 w-12 text-[#C5A059] mb-4"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
-              <h3 className="text-lg font-bold text-[#2F3136]">
-                Subiendo documentos...
-              </h3>
-              <p className="text-sm text-gray-500 mt-2">
-                Asegurando sus archivos en la nube de AWS.
-              </p>
-            </div>
-          </div>
-        )}
+        <ProcessLoadingOverlay
+          open={isUploadingFiles}
+          title="Guardando tus datos personales"
+          description="Estamos preparando la información académica. Esto tomará solo unos segundos."
+        />
 
         {/* ✅ MODAL DE BORRADOR ACTUALIZADO CON OPCIONES EMAIL / SMS */}
         {showDraftModal && (
@@ -1834,18 +1823,27 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
                   />
                   {fotoPreviewFinal ? (
                     <div className="w-full h-full absolute inset-0 bg-black/5 flex items-center justify-center">
-                      <img
-                        src={fotoPreviewFinal}
-                        alt="Preview"
-                        className="w-full h-full object-cover opacity-90 group-hover:opacity-60 transition-opacity"
-                      />
-                      {isFormEnabled && (
-                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 backdrop-blur-sm cursor-pointer">
-                          <span className="bg-white/90 px-4 py-2 rounded-xl text-sm font-bold text-[#2F3136] flex items-center gap-2 shadow-lg">
-                            <UploadCloud size={16} /> Cambiar Foto
-                          </span>
-                        </div>
-                      )}
+                      <DocumentPreviewLoader
+                        loading={previewState.photo === "loading"}
+                        error={previewState.photo === "error" ? "preview" : null}
+                        onRetry={() => { setPreviewState((previous) => ({ ...previous, photo: "loading" })); setPreviewVersion((previous) => ({ ...previous, photo: previous.photo + 1 })); }}
+                      >
+                        <img
+                          key={previewVersion.photo}
+                          src={fotoPreviewFinal}
+                          alt="Preview"
+                          onLoad={() => setPreviewState((previous) => ({ ...previous, photo: "idle" }))}
+                          onError={() => setPreviewState((previous) => ({ ...previous, photo: "error" }))}
+                          className="w-full h-full object-cover opacity-90 group-hover:opacity-60 transition-opacity"
+                        />
+                        {isFormEnabled && (
+                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 backdrop-blur-sm cursor-pointer">
+                            <span className="bg-white/90 px-4 py-2 rounded-xl text-sm font-bold text-[#2F3136] flex items-center gap-2 shadow-lg">
+                              <UploadCloud size={16} /> Cambiar Foto
+                            </span>
+                          </div>
+                        )}
+                      </DocumentPreviewLoader>
                     </div>
                   ) : (
                     <>
@@ -1893,29 +1891,46 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
                   {dniPreviewFinal ? (
                     dniPreviewFinal.type.startsWith("image/") ? (
                       <div className="w-full h-full absolute inset-0 bg-black/5 flex items-center justify-center">
-                        <img
-                          src={dniPreviewFinal.url}
-                          alt="DNI Preview"
-                          className="w-full h-full object-cover opacity-90 group-hover:opacity-60 transition-opacity"
-                        />
-                        {isFormEnabled && (
-                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 backdrop-blur-sm cursor-pointer">
-                            <span className="bg-white/90 px-4 py-2 rounded-xl text-sm font-bold text-[#2F3136] flex items-center gap-2 shadow-lg">
-                              <UploadCloud size={16} /> Cambiar DNI
-                            </span>
-                          </div>
-                        )}
+                        <DocumentPreviewLoader
+                          loading={previewState.identity === "loading"}
+                          error={previewState.identity === "error" ? "preview" : null}
+                          onRetry={() => { setPreviewState((previous) => ({ ...previous, identity: "loading" })); setPreviewVersion((previous) => ({ ...previous, identity: previous.identity + 1 })); }}
+                        >
+                          <img
+                            key={previewVersion.identity}
+                            src={dniPreviewFinal.url}
+                            alt="DNI Preview"
+                            onLoad={() => setPreviewState((previous) => ({ ...previous, identity: "idle" }))}
+                            onError={() => setPreviewState((previous) => ({ ...previous, identity: "error" }))}
+                            className="w-full h-full object-cover opacity-90 group-hover:opacity-60 transition-opacity"
+                          />
+                          {isFormEnabled && (
+                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 backdrop-blur-sm cursor-pointer">
+                              <span className="bg-white/90 px-4 py-2 rounded-xl text-sm font-bold text-[#2F3136] flex items-center gap-2 shadow-lg">
+                                <UploadCloud size={16} /> Cambiar DNI
+                              </span>
+                            </div>
+                          )}
+                        </DocumentPreviewLoader>
                         <div className="absolute bottom-0 left-0 w-full bg-[#2F3136]/90 text-white text-[10px] truncate px-3 py-1.5 text-center font-medium backdrop-blur-md">
                           {dniPreviewFinal.name}
                         </div>
                       </div>
                     ) : dniPreviewFinal.type === "application/pdf" ? (
                       <div className="w-full h-full absolute inset-0 bg-white flex flex-col items-center justify-center overflow-hidden">
-                        <iframe
-                          src={`${dniPreviewFinal.url}#toolbar=0&navpanes=0&scrollbar=0`}
-                          className="w-full h-full pointer-events-none"
-                          title="DNI PDF Preview"
-                        />
+                        <DocumentPreviewLoader
+                          loading={previewState.identity === "loading"}
+                          error={previewState.identity === "error" ? "preview" : null}
+                          onRetry={() => { setPreviewState((previous) => ({ ...previous, identity: "loading" })); setPreviewVersion((previous) => ({ ...previous, identity: previous.identity + 1 })); }}
+                        >
+                          <iframe
+                            key={previewVersion.identity}
+                            src={`${dniPreviewFinal.url}#toolbar=0&navpanes=0&scrollbar=0`}
+                            onLoad={() => setPreviewState((previous) => ({ ...previous, identity: "idle" }))}
+                            className="w-full h-full pointer-events-none"
+                            title="DNI PDF Preview"
+                          />
+                        </DocumentPreviewLoader>
                         {isFormEnabled && (
                           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 backdrop-blur-sm cursor-pointer">
                             <span className="bg-white/90 px-4 py-2 rounded-xl text-sm font-bold text-[#2F3136] flex items-center gap-2 shadow-lg">

@@ -1,0 +1,600 @@
+{
+  "generatedAt": "2026-09-06T21:35:05.032Z",
+  "readOnly": true,
+  "universities": [
+    {
+      "id": 953,
+      "name": "E0000000223",
+      "country": "Perú",
+      "countryId": 1,
+      "acronym": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 0,
+      "draftOccurrences": 0,
+      "recommendation": "UNUSED_AND_REMOVABLE_FUTURE"
+    },
+    {
+      "id": 801,
+      "name": "E0000000251",
+      "country": "Perú",
+      "countryId": 1,
+      "acronym": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 0,
+      "draftOccurrences": 0,
+      "recommendation": "UNUSED_AND_REMOVABLE_FUTURE"
+    },
+    {
+      "id": 796,
+      "name": "E0000000268",
+      "country": "Perú",
+      "countryId": 1,
+      "acronym": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 0,
+      "draftOccurrences": 0,
+      "recommendation": "UNUSED_AND_REMOVABLE_FUTURE"
+    },
+    {
+      "id": 897,
+      "name": "E0000000419",
+      "country": "Perú",
+      "countryId": 1,
+      "acronym": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 0,
+      "draftOccurrences": 0,
+      "recommendation": "UNUSED_AND_REMOVABLE_FUTURE"
+    },
+    {
+      "id": 1069,
+      "name": "E0000000426",
+      "country": "Perú",
+      "countryId": 1,
+      "acronym": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 0,
+      "draftOccurrences": 0,
+      "recommendation": "UNUSED_AND_REMOVABLE_FUTURE"
+    },
+    {
+      "id": 965,
+      "name": "E0000000479",
+      "country": "Perú",
+      "countryId": 1,
+      "acronym": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 0,
+      "draftOccurrences": 0,
+      "recommendation": "UNUSED_AND_REMOVABLE_FUTURE"
+    },
+    {
+      "id": 999,
+      "name": "E0000000745",
+      "country": "Perú",
+      "countryId": 1,
+      "acronym": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 0,
+      "draftOccurrences": 0,
+      "recommendation": "UNUSED_AND_REMOVABLE_FUTURE"
+    },
+    {
+      "id": 1011,
+      "name": "E0000000875",
+      "country": "Perú",
+      "countryId": 1,
+      "acronym": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 0,
+      "draftOccurrences": 0,
+      "recommendation": "UNUSED_AND_REMOVABLE_FUTURE"
+    },
+    {
+      "id": 985,
+      "name": "E0000000935",
+      "country": "Perú",
+      "countryId": 1,
+      "acronym": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 0,
+      "draftOccurrences": 0,
+      "recommendation": "UNUSED_AND_REMOVABLE_FUTURE"
+    },
+    {
+      "id": 1092,
+      "name": "E0000001106",
+      "country": "Perú",
+      "countryId": 1,
+      "acronym": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 0,
+      "draftOccurrences": 0,
+      "recommendation": "UNUSED_AND_REMOVABLE_FUTURE"
+    },
+    {
+      "id": 946,
+      "name": "E0000001338",
+      "country": "Perú",
+      "countryId": 1,
+      "acronym": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 0,
+      "draftOccurrences": 0,
+      "recommendation": "UNUSED_AND_REMOVABLE_FUTURE"
+    },
+    {
+      "id": 1036,
+      "name": "E0000001488",
+      "country": "Perú",
+      "countryId": 1,
+      "acronym": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 0,
+      "draftOccurrences": 0,
+      "recommendation": "UNUSED_AND_REMOVABLE_FUTURE"
+    },
+    {
+      "id": 978,
+      "name": "E0000001503",
+      "country": "Perú",
+      "countryId": 1,
+      "acronym": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 0,
+      "draftOccurrences": 0,
+      "recommendation": "UNUSED_AND_REMOVABLE_FUTURE"
+    },
+    {
+      "id": 1025,
+      "name": "E0000002259",
+      "country": "Perú",
+      "countryId": 1,
+      "acronym": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 0,
+      "draftOccurrences": 0,
+      "recommendation": "UNUSED_AND_REMOVABLE_FUTURE"
+    },
+    {
+      "id": 836,
+      "name": "E0000002286",
+      "country": "Perú",
+      "countryId": 1,
+      "acronym": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 0,
+      "draftOccurrences": 0,
+      "recommendation": "UNUSED_AND_REMOVABLE_FUTURE"
+    },
+    {
+      "id": 1059,
+      "name": "E0000006664",
+      "country": "Perú",
+      "countryId": 1,
+      "acronym": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 0,
+      "draftOccurrences": 0,
+      "recommendation": "UNUSED_AND_REMOVABLE_FUTURE"
+    },
+    {
+      "id": 945,
+      "name": "E0000006665",
+      "country": "Perú",
+      "countryId": 1,
+      "acronym": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 0,
+      "draftOccurrences": 0,
+      "recommendation": "UNUSED_AND_REMOVABLE_FUTURE"
+    },
+    {
+      "id": 924,
+      "name": "E0000006670",
+      "country": "Perú",
+      "countryId": 1,
+      "acronym": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 0,
+      "draftOccurrences": 0,
+      "recommendation": "UNUSED_AND_REMOVABLE_FUTURE"
+    },
+    {
+      "id": 995,
+      "name": "E0000006671",
+      "country": "Perú",
+      "countryId": 1,
+      "acronym": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 0,
+      "draftOccurrences": 0,
+      "recommendation": "UNUSED_AND_REMOVABLE_FUTURE"
+    },
+    {
+      "id": 904,
+      "name": "E0000006673",
+      "country": "Perú",
+      "countryId": 1,
+      "acronym": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 0,
+      "draftOccurrences": 0,
+      "recommendation": "UNUSED_AND_REMOVABLE_FUTURE"
+    },
+    {
+      "id": 1082,
+      "name": "E0000006674",
+      "country": "Perú",
+      "countryId": 1,
+      "acronym": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 0,
+      "draftOccurrences": 0,
+      "recommendation": "UNUSED_AND_REMOVABLE_FUTURE"
+    },
+    {
+      "id": 825,
+      "name": "E0000006675",
+      "country": "Perú",
+      "countryId": 1,
+      "acronym": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 0,
+      "draftOccurrences": 0,
+      "recommendation": "UNUSED_AND_REMOVABLE_FUTURE"
+    },
+    {
+      "id": 921,
+      "name": "E0000006678",
+      "country": "Perú",
+      "countryId": 1,
+      "acronym": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 0,
+      "draftOccurrences": 0,
+      "recommendation": "UNUSED_AND_REMOVABLE_FUTURE"
+    },
+    {
+      "id": 848,
+      "name": "E0000006716",
+      "country": "Perú",
+      "countryId": 1,
+      "acronym": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 0,
+      "draftOccurrences": 0,
+      "recommendation": "UNUSED_AND_REMOVABLE_FUTURE"
+    },
+    {
+      "id": 865,
+      "name": "E0000006717",
+      "country": "Perú",
+      "countryId": 1,
+      "acronym": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 0,
+      "draftOccurrences": 0,
+      "recommendation": "UNUSED_AND_REMOVABLE_FUTURE"
+    },
+    {
+      "id": 1040,
+      "name": "E0000011407",
+      "country": "Perú",
+      "countryId": 1,
+      "acronym": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 0,
+      "draftOccurrences": 0,
+      "recommendation": "UNUSED_AND_REMOVABLE_FUTURE"
+    },
+    {
+      "id": 1086,
+      "name": "E0000011858",
+      "country": "Perú",
+      "countryId": 1,
+      "acronym": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 0,
+      "draftOccurrences": 0,
+      "recommendation": "UNUSED_AND_REMOVABLE_FUTURE"
+    },
+    {
+      "id": 916,
+      "name": "E0000013816",
+      "country": "Perú",
+      "countryId": 1,
+      "acronym": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 0,
+      "draftOccurrences": 0,
+      "recommendation": "UNUSED_AND_REMOVABLE_FUTURE"
+    },
+    {
+      "id": 1088,
+      "name": "E0000013994",
+      "country": "Perú",
+      "countryId": 1,
+      "acronym": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 0,
+      "draftOccurrences": 0,
+      "recommendation": "UNUSED_AND_REMOVABLE_FUTURE"
+    },
+    {
+      "id": 860,
+      "name": "E0000014028",
+      "country": "Perú",
+      "countryId": 1,
+      "acronym": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 0,
+      "draftOccurrences": 0,
+      "recommendation": "UNUSED_AND_REMOVABLE_FUTURE"
+    },
+    {
+      "id": 814,
+      "name": "E0000049379",
+      "country": "Perú",
+      "countryId": 1,
+      "acronym": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 0,
+      "draftOccurrences": 0,
+      "recommendation": "UNUSED_AND_REMOVABLE_FUTURE"
+    },
+    {
+      "id": 863,
+      "name": "E0000051216",
+      "country": "Perú",
+      "countryId": 1,
+      "acronym": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 0,
+      "draftOccurrences": 0,
+      "recommendation": "UNUSED_AND_REMOVABLE_FUTURE"
+    }
+  ],
+  "specialties": [
+    {
+      "id": 368,
+      "name": "-",
+      "country": null,
+      "acronym": null,
+      "categoryId": null,
+      "description": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 4,
+      "draftOccurrences": 4,
+      "recommendation": "REASSIGN_MANUALLY",
+      "academicInfo": [
+        {
+          "academicInfoId": 71193,
+          "personId": 4577,
+          "personName": "Jherson Vilcarano Rojas",
+          "applications": [
+            {
+              "id": 164246,
+              "applicationCode": "230900",
+              "status": "COMPLETED"
+            }
+          ]
+        },
+        {
+          "academicInfoId": 71344,
+          "personId": 8427,
+          "personName": "Elizabeth Estela  Devia Bravo",
+          "applications": [
+            {
+              "id": 164402,
+              "applicationCode": "232088",
+              "status": "COMPLETED"
+            }
+          ]
+        },
+        {
+          "academicInfoId": 71851,
+          "personId": 5298,
+          "personName": "Juan Carlos  Malaga  Fernandez ",
+          "applications": [
+            {
+              "id": 164920,
+              "applicationCode": "LEGACY-6970",
+              "status": "PENDING"
+            }
+          ]
+        },
+        {
+          "academicInfoId": 72159,
+          "personId": 5358,
+          "personName": "Carlos César Arévalo Salles",
+          "applications": [
+            {
+              "id": 164972,
+              "applicationCode": "LEGACY-7049",
+              "status": "PENDING"
+            },
+            {
+              "id": 165233,
+              "applicationCode": "233844",
+              "status": "COMPLETED"
+            }
+          ]
+        }
+      ],
+      "candidateSpecialty": null
+    },
+    {
+      "id": 387,
+      "name": "2011",
+      "country": null,
+      "acronym": null,
+      "categoryId": null,
+      "description": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 1,
+      "draftOccurrences": 1,
+      "recommendation": "REASSIGN_MANUALLY",
+      "academicInfo": [
+        {
+          "academicInfoId": 71219,
+          "personId": 4606,
+          "personName": "Magaly Melendez Acosta",
+          "applications": [
+            {
+              "id": 164273,
+              "applicationCode": "LEGACY-5909",
+              "status": "REJECTED"
+            }
+          ]
+        }
+      ],
+      "candidateSpecialty": null
+    },
+    {
+      "id": 528,
+      "name": "2022",
+      "country": null,
+      "acronym": null,
+      "categoryId": null,
+      "description": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 1,
+      "draftOccurrences": 1,
+      "recommendation": "REASSIGN_MANUALLY",
+      "academicInfo": [
+        {
+          "academicInfoId": 69638,
+          "personId": 2906,
+          "personName": "Carlos Eduardo Toscano Alor",
+          "applications": [
+            {
+              "id": 162656,
+              "applicationCode": "LEGACY-3307",
+              "status": "REJECTED"
+            }
+          ]
+        }
+      ],
+      "candidateSpecialty": null
+    },
+    {
+      "id": 526,
+      "name": "2023",
+      "country": null,
+      "acronym": null,
+      "categoryId": null,
+      "description": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 2,
+      "draftOccurrences": 2,
+      "recommendation": "REASSIGN_MANUALLY",
+      "academicInfo": [
+        {
+          "academicInfoId": 69592,
+          "personId": 2849,
+          "personName": "Enzo Chambi Pacori",
+          "applications": [
+            {
+              "id": 162609,
+              "applicationCode": "LEGACY-3240",
+              "status": "REJECTED"
+            }
+          ]
+        },
+        {
+          "academicInfoId": 71547,
+          "personId": 4982,
+          "personName": "Juan Fernando  Sánchez  Montero ",
+          "applications": [
+            {
+              "id": 164610,
+              "applicationCode": "LEGACY-6553",
+              "status": "REJECTED"
+            }
+          ]
+        }
+      ],
+      "candidateSpecialty": null
+    },
+    {
+      "id": 412,
+      "name": "2024",
+      "country": null,
+      "acronym": null,
+      "categoryId": null,
+      "description": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 0,
+      "draftOccurrences": 1,
+      "recommendation": "UNUSED_AND_REMOVABLE_FUTURE",
+      "academicInfo": [],
+      "candidateSpecialty": null
+    },
+    {
+      "id": 284,
+      "name": "2026",
+      "country": null,
+      "acronym": null,
+      "categoryId": null,
+      "description": null,
+      "code": null,
+      "isActive": true,
+      "academicInfoReferences": 1,
+      "draftOccurrences": 1,
+      "recommendation": "REASSIGN_MANUALLY",
+      "academicInfo": [
+        {
+          "academicInfoId": 71182,
+          "personId": 4568,
+          "personName": "Tania Milagros Ccalla  Vargas",
+          "applications": [
+            {
+              "id": 164235,
+              "applicationCode": "LEGACY-5823",
+              "status": "REJECTED"
+            }
+          ]
+        }
+      ],
+      "candidateSpecialty": null
+    }
+  ]
+}

@@ -3,13 +3,15 @@
 import { useState, useRef, useEffect } from "react";
 import { 
     MoreVertical, CheckCircle2, Clock, XCircle, 
-    MinusCircle, AlertCircle, Eye, Users, Send, Mail 
+    MinusCircle, AlertCircle, Eye, Users, Send, Mail, Phone, User, GraduationCap 
 } from "lucide-react";
 import type { SmartCaseCardProps } from "./types";
 import { FallbackAvatar } from "./FallbackAvatar";
 import { DynamicIcon } from "@/modules/layout/Utils/DynamicIcon";
 
 const StatusIcon = ({ status, className = "" }: { status: string; className?: string }) => {
+  if (status === "person") return <User size={14} className={className} strokeWidth={2.5} />;
+  if (status === "graduation") return <GraduationCap size={14} className={className} strokeWidth={2.5} />;
   // Mapeo de Nuevos Estados del Backend
   if (status === "APPROVED") return <CheckCircle2 size={14} className={className} strokeWidth={2.5} />;
   if (status === "UNDER_EVALUATION" || status === "RESOLVED") return <Clock size={14} className={className} strokeWidth={2.5} />;
@@ -35,8 +37,10 @@ export function SmartCaseCard({
   onResendApplicant 
 }: SmartCaseCardProps) {
   const { identity, primaryBadge, atomicValidations, metadata, topBorderColorClass, subStatus } = data;
+  const isExpedienteLayout = data.rowLayout === "expediente";
   
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [avatarFailed, setAvatarFailed] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -53,7 +57,7 @@ export function SmartCaseCard({
   return (
     <article
       onClick={onClick}
-      className={`bg-white rounded-2xl p-5 shadow-sm border border-slate-200 relative flex flex-col hover:shadow-md transition-all duration-300 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary/50 overflow-visible`}
+      className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 relative flex flex-col hover:shadow-md transition-all duration-300 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary/50 overflow-visible"
     >
       {topBorderColorClass && (
         <div className={`absolute top-0 left-0 w-full h-1.5 rounded-t-2xl ${topBorderColorClass}`}></div>
@@ -62,7 +66,7 @@ export function SmartCaseCard({
       {/* HEADER: ESTADO Y SUB-ESTADO UNIDOS EN UNA SOLA CAJA VISUAL */}
       <div className="flex items-start justify-between mt-1 mb-6 relative">
         {primaryBadge && (
-          <div className={`flex flex-col px-3 py-2 rounded-xl w-max ${primaryBadge.colorClass}`}>
+            <div className={`flex flex-col px-3 py-1.5 rounded-xl w-max ${primaryBadge.colorClass}`}>
             <div className="flex items-center gap-1.5">
               <StatusIcon status={primaryBadge.icon} className="shrink-0" />
               <span className="text-[11px] font-black uppercase tracking-wider">{primaryBadge.label}</span>
@@ -159,8 +163,8 @@ export function SmartCaseCard({
       {/* IDENTIDAD DEL POSTULANTE */}
       <div className="flex items-center gap-4 mb-6">
         <div className="w-[56px] h-[56px] shrink-0 rounded-full overflow-hidden border border-slate-100 relative">
-          {identity.avatarUrl ? (
-            <img src={identity.avatarUrl} alt={identity.title} className="w-full h-full object-cover" />
+          {identity.avatarUrl && !avatarFailed ? (
+            <img src={identity.avatarUrl} onError={() => setAvatarFailed(true)} alt={identity.title} className="w-full h-full object-cover" />
           ) : (
             <FallbackAvatar identifier={data.trackingCode} initials={identity.fallbackInitials} size={56} />
           )}
@@ -170,7 +174,9 @@ export function SmartCaseCard({
             {identity.title.toLowerCase()}
           </h3>
           <p className="text-[11px] font-semibold text-slate-500 mt-1">{identity.categoryBadge?.label}</p>
-          <p className="text-[10px] font-bold text-slate-400 font-mono mt-0.5">{identity.subtitle}</p>
+          <p className="mt-0.5 text-[10px] font-bold text-slate-400 font-mono break-words [overflow-wrap:anywhere]">{identity.subtitle}</p>
+          {identity.email && <p className="mt-0.5 flex min-w-0 items-center gap-1 text-[10px] font-medium text-slate-500 break-words [overflow-wrap:anywhere]"><Mail size={11} className="shrink-0" /><span className="min-w-0 break-words [overflow-wrap:anywhere]">{identity.email}</span></p>}
+          {identity.phone && <p className="mt-0.5 flex items-center gap-1 text-[10px] font-medium text-slate-500"><Phone size={11} className="shrink-0" />{identity.phone}</p>}
         </div>
       </div>
 
@@ -178,39 +184,52 @@ export function SmartCaseCard({
       {atomicValidations && (
         <div className="flex flex-col gap-3.5 mb-5 flex-grow">
           {atomicValidations.map((val, idx) => (
-            <div key={idx} className="flex items-center w-full justify-between gap-1">
+            <div key={idx} className={`w-full ${isExpedienteLayout ? "grid grid-cols-[84px_max-content_minmax(0,1fr)] items-center gap-x-1" : "grid grid-cols-[90px_minmax(0,1fr)_auto] items-center gap-x-1"} ${idx === 3 ? "mt-2" : ""}`}>
               
               {/* Columna 1: Icono e Identificador del Área */}
-              <div className="flex items-center gap-2 w-[80px] shrink-0">
+              <div className="flex min-w-0 items-center gap-1.5">
                 <DynamicIcon name={val.icon} size={15} className="text-slate-500 shrink-0" />
-                <span className="text-[12px] font-bold text-slate-700 leading-none">{val.label}</span>
+                <span className="text-left text-[12px] font-bold leading-tight text-slate-700 whitespace-nowrap">{!isExpedienteLayout && val.label === "Miembro desde" ? "Desde" : val.label}</span>
               </div>
               
               {/* Columna 2: Estado */}
-              <div className="flex justify-center shrink-0">
-                <span className={`inline-flex items-center justify-center gap-1 w-max px-2 py-0.5 rounded text-[10px] font-bold ${val.statusColorClass} whitespace-nowrap`}>
+              <div className="flex min-w-0 items-center justify-start">
+                <span className={`${isExpedienteLayout ? "max-w-[125px] px-1.5" : "max-w-full px-2"} inline-flex min-w-0 items-start justify-start gap-1 rounded py-0.5 text-left text-[10px] font-bold leading-tight ${val.statusColorClass} ${!isExpedienteLayout && ["Código", "Miembro desde", "Inscripción"].includes(val.label) ? "whitespace-nowrap" : "whitespace-normal break-words [overflow-wrap:anywhere]"}`}>
                   <StatusIcon status={val.status} className="w-3 h-3 shrink-0" />
-                  <span>{val.statusLabel}</span>
+                  <span className="min-w-0 break-words [overflow-wrap:anywhere]">{val.statusLabel}</span>
                 </span>
               </div>
 
               {/* Columna 3: Nombre del Auditor + HORA DE LA ACCIÓN */}
-              <div className="flex-1 flex flex-col items-end justify-center pl-1">
+              {val.assignee && (
+              <div className={`flex min-w-0 flex-1 items-center justify-end pl-1 ${isExpedienteLayout ? "flex-col text-[10px]" : "min-w-[72px] max-w-[110px] flex-col"} ${!isExpedienteLayout && val.label === "Inscripción" ? "whitespace-nowrap" : ""}`}>
                 {val.assignee ? (
-                  <>
-                    <span className="text-[10px] font-medium text-slate-500 text-right leading-tight" title={val.assignee.name}>
-                      {val.assignee.name}
-                    </span>
-                    {val.assignee.timeRelative && (
-                      <span className="text-[9px] font-bold text-slate-400 text-right mt-0.5">
-                        {val.assignee.timeRelative}
+                  isExpedienteLayout ? (
+                    <>
+                      <span className="min-w-0 max-w-full font-medium text-slate-500 text-right leading-tight" title={val.assignee.name}>
+                        {val.assignee.name}
                       </span>
-                    )}
-                  </>
-                ) : (
-                  <span className="text-[10px] font-medium text-slate-400 text-right">Sin asignar</span>
-                )}
+                      {val.assignee.timeRelative && (
+                        <span className="mt-0.5 max-w-full whitespace-nowrap text-right text-[9px] font-bold leading-tight text-slate-400" title={val.assignee.timeRelative}>
+                          {val.assignee.timeRelative}
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-[10px] font-medium text-slate-500 text-right leading-tight" title={val.assignee.name}>
+                        {val.assignee.name}
+                      </span>
+                      {val.assignee.timeRelative && (
+                        <span className="mt-0.5 text-right text-[9px] font-bold text-slate-400">
+                          {val.assignee.timeRelative}
+                        </span>
+                      )}
+                    </>
+                  )
+                ) : null}
               </div>
+              )}
               
             </div>
           ))}
@@ -221,6 +240,7 @@ export function SmartCaseCard({
       <div className="flex items-center gap-1.5 pt-4 border-t border-slate-100 text-[11px] font-medium text-slate-500 mt-auto">
         <Clock size={14} className="text-slate-400" /> {metadata.lastUpdatedRelative}
       </div>
+
     </article>
   );
 }

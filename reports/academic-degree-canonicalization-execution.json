@@ -1,0 +1,26 @@
+{
+  "timestamp": "2026-09-07T04:49:06.750Z",
+  "mode": "EXECUTE",
+  "status": "COMMITTED",
+  "academicDegreeBefore": 512,
+  "academicDegreeAfter": 516,
+  "canonicalExisting": [
+    32,
+    425
+  ],
+  "canonicalCreatedIds": [
+    517,
+    518,
+    519,
+    520
+  ],
+  "expectedCreated": 4,
+  "expectedDeactivated": 336,
+  "actualDeactivated": 336,
+  "reviewRequiredPreserved": 174,
+  "academicInfoReferencesBefore": 0,
+  "academicInfoReferencesAfter": 0,
+  "degreeTitleChanged": false,
+  "rollback": false,
+  "errors": []
+}

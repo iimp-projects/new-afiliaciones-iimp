@@ -79,6 +79,30 @@ export const securityModuleDefinition: ModuleDefinition = {
                     order: 3,
                     // Solo visible si el rol tiene permiso de 'read:audit'
                     permission: { action: "read", subject: "audit" }
+                },
+                {
+                    id: "nav-security-system-settings",
+                    title: "Configuración de pagos",
+                    href: "/intranet/security/system-settings",
+                    icon: "Settings",
+                    order: 4,
+                    permission: { action: "manage", subject: "all" }
+                }
+            ]
+        },
+        {
+            id: "group-administracion",
+            title: "ADMINISTRACIÓN",
+            type: "group",
+            order: 25,
+            children: [
+                {
+                    id: "nav-master-data",
+                    title: "Datos Maestros",
+                    href: "/intranet/master-data",
+                    icon: "Database",
+                    order: 1,
+                    permission: { action: "read", subject: "catalogs" }
                 }
             ]
         }

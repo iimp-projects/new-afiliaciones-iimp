@@ -35,7 +35,8 @@ model User {
   notifications            Notification[]
   areaValidations          MembershipAreaValidation[]
   validations              MembershipValidation[]
-  validationHistoryEntries MembershipValidationHistory[]
+    validationHistoryEntries MembershipValidationHistory[]
+    systemSettingValuesUpdated SystemSettingValue[] @relation("SystemSettingValueUpdatedBy")
 
   @@index([email])
   @@index([status])
@@ -590,6 +591,18 @@ model Payment {
   currency          Currency              @default(PEN)
   status            PaymentStatus         @default(PENDING)
   paymentDate       DateTime?             @map("payment_date")
+  gatewayTransactionDate DateTime?        @map("gateway_transaction_date")
+  cardBrand         String?               @map("card_brand")
+  maskedCard        String?               @map("masked_card")
+  paymentChannel    String?               @map("payment_channel")
+  failureCode       String?               @map("failure_code")
+  failureReason     String?               @map("failure_reason")
+  gatewayErrorCode  String?               @map("gateway_error_code")
+  failureAt         DateTime?             @map("failure_at")
+  actionCode        String?               @map("action_code")
+  cardType          String?               @map("card_type")
+  traceNumber       String?               @map("trace_number")
+  confirmationEmailSentAt DateTime?       @map("confirmation_email_sent_at")
   gatewayPayload    Json?                 @map("gateway_payload")
   createdAt         DateTime              @default(now()) @map("created_at")
   updatedAt         DateTime              @updatedAt @map("updated_at")
@@ -716,6 +729,12 @@ model University {
   countryId     Int            @map("country_id")
   acronym       String?        @db.VarChar(20)
   website       String?        @db.VarChar(255)
+  logoUrl       String?        @map("logo_url") @db.VarChar(500)
+  websiteUrl    String?        @map("website_url") @db.VarChar(255)
+  facebookUrl   String?        @map("facebook_url") @db.VarChar(500)
+  instagramUrl  String?        @map("instagram_url") @db.VarChar(500)
+  linkedinUrl   String?        @map("linkedin_url") @db.VarChar(500)
+  youtubeUrl    String?        @map("youtube_url") @db.VarChar(500)
   isLicensed    Boolean        @default(true) @map("is_licensed")
   isPublic      Boolean        @default(false) @map("is_public")
   isActive      Boolean        @default(true) @map("is_active")
@@ -897,6 +916,40 @@ model Configuration {
   @@map("sys_configurations")
 }
 
+model SystemSetting {
+  id          Int                  @id @default(autoincrement())
+  key         String               @unique @db.VarChar(100)
+  category    String               @db.VarChar(100)
+  dataType    ConfigDataType
+  description String?
+  isActive    Boolean              @default(true) @map("is_active")
+  createdAt   DateTime             @default(now()) @map("created_at")
+  updatedAt   DateTime             @updatedAt @map("updated_at")
+  values      SystemSettingValue[]
+
+  @@index([category])
+  @@map("sys_system_settings")
+}
+
+model SystemSettingValue {
+  id          Int           @id @default(autoincrement())
+  settingId   Int           @map("setting_id")
+  value       String
+  startsAt    DateTime      @default(now()) @map("starts_at")
+  endsAt      DateTime?     @map("ends_at")
+  isActive    Boolean       @default(true) @map("is_active")
+  updatedById Int?          @map("updated_by_id")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+  setting     SystemSetting @relation(fields: [settingId], references: [id], onDelete: Restrict)
+  updatedBy   User?         @relation("SystemSettingValueUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@index([settingId, startsAt])
+  @@index([settingId, isActive, startsAt])
+  @@index([updatedById])
+  @@map("sys_system_setting_values")
+}
+
 enum CredentialType {
   PASSWORD
   PASSKEY
@@ -1014,6 +1067,7 @@ enum PaymentStatus {
 }
 
 enum PaymentGateway {
+  MOCK
   NIUBIZ
   IZIPAY
   STRIPE
@@ -1093,6 +1147,9 @@ enum ConfigDataType {
   DECIMAL
   BOOLEAN
   JSON
+  DATETIME
+  MONEY
+  URL
 }
 
 enum VerificationChannel {

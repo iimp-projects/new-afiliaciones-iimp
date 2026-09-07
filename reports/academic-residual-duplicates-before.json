@@ -1,0 +1,350 @@
+{
+  "timestamp": "2026-09-06T22:33:34.480Z",
+  "rows": [
+    {
+      "academicInfoId": 67446,
+      "universityIdBefore": 918,
+      "targetCanonicalId": 877
+    },
+    {
+      "academicInfoId": 67502,
+      "universityIdBefore": 971,
+      "targetCanonicalId": 980
+    },
+    {
+      "academicInfoId": 67569,
+      "universityIdBefore": 971,
+      "targetCanonicalId": 980
+    },
+    {
+      "academicInfoId": 67579,
+      "universityIdBefore": 918,
+      "targetCanonicalId": 877
+    },
+    {
+      "academicInfoId": 67639,
+      "universityIdBefore": 971,
+      "targetCanonicalId": 980
+    },
+    {
+      "academicInfoId": 67678,
+      "universityIdBefore": 971,
+      "targetCanonicalId": 980
+    },
+    {
+      "academicInfoId": 67680,
+      "universityIdBefore": 971,
+      "targetCanonicalId": 980
+    },
+    {
+      "academicInfoId": 67681,
+      "universityIdBefore": 971,
+      "targetCanonicalId": 980
+    },
+    {
+      "academicInfoId": 67728,
+      "universityIdBefore": 994,
+      "targetCanonicalId": 932
+    },
+    {
+      "academicInfoId": 67754,
+      "universityIdBefore": 994,
+      "targetCanonicalId": 932
+    },
+    {
+      "academicInfoId": 67824,
+      "universityIdBefore": 971,
+      "targetCanonicalId": 980
+    },
+    {
+      "academicInfoId": 68059,
+      "universityIdBefore": 811,
+      "targetCanonicalId": 947
+    },
+    {
+      "academicInfoId": 68064,
+      "universityIdBefore": 994,
+      "targetCanonicalId": 932
+    },
+    {
+      "academicInfoId": 68074,
+      "universityIdBefore": 811,
+      "targetCanonicalId": 947
+    },
+    {
+      "academicInfoId": 68079,
+      "universityIdBefore": 811,
+      "targetCanonicalId": 947
+    },
+    {
+      "academicInfoId": 68101,
+      "universityIdBefore": 811,
+      "targetCanonicalId": 947
+    },
+    {
+      "academicInfoId": 68102,
+      "universityIdBefore": 811,
+      "targetCanonicalId": 947
+    },
+    {
+      "academicInfoId": 68108,
+      "universityIdBefore": 811,
+      "targetCanonicalId": 947
+    },
+    {
+      "academicInfoId": 68110,
+      "universityIdBefore": 811,
+      "targetCanonicalId": 947
+    },
+    {
+      "academicInfoId": 68116,
+      "universityIdBefore": 811,
+      "targetCanonicalId": 947
+    },
+    {
+      "academicInfoId": 68153,
+      "universityIdBefore": 811,
+      "targetCanonicalId": 947
+    },
+    {
+      "academicInfoId": 68167,
+      "universityIdBefore": 994,
+      "targetCanonicalId": 932
+    },
+    {
+      "academicInfoId": 68170,
+      "universityIdBefore": 811,
+      "targetCanonicalId": 947
+    },
+    {
+      "academicInfoId": 68178,
+      "universityIdBefore": 811,
+      "targetCanonicalId": 947
+    },
+    {
+      "academicInfoId": 68194,
+      "universityIdBefore": 811,
+      "targetCanonicalId": 947
+    },
+    {
+      "academicInfoId": 68203,
+      "universityIdBefore": 811,
+      "targetCanonicalId": 947
+    },
+    {
+      "academicInfoId": 68214,
+      "universityIdBefore": 811,
+      "targetCanonicalId": 947
+    },
+    {
+      "academicInfoId": 68215,
+      "universityIdBefore": 811,
+      "targetCanonicalId": 947
+    },
+    {
+      "academicInfoId": 68227,
+      "universityIdBefore": 811,
+      "targetCanonicalId": 947
+    },
+    {
+      "academicInfoId": 68228,
+      "universityIdBefore": 811,
+      "targetCanonicalId": 947
+    },
+    {
+      "academicInfoId": 68231,
+      "universityIdBefore": 971,
+      "targetCanonicalId": 980
+    },
+    {
+      "academicInfoId": 68246,
+      "universityIdBefore": 811,
+      "targetCanonicalId": 947
+    },
+    {
+      "academicInfoId": 68257,
+      "universityIdBefore": 811,
+      "targetCanonicalId": 947
+    },
+    {
+      "academicInfoId": 68258,
+      "universityIdBefore": 971,
+      "targetCanonicalId": 980
+    },
+    {
+      "academicInfoId": 68265,
+      "universityIdBefore": 971,
+      "targetCanonicalId": 980
+    },
+    {
+      "academicInfoId": 68268,
+      "universityIdBefore": 811,
+      "targetCanonicalId": 947
+    },
+    {
+      "academicInfoId": 68272,
+      "universityIdBefore": 811,
+      "targetCanonicalId": 947
+    },
+    {
+      "academicInfoId": 68273,
+      "universityIdBefore": 811,
+      "targetCanonicalId": 947
+    },
+    {
+      "academicInfoId": 68274,
+      "universityIdBefore": 811,
+      "targetCanonicalId": 947
+    },
+    {
+      "academicInfoId": 68284,
+      "universityIdBefore": 811,
+      "targetCanonicalId": 947
+    },
+    {
+      "academicInfoId": 68295,
+      "universityIdBefore": 811,
+      "targetCanonicalId": 947
+    },
+    {
+      "academicInfoId": 68316,
+      "universityIdBefore": 811,
+      "targetCanonicalId": 947
+    },
+    {
+      "academicInfoId": 68367,
+      "universityIdBefore": 971,
+      "targetCanonicalId": 980
+    },
+    {
+      "academicInfoId": 68456,
+      "universityIdBefore": 994,
+      "targetCanonicalId": 932
+    },
+    {
+      "academicInfoId": 68500,
+      "universityIdBefore": 971,
+      "targetCanonicalId": 980
+    },
+    {
+      "academicInfoId": 68549,
+      "universityIdBefore": 971,
+      "targetCanonicalId": 980
+    },
+    {
+      "academicInfoId": 68581,
+      "universityIdBefore": 971,
+      "targetCanonicalId": 980
+    },
+    {
+      "academicInfoId": 68628,
+      "universityIdBefore": 971,
+      "targetCanonicalId": 980
+    },
+    {
+      "academicInfoId": 68889,
+      "universityIdBefore": 994,
+      "targetCanonicalId": 932
+    },
+    {
+      "academicInfoId": 68899,
+      "universityIdBefore": 994,
+      "targetCanonicalId": 932
+    },
+    {
+      "academicInfoId": 68984,
+      "universityIdBefore": 918,
+      "targetCanonicalId": 877
+    },
+    {
+      "academicInfoId": 69203,
+      "universityIdBefore": 793,
+      "targetCanonicalId": 837
+    },
+    {
+      "academicInfoId": 69331,
+      "universityIdBefore": 976,
+      "targetCanonicalId": 806
+    },
+    {
+      "academicInfoId": 69357,
+      "universityIdBefore": 976,
+      "targetCanonicalId": 806
+    },
+    {
+      "academicInfoId": 69524,
+      "universityIdBefore": 871,
+      "targetCanonicalId": 1081
+    },
+    {
+      "academicInfoId": 70177,
+      "universityIdBefore": 868,
+      "targetCanonicalId": 980
+    },
+    {
+      "academicInfoId": 70920,
+      "universityIdBefore": 975,
+      "targetCanonicalId": 806
+    },
+    {
+      "academicInfoId": 71189,
+      "universityIdBefore": 918,
+      "targetCanonicalId": 877
+    },
+    {
+      "academicInfoId": 71223,
+      "universityIdBefore": 918,
+      "targetCanonicalId": 877
+    },
+    {
+      "academicInfoId": 71426,
+      "universityIdBefore": 975,
+      "targetCanonicalId": 806
+    },
+    {
+      "academicInfoId": 72169,
+      "universityIdBefore": 918,
+      "targetCanonicalId": 877
+    },
+    {
+      "academicInfoId": 72203,
+      "universityIdBefore": 1091,
+      "targetCanonicalId": 842
+    },
+    {
+      "academicInfoId": 72234,
+      "universityIdBefore": 1062,
+      "targetCanonicalId": 938
+    },
+    {
+      "academicInfoId": 72412,
+      "universityIdBefore": 918,
+      "targetCanonicalId": 877
+    },
+    {
+      "academicInfoId": 72570,
+      "universityIdBefore": 918,
+      "targetCanonicalId": 877
+    },
+    {
+      "academicInfoId": 69395,
+      "universityIdBefore": 979,
+      "targetCanonicalId": 943
+    },
+    {
+      "academicInfoId": 68950,
+      "universityIdBefore": 918,
+      "targetCanonicalId": 877
+    },
+    {
+      "academicInfoId": 70404,
+      "universityIdBefore": 918,
+      "targetCanonicalId": 877
+    },
+    {
+      "academicInfoId": 71343,
+      "universityIdBefore": 955,
+      "targetCanonicalId": 980
+    }
+  ]
+}

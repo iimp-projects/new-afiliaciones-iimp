@@ -1,0 +1,35 @@
+{
+  "timestamp": "2026-09-06T21:53:53.833Z",
+  "mode": "EXECUTE",
+  "expected": {
+    "universities": 65,
+    "specialties": 121
+  },
+  "referencesBefore": {
+    "universities": 0,
+    "specialties": 0
+  },
+  "academicInfoBefore": 5130,
+  "updated": {
+    "universities": 65,
+    "specialties": 121,
+    "total": 186
+  },
+  "activeDuplicateIdsAfter": {
+    "universities": 0,
+    "specialties": 0
+  },
+  "referencesAfter": {
+    "universities": 0,
+    "specialties": 0
+  },
+  "canonicalsActive": {
+    "universities": 55,
+    "specialties": 69
+  },
+  "academicInfoAfter": 5130,
+  "academicInfoModified": false,
+  "rollback": false,
+  "status": "COMMITTED",
+  "errors": []
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import { MoreHorizontal, Clock, Flag, CheckCircle2, XCircle, MinusCircle, AlertCircle } from "lucide-react";
+import { useState } from "react";
 import type { SmartCaseCardProps } from "./types";
 import { FallbackAvatar } from "./FallbackAvatar";
 
@@ -19,6 +20,7 @@ const priorityColors = { low: "text-slate-300", medium: "text-blue-400", high: "
 
 export function SmartCaseRow({ data, onClick }: SmartCaseCardProps) {
   const { identity, primaryBadge, atomicValidations, metadata } = data;
+  const [avatarFailed, setAvatarFailed] = useState(false);
 
   return (
     <div onClick={onClick} className="group flex items-center bg-white border-b border-slate-200 hover:bg-slate-50 transition-colors duration-200 px-6 py-4 cursor-pointer">
@@ -26,8 +28,8 @@ export function SmartCaseRow({ data, onClick }: SmartCaseCardProps) {
       {/* 1. Identity (Foto y Nombres) */}
       <div className="flex items-center gap-4 w-[350px] shrink-0">
         <div className="relative">
-          {identity.avatarUrl ? (
-            <img src={identity.avatarUrl} alt="" className="w-10 h-10 rounded-xl object-cover shadow-sm" />
+          {identity.avatarUrl && !avatarFailed ? (
+            <img src={identity.avatarUrl} onError={() => setAvatarFailed(true)} alt="" className="w-10 h-10 rounded-xl object-cover shadow-sm" />
           ) : (
             <FallbackAvatar identifier={data.trackingCode} initials={identity.fallbackInitials} size={40} />
           )}

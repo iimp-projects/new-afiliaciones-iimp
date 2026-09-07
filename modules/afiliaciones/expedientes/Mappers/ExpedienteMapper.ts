@@ -77,7 +77,7 @@ export class ExpedienteMapper {
         minute: "2-digit",
         hour12: true,
       });
-      return `${datePart} - ${timePart}`;
+      return `${datePart} · ${timePart}`;
     };
 
     const getDepartmentState = (deptCode: string) => {
@@ -345,6 +345,7 @@ export class ExpedienteMapper {
         assignedTo: { name: "Sin asignar", initial: "-" },
       },
       allowedActions: ["view", "evaluate"],
+      rowLayout: "expediente",
       atomicValidations,
     };
   }

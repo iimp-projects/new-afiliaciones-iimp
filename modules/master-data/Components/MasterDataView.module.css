@@ -1,0 +1,66 @@
+:global(main table:has(col:nth-child(8)) col:nth-child(2)) {
+  width: calc(100% - 708px) !important;
+  min-width: 280px;
+}
+
+:global(main table th),
+:global(main table td) {
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}
+
+:global(main table tbody td:nth-child(2) img),
+:global(main table tbody td:nth-child(2) span span:first-child) {
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
+:global(main table tbody td:nth-child(2) span span) {
+  display: block !important;
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+  -webkit-line-clamp: unset !important;
+  -webkit-box-orient: initial !important;
+  overflow: visible !important;
+}
+
+:global(main table tbody td:last-child > div) {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: nowrap;
+  gap: 0.25rem;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+:global(main table:has(col:nth-child(8)) tbody td:last-child) {
+  width: 140px;
+  min-width: 140px;
+  padding-left: 0.5rem;
+  padding-right: 1rem;
+}
+
+:global(main table tbody td:last-child button) {
+  border: 0 !important;
+  background: transparent !important;
+  color: rgb(100 116 139) !important;
+  outline: none;
+  box-shadow: none !important;
+  border-radius: 0.5rem;
+}
+
+:global(main table tbody td:last-child button:hover) {
+  border: 0 !important;
+  background: rgb(241 245 249) !important;
+  color: rgb(139 106 43) !important;
+}
+
+:global(main table tbody td:last-child button:focus-visible) {
+  outline: 0 !important;
+  outline-offset: 1px;
+  box-shadow: 0 0 0 2px rgb(197 160 89 / 40%) !important;
+}

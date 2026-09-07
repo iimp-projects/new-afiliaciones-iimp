@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { EndorsementStatus } from "@prisma/client";
+import { paymentAuthorizationService } from "@/modules/afiliaciones/payments/Services/PaymentAuthorizationService";
+import { paymentConfig } from "@/modules/afiliaciones/payments/Config/PaymentConfig";
 
 export async function GET(request: Request) {
   try {
@@ -37,6 +39,12 @@ export async function GET(request: Request) {
         observations: {
           where: { status: "PENDING" },
           orderBy: { createdAt: "desc" },
+        },
+        payments: {
+          where: { status: "PAID" },
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          include: { billing: { include: { invoice: true } } },
         },
       },
     });
@@ -112,7 +120,7 @@ export async function GET(request: Request) {
       observationsList.push((application as any).rejectionReason);
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       id: application.id,
       applicationId: application.id,
       personId: application.personId,
@@ -122,6 +130,34 @@ export async function GET(request: Request) {
       draftData: application.draftData,
       pendingObservations,
       applicantName: fullName,
+      affiliateType: application.affiliateType,
+      completedPayment: application.payments[0] ? {
+        id: application.payments[0].id,
+        status: application.payments[0].status,
+        amount: Number(application.payments[0].totalAmount),
+        currency: application.payments[0].currency,
+        gateway: application.payments[0].gateway,
+        transactionId: application.payments[0].transactionId,
+        authorizationCode: application.payments[0].authorizationCode,
+        paymentDate: application.payments[0].paymentDate,
+        gatewayTransactionDate: application.payments[0].gatewayTransactionDate,
+        cardBrand: application.payments[0].cardBrand,
+        maskedCard: application.payments[0].maskedCard,
+        cardType: application.payments[0].cardType,
+        traceNumber: application.payments[0].traceNumber,
+        billing: application.payments[0].billing ? {
+          taxId: application.payments[0].billing.taxId,
+          businessName: application.payments[0].billing.businessName,
+          billingAddress: application.payments[0].billing.billingAddress,
+          invoice: application.payments[0].billing.invoice ? {
+            type: application.payments[0].billing.invoice.type,
+            serie: application.payments[0].billing.invoice.serie,
+            number: application.payments[0].billing.invoice.number,
+            issueDate: application.payments[0].billing.invoice.issueDate,
+            pdfUrl: application.payments[0].billing.invoice.pdfUrl,
+          } : null,
+        } : null,
+      } : null,
       existingSponsorDnis: existingSponsorDnis,
       observations: observationsList,
       rejectionReason: (application as any).rejectionReason || null,
@@ -138,6 +174,18 @@ export async function GET(request: Request) {
         payment: { status: getValidationStatus("PAGOS") },
       },
     });
+
+    if (effectiveStatus === "READY_FOR_PAYMENT" && !application.deletedAt) {
+      response.cookies.set(paymentAuthorizationService.cookieName, paymentAuthorizationService.create(application.id, paymentConfig.authorizationTtlSeconds), {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        path: "/api/payments",
+        maxAge: paymentConfig.authorizationTtlSeconds,
+      });
+    }
+
+    return response;
   } catch (error: any) {
     console.error("💥 Error al consultar la solicitud:", error);
     return NextResponse.json(
