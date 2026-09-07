@@ -23,6 +23,7 @@ export interface IApplicationRepository {
    * Crea una nueva postulación.
    */
   create(application: Partial<Application>): Promise<Application>;
+  createDraftIfAllowed(application: Partial<Application>, authorizedIds: number[]): Promise<Application>;
 
   /**
    * Actualiza una postulación.
@@ -31,7 +32,7 @@ export interface IApplicationRepository {
 
   findByTrackingCode(trackingCode: string): Promise<Application | null>;
 
-  updateDraft(trackingCode: string, dto: UpdateDraftDTO): Promise<Application>;
+  updateDraft(trackingCode: string, dto: UpdateDraftDTO, expectedStatus?: string): Promise<Application>;
 
   submitApplication(trackingCode: string): Promise<Application>;
 }

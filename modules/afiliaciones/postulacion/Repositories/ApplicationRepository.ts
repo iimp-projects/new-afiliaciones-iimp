@@ -4,9 +4,25 @@ import { Application } from "../Entities/Application";
 import { IApplicationRepository } from "./Interfaces/IApplicationRepository";
 import { UpdateDraftDTO } from "../DTOs/update-draft.dto";
 import { ApplicationDraft } from "../Models/ApplicationDraft";
+import { blocksNewApplication, canEditApplication, canSubmitApplication, currentApplicationStates } from "../Models/ApplicationAction";
+import { ApplicationFlowError } from "../Services/Exceptions/ApplicationFlowError";
 
 export class ApplicationRepository implements IApplicationRepository {
   constructor(private readonly db = prisma) {}
+
+  async createDraftIfAllowed(application: Partial<Application>, authorizedIds: number[]): Promise<Application> {
+    return this.db.$transaction(async tx => {
+      const key = `${application.documentType}:${application.documentNumber}:${application.affiliateType}`;
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${key}))`;
+      const existing = await tx.membershipApplication.findMany({ where: { documentType: application.documentType as never, documentNumber: application.documentNumber, affiliateType: application.affiliateType as never, deletedAt: null }, select: { id: true, status: true } });
+      if (existing.some(item => blocksNewApplication(item.status))) throw new ApplicationFlowError("APPLICATION_EXISTS", "Encontramos una solicitud asociada a este documento. Verifica tu identidad para continuar.");
+      if (existing.length && !existing.some(item => authorizedIds.includes(item.id))) throw new ApplicationFlowError("VERIFICATION_REQUIRED", "Verifica tu identidad antes de iniciar una nueva postulación.", 401);
+      const person = await tx.person.findUnique({ where: { documentType_documentNumber: { documentType: application.documentType as never, documentNumber: application.documentNumber! } }, include: { user: true } });
+      if (person?.user?.type === "AFFILIATE") throw new ApplicationFlowError("APPLICATION_EXISTS", "No es posible iniciar otra postulación. Consulta tu solicitud o contacta al IIMP.");
+      const created = await tx.membershipApplication.create({ data: { applicationCode: application.applicationCode!, trackingCode: application.trackingCode!, documentType: application.documentType as never, documentNumber: application.documentNumber!, affiliateType: application.affiliateType as never, email: application.email!, phone: application.phone!, status: "DRAFT", currentStep: 1, draftData: {} } });
+      return this.mapToEntity(created);
+    });
+  }
 
   async findDraftByDocument(
     documentNumber: string,
@@ -120,9 +136,10 @@ export class ApplicationRepository implements IApplicationRepository {
   }
 
   async findByTrackingCode(trackingCode: string): Promise<Application | null> {
-    const application = await this.db.membershipApplication.findUnique({
+    const application = await this.db.membershipApplication.findFirst({
       where: {
         trackingCode,
+        deletedAt: null,
       },
     });
 
@@ -133,41 +150,22 @@ export class ApplicationRepository implements IApplicationRepository {
     return this.mapToEntity(application);
   }
 
-  async updateDraft(
-    trackingCode: string,
-    dto: UpdateDraftDTO,
-  ): Promise<Application> {
-    const application = await this.db.membershipApplication.findUnique({
-      where: {
-        trackingCode,
-      },
+  async updateDraft(trackingCode: string, dto: UpdateDraftDTO, expectedStatus?: string): Promise<Application> {
+    return this.db.$transaction(async tx => {
+      await tx.$queryRaw`SELECT id FROM membership_applications WHERE "trackingCode" = ${trackingCode} FOR UPDATE`;
+      const application = await tx.membershipApplication.findUnique({ where: { trackingCode } });
+      if (!application || application.deletedAt || !canEditApplication(application.status) || (expectedStatus && application.status !== expectedStatus)) {
+        throw new ApplicationFlowError("APPLICATION_NOT_EDITABLE", "El estado de tu solicitud cambió. Revisa las acciones disponibles desde Consultar.");
+      }
+      const mergedDraft = { ...((application.draftData as Record<string, unknown>) ?? {}), ...dto.draftData };
+      const updated = await tx.membershipApplication.update({ where: { trackingCode }, data: { currentStep: application.status === "DRAFT" ? dto.currentStep : application.currentStep, draftData: mergedDraft as unknown as Prisma.InputJsonValue, lastAccessAt: new Date() } });
+      return this.mapToEntity(updated);
     });
-
-    if (!application) {
-      throw new Error("La postulación no existe.");
-    }
-
-    const mergedDraft = {
-      ...((application.draftData as Record<string, unknown>) ?? {}),
-      ...dto.draftData,
-    };
-
-    const updatedApplication = await this.db.membershipApplication.update({
-      where: {
-        trackingCode,
-      },
-      data: {
-        currentStep: dto.currentStep,
-        draftData: mergedDraft as unknown as Prisma.InputJsonValue,
-        lastAccessAt: new Date(),
-      },
-    });
-
-    return this.mapToEntity(updatedApplication);
   }
 
   async submitApplication(trackingCode: string): Promise<Application> {
     return await this.db.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM membership_applications WHERE "trackingCode" = ${trackingCode} FOR UPDATE`;
       const application = await tx.membershipApplication.findUnique({
         where: {
           trackingCode,
@@ -230,10 +228,8 @@ export class ApplicationRepository implements IApplicationRepository {
       throw new Error("La postulación no contiene información.");
     }
 
-    if (application.status !== ApplicationStatus.DRAFT) {
-      throw new Error(
-        "Solo las postulaciones en estado DRAFT pueden enviarse.",
-      );
+    if (!canSubmitApplication(application.status)) {
+      throw new ApplicationFlowError("ALREADY_SUBMITTED", "Tu solicitud ya fue enviada. Puedes revisarla desde Consultar.");
     }
 
     const draft = application.draftData as unknown as ApplicationDraft;
@@ -259,15 +255,16 @@ export class ApplicationRepository implements IApplicationRepository {
         },
         documentType: application.documentType,
         documentNumber: application.documentNumber,
+        affiliateType: application.affiliateType,
         deletedAt: null,
         status: {
-          in: [ApplicationStatus.DRAFT, ApplicationStatus.PENDING],
+          in: [...currentApplicationStates, "COMPLETED"],
         },
       },
     });
 
     if (duplicatedApplication) {
-      throw new Error("Ya existe otra postulación activa para este documento.");
+      throw new ApplicationFlowError("APPLICATION_EXISTS", "Ya existe otra postulación vigente para este documento y tipo de afiliación.");
     }
   }
 

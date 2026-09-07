@@ -1,6 +1,12 @@
 "use client";
 
 import Image from "next/image";
+import { useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
+
+const subscribe = () => () => {};
+const clientSnapshot = () => true;
+const serverSnapshot = () => false;
 
 export interface ProcessLoadingOverlayProps {
   open: boolean;
@@ -17,13 +23,14 @@ export function ProcessLoadingOverlay({
   variant = "default",
   progress,
 }: ProcessLoadingOverlayProps) {
-  if (!open) return null;
+  const mounted = useSyncExternalStore(subscribe, clientSnapshot, serverSnapshot);
+  if (!open || !mounted) return null;
 
   const boundedProgress = progress === undefined ? undefined : Math.min(100, Math.max(0, progress));
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-[200] grid place-items-center bg-slate-950/65 px-5 backdrop-blur-sm animate-in fade-in duration-200"
+      className="fixed inset-0 z-[9999] grid place-items-center bg-slate-950/65 px-5 backdrop-blur-sm animate-in fade-in duration-200"
       role="status"
       aria-busy="true"
       aria-live="polite"
@@ -51,7 +58,7 @@ export function ProcessLoadingOverlay({
         )}
         {variant === "payment" && <p className="mt-5 text-sm text-white/75">Por favor, espera unos segundos.</p>}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
-

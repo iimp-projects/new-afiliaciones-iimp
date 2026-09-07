@@ -1,28 +1,29 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { QUERY_COOKIE, queryAuthorization } from "@/modules/afiliaciones/consulta/Services/QueryAuthorizationService";
+import { ApplicationAccessService } from "@/modules/afiliaciones/postulacion/Services/ApplicationAccessService";
 import { prisma } from "@/lib/prisma";
 import { EndorsementStatus } from "@prisma/client";
 import { paymentAuthorizationService } from "@/modules/afiliaciones/payments/Services/PaymentAuthorizationService";
 import { paymentConfig } from "@/modules/afiliaciones/payments/Config/PaymentConfig";
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const documentNumber = searchParams.get("documentNumber")?.trim();
-    const code = searchParams.get("code")?.trim();
-
-    if (!documentNumber || !code) {
+    // trackingCode identifies an application; it never verifies identity.
+    const token = request.cookies.get(QUERY_COOKIE)?.value;
+    const allowed = queryAuthorization.allowedIds(token);
+    const requestedId = request.nextUrl.searchParams.get("applicationId");
+    const applicationId = requestedId ? Number(requestedId) : allowed[0];
+    if (!applicationId || !allowed.includes(applicationId)) {
       return NextResponse.json(
-        { error: "Faltan parámetros requeridos (DNI o Código)" },
-        { status: 400 }
+        { error: "Verifica tu identidad para consultar la postulación." },
+        { status: 401 }
       );
     }
 
     const application = await prisma.membershipApplication.findFirst({
       where: {
-        trackingCode: code,
-        person: {
-          documentNumber: documentNumber,
-        },
+        id: applicationId,
+        deletedAt: null,
       },
       include: {
         person: true,
@@ -51,9 +52,14 @@ export async function GET(request: Request) {
 
     if (!application) {
       return NextResponse.json(
-        { error: `No se encontró ninguna solicitud para el DNI ${documentNumber} y código de seguimiento ${code}.` },
+        { error: "No se encontró la postulación." },
         { status: 404 }
       );
+    }
+
+    const summary = (await new ApplicationAccessService().list(token)).find(item => item.id === application.id);
+    if (application.status === "DRAFT") {
+      return NextResponse.json({ ...summary, applicationId: application.id, applicationCode: application.applicationCode, areas: {} }, { headers: { "Cache-Control": "no-store" } });
     }
 
     const person = application.person as any;
@@ -92,7 +98,7 @@ export async function GET(request: Request) {
       return validation ? validation.status : "PENDING";
     };
 
-    const effectiveStatus = isSponsorObserved ? "OBSERVED" : application.status;
+    const effectiveStatus = application.status;
 
     // Recopilar lista centralizada de observaciones
     const observationsList: string[] = [];
@@ -121,6 +127,8 @@ export async function GET(request: Request) {
     }
 
     const response = NextResponse.json({
+      canStartNew: summary?.canStartNew ?? false,
+      recoveryUrl: null,
       id: application.id,
       applicationId: application.id,
       personId: application.personId,
@@ -185,11 +193,11 @@ export async function GET(request: Request) {
       });
     }
 
+    response.headers.set("Cache-Control", "no-store");
     return response;
-  } catch (error: any) {
-    console.error("💥 Error al consultar la solicitud:", error);
+  } catch {
     return NextResponse.json(
-      { error: error.message || "Error interno al consultar la solicitud" },
+      { error: "Error interno al consultar la solicitud" },
       { status: 500 }
     );
   }

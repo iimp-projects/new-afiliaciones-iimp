@@ -129,7 +129,7 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
     useEffect(() => {
       fetch("/api/catalogs/universities").then(res => res.json()).then(data => setUniversities([...data, { id: 0, name: "Otra" }]));
       fetch("/api/catalogs/specialties").then(res => res.json()).then(data => setSpecialties(data));
-      fetch("/api/master-data/degrees?status=ACTIVE&canonicalOnly=true&pageSize=100").then(res => res.json()).then(data => setDegrees(data.data ?? []));
+      fetch("/api/catalogs/degrees").then(res => res.json()).then(data => setDegrees(data.data ?? []));
     }, []);
 
     // Cargar preview de S3 si ya existía

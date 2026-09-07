@@ -1,14 +1,17 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { ApplicationAccessService } from "@/modules/afiliaciones/postulacion/Services/ApplicationAccessService";
+import { QUERY_COOKIE } from "@/modules/afiliaciones/consulta/Services/QueryAuthorizationService";
+import { ApplicationFlowError } from "@/modules/afiliaciones/postulacion/Services/Exceptions/ApplicationFlowError";
 import { prisma } from "@/lib/prisma";
 import { EndorsementStatus } from "@prisma/client";
 import { ApplicationStatusCalculatorService } from "@/modules/afiliaciones/postulacion/Services/ApplicationStatusCalculatorService";
 import { NotifySponsorsService } from "@/modules/afiliaciones/postulacion/Services/NotifySponsorsService";
 import { ApplicationDraft } from "@/modules/afiliaciones/postulacion/Models/ApplicationDraft";
+import { contextService } from "@/modules/auth/context/service";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    console.log("📦 BODY RECIBIDO EN BACKEND:", body);
 
     const { application_id, approval_id, sponsor_person_id, sponsor_code } = body;
 
@@ -20,6 +23,13 @@ export async function POST(req: Request) {
     }
 
     const appId = Number(application_id);
+    if (!Number.isSafeInteger(appId) || appId <= 0) return NextResponse.json({ error: "Solicitud inválida." }, { status: 400 });
+    // Public corrections require the applicant's OTP authorization. The intranet
+    // institutional replacement is performed by a SUPER_ADMIN session instead.
+    const isInstitutionalReplacement = await contextService.hasRole(["SUPER_ADMIN"]);
+    if (!isInstitutionalReplacement) {
+      new ApplicationAccessService().require(appId, req.cookies.get(QUERY_COOKIE)?.value);
+    }
     const sponsorId = Number(sponsor_person_id);
     const approvalIdNum = approval_id ? Number(approval_id) : null;
 
@@ -34,6 +44,12 @@ export async function POST(req: Request) {
         { success: false, error: `No existe el expediente ID ${appId} en la base de datos.` },
         { status: 404 }
       );
+    }
+    if (application.deletedAt) {
+      return NextResponse.json({ success: false, error: "La solicitud no está disponible." }, { status: 404 });
+    }
+    if (!isInstitutionalReplacement && application.status !== "OBSERVED") {
+      throw new ApplicationFlowError("APPLICATION_NOT_EDITABLE", "Solo puedes subsanar una solicitud con observaciones pendientes.");
     }
 
     // Identificar cuál aval estamos reemplazando (para actualizar correctamente el draft)
@@ -220,6 +236,7 @@ export async function POST(req: Request) {
       data: { ...result, newStatus },
     });
   } catch (error: any) {
+    if (error instanceof ApplicationFlowError) return NextResponse.json({ code: error.code, message: error.message }, { status: error.httpStatus });
     console.error("💥 ERROR EN REEMPLAZAR AVAL:", error);
     return NextResponse.json(
       { success: false, error: error.message || "Error interno al guardar en BD." },

@@ -1,11 +1,13 @@
-import { NextResponse } from "next/server";
+import { QUERY_COOKIE } from "@/modules/afiliaciones/consulta/Services/QueryAuthorizationService";
+import { applicationHttpError } from "@/modules/afiliaciones/postulacion/Services/ApplicationHttpError";
+import { NextRequest, NextResponse } from "next/server";
 
 import { ApplicationRepository } from "@/modules/afiliaciones/postulacion/Repositories/ApplicationRepository";
 import { GetApplicationByTrackingService } from "@/modules/afiliaciones/postulacion/Services/GetApplicationByTrackingService";
 import { UpdateDraftService } from "@/modules/afiliaciones/postulacion/Services/UpdateDraftService";
 
 export async function GET(
-    request: Request,
+    request: NextRequest,
     { params }: {
         params: Promise<{
             trackingCode: string;
@@ -24,30 +26,20 @@ export async function GET(
             new GetApplicationByTrackingService(repository);
 
         const application =
-            await service.execute(trackingCode);
+            await service.execute(trackingCode, request.cookies.get(QUERY_COOKIE)?.value);
 
         return NextResponse.json(application);
 
     } catch (error) {
 
-        return NextResponse.json(
-            {
-                error:
-                    error instanceof Error
-                        ? error.message
-                        : "Ocurrió un error."
-            },
-            {
-                status: 404
-            }
-        );
+        return applicationHttpError(error);
 
     }
 
 }
 
 export async function PATCH(
-    request: Request,
+    request: NextRequest,
     {
         params,
     }: {
@@ -71,24 +63,14 @@ export async function PATCH(
         const application =
             await service.execute(
                 trackingCode,
-                body
+                body, request.cookies.get(QUERY_COOKIE)?.value
             );
 
         return NextResponse.json(application);
 
     } catch (error) {
 
-        return NextResponse.json(
-            {
-                error:
-                    error instanceof Error
-                        ? error.message
-                        : "Ocurrió un error."
-            },
-            {
-                status: 500
-            }
-        );
+        return applicationHttpError(error);
 
     }
 }

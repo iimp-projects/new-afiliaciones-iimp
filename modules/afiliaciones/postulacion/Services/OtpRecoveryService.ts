@@ -1,102 +1,48 @@
-import { prisma } from "@/lib/prisma";
+import { VerificationError } from "@/modules/shared/Models/VerificationError";
+import { randomInt } from "crypto";
 import { MailService } from "@/modules/shared/Services/MailService";
 import { SmsService } from "@/modules/shared/Services/SmsService";
 import { WhatsAppService } from "@/modules/shared/Services/WhatsAppService";
+import { VerificationRepository } from "../Repositories/VerificationRepository";
+import { destinationChannels, type VerificationChannel, type VerificationContext } from "@/modules/shared/Models/Verification";
 
 export class OtpRecoveryService {
-  private readonly mailService = new MailService();
-  private readonly smsService = new SmsService();
-  private readonly whatsappService = new WhatsAppService();
+  constructor(
+    private readonly repository = new VerificationRepository(),
+    private readonly mailService = new MailService(),
+    private readonly smsService = new SmsService(),
+    private readonly whatsappService = new WhatsAppService(),
+  ) {}
 
-  async generateAndSendOtp(
-    trackingCode: string,
-    channel: "EMAIL" | "SMS" | "WHATSAPP" = "EMAIL",
-  ): Promise<void> {
-    const app = await prisma.membershipApplication.findUnique({
-      where: { trackingCode },
-    });
-    if (!app) throw new Error("Postulación no encontrada.");
-
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
-
-    await prisma.verificationCode.updateMany({
-      where: {
-        applicationId: app.id,
-        purpose: "RESUME_APPLICATION",
-        verifiedAt: null,
-      },
-      data: { verifiedAt: new Date() },
-    });
-
-    await prisma.verificationCode.create({
-      data: {
-        applicationId: app.id,
-        purpose: "RESUME_APPLICATION",
-        channel: channel,
-        destination: channel === "EMAIL" ? app.email : app.phone,
-        code,
-        expiresAt,
-      },
-    });
-
-    // =====================================
-    // RUTEO DE MENSAJES SEGÚN EL CANAL
-    // =====================================
-    if (channel === "EMAIL") {
-      const baseUrl =
-        process.env.NEXT_PUBLIC_APP_URL || "https://tudominio.com";
-      const logoUrl = "https://iimp.org.pe/images/iimp_logocolor.png";
-      const htmlTemplate = `...`; // (Mantén aquí el HTML que ya tienes en tu archivo)
-
-      await this.mailService.sendMail({
-        to: app.email,
-        subject: "Código de Verificación - IIMP",
-        html: htmlTemplate,
-      });
-    } else if (channel === "SMS") {
-      const smsMessage = `IIMP: Tu codigo de verificacion es ${code}. Valido por 15 minutos. No lo compartas con nadie.`;
-      await this.smsService.sendSms(app.phone, smsMessage);
-    } else if (channel === "WHATSAPP") {
-      // ✅ Disparamos el mensaje por WhatsApp
-      await this.whatsappService.sendWhatsApp(app.phone, code);
+  async generateAndSendOtp(identifier: string | number, channel: VerificationChannel = "EMAIL", context: VerificationContext = "RESUME_APPLICATION"): Promise<void> {
+    const app = await this.repository.findApplication(identifier);
+    if (!app) throw new VerificationError("Postulación no encontrada.");
+    if (!destinationChannels(app.email, app.phone).some((option) => option.channel === channel)) throw new VerificationError("El canal seleccionado no está disponible.");
+    const code = randomInt(100000, 1000000).toString();
+    const destination = (channel === "EMAIL" ? app.email : app.phone).trim();
+    const otp = await this.repository.reserve(app.id, channel, destination, code, context);
+    try {
+      if (channel === "EMAIL") {
+        await this.mailService.sendMail({
+          to: destination,
+          subject: context === "APPLICATION_QUERY" ? "Código de verificación para consultar su postulación" : "Código de Verificación - IIMP",
+          html: `<h1>Verificación de seguridad IIMP</h1><p>Tu código de verificación es <strong>${code}</strong>.</p><p>Válido por 15 minutos. No lo compartas con nadie.</p>`,
+        });
+      } else if (channel === "SMS") {
+        await this.smsService.sendSms(destination, `IIMP: Tu codigo de verificacion es ${code}. Valido por 15 minutos. No lo compartas con nadie.`);
+      } else {
+        await this.whatsappService.sendWhatsApp(destination, code);
+      }
+    } catch {
+      await this.repository.invalidate(otp.id);
+      throw new VerificationError("No pudimos enviar el código por este medio.");
     }
   }
 
-  async verifyOtp(trackingCode: string, code: string): Promise<boolean> {
-    // (Este método se queda exactamente igual al que ya tenías)
-    const app = await prisma.membershipApplication.findUnique({
-      where: { trackingCode },
-    });
-    if (!app) throw new Error("Postulación no encontrada.");
-
-    const activeOtp = await prisma.verificationCode.findFirst({
-      where: {
-        applicationId: app.id,
-        purpose: "RESUME_APPLICATION",
-        verifiedAt: null,
-      },
-      orderBy: { createdAt: "desc" },
-    });
-
-    if (!activeOtp) throw new Error("No hay códigos pendientes solicitados.");
-    if (activeOtp.expiresAt < new Date())
-      throw new Error("El código ha expirado.");
-    if (activeOtp.attempts >= 3)
-      throw new Error("Demasiados intentos fallidos.");
-
-    if (activeOtp.code !== code) {
-      await prisma.verificationCode.update({
-        where: { id: activeOtp.id },
-        data: { attempts: { increment: 1 } },
-      });
-      throw new Error("Código incorrecto.");
-    }
-
-    await prisma.verificationCode.update({
-      where: { id: activeOtp.id },
-      data: { verifiedAt: new Date() },
-    });
-    return true;
+  async verifyOtp(identifier: string | number, code: string, context: VerificationContext = "RESUME_APPLICATION") {
+    if (!/^\d{6}$/.test(code)) throw new VerificationError("El código ingresado no es correcto.");
+    const app = await this.repository.findApplication(identifier);
+    if (!app) throw new VerificationError("Postulación no encontrada.");
+    return this.repository.consume(app.id, code, context);
   }
 }
