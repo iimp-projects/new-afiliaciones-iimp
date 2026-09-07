@@ -25,7 +25,7 @@ ALTER TABLE "membership_applications" ALTER COLUMN "status" SET DEFAULT 'DRAFT';
 COMMIT;
 
 -- DropIndex
-DROP INDEX "catalog_universities_acronym_key";
+DROP INDEX IF EXISTS "catalog_universities_acronym_key";
 
 -- DropTable
 DROP TABLE "Benefit";

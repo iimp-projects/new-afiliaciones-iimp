@@ -83,7 +83,11 @@ export class NotifyApplicantService {
 
           <div class="footer">
             © ${new Date().getFullYear()} Instituto de Ingenieros de Minas del Perú<br>
-            Calle Los Canarios 155, Urb. San César II Etapa, La Molina, Lima - Perú
+            Calle Los Canarios 155-157, Urb. San César II Etapa, La Molina, Lima 12, Perú<br>
+            <a href="mailto:asociados@iimp.org.pe" style="color: #C39254; text-decoration: none;">asociados@iimp.org.pe</a>
+            &nbsp;|&nbsp;
+            <a href="mailto:liset.otoya@iimp.org.pe" style="color: #C39254; text-decoration: none;">liset.otoya@iimp.org.pe</a><br>
+            Lunes a viernes de 09:00 a 18:00 hrs.
           </div>
         </div>
       </body>
@@ -186,7 +190,11 @@ export class NotifyApplicantService {
 
           <div class="footer">
             © ${new Date().getFullYear()} Instituto de Ingenieros de Minas del Perú<br>
-            Calle Los Canarios 155, Urb. San César II Etapa, La Molina, Lima - Perú
+            Calle Los Canarios 155-157, Urb. San César II Etapa, La Molina, Lima 12, Perú<br>
+            <a href="mailto:asociados@iimp.org.pe" style="color: #C39254; text-decoration: none;">asociados@iimp.org.pe</a>
+            &nbsp;|&nbsp;
+            <a href="mailto:liset.otoya@iimp.org.pe" style="color: #C39254; text-decoration: none;">liset.otoya@iimp.org.pe</a><br>
+            Lunes a viernes de 09:00 a 18:00 hrs.
           </div>
         </div>
       </body>
@@ -196,7 +204,7 @@ export class NotifyApplicantService {
     try {
       await this.mailService.sendMail({
         to: recipientEmail,
-        subject: "Subsanación Recibida - Solicitud de Afiliación IIMP",
+        subject: `IIMP | Subsanación recibida_ ${applicantName}`,
         html: htmlTemplate,
       });
       console.log("[NotifyApplicantService] Correo de confirmación de subsanación enviado a:", recipientEmail);
@@ -330,7 +338,11 @@ export class NotifyApplicantService {
 
           <div class="footer">
             © ${new Date().getFullYear()} Instituto de Ingenieros de Minas del Perú<br>
-            Calle Los Canarios 155, Urb. San César II Etapa, La Molina, Lima - Perú
+            Calle Los Canarios 155-157, Urb. San César II Etapa, La Molina, Lima 12, Perú<br>
+            <a href="mailto:asociados@iimp.org.pe" style="color: #C39254; text-decoration: none;">asociados@iimp.org.pe</a>
+            &nbsp;|&nbsp;
+            <a href="mailto:liset.otoya@iimp.org.pe" style="color: #C39254; text-decoration: none;">liset.otoya@iimp.org.pe</a><br>
+            Lunes a viernes de 09:00 a 18:00 hrs.
           </div>
         </div>
       </body>
@@ -340,7 +352,7 @@ export class NotifyApplicantService {
     try {
       await this.mailService.sendMail({
         to: recipientEmail,
-        subject: "Observaciones en su Solicitud - Afiliaciones IIMP",
+        subject: `IIMP | Observaciones en su solicitud_ ${applicantName}`,
         html: htmlTemplate,
       });
       console.log("[NotifyApplicantService] Correo de observación enviado a:", recipientEmail);

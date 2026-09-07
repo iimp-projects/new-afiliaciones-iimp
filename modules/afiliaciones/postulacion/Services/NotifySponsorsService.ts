@@ -68,7 +68,7 @@ export class NotifySponsorsService {
 
       await this.mailService.sendMail({
         to: sponsor!.sponsorEmail!,
-        subject: "Solicitud de Respaldo Institucional - Postulación IIMP",
+        subject: `IIMP | Solicitud de respaldo institucional – Postulación de ${applicantName}`,
         html: htmlTemplate,
         attachments,
       });
@@ -122,7 +122,7 @@ export class NotifySponsorsService {
 
     await this.mailService.sendMail({
       to: params.sponsorEmail,
-      subject: "Solicitud de Respaldo Institucional - Postulación IIMP",
+      subject: `IIMP | Solicitud de respaldo institucional – Postulación de ${params.applicantName}`,
       html: htmlTemplate,
       attachments,
     });
@@ -152,7 +152,7 @@ export class NotifySponsorsService {
     });
   }
 
-  // Template HTML con encabezado y footer 
+  // Template HTML — cabecera y pie de página unificados
   private buildHtmlTemplate(
     sponsorFullName: string,
     applicantName: string,
@@ -161,70 +161,59 @@ export class NotifySponsorsService {
   ): string {
     return `
       <!DOCTYPE html>
-      <html>
+      <html lang="es">
       <head>
-        <meta charset="utf-8">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
-          body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #F4F5F7; margin: 0; padding: 25px 10px; }
-          .card { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; border: 1px solid #E2E8F0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
-          .banner-header { background-color: #C39254; padding: 25px 20px; text-align: center; }
-          .logo { max-width: 170px; height: auto; filter: brightness(0) invert(1); }
-          .header-title { color: #ffffff; font-size: 16px; font-weight: 700; margin-top: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
-          .content { padding: 30px 25px; color: #3E3E3D; font-size: 14px; line-height: 1.6; }
+          body { margin: 0; padding: 30px 10px; background-color: #F4F5F7; font-family: 'Helvetica Neue', Arial, sans-serif; }
+          .card { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; border: 1px solid #E2E8F0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); overflow: hidden; }
+          .content { padding: 30px; color: #3E3E3D; font-size: 14px; line-height: 1.7; }
           .info-box { background-color: #F4F5F7; border-left: 4px solid #C39254; padding: 15px 18px; border-radius: 0 6px 6px 0; margin: 20px 0; }
           .info-label { font-size: 11px; text-transform: uppercase; color: #718096; font-weight: 700; letter-spacing: 0.5px; }
           .info-value { font-size: 15px; font-weight: 700; color: #C39254; margin-top: 3px; }
           .btn-container { text-align: center; margin: 28px 0 18px 0; }
           .btn { display: inline-block; background-color: #C39254; color: #ffffff !important; text-decoration: none; padding: 13px 30px; border-radius: 6px; font-weight: 700; font-size: 14px; }
-          
-          .footer-banner { background-color: #C39254; color: #ffffff; padding: 25px 20px; font-size: 11px; line-height: 1.5; }
-          .footer-grid { display: table; width: 100%; }
-          .footer-col-left { display: table-cell; width: 50%; vertical-align: top; padding-right: 10px; }
-          .footer-col-right { display: table-cell; width: 50%; vertical-align: top; padding-left: 10px; }
-          .footer-heading { font-weight: 700; text-transform: uppercase; margin-bottom: 4px; font-size: 11px; letter-spacing: 0.5px; }
-          .footer-link { color: #ffffff !important; text-decoration: underline; }
         </style>
       </head>
       <body>
         <div class="card">
-          <div class="banner-header">
-            <img src="${logoUrl}" alt="IIMP Logo" class="logo" />
-            <div class="header-title">Solicitud de Respaldo Institucional</div>
+          <!-- CABECERA -->
+          <div style="text-align: center; padding: 35px 30px 25px; border-bottom: 1px solid #EDF2F7;">
+            <img src="${logoUrl}" alt="IIMP Logo" style="max-width: 160px; height: auto; display: block; margin: 0 auto 14px;" />
+            <p style="margin: 0 0 6px; font-size: 11px; font-weight: 700; color: #C39254; letter-spacing: 1.5px; text-transform: uppercase;">Ecosistema Digital de Afiliaciones</p>
+            <h1 style="margin: 0; font-size: 22px; font-weight: 700; color: #C39254;">Solicitud de Respaldo Institucional</h1>
           </div>
-          
+
           <div class="content">
             <p>Estimado(a) <strong>${sponsorFullName}</strong>,</p>
-            <p>Le saludamos cordialmente del Instituto de Ingenieros de Minas del Perú (IIMP).</p>
+            <p>Reciba un cordial saludo del <strong>Instituto de Ingenieros de Minas del Perú (IIMP)</strong>.</p>
 
             <div class="info-box">
               <div class="info-label">Postulante a Asociado Activo</div>
               <div class="info-value">${applicantName}</div>
             </div>
 
-            <p>El postulante lo ha designado como <strong>aval</strong> para respaldar su incorporación a nuestra institución.</p>
+            <p>El postulante, <strong>${applicantName}</strong>, ha solicitado su respaldo como <strong>aval</strong> para su postulación como Asociado Activo de nuestra institución.</p>
+            <p>Agradeceremos que pueda <strong>revisar y validar la postulación</strong> mediante el siguiente enlace:</p>
 
             <div class="btn-container">
               <a href="${approvalUrl}" class="btn">Revisar y Validar Postulación →</a>
             </div>
 
-            <p style="font-size: 12px; color: #718096; text-align: center;">Este enlace vencerá en 7 días por motivos de seguridad.</p>
+            <p style="font-size: 12px; color: #718096; text-align: center;"><em>El enlace estará disponible por <strong>7 días</strong> por motivos de seguridad.</em></p>
+            <p>Agradecemos de antemano su atención y apoyo en este proceso.</p>
+            <p><strong>Atentamente,</strong><br>Instituto de Ingenieros de Minas del Perú – IIMP</p>
           </div>
 
-          <div class="footer-banner">
-            <div class="footer-grid">
-              <div class="footer-col-left">
-                <strong>INSTITUTO DE INGENIEROS DE MINAS DEL PERÚ</strong><br><br>
-                © Copyright ${new Date().getFullYear()} - Instituto de Ingenieros de Minas del Perú, todos los derechos reservados.
-              </div>
-              <div class="footer-col-right">
-                <div class="footer-heading">Dirección</div>
-                Calle Los Canarios 155-157, Urb. San César II Etapa, La Molina, Lima 12, Perú<br><br>
-                <div class="footer-heading">Horario de Atención</div>
-                Lunes a viernes de 09:00 a 18:00 hrs.<br><br>
-                <a href="mailto:iimp@iimp.org.pe" class="footer-link">iimp@iimp.org.pe</a> | 
-                <a href="mailto:liset.otoya@iimp.org.pe" class="footer-link">liset.otoya@iimp.org.pe</a>
-              </div>
-            </div>
+          <!-- PIE DE PÁGINA -->
+          <div style="border-top: 1px solid #EDF2F7; padding: 20px 30px; text-align: center; font-size: 11px; color: #94A3B8; line-height: 1.8;">
+            © ${new Date().getFullYear()} Instituto de Ingenieros de Minas del Perú<br>
+            Calle Los Canarios 155-157, Urb. San César II Etapa, La Molina, Lima 12, Perú<br>
+            <a href="mailto:asociados@iimp.org.pe" style="color: #C39254; text-decoration: none;">asociados@iimp.org.pe</a>
+            &nbsp;|&nbsp;
+            <a href="mailto:liset.otoya@iimp.org.pe" style="color: #C39254; text-decoration: none;">liset.otoya@iimp.org.pe</a><br>
+            Lunes a viernes de 09:00 a 18:00 hrs.
           </div>
         </div>
       </body>
@@ -232,7 +221,7 @@ export class NotifySponsorsService {
     `;
   }
 
-  // Template HTML para el Postulante
+  // Template HTML para el Postulante (confirmación de reemplazo de aval)
   private buildApplicantNotificationTemplate(
     applicantName: string,
     newSponsorFullName: string,
@@ -241,35 +230,31 @@ export class NotifySponsorsService {
   ): string {
     return `
       <!DOCTYPE html>
-      <html>
+      <html lang="es">
       <head>
-        <meta charset="utf-8">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
-          body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #F4F5F7; margin: 0; padding: 25px 10px; }
-          .card { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; border: 1px solid #E2E8F0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
-          .banner-header { background-color: #C39254; padding: 25px 20px; text-align: center; }
-          .logo { max-width: 170px; height: auto; filter: brightness(0) invert(1); }
-          .header-title { color: #ffffff; font-size: 16px; font-weight: 700; margin-top: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
-          .content { padding: 30px 25px; color: #3E3E3D; font-size: 14px; line-height: 1.6; }
+          body { margin: 0; padding: 30px 10px; background-color: #F4F5F7; font-family: 'Helvetica Neue', Arial, sans-serif; }
+          .card { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; border: 1px solid #E2E8F0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); overflow: hidden; }
+          .content { padding: 30px; color: #3E3E3D; font-size: 14px; line-height: 1.7; }
           .info-box { background-color: #F4F5F7; border-left: 4px solid #C39254; padding: 15px 18px; border-radius: 0 6px 6px 0; margin: 20px 0; }
           .info-label { font-size: 11px; text-transform: uppercase; color: #718096; font-weight: 700; letter-spacing: 0.5px; }
           .info-value { font-size: 15px; font-weight: 700; color: #C39254; margin-top: 3px; }
-          
-          .footer-banner { background-color: #C39254; color: #ffffff; padding: 25px 20px; font-size: 11px; line-height: 1.5; }
-          .footer-grid { display: table; width: 100%; }
-          .footer-col-left { display: table-cell; width: 50%; vertical-align: top; padding-right: 10px; }
-          .footer-col-right { display: table-cell; width: 50%; vertical-align: top; padding-left: 10px; }
-          .footer-heading { font-weight: 700; text-transform: uppercase; margin-bottom: 4px; font-size: 11px; letter-spacing: 0.5px; }
-          .footer-link { color: #ffffff !important; text-decoration: underline; }
+          .code-box { background-color: #F4F5F7; border: 1px solid rgba(195, 146, 84, 0.3); padding: 14px; border-radius: 8px; text-align: center; margin: 18px 0; }
+          .code-title { font-size: 11px; color: #718096; text-transform: uppercase; font-weight: 700; }
+          .code-value { font-family: monospace; font-size: 16px; font-weight: 700; color: #C39254; margin-top: 4px; }
         </style>
       </head>
       <body>
         <div class="card">
-          <div class="banner-header">
-            <img src="${logoUrl}" alt="IIMP Logo" class="logo" />
-            <div class="header-title">Actualización de Aval Registrada</div>
+          <!-- CABECERA -->
+          <div style="text-align: center; padding: 35px 30px 25px; border-bottom: 1px solid #EDF2F7;">
+            <img src="${logoUrl}" alt="IIMP Logo" style="max-width: 160px; height: auto; display: block; margin: 0 auto 14px;" />
+            <p style="margin: 0 0 6px; font-size: 11px; font-weight: 700; color: #C39254; letter-spacing: 1.5px; text-transform: uppercase;">Ecosistema Digital de Afiliaciones</p>
+            <h1 style="margin: 0; font-size: 22px; font-weight: 700; color: #C39254;">Actualización de Aval Registrada</h1>
           </div>
-          
+
           <div class="content">
             <p>Estimado(a) <strong>${applicantName}</strong>,</p>
             <p>Le informamos que ha registrado exitosamente un nuevo aval para su trámite de incorporación.</p>
@@ -279,25 +264,22 @@ export class NotifySponsorsService {
               <div class="info-value">${newSponsorFullName}</div>
             </div>
 
+            <div class="code-box">
+              <div class="code-title">Código de Seguimiento</div>
+              <div class="code-value">${trackingCode}</div>
+            </div>
+
             <p>Hemos enviado una solicitud por correo electrónico a su nuevo aval para que proceda con la revisión y respaldo de su expediente.</p>
-            <p>Puede continuar haciendo seguimiento a su trámite mediante su código de seguimiento: <strong>${trackingCode}</strong>.</p>
           </div>
 
-          <div class="footer-banner">
-            <div class="footer-grid">
-              <div class="footer-col-left">
-                <strong>INSTITUTO DE INGENIEROS DE MINAS DEL PERÚ</strong><br><br>
-                © Copyright ${new Date().getFullYear()} - Instituto de Ingenieros de Minas del Perú, todos los derechos reservados.
-              </div>
-              <div class="footer-col-right">
-                <div class="footer-heading">Dirección</div>
-                Calle Los Canarios 155-157, Urb. San César II Etapa, La Molina, Lima 12, Perú<br><br>
-                <div class="footer-heading">Horario de Atención</div>
-                Lunes a viernes de 09:00 a 18:00 hrs.<br><br>
-                <a href="mailto:iimp@iimp.org.pe" class="footer-link">iimp@iimp.org.pe</a> | 
-                <a href="mailto:liset.otoya@iimp.org.pe" class="footer-link">liset.otoya@iimp.org.pe</a>
-              </div>
-            </div>
+          <!-- PIE DE PÁGINA -->
+          <div style="border-top: 1px solid #EDF2F7; padding: 20px 30px; text-align: center; font-size: 11px; color: #94A3B8; line-height: 1.8;">
+            © ${new Date().getFullYear()} Instituto de Ingenieros de Minas del Perú<br>
+            Calle Los Canarios 155-157, Urb. San César II Etapa, La Molina, Lima 12, Perú<br>
+            <a href="mailto:asociados@iimp.org.pe" style="color: #C39254; text-decoration: none;">asociados@iimp.org.pe</a>
+            &nbsp;|&nbsp;
+            <a href="mailto:liset.otoya@iimp.org.pe" style="color: #C39254; text-decoration: none;">liset.otoya@iimp.org.pe</a><br>
+            Lunes a viernes de 09:00 a 18:00 hrs.
           </div>
         </div>
       </body>
