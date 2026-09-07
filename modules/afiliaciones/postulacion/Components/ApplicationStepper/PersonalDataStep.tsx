@@ -7,7 +7,7 @@ import {
   useImperativeHandle,
   useRef,
 } from "react";
-import { useRouter } from "next/navigation";
+
 import {
   Fingerprint,
   Search,
@@ -18,20 +18,18 @@ import {
   FileText,
   CheckCircle2,
   XCircle,
-  ShieldAlert,
-  Clock,
   Info,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   Calendar,
-  Mail,
-  Smartphone,
 } from "lucide-react";
+import { ExistingApplicationGate } from "../ExistingApplicationGate";
+
 import type { PersonalInformation } from "../../Models/PersonalInformation";
 import { PersonalInformationValidator } from "../../Validators/PersonalInformationValidator";
 import { applicationApi } from "../../Services/ApplicationApi";
-import type { ValidationFlowStatus } from "../../DTOs/validation-response.dto";
+import type { ValidationResponseDTO } from "../../DTOs/validation-response.dto";
 import { ProcessLoadingOverlay } from "@/modules/shared/Components/ProcessLoadingOverlay";
 import { DocumentPreviewLoader } from "@/modules/shared/Components/DocumentPreviewLoader";
 
@@ -40,6 +38,7 @@ export interface StepRef {
 }
 
 interface PersonalDataStepProps {
+  affiliateType?: "ACTIVE" | "STUDENT";
   value?: PersonalInformation;
   saving?: boolean;
   onSave(data: PersonalInformation): Promise<void>;
@@ -600,8 +599,8 @@ const SearchableSelect = ({
 };
 
 const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
-  ({ value, saving = false, onSave, onNext, onValidityChange }, ref) => {
-    const router = useRouter();
+  ({ value, saving = false, onSave, onNext, onValidityChange, affiliateType = "ACTIVE" }, ref) => {
+
     const [form, setForm] = useState<PersonalInformation>(
       value ?? emptyPersonalInformation,
     );
@@ -618,17 +617,7 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
 
     const [isSearching, setIsSearching] = useState(false);
     const [isFormEnabled, setIsFormEnabled] = useState(false);
-    const [flowStatus, setFlowStatus] = useState<ValidationFlowStatus | null>(
-      null,
-    );
-
-    // ✅ NUEVOS ESTADOS PARA OTP Y CANAL DE COMUNICACIÓN
-    const [recoveryData, setRecoveryData] = useState<{
-      trackingCode: string;
-      email: string;
-      phone?: string;
-    } | null>(null);
-   const [channel, setChannel] = useState<'EMAIL' | 'SMS' | 'WHATSAPP'>('WHATSAPP');
+    const [lookup, setLookup] = useState<ValidationResponseDTO | null>(null);
 
     const [isUploadingFiles, setIsUploadingFiles] = useState(false);
 
@@ -636,13 +625,6 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
     const [secureDniUrl, setSecureDniUrl] = useState<string | null>(null);
     const [previewState, setPreviewState] = useState({ photo: "idle" as "idle" | "loading" | "error", identity: "idle" as "idle" | "loading" | "error" });
     const [previewVersion, setPreviewVersion] = useState({ photo: 0, identity: 0 });
-
-    const [showDraftModal, setShowDraftModal] = useState(false);
-    const [showOtpModal, setShowOtpModal] = useState(false);
-    const [showAssociateModal, setShowAssociateModal] = useState(false);
-    const [otpCode, setOtpCode] = useState("");
-    const [otpError, setOtpError] = useState("");
-    const [isOtpProcessing, setIsOtpProcessing] = useState(false);
 
     const [countries, setCountries] = useState<CatalogItem[]>([]);
     const [departments, setDepartments] = useState<CatalogItem[]>([]);
@@ -828,69 +810,22 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
         const response = await applicationApi.validateDocument(
           form.documentType,
           form.documentNumber,
+          affiliateType,
         );
-        setFlowStatus(response.status);
-
-        switch (response.status) {
-          case "NEW":
-            setIsFormEnabled(true);
-            if (response.person?.firstName) {
-              setIsReniecFetched(true);
-              setSearchFeedback({
-                type: "success",
-                message: "Datos identificados exitosamente.",
-              });
-              setForm((prev) => ({
-                ...prev,
-                names: response.person!.firstName,
-                fatherLastName: response.person!.paternalLastName,
-                motherLastName: response.person!.maternalLastName || "",
-              }));
-            } else {
-              setIsReniecFetched(false);
-              setSearchFeedback({
-                type: "warning",
-                message:
-                  "Documento no encontrado. Por favor, ingrese sus datos manualmente.",
-              });
-            }
-            break;
-          case "REJECTED":
-            setIsFormEnabled(true);
-            if (response.person?.firstName) {
-              setIsReniecFetched(true);
-            } else {
-              setIsReniecFetched(false);
-            }
-            setSearchFeedback({
-              type: "warning",
-              message:
-                "Existe una solicitud anterior no procedente. Puede iniciar una nueva postulación.",
-            });
-            setForm((prev) => ({
-              ...prev,
-              names: response.person?.firstName || "",
-              fatherLastName: response.person?.paternalLastName || "",
-              motherLastName: response.person?.maternalLastName || "",
-            }));
-            break;
-          case "DRAFT":
-            setIsReniecFetched(false);
-            if (response.trackingCode && response.email) {
-              // ✅ Guardamos email y teléfono para el selector de OTP
-              setRecoveryData({
-                trackingCode: response.trackingCode,
-                email: response.email,
-                phone: (response as any).phone || form.phone,
-              });
-              setShowDraftModal(true);
-            }
-            break;
-          case "ASSOCIATE":
-          case "APPROVED":
-            setIsReniecFetched(false);
-            setShowAssociateModal(true);
-            break;
+        setIsReniecFetched(false);
+        if (response.hasApplication) {
+          setLookup(response);
+        } else {
+          setIsFormEnabled(true);
+          if (response.person?.firstName) {
+            setIsReniecFetched(true);
+            setForm(prev => ({ ...prev, names: response.person!.firstName, fatherLastName: response.person!.paternalLastName, motherLastName: response.person!.maternalLastName || "" }));
+            setSearchFeedback({ type: "success", message: "Datos identificados exitosamente." });
+          } else {
+            setSearchFeedback(form.documentType === "DNI"
+              ? { type: "warning", message: "No pudimos consultar los datos automáticamente. Puedes completar la información manualmente." }
+              : { type: "success", message: "Puedes iniciar una nueva postulación. Ingresa tus datos para continuar." });
+          }
         }
       } catch (err: any) {
         setIsReniecFetched(false);
@@ -903,41 +838,6 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
     };
 
     // ✅ ACTUALIZAMOS HANDLER PARA ENVIAR EL CANAL
-    const handleSendOtp = async () => {
-      if (!recoveryData) return;
-      setIsOtpProcessing(true);
-      try {
-        // Envíamos al backend trackingCode + canal seleccionado
-        await applicationApi.sendRecoveryOtp(
-          recoveryData.trackingCode,
-          channel as any,
-        );
-        setShowDraftModal(false);
-        setShowOtpModal(true);
-      } catch (err: any) {
-        setOtpError("Error al enviar el código. Intente nuevamente.");
-      } finally {
-        setIsOtpProcessing(false);
-      }
-    };
-
-    const handleVerifyOtp = async () => {
-      if (!recoveryData || otpCode.length < 6) return;
-      setIsOtpProcessing(true);
-      setOtpError("");
-      try {
-        await applicationApi.verifyRecoveryOtp(
-          recoveryData.trackingCode,
-          otpCode,
-        );
-        window.location.href = `?trackingCode=${recoveryData.trackingCode}`;
-      } catch (err: any) {
-        setOtpError(err.message || "Código incorrecto.");
-      } finally {
-        setIsOtpProcessing(false);
-      }
-    };
-
     function updateField<K extends keyof PersonalInformation>(
       field: K,
       rawValue: PersonalInformation[K],
@@ -1173,195 +1073,13 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
     return (
       <div className="space-y-8">
         <ProcessLoadingOverlay
-          open={isUploadingFiles}
-          title="Guardando tus datos personales"
-          description="Estamos preparando la información académica. Esto tomará solo unos segundos."
+          open={isUploadingFiles || isSearching}
+          title={isSearching ? "Consultando documento..." : "Guardando tus datos personales"}
+          description={isSearching ? "Estamos verificando los datos del documento." : "Estamos preparando la información académica. Esto tomará solo unos segundos."}
         />
 
-        {/* ✅ MODAL DE BORRADOR ACTUALIZADO CON OPCIONES EMAIL / SMS */}
-        {showDraftModal && (
-          <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl animate-in zoom-in-95">
-              <div className="w-16 h-16 bg-[#C5A059]/10 rounded-full flex items-center justify-center mb-6 mx-auto">
-                <Clock className="w-8 h-8 text-[#C5A059]" />
-              </div>
-              <h3 className="text-xl font-bold text-center text-[#2F3136] mb-3">
-                Encontramos una postulación en proceso
-              </h3>
-              <p className="text-sm text-gray-500 text-center mb-6 leading-relaxed">
-                Hemos encontrado una solicitud en estado de borrador asociada al
-                documento ingresado. Selecciona cómo deseas recibir tu código de
-                seguridad para continuar.
-              </p>
+        {lookup && <ExistingApplicationGate challenge={lookup} context="POSTULACION" onClose={() => setLookup(null)} onStartNew={() => { setLookup(null); setIsFormEnabled(true); setSearchFeedback({ type: "success", message: "Puedes iniciar una nueva postulación." }); }} />}
 
-              {/* OPCIONES DE ENVÍO */}
-              <div className="mb-6">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  
-                  {/* Opción WhatsApp */}
-                  <label 
-                    className={`flex flex-col items-center justify-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all ${
-                      channel === 'WHATSAPP' 
-                      ? 'border-[#25D366] bg-[#25D366]/5 shadow-sm' 
-                      : 'border-slate-200 hover:border-[#25D366]/50 bg-white'
-                    }`}
-                    onClick={() => setChannel('WHATSAPP')}
-                  >
-                    <div className="relative">
-                      {/* SVG Oficial de WhatsApp */}
-                      <svg viewBox="0 0 24 24" width="28" height="28" className={channel === 'WHATSAPP' ? 'fill-[#25D366]' : 'fill-slate-400'}>
-                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.452-.885-.77-1.482-1.72-1.655-2.018-.173-.298-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51h-.57c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-                      </svg>
-                      {channel === 'WHATSAPP' && <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[#25D366] rounded-full border-2 border-white"></div>}
-                    </div>
-                    <div className="flex flex-col items-center text-center">
-                      <span className={`text-[13px] font-bold ${channel === 'WHATSAPP' ? 'text-[#1da851]' : 'text-slate-600'}`}>WhatsApp</span>
-                    </div>
-                  </label>
-
-                  {/* Opción Correo */}
-                  <label 
-                    className={`flex flex-col items-center justify-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all ${
-                      channel === 'EMAIL' 
-                      ? 'border-[#C5A059] bg-[#C5A059]/5 shadow-sm' 
-                      : 'border-slate-200 hover:border-[#C5A059]/50 bg-white'
-                    }`}
-                    onClick={() => setChannel('EMAIL')}
-                  >
-                    <div className="relative">
-                      <Mail size={28} className={channel === 'EMAIL' ? 'text-[#C5A059]' : 'text-slate-400'} />
-                      {channel === 'EMAIL' && <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[#C5A059] rounded-full border-2 border-white"></div>}
-                    </div>
-                    <div className="flex flex-col items-center text-center">
-                      <span className={`text-[13px] font-bold ${channel === 'EMAIL' ? 'text-[#a3722a]' : 'text-slate-600'}`}>Correo</span>
-                    </div>
-                  </label>
-
-                  {/* Opción SMS */}
-                  <label 
-                    className={`flex flex-col items-center justify-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all ${
-                      channel === 'SMS' 
-                      ? 'border-[#C5A059] bg-[#C5A059]/5 shadow-sm' 
-                      : 'border-slate-200 hover:border-[#C5A059]/50 bg-white'
-                    }`}
-                    onClick={() => setChannel('SMS')}
-                  >
-                    <div className="relative">
-                      <Smartphone size={28} className={channel === 'SMS' ? 'text-[#C5A059]' : 'text-slate-400'} />
-                      {channel === 'SMS' && <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[#C5A059] rounded-full border-2 border-white"></div>}
-                    </div>
-                    <div className="flex flex-col items-center text-center">
-                      <span className={`text-[13px] font-bold ${channel === 'SMS' ? 'text-[#a3722a]' : 'text-slate-600'}`}>SMS</span>
-                    </div>
-                  </label>
-
-                </div>
-              </div>
-
-
-
-              <div className="flex flex-col gap-3">
-                <button
-                  onClick={handleSendOtp}
-                  disabled={isOtpProcessing}
-                  className="w-full h-12 bg-[#2F3136] text-white rounded-xl font-bold text-sm hover:bg-black transition-colors flex items-center justify-center"
-                >
-                  {isOtpProcessing
-                    ? "Enviando..."
-                    : `Enviar código por ${channel === "EMAIL" ? "Correo" : "SMS"}`}
-                </button>
-                <button
-                  onClick={() => setShowDraftModal(false)}
-                  className="w-full h-12 bg-white border border-gray-200 text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-50 transition-colors"
-                >
-                  Cancelar
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {showOtpModal && (
-          <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl animate-in zoom-in-95">
-              <div className="w-16 h-16 bg-[#2F3136]/5 rounded-full flex items-center justify-center mb-6 mx-auto">
-                <ShieldAlert className="w-8 h-8 text-[#2F3136]" />
-              </div>
-              <h3 className="text-xl font-bold text-center text-[#2F3136] mb-2">
-                Verificación de Seguridad
-              </h3>
-              <p className="text-sm text-gray-500 text-center mb-6">
-                Ingresa el código de 6 dígitos enviado a tu{" "}
-                {channel === "EMAIL" ? "correo" : "celular"}.
-              </p>
-
-              {otpError && (
-                <p className="text-xs text-red-500 text-center mb-4 font-bold">
-                  {otpError}
-                </p>
-              )}
-
-              <input
-                type="text"
-                maxLength={6}
-                value={otpCode}
-                onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
-                className="w-full h-14 bg-gray-50 border border-gray-200 rounded-xl text-center text-2xl tracking-[0.5em] font-bold text-[#C5A059] focus:outline-none focus:border-[#C5A059] focus:ring-2 focus:ring-[#C5A059]/20 mb-6"
-                placeholder="------"
-              />
-
-              <div className="flex flex-col gap-3">
-                <button
-                  onClick={handleVerifyOtp}
-                  disabled={isOtpProcessing || otpCode.length < 6}
-                  className="w-full h-12 bg-[#C5A059] text-white rounded-xl font-bold text-sm hover:bg-[#b58f48] disabled:opacity-50 transition-colors"
-                >
-                  {isOtpProcessing ? "Verificando..." : "Validar Código"}
-                </button>
-                <button
-                  onClick={() => setShowOtpModal(false)}
-                  className="w-full h-12 bg-white text-gray-500 font-bold text-sm hover:underline transition-colors"
-                >
-                  Cancelar
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {showAssociateModal && (
-          <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl animate-in zoom-in-95">
-              <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mb-6 mx-auto">
-                <UserCircle2 className="w-8 h-8 text-emerald-600" />
-              </div>
-              <h3 className="text-xl font-bold text-center text-[#2F3136] mb-3">
-                Ya eres parte del IIMP
-              </h3>
-              <p className="text-sm text-gray-500 text-center mb-8 leading-relaxed">
-                El documento ingresado pertenece a un Asociado Activo o tiene
-                una postulación aprobada. No es necesario registrar una nueva
-                solicitud.
-              </p>
-              <div className="flex flex-col gap-3">
-                <button
-                  onClick={() => router.push("/login")}
-                  className="w-full h-12 bg-[#2F3136] text-white rounded-xl font-bold text-sm hover:bg-black transition-colors"
-                >
-                  Ir al Portal del Asociado
-                </button>
-                <button
-                  onClick={() => setShowAssociateModal(false)}
-                  className="w-full h-12 bg-white border border-gray-200 text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-50 transition-colors"
-                >
-                  Cerrar
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* TARJETA 1: VERIFICACIÓN RENIEC */}
         {globalError && (
           <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-600 font-bold text-sm flex items-center gap-3 shadow-sm">
             <XCircle className="w-5 h-5 shrink-0" /> {globalError}
@@ -1458,12 +1176,12 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
                   disabled={
                     isSearching ||
                     !form.documentNumber ||
-                    form.documentType !== "DNI"
+                    !form.documentType
                   }
                   className={`h-12 px-5 flex items-center justify-center rounded-r-xl transition-all duration-300 border-y border-r shadow-sm z-0 ${
                     isSearching ||
                     !form.documentNumber ||
-                    form.documentType !== "DNI"
+                    !form.documentType
                       ? "bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed shadow-none"
                       : "bg-[#D4A353] hover:bg-[#C5A059] text-white border-[#D4A353] hover:border-[#C5A059]"
                   }`}

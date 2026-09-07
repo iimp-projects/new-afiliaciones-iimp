@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { ObservationStatus, ValidationAction, ValidationStatus } from "@prisma/client";
 import { ApplicationStatusCalculatorService } from "./ApplicationStatusCalculatorService";
 import { NotifyApplicantService } from "./NotifyApplicantService";
+import { ApplicationAccessService } from "./ApplicationAccessService";
+import { ApplicationFlowError } from "./Exceptions/ApplicationFlowError";
 
 export class UpdateDraftService {
 
@@ -14,17 +16,20 @@ export class UpdateDraftService {
 
     async execute(
         trackingCode: string,
-        dto: UpdateDraftDTO
+        dto: UpdateDraftDTO,
+        token?: string,
     ): Promise<Application> {
 
         const application =
             await this.findApplication(trackingCode);
 
+        new ApplicationAccessService().require(Number(application.id), token);
         await this.ensureEditable(application, dto);
 
         const updatedApplication = await this.updateDraft(
             trackingCode,
-            dto
+            dto,
+            application.status
         );
 
         if (application.status === "OBSERVED") {
@@ -80,9 +85,7 @@ export class UpdateDraftService {
 
         if (application.status !== "OBSERVED") {
 
-            throw new Error(
-                "La postulación ya fue enviada."
-            );
+            throw new ApplicationFlowError("APPLICATION_NOT_EDITABLE", "Tu solicitud ya fue enviada. Puedes revisarla desde Consultar.");
 
         }
 
@@ -109,7 +112,7 @@ export class UpdateDraftService {
                 keys.forEach((key) => compare(before[key], after[key], path ? `${path}.${key}` : key));
                 return;
             }
-            if (!allowed.has(path)) throw new Error("Solo puede modificar los campos solicitados en la observación.");
+            if (!allowed.has(path)) throw new ApplicationFlowError("APPLICATION_NOT_EDITABLE", "Solo puede modificar los campos solicitados en la observación.");
         };
         Object.keys(proposed).forEach((section) => compare(current[section], proposed[section], section));
 
@@ -261,12 +264,14 @@ export class UpdateDraftService {
      */
     private async updateDraft(
         trackingCode: string,
-        dto: UpdateDraftDTO
+        dto: UpdateDraftDTO,
+        expectedStatus: string
     ): Promise<Application> {
 
         return await this.repository.updateDraft(
             trackingCode,
-            dto
+            dto,
+            expectedStatus
         );
 
     }

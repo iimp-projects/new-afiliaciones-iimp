@@ -40,6 +40,8 @@ import type { ApplicationDraft } from "../Models/ApplicationDraft";
 import type { PersonalInformation } from "../Models/PersonalInformation";
 import { MembershipType } from "../Types/MembershipType";
 import { ProcessLoadingOverlay } from "@/modules/shared/Components/ProcessLoadingOverlay";
+import { ApplicationStateNotice } from "../Components/ApplicationStateNotice";
+import { ApplicationApiError } from "../Services/ApplicationApiError";
 
 interface ApplicationViewProps {
   membershipType: MembershipType;
@@ -68,6 +70,12 @@ export default function ApplicationView({
     trackingCode ?? null,
   );
   const [isStepValid, setIsStepValid] = useState(false);
+  const [flowError, setFlowError] = useState<{ code: string; message: string } | null>(null);
+  useEffect(() => {
+    const handleFlow = (event: Event) => setFlowError((event as CustomEvent<{ code: string; message: string }>).detail);
+    window.addEventListener("application:flow", handleFlow);
+    return () => window.removeEventListener("application:flow", handleFlow);
+  }, []);
 
   // ESTADO QUE CONTROLA SI YA SE ENVIÓ PARA MOSTRAR LA PANTALLA FINAL
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -92,6 +100,10 @@ export default function ApplicationView({
     try {
       setLoading(true);
       const response = await api.getByTracking(trackingCode);
+      if (response.affiliateType !== membershipType) {
+        router.replace(`/postulacion/${response.affiliateType === "STUDENT" ? "estudiante" : "asociado"}?trackingCode=${encodeURIComponent(response.trackingCode)}`);
+        return;
+      }
       setApplication(response.trackingCode);
 
       setCurrentStep(response.currentStep);
@@ -111,11 +123,11 @@ export default function ApplicationView({
       );
       setTimeout(() => setRecoveryMessage(null), 10000);
     } catch (error) {
-      console.error("Error al cargar el borrador:", error);
+      setFlowError({ code: error instanceof ApplicationApiError ? error.code : "VERIFICATION_REQUIRED", message: error instanceof Error ? error.message : "Verifica tu identidad para continuar." });
     } finally {
       setLoading(false);
     }
-  }, [api, membershipType, trackingCode]);
+  }, [api, membershipType, trackingCode, router]);
 
   useEffect(() => {
     initialize();
@@ -301,6 +313,10 @@ export default function ApplicationView({
         return { title: "", description: "" };
     }
   };
+
+  if (flowError) {
+    return <main className="min-h-screen grid place-items-center bg-slate-50 p-6"><ApplicationStateNotice status="PENDING" context="POSTULACION" title="Encontramos una solicitud asociada a este documento" description={flowError.message} onPrimary={() => router.push(flowError.code === "VERIFICATION_REQUIRED" || flowError.code === "APPLICATION_EXISTS" ? "/consulta" : "/consulta?applicationId=authorized")} onClose={() => router.push("/postulacion")} /></main>;
+  }
 
   if (loading) {
     return (
@@ -554,6 +570,7 @@ export default function ApplicationView({
 
         {currentStep === 1 && (
           <PersonalDataStep
+            affiliateType={membershipType}
             ref={stepRef}
             value={draft.personalInformation}
             saving={saving}

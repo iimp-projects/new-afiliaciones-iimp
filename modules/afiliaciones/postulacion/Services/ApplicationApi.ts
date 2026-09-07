@@ -4,6 +4,7 @@ import type { Application } from "../Entities/Application";
 import type { StartApplicationDto } from "../DTOs/start-application.dto";
 import type { UpdateDraftDTO } from "../DTOs/update-draft.dto";
 import type { ValidationResponseDTO } from "../DTOs/validation-response.dto";
+import { ApplicationApiError } from "./ApplicationApiError";
 
 export class ApplicationApi {
   constructor(private readonly baseUrl = "/api/afiliaciones/postulacion") {}
@@ -65,12 +66,13 @@ export class ApplicationApi {
   async validateDocument(
     documentType: string,
     documentNumber: string,
+    affiliateType?: "ACTIVE" | "STUDENT",
   ): Promise<ValidationResponseDTO> {
     return this.request<ValidationResponseDTO>(
       `${this.baseUrl}/validate-document`,
       {
         method: "POST",
-        body: JSON.stringify({ documentType, documentNumber }),
+        body: JSON.stringify({ documentType, documentNumber, ...(affiliateType ? { affiliateType } : {}) }),
       }
     );
   }
@@ -214,7 +216,9 @@ export class ApplicationApi {
     const body = await response.json();
 
     if (!response.ok) {
-      throw new Error(body.message ?? "Ha ocurrido un error.");
+      const error = new ApplicationApiError(body.message ?? body.error ?? (response.status === 422 ? "Revisa los campos indicados." : "No se pudo procesar la solicitud."), body.code || (response.status === 422 ? "VALIDATION_ERROR" : "INTERNAL_ERROR"), response.status, body.errors);
+      if (error.functional && typeof window !== "undefined") window.dispatchEvent(new CustomEvent("application:flow", { detail: { code: error.code, message: error.message } }));
+      throw error;
     }
 
     return body as T;

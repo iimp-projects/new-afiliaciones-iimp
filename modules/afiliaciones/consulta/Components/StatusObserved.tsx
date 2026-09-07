@@ -223,7 +223,7 @@ export const StatusObserved: React.FC<Props> = ({ data, onUploadSuccess }) => {
         body: JSON.stringify({ currentStep: 1, draftData: correctionDraft }),
       });
       const patchResult = await patchRes.json();
-      if (!patchRes.ok) throw new Error(patchResult.error || "No se pudo guardar la corrección.");
+      if (!patchRes.ok) throw new Error(patchResult.message || patchResult.error || "No se pudo guardar la corrección.");
 
       setSuccessMessage(
         "Corrección guardada correctamente. El área responsable reevaluará su expediente."
@@ -304,7 +304,7 @@ export const StatusObserved: React.FC<Props> = ({ data, onUploadSuccess }) => {
       });
       const resData = await response.json();
       if (!response.ok || !resData.success)
-        throw new Error(resData.error || "Error al guardar el nuevo aval.");
+        throw new Error(resData.message || resData.error || "Error al guardar el nuevo aval.");
       setSuccessMessage(`Se registró exitosamente a ${foundSponsor.fullName}.`);
       setFoundSponsor(null);
       setSponsorDni("");

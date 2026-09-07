@@ -4,7 +4,6 @@ export type GlobalStatusType = "DRAFT" | "PENDING" | "UNDER_EVALUACION" | "OBSER
 export interface ConsultationQuery {
   documentType: string;
   documentNumber: string;
-  verificationCode: string;
 }
 
 export interface AreaDetail {
@@ -15,6 +14,8 @@ export interface AreaDetail {
 }
 
 export interface ApplicationStatusData {
+  canStartNew?: boolean;
+  recoveryUrl?: string | null;
   id?: number | string;
   applicationId?: number;
   status: GlobalStatusType;

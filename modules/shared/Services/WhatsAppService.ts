@@ -37,10 +37,9 @@ export class WhatsAppService {
         }
       };
 
-      // Si aún no tienes la API de Meta configurada, esto solo simulará el envío
+      // Never report a simulated delivery as a successful OTP send.
       if (this.token === 'TU_TOKEN_DE_META') {
-        console.log(`[WhatsAppService SIMULACRO] Código ${code} enviado a WhatsApp: +${formattedPhone}`);
-        return;
+        throw new Error("WhatsApp no está configurado.");
       }
 
       const response = await fetch(this.apiUrl, {
@@ -53,14 +52,11 @@ export class WhatsAppService {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error("[WhatsAppService] Error de Meta:", errorData);
         throw new Error("Error en la API de WhatsApp");
       }
 
-      console.log(`[WhatsAppService] WhatsApp enviado exitosamente a: +${formattedPhone}`);
-    } catch (error) {
-      console.error("[WhatsAppService] Falló el envío:", error);
+    } catch {
+      throw new Error("No pudimos enviar el código por este medio.");
     }
   }
 }

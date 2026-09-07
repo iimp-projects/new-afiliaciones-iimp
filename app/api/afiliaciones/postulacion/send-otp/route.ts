@@ -1,16 +1,18 @@
+import { VerificationError } from "@/modules/shared/Models/VerificationError";
 import { NextRequest, NextResponse } from "next/server";
 import { OtpRecoveryService } from "@/modules/afiliaciones/postulacion/Services/OtpRecoveryService";
+import { parseOtpRequest } from "@/modules/afiliaciones/postulacion/Services/OtpRequest";
+import { OTP_COOLDOWN_SECONDS } from "@/modules/shared/Models/Verification";
 
 export async function POST(request: NextRequest) {
   try {
-    // ✅ Ahora recibimos el trackingCode Y el channel ("EMAIL" o "SMS")
-    const { trackingCode, channel } = await request.json();
+    const { identifier, channel, purpose } = parseOtpRequest(await request.json(), "send");
     
     const service = new OtpRecoveryService();
-    await service.generateAndSendOtp(trackingCode, channel);
+    await service.generateAndSendOtp(identifier, channel, purpose);
     
-    return NextResponse.json({ success: true, message: "Código enviado." });
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 400 });
+    return NextResponse.json({ success: true, message: "Código enviado.", cooldownSeconds: OTP_COOLDOWN_SECONDS });
+  } catch (error) {
+    return NextResponse.json({ message: error instanceof VerificationError ? error.message : "No pudimos enviar el código por este medio." }, { status: 400 });
   }
 }

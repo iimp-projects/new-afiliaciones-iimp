@@ -7,6 +7,7 @@ import type { Endorsements } from "../../Models/Endorsements";
 import { EndorsementsValidator } from "../../Validators/EndorsementsValidator";
 import { applicationApi } from "../../Services/ApplicationApi";
 import { ProcessLoadingOverlay } from "@/modules/shared/Components/ProcessLoadingOverlay";
+import { GlobalModalRoot } from "@/modules/shared/Components/GlobalModalRoot";
 
 export interface StepRef {
   submit: () => Promise<void>;
@@ -141,7 +142,7 @@ const DeclarationStep = forwardRef<StepRef, DeclarationStepProps>(
         
         {/* 👇 MODAL EMERGENTE DE CONFIRMACIÓN */}
         {showConfirmModal && (
-          <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <GlobalModalRoot title="¿Enviar Postulación?">
             <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl animate-in zoom-in-95">
               <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mb-6 mx-auto">
                 <AlertTriangle className="w-8 h-8 text-amber-600" />
@@ -159,7 +160,7 @@ const DeclarationStep = forwardRef<StepRef, DeclarationStepProps>(
                 </button>
               </div>
             </div>
-          </div>
+          </GlobalModalRoot>
         )}
 
         <ProcessLoadingOverlay
