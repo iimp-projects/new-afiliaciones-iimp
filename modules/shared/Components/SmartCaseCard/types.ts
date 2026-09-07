@@ -15,6 +15,8 @@ export type AtomicValidationStatus =
   | "review";
 
 export type PrimaryBadgeIcon =
+  | "person"
+  | "graduation"
   | "check"
   | "clock"
   | "error"
@@ -49,12 +51,15 @@ export interface SmartCaseCardData {
   id: string | number;
   trackingCode: string;
   topBorderColorClass?: string;
+  rowLayout?: "default" | "expediente";
   subStatus?: string;
   identity: {
     title: string;
     subtitle: string;
     avatarUrl: string | null;
     fallbackInitials: string;
+    email?: string | null;
+    phone?: string | null;
     categoryBadge?: {
       label: string;
       colorClass: string;

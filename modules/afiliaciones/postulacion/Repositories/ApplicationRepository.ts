@@ -353,16 +353,22 @@ export class ApplicationRepository implements IApplicationRepository {
     });
 
     for (const study of draft.academicStudies) {
+      const degree = study.degreeId
+        ? await tx.academicDegree.findUnique({ where: { id: study.degreeId }, select: { studyLevel: true, isActive: true } })
+        : null;
+      if (study.degreeId && (!degree || !degree.isActive)) {
+        throw new Error("El grado académico seleccionado no está disponible.");
+      }
       await tx.academicInfo.create({
         data: {
           personId,
-          studyLevel: "OTHER",
-          degreeId: null,
+          studyLevel: degree?.studyLevel ?? "OTHER",
+          degreeId: study.degreeId ?? null,
           universityId:
             study.institutionId && study.institutionId > 0
               ? study.institutionId
               : null,
-          specialtyId: null,
+          specialtyId: study.specialtyId ?? null,
           degreeTitle: study.degreeTitle,
           professionalAssociation: study.professionalAssociation ?? null,
           licenseNumber: study.registrationNumber ?? null,

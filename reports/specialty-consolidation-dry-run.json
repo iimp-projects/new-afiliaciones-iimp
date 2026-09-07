@@ -1,0 +1,5672 @@
+{
+  "generatedAt": "2026-09-06T21:35:05.032Z",
+  "readOnly": true,
+  "summary": {
+    "totalGroups": 69,
+    "safeToMerge": 69,
+    "reviewRequired": 0,
+    "doNotMerge": 0,
+    "academicInfoAffected": 955,
+    "duplicateIdsInvolved": 121
+  },
+  "groups": [
+    {
+      "canonicalCandidate": {
+        "id": 323,
+        "name": "ADMINISTRACIÓN"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        22,
+        706
+      ],
+      "duplicateNames": [
+        "Administración",
+        "ADMINISTRACION"
+      ],
+      "members": [
+        {
+          "id": 22,
+          "name": "Administración",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": "Gestión empresarial.",
+          "code": "ESP-ADM-GEN",
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 32
+        },
+        {
+          "id": 323,
+          "name": "ADMINISTRACIÓN",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 18,
+          "draftOccurrences": 32
+        },
+        {
+          "id": 706,
+          "name": "ADMINISTRACION",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 14,
+          "draftOccurrences": 32
+        }
+      ],
+      "affectedAcademicInfo": 14,
+      "totalReferencesToCanonicalAfterDryRun": 32,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 22,
+          "name": "Administración",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 32,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 323,
+          "name": "ADMINISTRACIÓN",
+          "academicInfoReferences": 18,
+          "draftOccurrences": 32,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 706,
+          "name": "ADMINISTRACION",
+          "academicInfoReferences": 14,
+          "draftOccurrences": 32,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 397,
+        "name": "ADMINISTRACIÓN DE EMPRESAS"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        23,
+        796
+      ],
+      "duplicateNames": [
+        "Administración de Empresas",
+        "ADMINISTRACION DE EMPRESAS"
+      ],
+      "members": [
+        {
+          "id": 23,
+          "name": "Administración de Empresas",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": "Dirección estratégica de organizaciones.",
+          "code": "ESP-ADM-EMP",
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 20
+        },
+        {
+          "id": 397,
+          "name": "ADMINISTRACIÓN DE EMPRESAS",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 13,
+          "draftOccurrences": 20
+        },
+        {
+          "id": 796,
+          "name": "ADMINISTRACION DE EMPRESAS",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 6,
+          "draftOccurrences": 20
+        }
+      ],
+      "affectedAcademicInfo": 6,
+      "totalReferencesToCanonicalAfterDryRun": 19,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 23,
+          "name": "Administración de Empresas",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 20,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 397,
+          "name": "ADMINISTRACIÓN DE EMPRESAS",
+          "academicInfoReferences": 13,
+          "draftOccurrences": 20,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 796,
+          "name": "ADMINISTRACION DE EMPRESAS",
+          "academicInfoReferences": 6,
+          "draftOccurrences": 20,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 664,
+        "name": "ADMINISTRACION Y NEGOCIOS INTERNACIONALES"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        701
+      ],
+      "duplicateNames": [
+        "ADMINISTRACIÓN Y NEGOCIOS INTERNACIONALES"
+      ],
+      "members": [
+        {
+          "id": 664,
+          "name": "ADMINISTRACION Y NEGOCIOS INTERNACIONALES",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 3,
+          "draftOccurrences": 4
+        },
+        {
+          "id": 701,
+          "name": "ADMINISTRACIÓN Y NEGOCIOS INTERNACIONALES",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 4
+        }
+      ],
+      "affectedAcademicInfo": 1,
+      "totalReferencesToCanonicalAfterDryRun": 4,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 664,
+          "name": "ADMINISTRACION Y NEGOCIOS INTERNACIONALES",
+          "academicInfoReferences": 3,
+          "draftOccurrences": 4,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 701,
+          "name": "ADMINISTRACIÓN Y NEGOCIOS INTERNACIONALES",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 4,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 751,
+        "name": "BIOLOGIA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        315
+      ],
+      "duplicateNames": [
+        "BIOLOGÍA"
+      ],
+      "members": [
+        {
+          "id": 315,
+          "name": "BIOLOGÍA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 1
+        },
+        {
+          "id": 751,
+          "name": "BIOLOGIA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 1
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 1,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 315,
+          "name": "BIOLOGÍA",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 1,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 751,
+          "name": "BIOLOGIA",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 1,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 700,
+        "name": "CONTABILIDAD"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        25
+      ],
+      "duplicateNames": [
+        "Contabilidad"
+      ],
+      "members": [
+        {
+          "id": 25,
+          "name": "Contabilidad",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": "Gestión financiera y contable.",
+          "code": "ESP-CONT",
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 5
+        },
+        {
+          "id": 700,
+          "name": "CONTABILIDAD",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 5,
+          "draftOccurrences": 5
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 5,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 25,
+          "name": "Contabilidad",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 5,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 700,
+          "name": "CONTABILIDAD",
+          "academicInfoReferences": 5,
+          "draftOccurrences": 5,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 500,
+        "name": "DERECHO"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        29
+      ],
+      "duplicateNames": [
+        "Derecho"
+      ],
+      "members": [
+        {
+          "id": 29,
+          "name": "Derecho",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": "Ciencias jurídicas.",
+          "code": "ESP-DER",
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 37
+        },
+        {
+          "id": 500,
+          "name": "DERECHO",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 37,
+          "draftOccurrences": 37
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 37,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 29,
+          "name": "Derecho",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 37,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 500,
+          "name": "DERECHO",
+          "academicInfoReferences": 37,
+          "draftOccurrences": 37,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 656,
+        "name": "ECONOMÍA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        24,
+        423
+      ],
+      "duplicateNames": [
+        "Economía",
+        "ECONOMIA"
+      ],
+      "members": [
+        {
+          "id": 24,
+          "name": "Economía",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": "Análisis económico.",
+          "code": "ESP-ECO",
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 17
+        },
+        {
+          "id": 423,
+          "name": "ECONOMIA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 6,
+          "draftOccurrences": 17
+        },
+        {
+          "id": 656,
+          "name": "ECONOMÍA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 11,
+          "draftOccurrences": 17
+        }
+      ],
+      "affectedAcademicInfo": 6,
+      "totalReferencesToCanonicalAfterDryRun": 17,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 24,
+          "name": "Economía",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 17,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 423,
+          "name": "ECONOMIA",
+          "academicInfoReferences": 6,
+          "draftOccurrences": 17,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 656,
+          "name": "ECONOMÍA",
+          "academicInfoReferences": 11,
+          "draftOccurrences": 17,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 536,
+        "name": "EDUCACIÓN"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        30
+      ],
+      "duplicateNames": [
+        "Educación"
+      ],
+      "members": [
+        {
+          "id": 30,
+          "name": "Educación",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": "Formación y pedagogía.",
+          "code": "ESP-EDU",
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 1
+        },
+        {
+          "id": 536,
+          "name": "EDUCACIÓN",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 1
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 1,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 30,
+          "name": "Educación",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 1,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 536,
+          "name": "EDUCACIÓN",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 1,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 569,
+        "name": "ELECTRONICA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        287
+      ],
+      "duplicateNames": [
+        "ELECTRÓNICA"
+      ],
+      "members": [
+        {
+          "id": 287,
+          "name": "ELECTRÓNICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 3
+        },
+        {
+          "id": 569,
+          "name": "ELECTRONICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 3,
+          "draftOccurrences": 3
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 3,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 287,
+          "name": "ELECTRÓNICA",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 3,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 569,
+          "name": "ELECTRONICA",
+          "academicInfoReferences": 3,
+          "draftOccurrences": 3,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 680,
+        "name": "ESCUELA PROFESIONAL DE INGENIERIA DE MINAS"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        784
+      ],
+      "duplicateNames": [
+        "ESCUELA PROFESIONAL DE INGENIERÍA DE MINAS"
+      ],
+      "members": [
+        {
+          "id": 680,
+          "name": "ESCUELA PROFESIONAL DE INGENIERIA DE MINAS",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 2,
+          "draftOccurrences": 3
+        },
+        {
+          "id": 784,
+          "name": "ESCUELA PROFESIONAL DE INGENIERÍA DE MINAS",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 3
+        }
+      ],
+      "affectedAcademicInfo": 1,
+      "totalReferencesToCanonicalAfterDryRun": 3,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 680,
+          "name": "ESCUELA PROFESIONAL DE INGENIERIA DE MINAS",
+          "academicInfoReferences": 2,
+          "draftOccurrences": 3,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 784,
+          "name": "ESCUELA PROFESIONAL DE INGENIERÍA DE MINAS",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 3,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 614,
+        "name": "EXPLOTACIÓN DE MINAS"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        654
+      ],
+      "duplicateNames": [
+        "EXPLOTACION DE MINAS"
+      ],
+      "members": [
+        {
+          "id": 614,
+          "name": "EXPLOTACIÓN DE MINAS",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 13,
+          "draftOccurrences": 21
+        },
+        {
+          "id": 654,
+          "name": "EXPLOTACION DE MINAS",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 8,
+          "draftOccurrences": 21
+        }
+      ],
+      "affectedAcademicInfo": 8,
+      "totalReferencesToCanonicalAfterDryRun": 21,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 614,
+          "name": "EXPLOTACIÓN DE MINAS",
+          "academicInfoReferences": 13,
+          "draftOccurrences": 21,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 654,
+          "name": "EXPLOTACION DE MINAS",
+          "academicInfoReferences": 8,
+          "draftOccurrences": 21,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 795,
+        "name": "EXPLOTACIÓN MINERA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        431
+      ],
+      "duplicateNames": [
+        "EXPLOTACION MINERA"
+      ],
+      "members": [
+        {
+          "id": 431,
+          "name": "EXPLOTACION MINERA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 4
+        },
+        {
+          "id": 795,
+          "name": "EXPLOTACIÓN MINERA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 3,
+          "draftOccurrences": 4
+        }
+      ],
+      "affectedAcademicInfo": 1,
+      "totalReferencesToCanonicalAfterDryRun": 4,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 431,
+          "name": "EXPLOTACION MINERA",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 4,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 795,
+          "name": "EXPLOTACIÓN MINERA",
+          "academicInfoReferences": 3,
+          "draftOccurrences": 4,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 392,
+        "name": "FINANZAS"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        26
+      ],
+      "duplicateNames": [
+        "Finanzas"
+      ],
+      "members": [
+        {
+          "id": 26,
+          "name": "Finanzas",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": "Administración financiera.",
+          "code": "ESP-FIN",
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 2
+        },
+        {
+          "id": 392,
+          "name": "FINANZAS",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 2,
+          "draftOccurrences": 2
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 2,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 26,
+          "name": "Finanzas",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 2,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 392,
+          "name": "FINANZAS",
+          "academicInfoReferences": 2,
+          "draftOccurrences": 2,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 379,
+        "name": "GEOLOGÍA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        4,
+        322,
+        484
+      ],
+      "duplicateNames": [
+        "Geología",
+        "GEÓLOGIA",
+        "GEOLOGIA"
+      ],
+      "members": [
+        {
+          "id": 4,
+          "name": "Geología",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": "Ciencias de la Tierra.",
+          "code": "ESP-GEOL",
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 14
+        },
+        {
+          "id": 322,
+          "name": "GEÓLOGIA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 14
+        },
+        {
+          "id": 379,
+          "name": "GEOLOGÍA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 11,
+          "draftOccurrences": 14
+        },
+        {
+          "id": 484,
+          "name": "GEOLOGIA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 2,
+          "draftOccurrences": 14
+        }
+      ],
+      "affectedAcademicInfo": 3,
+      "totalReferencesToCanonicalAfterDryRun": 14,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 4,
+          "name": "Geología",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 14,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 322,
+          "name": "GEÓLOGIA",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 14,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 379,
+          "name": "GEOLOGÍA",
+          "academicInfoReferences": 11,
+          "draftOccurrences": 14,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 484,
+          "name": "GEOLOGIA",
+          "academicInfoReferences": 2,
+          "draftOccurrences": 14,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 450,
+        "name": "GEOLOGIA Y EXPLORACION"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        425
+      ],
+      "duplicateNames": [
+        "GEOLOGÍA Y EXPLORACIÓN"
+      ],
+      "members": [
+        {
+          "id": 425,
+          "name": "GEOLOGÍA Y EXPLORACIÓN",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 2,
+          "draftOccurrences": 6
+        },
+        {
+          "id": 450,
+          "name": "GEOLOGIA Y EXPLORACION",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 3,
+          "draftOccurrences": 6
+        }
+      ],
+      "affectedAcademicInfo": 2,
+      "totalReferencesToCanonicalAfterDryRun": 5,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 425,
+          "name": "GEOLOGÍA Y EXPLORACIÓN",
+          "academicInfoReferences": 2,
+          "draftOccurrences": 6,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 450,
+          "name": "GEOLOGIA Y EXPLORACION",
+          "academicInfoReferences": 3,
+          "draftOccurrences": 6,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 261,
+        "name": "GEOTECNIA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        6
+      ],
+      "duplicateNames": [
+        "Geotecnia"
+      ],
+      "members": [
+        {
+          "id": 6,
+          "name": "Geotecnia",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": "Estudio de las propiedades mecánicas de la tierra.",
+          "code": "ESP-GEOTEC",
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 1
+        },
+        {
+          "id": 261,
+          "name": "GEOTECNIA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 1
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 1,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 6,
+          "name": "Geotecnia",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 1,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 261,
+          "name": "GEOTECNIA",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 1,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 816,
+        "name": "INFORMÁTICA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        894
+      ],
+      "duplicateNames": [
+        "INFORMATICA"
+      ],
+      "members": [
+        {
+          "id": 816,
+          "name": "INFORMÁTICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 2,
+          "draftOccurrences": 2
+        },
+        {
+          "id": 894,
+          "name": "INFORMATICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 2
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 2,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 816,
+          "name": "INFORMÁTICA",
+          "academicInfoReferences": 2,
+          "draftOccurrences": 2,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 894,
+          "name": "INFORMATICA",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 2,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 579,
+        "name": "ING. AMBIENTAL"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        433,
+        502,
+        523
+      ],
+      "duplicateNames": [
+        "ING.AMBIENTAL",
+        "ING-AMBIENTAL",
+        "ING AMBIENTAL"
+      ],
+      "members": [
+        {
+          "id": 433,
+          "name": "ING.AMBIENTAL",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 13
+        },
+        {
+          "id": 502,
+          "name": "ING-AMBIENTAL",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 13
+        },
+        {
+          "id": 523,
+          "name": "ING AMBIENTAL",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 3,
+          "draftOccurrences": 13
+        },
+        {
+          "id": 579,
+          "name": "ING. AMBIENTAL",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 7,
+          "draftOccurrences": 13
+        }
+      ],
+      "affectedAcademicInfo": 5,
+      "totalReferencesToCanonicalAfterDryRun": 12,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 433,
+          "name": "ING.AMBIENTAL",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 13,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 502,
+          "name": "ING-AMBIENTAL",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 13,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 523,
+          "name": "ING AMBIENTAL",
+          "academicInfoReferences": 3,
+          "draftOccurrences": 13,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 579,
+          "name": "ING. AMBIENTAL",
+          "academicInfoReferences": 7,
+          "draftOccurrences": 13,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 893,
+        "name": "ING. CIVIL"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        481,
+        727
+      ],
+      "duplicateNames": [
+        "ING.CIVIL",
+        "ING CIVIL"
+      ],
+      "members": [
+        {
+          "id": 481,
+          "name": "ING.CIVIL",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 14
+        },
+        {
+          "id": 727,
+          "name": "ING CIVIL",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 2,
+          "draftOccurrences": 14
+        },
+        {
+          "id": 893,
+          "name": "ING. CIVIL",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 11,
+          "draftOccurrences": 14
+        }
+      ],
+      "affectedAcademicInfo": 3,
+      "totalReferencesToCanonicalAfterDryRun": 14,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 481,
+          "name": "ING.CIVIL",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 14,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 727,
+          "name": "ING CIVIL",
+          "academicInfoReferences": 2,
+          "draftOccurrences": 14,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 893,
+          "name": "ING. CIVIL",
+          "academicInfoReferences": 11,
+          "draftOccurrences": 14,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 867,
+        "name": "ING DE MINAS"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        566,
+        684,
+        864
+      ],
+      "duplicateNames": [
+        "ING.DE MINAS",
+        "ING.  DE MINAS",
+        "ING. DE MINAS"
+      ],
+      "members": [
+        {
+          "id": 566,
+          "name": "ING.DE MINAS",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 42
+        },
+        {
+          "id": 684,
+          "name": "ING.  DE MINAS",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 42
+        },
+        {
+          "id": 864,
+          "name": "ING. DE MINAS",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 19,
+          "draftOccurrences": 42
+        },
+        {
+          "id": 867,
+          "name": "ING DE MINAS",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 21,
+          "draftOccurrences": 42
+        }
+      ],
+      "affectedAcademicInfo": 21,
+      "totalReferencesToCanonicalAfterDryRun": 42,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 566,
+          "name": "ING.DE MINAS",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 42,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 684,
+          "name": "ING.  DE MINAS",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 42,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 864,
+          "name": "ING. DE MINAS",
+          "academicInfoReferences": 19,
+          "draftOccurrences": 42,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 867,
+          "name": "ING DE MINAS",
+          "academicInfoReferences": 21,
+          "draftOccurrences": 42,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 301,
+        "name": "ING. GEOLÓGICA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        346,
+        432,
+        493,
+        628,
+        912
+      ],
+      "duplicateNames": [
+        "ING.GEOLÓGICA",
+        "ING. GEÓLOGICA",
+        "ING. GEOLOGICA",
+        "ING GEOLOGICA",
+        "ING GEOLÓGICA"
+      ],
+      "members": [
+        {
+          "id": 301,
+          "name": "ING. GEOLÓGICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 12,
+          "draftOccurrences": 20
+        },
+        {
+          "id": 346,
+          "name": "ING.GEOLÓGICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 20
+        },
+        {
+          "id": 432,
+          "name": "ING. GEÓLOGICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 20
+        },
+        {
+          "id": 493,
+          "name": "ING. GEOLOGICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 5,
+          "draftOccurrences": 20
+        },
+        {
+          "id": 628,
+          "name": "ING GEOLOGICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 20
+        },
+        {
+          "id": 912,
+          "name": "ING GEOLÓGICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 20
+        }
+      ],
+      "affectedAcademicInfo": 8,
+      "totalReferencesToCanonicalAfterDryRun": 20,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 301,
+          "name": "ING. GEOLÓGICA",
+          "academicInfoReferences": 12,
+          "draftOccurrences": 20,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 346,
+          "name": "ING.GEOLÓGICA",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 20,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 432,
+          "name": "ING. GEÓLOGICA",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 20,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 493,
+          "name": "ING. GEOLOGICA",
+          "academicInfoReferences": 5,
+          "draftOccurrences": 20,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 628,
+          "name": "ING GEOLOGICA",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 20,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 912,
+          "name": "ING GEOLÓGICA",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 20,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 547,
+        "name": "ING. METALÚRGICA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        277,
+        312
+      ],
+      "duplicateNames": [
+        "ING. METALURGICA",
+        "ING METALURGICA"
+      ],
+      "members": [
+        {
+          "id": 277,
+          "name": "ING. METALURGICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 7
+        },
+        {
+          "id": 312,
+          "name": "ING METALURGICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 2,
+          "draftOccurrences": 7
+        },
+        {
+          "id": 547,
+          "name": "ING. METALÚRGICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 5,
+          "draftOccurrences": 7
+        }
+      ],
+      "affectedAcademicInfo": 2,
+      "totalReferencesToCanonicalAfterDryRun": 7,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 277,
+          "name": "ING. METALURGICA",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 7,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 312,
+          "name": "ING METALURGICA",
+          "academicInfoReferences": 2,
+          "draftOccurrences": 7,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 547,
+          "name": "ING. METALÚRGICA",
+          "academicInfoReferences": 5,
+          "draftOccurrences": 7,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 378,
+        "name": "ING. MINAS"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        441,
+        715
+      ],
+      "duplicateNames": [
+        "ING MINAS",
+        "ING.MINAS"
+      ],
+      "members": [
+        {
+          "id": 378,
+          "name": "ING. MINAS",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 12,
+          "draftOccurrences": 26
+        },
+        {
+          "id": 441,
+          "name": "ING MINAS",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 8,
+          "draftOccurrences": 26
+        },
+        {
+          "id": 715,
+          "name": "ING.MINAS",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 6,
+          "draftOccurrences": 26
+        }
+      ],
+      "affectedAcademicInfo": 14,
+      "totalReferencesToCanonicalAfterDryRun": 26,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 378,
+          "name": "ING. MINAS",
+          "academicInfoReferences": 12,
+          "draftOccurrences": 26,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 441,
+          "name": "ING MINAS",
+          "academicInfoReferences": 8,
+          "draftOccurrences": 26,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 715,
+          "name": "ING.MINAS",
+          "academicInfoReferences": 6,
+          "draftOccurrences": 26,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 331,
+        "name": "ING. QUÍMICA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        242
+      ],
+      "duplicateNames": [
+        "ING. QUIMICA"
+      ],
+      "members": [
+        {
+          "id": 242,
+          "name": "ING. QUIMICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 2,
+          "draftOccurrences": 6
+        },
+        {
+          "id": 331,
+          "name": "ING. QUÍMICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 4,
+          "draftOccurrences": 6
+        }
+      ],
+      "affectedAcademicInfo": 2,
+      "totalReferencesToCanonicalAfterDryRun": 6,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 242,
+          "name": "ING. QUIMICA",
+          "academicInfoReferences": 2,
+          "draftOccurrences": 6,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 331,
+          "name": "ING. QUÍMICA",
+          "academicInfoReferences": 4,
+          "draftOccurrences": 6,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 318,
+        "name": "INGENERIA DE GESTION MINERA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        271
+      ],
+      "duplicateNames": [
+        "INGENERÍA DE GESTIÓN MINERA"
+      ],
+      "members": [
+        {
+          "id": 271,
+          "name": "INGENERÍA DE GESTIÓN MINERA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 1
+        },
+        {
+          "id": 318,
+          "name": "INGENERIA DE GESTION MINERA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 1
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 1,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 271,
+          "name": "INGENERÍA DE GESTIÓN MINERA",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 1,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 318,
+          "name": "INGENERIA DE GESTION MINERA",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 1,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 285,
+        "name": "INGENERIA DE MINAS"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        333
+      ],
+      "duplicateNames": [
+        "INGENERÍA DE MINAS"
+      ],
+      "members": [
+        {
+          "id": 285,
+          "name": "INGENERIA DE MINAS",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 10,
+          "draftOccurrences": 11
+        },
+        {
+          "id": 333,
+          "name": "INGENERÍA DE MINAS",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 11
+        }
+      ],
+      "affectedAcademicInfo": 1,
+      "totalReferencesToCanonicalAfterDryRun": 11,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 285,
+          "name": "INGENERIA DE MINAS",
+          "academicInfoReferences": 10,
+          "draftOccurrences": 11,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 333,
+          "name": "INGENERÍA DE MINAS",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 11,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 303,
+        "name": "INGENIERA QUIMICA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        236
+      ],
+      "duplicateNames": [
+        "INGENIERA QUÍMICA"
+      ],
+      "members": [
+        {
+          "id": 236,
+          "name": "INGENIERA QUÍMICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 1
+        },
+        {
+          "id": 303,
+          "name": "INGENIERA QUIMICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 1
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 1,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 236,
+          "name": "INGENIERA QUÍMICA",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 1,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 303,
+          "name": "INGENIERA QUIMICA",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 1,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 440,
+        "name": "INGENIERÍA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        252
+      ],
+      "duplicateNames": [
+        "INGENIERIA"
+      ],
+      "members": [
+        {
+          "id": 252,
+          "name": "INGENIERIA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 4,
+          "draftOccurrences": 10
+        },
+        {
+          "id": 440,
+          "name": "INGENIERÍA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 6,
+          "draftOccurrences": 10
+        }
+      ],
+      "affectedAcademicInfo": 4,
+      "totalReferencesToCanonicalAfterDryRun": 10,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 252,
+          "name": "INGENIERIA",
+          "academicInfoReferences": 4,
+          "draftOccurrences": 10,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 440,
+          "name": "INGENIERÍA",
+          "academicInfoReferences": 6,
+          "draftOccurrences": 10,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 753,
+        "name": "INGENIERIA AGRICOLA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        483
+      ],
+      "duplicateNames": [
+        "INGENIERÍA AGRÍCOLA"
+      ],
+      "members": [
+        {
+          "id": 483,
+          "name": "INGENIERÍA AGRÍCOLA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 3
+        },
+        {
+          "id": 753,
+          "name": "INGENIERIA AGRICOLA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 2,
+          "draftOccurrences": 3
+        }
+      ],
+      "affectedAcademicInfo": 1,
+      "totalReferencesToCanonicalAfterDryRun": 3,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 483,
+          "name": "INGENIERÍA AGRÍCOLA",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 3,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 753,
+          "name": "INGENIERIA AGRICOLA",
+          "academicInfoReferences": 2,
+          "draftOccurrences": 3,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 772,
+        "name": "INGENIERÍA AMBIENTAL"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        19,
+        328
+      ],
+      "duplicateNames": [
+        "Ingeniería Ambiental",
+        "INGENIERIA AMBIENTAL"
+      ],
+      "members": [
+        {
+          "id": 19,
+          "name": "Ingeniería Ambiental",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": "Gestión ambiental y sostenibilidad.",
+          "code": "ESP-AMB",
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 234
+        },
+        {
+          "id": 328,
+          "name": "INGENIERIA AMBIENTAL",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 50,
+          "draftOccurrences": 234
+        },
+        {
+          "id": 772,
+          "name": "INGENIERÍA AMBIENTAL",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 184,
+          "draftOccurrences": 234
+        }
+      ],
+      "affectedAcademicInfo": 50,
+      "totalReferencesToCanonicalAfterDryRun": 234,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 19,
+          "name": "Ingeniería Ambiental",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 234,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 328,
+          "name": "INGENIERIA AMBIENTAL",
+          "academicInfoReferences": 50,
+          "draftOccurrences": 234,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 772,
+          "name": "INGENIERÍA AMBIENTAL",
+          "academicInfoReferences": 184,
+          "draftOccurrences": 234,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 522,
+        "name": "INGENIERÍA AMBIENTAL Y DE RECURSOS NATURALES"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        357
+      ],
+      "duplicateNames": [
+        "INGENIERIA AMBIENTAL Y DE RECURSOS NATURALES"
+      ],
+      "members": [
+        {
+          "id": 357,
+          "name": "INGENIERIA AMBIENTAL Y DE RECURSOS NATURALES",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 8
+        },
+        {
+          "id": 522,
+          "name": "INGENIERÍA AMBIENTAL Y DE RECURSOS NATURALES",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 7,
+          "draftOccurrences": 8
+        }
+      ],
+      "affectedAcademicInfo": 1,
+      "totalReferencesToCanonicalAfterDryRun": 8,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 357,
+          "name": "INGENIERIA AMBIENTAL Y DE RECURSOS NATURALES",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 8,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 522,
+          "name": "INGENIERÍA AMBIENTAL Y DE RECURSOS NATURALES",
+          "academicInfoReferences": 7,
+          "draftOccurrences": 8,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 803,
+        "name": "INGENIERÍA AMBIENTAL Y RECURSOS NATURALES"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        326
+      ],
+      "duplicateNames": [
+        "INGENIERIA AMBIENTAL Y RECURSOS NATURALES"
+      ],
+      "members": [
+        {
+          "id": 326,
+          "name": "INGENIERIA AMBIENTAL Y RECURSOS NATURALES",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 2,
+          "draftOccurrences": 5
+        },
+        {
+          "id": 803,
+          "name": "INGENIERÍA AMBIENTAL Y RECURSOS NATURALES",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 3,
+          "draftOccurrences": 5
+        }
+      ],
+      "affectedAcademicInfo": 2,
+      "totalReferencesToCanonicalAfterDryRun": 5,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 326,
+          "name": "INGENIERIA AMBIENTAL Y RECURSOS NATURALES",
+          "academicInfoReferences": 2,
+          "draftOccurrences": 5,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 803,
+          "name": "INGENIERÍA AMBIENTAL Y RECURSOS NATURALES",
+          "academicInfoReferences": 3,
+          "draftOccurrences": 5,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 830,
+        "name": "INGENIERÍA AMBIENTAL Y SEGURIDAD INDUSTRIAL"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        840
+      ],
+      "duplicateNames": [
+        "INGENIERIA AMBIENTAL Y SEGURIDAD INDUSTRIAL"
+      ],
+      "members": [
+        {
+          "id": 830,
+          "name": "INGENIERÍA AMBIENTAL Y SEGURIDAD INDUSTRIAL",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 2,
+          "draftOccurrences": 3
+        },
+        {
+          "id": 840,
+          "name": "INGENIERIA AMBIENTAL Y SEGURIDAD INDUSTRIAL",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 3
+        }
+      ],
+      "affectedAcademicInfo": 1,
+      "totalReferencesToCanonicalAfterDryRun": 3,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 830,
+          "name": "INGENIERÍA AMBIENTAL Y SEGURIDAD INDUSTRIAL",
+          "academicInfoReferences": 2,
+          "draftOccurrences": 3,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 840,
+          "name": "INGENIERIA AMBIENTAL Y SEGURIDAD INDUSTRIAL",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 3,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 652,
+        "name": "INGENIERÍA CIVIL"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        7,
+        780
+      ],
+      "duplicateNames": [
+        "Ingeniería Civil",
+        "INGENIERIA CIVIL"
+      ],
+      "members": [
+        {
+          "id": 7,
+          "name": "Ingeniería Civil",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": "Diseño y construcción de infraestructura.",
+          "code": "ESP-CIVIL",
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 89
+        },
+        {
+          "id": 652,
+          "name": "INGENIERÍA CIVIL",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 63,
+          "draftOccurrences": 89
+        },
+        {
+          "id": 780,
+          "name": "INGENIERIA CIVIL",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 26,
+          "draftOccurrences": 89
+        }
+      ],
+      "affectedAcademicInfo": 26,
+      "totalReferencesToCanonicalAfterDryRun": 89,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 7,
+          "name": "Ingeniería Civil",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 89,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 652,
+          "name": "INGENIERÍA CIVIL",
+          "academicInfoReferences": 63,
+          "draftOccurrences": 89,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 780,
+          "name": "INGENIERIA CIVIL",
+          "academicInfoReferences": 26,
+          "draftOccurrences": 89,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 841,
+        "name": "INGENIERÍA COMERCIAL"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        534
+      ],
+      "duplicateNames": [
+        "INGENIERIA COMERCIAL"
+      ],
+      "members": [
+        {
+          "id": 534,
+          "name": "INGENIERIA COMERCIAL",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 3
+        },
+        {
+          "id": 841,
+          "name": "INGENIERÍA COMERCIAL",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 2,
+          "draftOccurrences": 3
+        }
+      ],
+      "affectedAcademicInfo": 1,
+      "totalReferencesToCanonicalAfterDryRun": 3,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 534,
+          "name": "INGENIERIA COMERCIAL",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 3,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 841,
+          "name": "INGENIERÍA COMERCIAL",
+          "academicInfoReferences": 2,
+          "draftOccurrences": 3,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 389,
+        "name": "INGENIERÍA DE GESTIÓN MINERA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        240,
+        574
+      ],
+      "duplicateNames": [
+        "INGENIERIA DE GESTION MINERA",
+        "INGENIERIA DE GESTIÓN MINERA"
+      ],
+      "members": [
+        {
+          "id": 240,
+          "name": "INGENIERIA DE GESTION MINERA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 8,
+          "draftOccurrences": 63
+        },
+        {
+          "id": 389,
+          "name": "INGENIERÍA DE GESTIÓN MINERA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 52,
+          "draftOccurrences": 63
+        },
+        {
+          "id": 574,
+          "name": "INGENIERIA DE GESTIÓN MINERA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 3,
+          "draftOccurrences": 63
+        }
+      ],
+      "affectedAcademicInfo": 11,
+      "totalReferencesToCanonicalAfterDryRun": 63,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 240,
+          "name": "INGENIERIA DE GESTION MINERA",
+          "academicInfoReferences": 8,
+          "draftOccurrences": 63,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 389,
+          "name": "INGENIERÍA DE GESTIÓN MINERA",
+          "academicInfoReferences": 52,
+          "draftOccurrences": 63,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 574,
+          "name": "INGENIERIA DE GESTIÓN MINERA",
+          "academicInfoReferences": 3,
+          "draftOccurrences": 63,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 436,
+        "name": "INGENIERÍA DE MATERIALES"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        366
+      ],
+      "duplicateNames": [
+        "INGENIERIA DE MATERIALES"
+      ],
+      "members": [
+        {
+          "id": 366,
+          "name": "INGENIERIA DE MATERIALES",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 5
+        },
+        {
+          "id": 436,
+          "name": "INGENIERÍA DE MATERIALES",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 3,
+          "draftOccurrences": 5
+        }
+      ],
+      "affectedAcademicInfo": 1,
+      "totalReferencesToCanonicalAfterDryRun": 4,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 366,
+          "name": "INGENIERIA DE MATERIALES",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 5,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 436,
+          "name": "INGENIERÍA DE MATERIALES",
+          "academicInfoReferences": 3,
+          "draftOccurrences": 5,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 532,
+        "name": "INGENIERÍA DE MINA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        923
+      ],
+      "duplicateNames": [
+        "INGENIERIA DE MINA"
+      ],
+      "members": [
+        {
+          "id": 532,
+          "name": "INGENIERÍA DE MINA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 2,
+          "draftOccurrences": 3
+        },
+        {
+          "id": 923,
+          "name": "INGENIERIA DE MINA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 3
+        }
+      ],
+      "affectedAcademicInfo": 1,
+      "totalReferencesToCanonicalAfterDryRun": 3,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 532,
+          "name": "INGENIERÍA DE MINA",
+          "academicInfoReferences": 2,
+          "draftOccurrences": 3,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 923,
+          "name": "INGENIERIA DE MINA",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 3,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 809,
+        "name": "INGENIERÍA DE MINAS"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        1,
+        335,
+        348,
+        464,
+        635,
+        775
+      ],
+      "duplicateNames": [
+        "Ingeniería de Minas",
+        "INGENIERIA  DE MINAS",
+        "INGENIERÍA  DE  MINAS",
+        "INGENIERIA DE MINAS",
+        "INGENIERÌA DE MINAS",
+        "INGENIERÍA  DE MINAS"
+      ],
+      "members": [
+        {
+          "id": 1,
+          "name": "Ingeniería de Minas",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": "Especialidad orientada a la explotación y gestión de recursos minerales.",
+          "code": "ESP-MIN",
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 1141
+        },
+        {
+          "id": 335,
+          "name": "INGENIERIA  DE MINAS",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 2,
+          "draftOccurrences": 1141
+        },
+        {
+          "id": 348,
+          "name": "INGENIERÍA  DE  MINAS",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 1141
+        },
+        {
+          "id": 464,
+          "name": "INGENIERIA DE MINAS",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 445,
+          "draftOccurrences": 1141
+        },
+        {
+          "id": 635,
+          "name": "INGENIERÌA DE MINAS",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 2,
+          "draftOccurrences": 1141
+        },
+        {
+          "id": 775,
+          "name": "INGENIERÍA  DE MINAS",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 1141
+        },
+        {
+          "id": 809,
+          "name": "INGENIERÍA DE MINAS",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 673,
+          "draftOccurrences": 1141
+        }
+      ],
+      "affectedAcademicInfo": 450,
+      "totalReferencesToCanonicalAfterDryRun": 1123,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 1,
+          "name": "Ingeniería de Minas",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 1141,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 335,
+          "name": "INGENIERIA  DE MINAS",
+          "academicInfoReferences": 2,
+          "draftOccurrences": 1141,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 348,
+          "name": "INGENIERÍA  DE  MINAS",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 1141,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 464,
+          "name": "INGENIERIA DE MINAS",
+          "academicInfoReferences": 445,
+          "draftOccurrences": 1141,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 635,
+          "name": "INGENIERÌA DE MINAS",
+          "academicInfoReferences": 2,
+          "draftOccurrences": 1141,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 775,
+          "name": "INGENIERÍA  DE MINAS",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 1141,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 809,
+          "name": "INGENIERÍA DE MINAS",
+          "academicInfoReferences": 673,
+          "draftOccurrences": 1141,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 808,
+        "name": "INGENIERIA DE SOFTWARE"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        15
+      ],
+      "duplicateNames": [
+        "Ingeniería de Software"
+      ],
+      "members": [
+        {
+          "id": 15,
+          "name": "Ingeniería de Software",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": "Desarrollo de software y arquitectura empresarial.",
+          "code": "ESP-SOFT",
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 1
+        },
+        {
+          "id": 808,
+          "name": "INGENIERIA DE SOFTWARE",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 1
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 1,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 15,
+          "name": "Ingeniería de Software",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 1,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 808,
+          "name": "INGENIERIA DE SOFTWARE",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 1,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 675,
+        "name": "INGENIERÍA ELÉCTRICA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        10,
+        580,
+        679
+      ],
+      "duplicateNames": [
+        "Ingeniería Eléctrica",
+        "INGENIERIA ELECTRICA",
+        "INGENIERÍA ELECTRICA"
+      ],
+      "members": [
+        {
+          "id": 10,
+          "name": "Ingeniería Eléctrica",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": "Sistemas eléctricos de potencia y distribución.",
+          "code": "ESP-ELE",
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 17
+        },
+        {
+          "id": 580,
+          "name": "INGENIERIA ELECTRICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 6,
+          "draftOccurrences": 17
+        },
+        {
+          "id": 675,
+          "name": "INGENIERÍA ELÉCTRICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 10,
+          "draftOccurrences": 17
+        },
+        {
+          "id": 679,
+          "name": "INGENIERÍA ELECTRICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 17
+        }
+      ],
+      "affectedAcademicInfo": 7,
+      "totalReferencesToCanonicalAfterDryRun": 17,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 10,
+          "name": "Ingeniería Eléctrica",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 17,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 580,
+          "name": "INGENIERIA ELECTRICA",
+          "academicInfoReferences": 6,
+          "draftOccurrences": 17,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 675,
+          "name": "INGENIERÍA ELÉCTRICA",
+          "academicInfoReferences": 10,
+          "draftOccurrences": 17,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 679,
+          "name": "INGENIERÍA ELECTRICA",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 17,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 713,
+        "name": "INGENIERÍA ELECTRÓNICA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        11,
+        343
+      ],
+      "duplicateNames": [
+        "Ingeniería Electrónica",
+        "INGENIERIA ELECTRONICA"
+      ],
+      "members": [
+        {
+          "id": 11,
+          "name": "Ingeniería Electrónica",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": "Diseño de sistemas electrónicos y automatización.",
+          "code": "ESP-ELECTRON",
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 15
+        },
+        {
+          "id": 343,
+          "name": "INGENIERIA ELECTRONICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 6,
+          "draftOccurrences": 15
+        },
+        {
+          "id": 713,
+          "name": "INGENIERÍA ELECTRÓNICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 9,
+          "draftOccurrences": 15
+        }
+      ],
+      "affectedAcademicInfo": 6,
+      "totalReferencesToCanonicalAfterDryRun": 15,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 11,
+          "name": "Ingeniería Electrónica",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 15,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 343,
+          "name": "INGENIERIA ELECTRONICA",
+          "academicInfoReferences": 6,
+          "draftOccurrences": 15,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 713,
+          "name": "INGENIERÍA ELECTRÓNICA",
+          "academicInfoReferences": 9,
+          "draftOccurrences": 15,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 347,
+        "name": "INGENIERÍA EN SEGURIDAD LABORAL Y AMBIENTAL"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        777
+      ],
+      "duplicateNames": [
+        "INGENIERIA EN SEGURIDAD LABORAL Y AMBIENTAL"
+      ],
+      "members": [
+        {
+          "id": 347,
+          "name": "INGENIERÍA EN SEGURIDAD LABORAL Y AMBIENTAL",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 2,
+          "draftOccurrences": 3
+        },
+        {
+          "id": 777,
+          "name": "INGENIERIA EN SEGURIDAD LABORAL Y AMBIENTAL",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 3
+        }
+      ],
+      "affectedAcademicInfo": 1,
+      "totalReferencesToCanonicalAfterDryRun": 3,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 347,
+          "name": "INGENIERÍA EN SEGURIDAD LABORAL Y AMBIENTAL",
+          "academicInfoReferences": 2,
+          "draftOccurrences": 3,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 777,
+          "name": "INGENIERIA EN SEGURIDAD LABORAL Y AMBIENTAL",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 3,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 438,
+        "name": "INGENIERÍA GEOFÍSICA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        657
+      ],
+      "duplicateNames": [
+        "INGENIERIA GEOFISICA"
+      ],
+      "members": [
+        {
+          "id": 438,
+          "name": "INGENIERÍA GEOFÍSICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 5,
+          "draftOccurrences": 7
+        },
+        {
+          "id": 657,
+          "name": "INGENIERIA GEOFISICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 2,
+          "draftOccurrences": 7
+        }
+      ],
+      "affectedAcademicInfo": 2,
+      "totalReferencesToCanonicalAfterDryRun": 7,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 438,
+          "name": "INGENIERÍA GEOFÍSICA",
+          "academicInfoReferences": 5,
+          "draftOccurrences": 7,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 657,
+          "name": "INGENIERIA GEOFISICA",
+          "academicInfoReferences": 2,
+          "draftOccurrences": 7,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 553,
+        "name": "INGENIERÍA GEOGRÁFICA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        733
+      ],
+      "duplicateNames": [
+        "INGENIERIA GEOGRÁFICA"
+      ],
+      "members": [
+        {
+          "id": 553,
+          "name": "INGENIERÍA GEOGRÁFICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 3,
+          "draftOccurrences": 4
+        },
+        {
+          "id": 733,
+          "name": "INGENIERIA GEOGRÁFICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 4
+        }
+      ],
+      "affectedAcademicInfo": 1,
+      "totalReferencesToCanonicalAfterDryRun": 4,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 553,
+          "name": "INGENIERÍA GEOGRÁFICA",
+          "academicInfoReferences": 3,
+          "draftOccurrences": 4,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 733,
+          "name": "INGENIERIA GEOGRÁFICA",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 4,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 774,
+        "name": "INGENIERÍA GEOLÓGICA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        2,
+        463,
+        513,
+        570,
+        658,
+        688,
+        741,
+        768,
+        844,
+        905
+      ],
+      "duplicateNames": [
+        "Ingeniería Geológica",
+        "INGENIERIA  GEOLOGICA",
+        "INGENIERIA  GEOLÓGICA",
+        "INGENIERÍA GEÓLOGICA",
+        "INGENIERÍA  GEOLÓGICA",
+        "INGENIERIA GEOLOGICA",
+        "INGENIERIA GEOLÒGICA",
+        "INGENIERÌA GEOLÒGICA",
+        "INGENIERÍA GEOLOGICA",
+        "INGENIERIA GEOLÓGICA"
+      ],
+      "members": [
+        {
+          "id": 2,
+          "name": "Ingeniería Geológica",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": "Especialidad enfocada en geología aplicada y exploración.",
+          "code": "ESP-GEO",
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 426
+        },
+        {
+          "id": 463,
+          "name": "INGENIERIA  GEOLOGICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 426
+        },
+        {
+          "id": 513,
+          "name": "INGENIERIA  GEOLÓGICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 426
+        },
+        {
+          "id": 570,
+          "name": "INGENIERÍA GEÓLOGICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 426
+        },
+        {
+          "id": 658,
+          "name": "INGENIERÍA  GEOLÓGICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 426
+        },
+        {
+          "id": 688,
+          "name": "INGENIERIA GEOLOGICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 90,
+          "draftOccurrences": 426
+        },
+        {
+          "id": 741,
+          "name": "INGENIERIA GEOLÒGICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 426
+        },
+        {
+          "id": 768,
+          "name": "INGENIERÌA GEOLÒGICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 426
+        },
+        {
+          "id": 774,
+          "name": "INGENIERÍA GEOLÓGICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 294,
+          "draftOccurrences": 426
+        },
+        {
+          "id": 844,
+          "name": "INGENIERÍA GEOLOGICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 10,
+          "draftOccurrences": 426
+        },
+        {
+          "id": 905,
+          "name": "INGENIERIA GEOLÓGICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 16,
+          "draftOccurrences": 426
+        }
+      ],
+      "affectedAcademicInfo": 122,
+      "totalReferencesToCanonicalAfterDryRun": 416,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 2,
+          "name": "Ingeniería Geológica",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 426,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 463,
+          "name": "INGENIERIA  GEOLOGICA",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 426,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 513,
+          "name": "INGENIERIA  GEOLÓGICA",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 426,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 570,
+          "name": "INGENIERÍA GEÓLOGICA",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 426,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 658,
+          "name": "INGENIERÍA  GEOLÓGICA",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 426,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 688,
+          "name": "INGENIERIA GEOLOGICA",
+          "academicInfoReferences": 90,
+          "draftOccurrences": 426,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 741,
+          "name": "INGENIERIA GEOLÒGICA",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 426,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 768,
+          "name": "INGENIERÌA GEOLÒGICA",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 426,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 774,
+          "name": "INGENIERÍA GEOLÓGICA",
+          "academicInfoReferences": 294,
+          "draftOccurrences": 426,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 844,
+          "name": "INGENIERÍA GEOLOGICA",
+          "academicInfoReferences": 10,
+          "draftOccurrences": 426,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 905,
+          "name": "INGENIERIA GEOLÓGICA",
+          "academicInfoReferences": 16,
+          "draftOccurrences": 426,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 879,
+        "name": "INGENIERÍA GEOLÓGICA-GEOTECNIA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        225,
+        773,
+        814
+      ],
+      "duplicateNames": [
+        "INGENIERÍA GEOLÓGICA - GEOTECNIA",
+        "INGENIERIA GEOLÓGICA - GEOTECNIA",
+        "INGENIERÍA GEOLÓGICA GEOTECNIA"
+      ],
+      "members": [
+        {
+          "id": 225,
+          "name": "INGENIERÍA GEOLÓGICA - GEOTECNIA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 6
+        },
+        {
+          "id": 773,
+          "name": "INGENIERIA GEOLÓGICA - GEOTECNIA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 6
+        },
+        {
+          "id": 814,
+          "name": "INGENIERÍA GEOLÓGICA GEOTECNIA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 6
+        },
+        {
+          "id": 879,
+          "name": "INGENIERÍA GEOLÓGICA-GEOTECNIA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 4,
+          "draftOccurrences": 6
+        }
+      ],
+      "affectedAcademicInfo": 2,
+      "totalReferencesToCanonicalAfterDryRun": 6,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 225,
+          "name": "INGENIERÍA GEOLÓGICA - GEOTECNIA",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 6,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 773,
+          "name": "INGENIERIA GEOLÓGICA - GEOTECNIA",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 6,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 814,
+          "name": "INGENIERÍA GEOLÓGICA GEOTECNIA",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 6,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 879,
+          "name": "INGENIERÍA GEOLÓGICA-GEOTECNIA",
+          "academicInfoReferences": 4,
+          "draftOccurrences": 6,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 417,
+        "name": "INGENIERÍA GEOLÓGICA Y GEOTECNIA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        885
+      ],
+      "duplicateNames": [
+        "INGENIERIA GEOLOGICA Y GEOTECNIA"
+      ],
+      "members": [
+        {
+          "id": 417,
+          "name": "INGENIERÍA GEOLÓGICA Y GEOTECNIA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 4,
+          "draftOccurrences": 6
+        },
+        {
+          "id": 885,
+          "name": "INGENIERIA GEOLOGICA Y GEOTECNIA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 2,
+          "draftOccurrences": 6
+        }
+      ],
+      "affectedAcademicInfo": 2,
+      "totalReferencesToCanonicalAfterDryRun": 6,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 417,
+          "name": "INGENIERÍA GEOLÓGICA Y GEOTECNIA",
+          "academicInfoReferences": 4,
+          "draftOccurrences": 6,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 885,
+          "name": "INGENIERIA GEOLOGICA Y GEOTECNIA",
+          "academicInfoReferences": 2,
+          "draftOccurrences": 6,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 725,
+        "name": "INGENIERÍA INDUSTRIAL"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        8,
+        480
+      ],
+      "duplicateNames": [
+        "Ingeniería Industrial",
+        "INGENIERIA INDUSTRIAL"
+      ],
+      "members": [
+        {
+          "id": 8,
+          "name": "Ingeniería Industrial",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": "Optimización de procesos industriales.",
+          "code": "ESP-IND",
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 120
+        },
+        {
+          "id": 480,
+          "name": "INGENIERIA INDUSTRIAL",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 32,
+          "draftOccurrences": 120
+        },
+        {
+          "id": 725,
+          "name": "INGENIERÍA INDUSTRIAL",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 86,
+          "draftOccurrences": 120
+        }
+      ],
+      "affectedAcademicInfo": 32,
+      "totalReferencesToCanonicalAfterDryRun": 118,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 8,
+          "name": "Ingeniería Industrial",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 120,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 480,
+          "name": "INGENIERIA INDUSTRIAL",
+          "academicInfoReferences": 32,
+          "draftOccurrences": 120,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 725,
+          "name": "INGENIERÍA INDUSTRIAL",
+          "academicInfoReferences": 86,
+          "draftOccurrences": 120,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 786,
+        "name": "INGENIERÍA MECÁNICA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        9,
+        476,
+        552,
+        724
+      ],
+      "duplicateNames": [
+        "Ingeniería Mecánica",
+        "INGENIERÍA MECANICA",
+        "INGENIERIA MECANICA",
+        "INGENIERIA MECÁNICA"
+      ],
+      "members": [
+        {
+          "id": 9,
+          "name": "Ingeniería Mecánica",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": "Diseño y mantenimiento de sistemas mecánicos.",
+          "code": "ESP-MEC",
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 44
+        },
+        {
+          "id": 476,
+          "name": "INGENIERÍA MECANICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 2,
+          "draftOccurrences": 44
+        },
+        {
+          "id": 552,
+          "name": "INGENIERIA MECANICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 11,
+          "draftOccurrences": 44
+        },
+        {
+          "id": 724,
+          "name": "INGENIERIA MECÁNICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 44
+        },
+        {
+          "id": 786,
+          "name": "INGENIERÍA MECÁNICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 29,
+          "draftOccurrences": 44
+        }
+      ],
+      "affectedAcademicInfo": 14,
+      "totalReferencesToCanonicalAfterDryRun": 43,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 9,
+          "name": "Ingeniería Mecánica",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 44,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 476,
+          "name": "INGENIERÍA MECANICA",
+          "academicInfoReferences": 2,
+          "draftOccurrences": 44,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 552,
+          "name": "INGENIERIA MECANICA",
+          "academicInfoReferences": 11,
+          "draftOccurrences": 44,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 724,
+          "name": "INGENIERIA MECÁNICA",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 44,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 786,
+          "name": "INGENIERÍA MECÁNICA",
+          "academicInfoReferences": 29,
+          "draftOccurrences": 44,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 567,
+        "name": "INGENIERÍA MECÁNICA DE FLUIDOS"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        226,
+        391
+      ],
+      "duplicateNames": [
+        "INGENIERIA MECANICA DE FLUIDOS",
+        "INGENIERÍA MECANICA DE FLUIDOS"
+      ],
+      "members": [
+        {
+          "id": 226,
+          "name": "INGENIERIA MECANICA DE FLUIDOS",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 4
+        },
+        {
+          "id": 391,
+          "name": "INGENIERÍA MECANICA DE FLUIDOS",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 4
+        },
+        {
+          "id": 567,
+          "name": "INGENIERÍA MECÁNICA DE FLUIDOS",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 2,
+          "draftOccurrences": 4
+        }
+      ],
+      "affectedAcademicInfo": 2,
+      "totalReferencesToCanonicalAfterDryRun": 4,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 226,
+          "name": "INGENIERIA MECANICA DE FLUIDOS",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 4,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 391,
+          "name": "INGENIERÍA MECANICA DE FLUIDOS",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 4,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 567,
+          "name": "INGENIERÍA MECÁNICA DE FLUIDOS",
+          "academicInfoReferences": 2,
+          "draftOccurrences": 4,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 925,
+        "name": "INGENIERÍA MECÁNICA ELÉCTRICA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        659
+      ],
+      "duplicateNames": [
+        "INGENIERIA MECANICA ELECTRICA"
+      ],
+      "members": [
+        {
+          "id": 659,
+          "name": "INGENIERIA MECANICA ELECTRICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 3
+        },
+        {
+          "id": 925,
+          "name": "INGENIERÍA MECÁNICA ELÉCTRICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 2,
+          "draftOccurrences": 3
+        }
+      ],
+      "affectedAcademicInfo": 1,
+      "totalReferencesToCanonicalAfterDryRun": 3,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 659,
+          "name": "INGENIERIA MECANICA ELECTRICA",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 3,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 925,
+          "name": "INGENIERÍA MECÁNICA ELÉCTRICA",
+          "academicInfoReferences": 2,
+          "draftOccurrences": 3,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 906,
+        "name": "INGENIERÍA METALÚRGIA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        405
+      ],
+      "duplicateNames": [
+        "INGENIERIA METALURGIA"
+      ],
+      "members": [
+        {
+          "id": 405,
+          "name": "INGENIERIA METALURGIA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 3
+        },
+        {
+          "id": 906,
+          "name": "INGENIERÍA METALÚRGIA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 2,
+          "draftOccurrences": 3
+        }
+      ],
+      "affectedAcademicInfo": 1,
+      "totalReferencesToCanonicalAfterDryRun": 3,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 405,
+          "name": "INGENIERIA METALURGIA",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 3,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 906,
+          "name": "INGENIERÍA METALÚRGIA",
+          "academicInfoReferences": 2,
+          "draftOccurrences": 3,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 563,
+        "name": "INGENIERÍA METALÚRGICA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        3,
+        332,
+        531,
+        921
+      ],
+      "duplicateNames": [
+        "Ingeniería Metalúrgica",
+        "INGENIERÍA METALURGICA",
+        "INGENIERIA METALURGICA",
+        "INGENIERIA METALÚRGICA"
+      ],
+      "members": [
+        {
+          "id": 3,
+          "name": "Ingeniería Metalúrgica",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": "Especialidad orientada al procesamiento de minerales y metalurgia.",
+          "code": "ESP-MET",
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 199
+        },
+        {
+          "id": 332,
+          "name": "INGENIERÍA METALURGICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 13,
+          "draftOccurrences": 199
+        },
+        {
+          "id": 531,
+          "name": "INGENIERIA METALURGICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 55,
+          "draftOccurrences": 199
+        },
+        {
+          "id": 563,
+          "name": "INGENIERÍA METALÚRGICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 116,
+          "draftOccurrences": 199
+        },
+        {
+          "id": 921,
+          "name": "INGENIERIA METALÚRGICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 9,
+          "draftOccurrences": 199
+        }
+      ],
+      "affectedAcademicInfo": 77,
+      "totalReferencesToCanonicalAfterDryRun": 193,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 3,
+          "name": "Ingeniería Metalúrgica",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 199,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 332,
+          "name": "INGENIERÍA METALURGICA",
+          "academicInfoReferences": 13,
+          "draftOccurrences": 199,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 531,
+          "name": "INGENIERIA METALURGICA",
+          "academicInfoReferences": 55,
+          "draftOccurrences": 199,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 563,
+          "name": "INGENIERÍA METALÚRGICA",
+          "academicInfoReferences": 116,
+          "draftOccurrences": 199,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 921,
+          "name": "INGENIERIA METALÚRGICA",
+          "academicInfoReferences": 9,
+          "draftOccurrences": 199,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 297,
+        "name": "INGENIERIA METALURGICA Y DE MATERIALES"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        309
+      ],
+      "duplicateNames": [
+        "INGENIERÍA METALÚRGICA Y DE MATERIALES"
+      ],
+      "members": [
+        {
+          "id": 297,
+          "name": "INGENIERIA METALURGICA Y DE MATERIALES",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 3,
+          "draftOccurrences": 5
+        },
+        {
+          "id": 309,
+          "name": "INGENIERÍA METALÚRGICA Y DE MATERIALES",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 2,
+          "draftOccurrences": 5
+        }
+      ],
+      "affectedAcademicInfo": 2,
+      "totalReferencesToCanonicalAfterDryRun": 5,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 297,
+          "name": "INGENIERIA METALURGICA Y DE MATERIALES",
+          "academicInfoReferences": 3,
+          "draftOccurrences": 5,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 309,
+          "name": "INGENIERÍA METALÚRGICA Y DE MATERIALES",
+          "academicInfoReferences": 2,
+          "draftOccurrences": 5,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 356,
+        "name": "INGENIERIA MINAS"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        582,
+        681
+      ],
+      "duplicateNames": [
+        "INGENIERÍA  MINAS",
+        "INGENIERÍA MINAS"
+      ],
+      "members": [
+        {
+          "id": 356,
+          "name": "INGENIERIA MINAS",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 3,
+          "draftOccurrences": 5
+        },
+        {
+          "id": 582,
+          "name": "INGENIERÍA  MINAS",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 5
+        },
+        {
+          "id": 681,
+          "name": "INGENIERÍA MINAS",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 5
+        }
+      ],
+      "affectedAcademicInfo": 2,
+      "totalReferencesToCanonicalAfterDryRun": 5,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 356,
+          "name": "INGENIERIA MINAS",
+          "academicInfoReferences": 3,
+          "draftOccurrences": 5,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 582,
+          "name": "INGENIERÍA  MINAS",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 5,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 681,
+          "name": "INGENIERÍA MINAS",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 5,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 375,
+        "name": "INGENIERÍA QUÍMICA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        13,
+        437,
+        586,
+        736
+      ],
+      "duplicateNames": [
+        "Ingeniería Química",
+        "INGENIERIA QUIMICA",
+        "INGENIERÌA QUÌMICA",
+        "INGENIERÍA QUIMICA"
+      ],
+      "members": [
+        {
+          "id": 13,
+          "name": "Ingeniería Química",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": "Procesos químicos industriales.",
+          "code": "ESP-QUIM",
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 82
+        },
+        {
+          "id": 375,
+          "name": "INGENIERÍA QUÍMICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 59,
+          "draftOccurrences": 82
+        },
+        {
+          "id": 437,
+          "name": "INGENIERIA QUIMICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 18,
+          "draftOccurrences": 82
+        },
+        {
+          "id": 586,
+          "name": "INGENIERÌA QUÌMICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 82
+        },
+        {
+          "id": 736,
+          "name": "INGENIERÍA QUIMICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 2,
+          "draftOccurrences": 82
+        }
+      ],
+      "affectedAcademicInfo": 20,
+      "totalReferencesToCanonicalAfterDryRun": 79,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 13,
+          "name": "Ingeniería Química",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 82,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 375,
+          "name": "INGENIERÍA QUÍMICA",
+          "academicInfoReferences": 59,
+          "draftOccurrences": 82,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 437,
+          "name": "INGENIERIA QUIMICA",
+          "academicInfoReferences": 18,
+          "draftOccurrences": 82,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 586,
+          "name": "INGENIERÌA QUÌMICA",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 82,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 736,
+          "name": "INGENIERÍA QUIMICA",
+          "academicInfoReferences": 2,
+          "draftOccurrences": 82,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 822,
+        "name": "INGENIERÍA SANITARIA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        20
+      ],
+      "duplicateNames": [
+        "Ingeniería Sanitaria"
+      ],
+      "members": [
+        {
+          "id": 20,
+          "name": "Ingeniería Sanitaria",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": "Diseño de sistemas de agua y saneamiento.",
+          "code": "ESP-SAN",
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 3
+        },
+        {
+          "id": 822,
+          "name": "INGENIERÍA SANITARIA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 3,
+          "draftOccurrences": 3
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 3,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 20,
+          "name": "Ingeniería Sanitaria",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 3,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 822,
+          "name": "INGENIERÍA SANITARIA",
+          "academicInfoReferences": 3,
+          "draftOccurrences": 3,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 353,
+        "name": "INGENIERO MECÁNICO"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        838
+      ],
+      "duplicateNames": [
+        "INGENIERO MECANICO"
+      ],
+      "members": [
+        {
+          "id": 353,
+          "name": "INGENIERO MECÁNICO",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 3,
+          "draftOccurrences": 4
+        },
+        {
+          "id": 838,
+          "name": "INGENIERO MECANICO",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 4
+        }
+      ],
+      "affectedAcademicInfo": 1,
+      "totalReferencesToCanonicalAfterDryRun": 4,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 353,
+          "name": "INGENIERO MECÁNICO",
+          "academicInfoReferences": 3,
+          "draftOccurrences": 4,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 838,
+          "name": "INGENIERO MECANICO",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 4,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 452,
+        "name": "INGENIERO QUIMICO"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        667
+      ],
+      "duplicateNames": [
+        "INGENIERO QUÍMICO"
+      ],
+      "members": [
+        {
+          "id": 452,
+          "name": "INGENIERO QUIMICO",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 2,
+          "draftOccurrences": 2
+        },
+        {
+          "id": 667,
+          "name": "INGENIERO QUÍMICO",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 2
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 2,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 452,
+          "name": "INGENIERO QUIMICO",
+          "academicInfoReferences": 2,
+          "draftOccurrences": 2,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 667,
+          "name": "INGENIERO QUÍMICO",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 2,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 788,
+        "name": "MANTENIMIENTO DE EQUIPO PESADO"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        865
+      ],
+      "duplicateNames": [
+        "MANTENIMIENTO DE EQUIPÓ PESADO"
+      ],
+      "members": [
+        {
+          "id": 788,
+          "name": "MANTENIMIENTO DE EQUIPO PESADO",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 18,
+          "draftOccurrences": 19
+        },
+        {
+          "id": 865,
+          "name": "MANTENIMIENTO DE EQUIPÓ PESADO",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 19
+        }
+      ],
+      "affectedAcademicInfo": 1,
+      "totalReferencesToCanonicalAfterDryRun": 19,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 788,
+          "name": "MANTENIMIENTO DE EQUIPO PESADO",
+          "academicInfoReferences": 18,
+          "draftOccurrences": 19,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 865,
+          "name": "MANTENIMIENTO DE EQUIPÓ PESADO",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 19,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 710,
+        "name": "MANTENIMIENTO ELÉCTRICO E INSTRUMENTACIÓN"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        707
+      ],
+      "duplicateNames": [
+        "MANTENIMIENTO ELECTRICO E INSTRUMENTACION"
+      ],
+      "members": [
+        {
+          "id": 707,
+          "name": "MANTENIMIENTO ELECTRICO E INSTRUMENTACION",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 4,
+          "draftOccurrences": 15
+        },
+        {
+          "id": 710,
+          "name": "MANTENIMIENTO ELÉCTRICO E INSTRUMENTACIÓN",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 11,
+          "draftOccurrences": 15
+        }
+      ],
+      "affectedAcademicInfo": 4,
+      "totalReferencesToCanonicalAfterDryRun": 15,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 707,
+          "name": "MANTENIMIENTO ELECTRICO E INSTRUMENTACION",
+          "academicInfoReferences": 4,
+          "draftOccurrences": 15,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 710,
+          "name": "MANTENIMIENTO ELÉCTRICO E INSTRUMENTACIÓN",
+          "academicInfoReferences": 11,
+          "draftOccurrences": 15,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 546,
+        "name": "MECANICO ELÉCTRICISTA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        750
+      ],
+      "duplicateNames": [
+        "MECANICO ELECTRICISTA"
+      ],
+      "members": [
+        {
+          "id": 546,
+          "name": "MECANICO ELÉCTRICISTA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 1
+        },
+        {
+          "id": 750,
+          "name": "MECANICO ELECTRICISTA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 1
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 1,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 546,
+          "name": "MECANICO ELÉCTRICISTA",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 1,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 750,
+          "name": "MECANICO ELECTRICISTA",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 1,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 720,
+        "name": "MECATRONICA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        604
+      ],
+      "duplicateNames": [
+        "MECATRÓNICA"
+      ],
+      "members": [
+        {
+          "id": 604,
+          "name": "MECATRÓNICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 3
+        },
+        {
+          "id": 720,
+          "name": "MECATRONICA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 2,
+          "draftOccurrences": 3
+        }
+      ],
+      "affectedAcademicInfo": 1,
+      "totalReferencesToCanonicalAfterDryRun": 3,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 604,
+          "name": "MECATRÓNICA",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 3,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 720,
+          "name": "MECATRONICA",
+          "academicInfoReferences": 2,
+          "draftOccurrences": 3,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 855,
+        "name": "NEGOCIOS INTERNACIONALES"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        27
+      ],
+      "duplicateNames": [
+        "Negocios Internacionales"
+      ],
+      "members": [
+        {
+          "id": 27,
+          "name": "Negocios Internacionales",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": "Comercio internacional y logística.",
+          "code": "ESP-NEG",
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 8
+        },
+        {
+          "id": 855,
+          "name": "NEGOCIOS INTERNACIONALES",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 8,
+          "draftOccurrences": 8
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 8,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 27,
+          "name": "Negocios Internacionales",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 8,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 855,
+          "name": "NEGOCIOS INTERNACIONALES",
+          "academicInfoReferences": 8,
+          "draftOccurrences": 8,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 383,
+        "name": "PERFORACIÓN Y VOLADURA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        538
+      ],
+      "duplicateNames": [
+        "PERFORACION Y VOLADURA"
+      ],
+      "members": [
+        {
+          "id": 383,
+          "name": "PERFORACIÓN Y VOLADURA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 4,
+          "draftOccurrences": 6
+        },
+        {
+          "id": 538,
+          "name": "PERFORACION Y VOLADURA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 6
+        }
+      ],
+      "affectedAcademicInfo": 1,
+      "totalReferencesToCanonicalAfterDryRun": 5,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 383,
+          "name": "PERFORACIÓN Y VOLADURA",
+          "academicInfoReferences": 4,
+          "draftOccurrences": 6,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 538,
+          "name": "PERFORACION Y VOLADURA",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 6,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 758,
+        "name": "PREVENCIÓN DE RIESGOS, SEGURIDAD Y SALUD OCUPACIONAL"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        554,
+        676
+      ],
+      "duplicateNames": [
+        "PREVENCION DE RIESGOS, SEGURIDAD Y SALUD OCUPACIONAL",
+        "PREVENCIÓN DE RIESGOS SEGURIDAD Y SALUD OCUPACIONAL"
+      ],
+      "members": [
+        {
+          "id": 554,
+          "name": "PREVENCION DE RIESGOS, SEGURIDAD Y SALUD OCUPACIONAL",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 8
+        },
+        {
+          "id": 676,
+          "name": "PREVENCIÓN DE RIESGOS SEGURIDAD Y SALUD OCUPACIONAL",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 8
+        },
+        {
+          "id": 758,
+          "name": "PREVENCIÓN DE RIESGOS, SEGURIDAD Y SALUD OCUPACIONAL",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 6,
+          "draftOccurrences": 8
+        }
+      ],
+      "affectedAcademicInfo": 2,
+      "totalReferencesToCanonicalAfterDryRun": 8,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 554,
+          "name": "PREVENCION DE RIESGOS, SEGURIDAD Y SALUD OCUPACIONAL",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 8,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 676,
+          "name": "PREVENCIÓN DE RIESGOS SEGURIDAD Y SALUD OCUPACIONAL",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 8,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 758,
+          "name": "PREVENCIÓN DE RIESGOS, SEGURIDAD Y SALUD OCUPACIONAL",
+          "academicInfoReferences": 6,
+          "draftOccurrences": 8,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 255,
+        "name": "PROCESOS METALÚRGICOS Y QUÍMICOS"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        217,
+        770
+      ],
+      "duplicateNames": [
+        "PROCESOS METALURGICOS Y QUÍMICOS",
+        "PROCESOS METALURGICOS Y QUIMICOS"
+      ],
+      "members": [
+        {
+          "id": 217,
+          "name": "PROCESOS METALURGICOS Y QUÍMICOS",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 8
+        },
+        {
+          "id": 255,
+          "name": "PROCESOS METALÚRGICOS Y QUÍMICOS",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 5,
+          "draftOccurrences": 8
+        },
+        {
+          "id": 770,
+          "name": "PROCESOS METALURGICOS Y QUIMICOS",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 2,
+          "draftOccurrences": 8
+        }
+      ],
+      "affectedAcademicInfo": 3,
+      "totalReferencesToCanonicalAfterDryRun": 8,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 217,
+          "name": "PROCESOS METALURGICOS Y QUÍMICOS",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 8,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 255,
+          "name": "PROCESOS METALÚRGICOS Y QUÍMICOS",
+          "academicInfoReferences": 5,
+          "draftOccurrences": 8,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 770,
+          "name": "PROCESOS METALURGICOS Y QUIMICOS",
+          "academicInfoReferences": 2,
+          "draftOccurrences": 8,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 887,
+        "name": "PSICOLOGÍA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        293
+      ],
+      "duplicateNames": [
+        "PSICOLOGIA"
+      ],
+      "members": [
+        {
+          "id": 293,
+          "name": "PSICOLOGIA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 10
+        },
+        {
+          "id": 887,
+          "name": "PSICOLOGÍA",
+          "country": null,
+          "acronym": null,
+          "categoryId": null,
+          "description": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 8,
+          "draftOccurrences": 10
+        }
+      ],
+      "affectedAcademicInfo": 1,
+      "totalReferencesToCanonicalAfterDryRun": 9,
+      "countryIdsOrNames": [
+        null
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 293,
+          "name": "PSICOLOGIA",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 10,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 887,
+          "name": "PSICOLOGÍA",
+          "academicInfoReferences": 8,
+          "draftOccurrences": 10,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (SPECIALTY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    }
+  ],
+  "proposedTransactionalPlan": [
+    "BEGIN",
+    "actualizar FKs duplicados hacia canonicalId",
+    "validar conteos y foreign keys",
+    "marcar duplicados inactivos o conservarlos como alias",
+    "no eliminar inmediatamente",
+    "COMMIT"
+  ],
+  "relationReview": {
+    "universityForeignKeys": [
+      {
+        "model": "AcademicInfo",
+        "field": "universityId",
+        "relation": "University",
+        "onDelete": "Restrict",
+        "onUpdate": "database default/not explicitly specified"
+      }
+    ],
+    "specialtyForeignKeys": [
+      {
+        "model": "AcademicInfo",
+        "field": "specialtyId",
+        "relation": "Specialty",
+        "onDelete": "Restrict",
+        "onUpdate": "database default/not explicitly specified"
+      }
+    ],
+    "note": "La revisión de schema.prisma no encontró otras relaciones que apunten directamente a University o Specialty."
+  }
+}

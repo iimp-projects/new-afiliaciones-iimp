@@ -18,6 +18,7 @@ export default auth((req) => {
    "/afiliaciones",
    "/beneficios",
    "/consulta",
+   "/sap",
   ];
 
   const isPublicRoute = publicRoutes.some((route) =>

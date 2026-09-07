@@ -1,0 +1,1516 @@
+{
+  "generatedAt": "2026-09-06T21:35:05.031Z",
+  "readOnly": true,
+  "warning": "Propuesta: no ejecutar sin aprobación explícita.",
+  "universities": [
+    {
+      "canonicalId": 928,
+      "canonicalName": "PONTIFICIA UNIVERSIDAD CATOLICA DEL PERU",
+      "duplicateIds": [
+        49,
+        990
+      ],
+      "aliases": [
+        "Pontificia Universidad Católica del Perú",
+        "PUCP",
+        "PONTIFICIA UNIVERSIDAD CATÓLICA DEL PERÚ"
+      ],
+      "academicInfoAffected": 32
+    },
+    {
+      "canonicalId": 1017,
+      "canonicalName": "UNIVERSIDAD ANDINA DEL CUSCO",
+      "duplicateIds": [
+        74
+      ],
+      "aliases": [
+        "Universidad Andina del Cusco"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 1067,
+      "canonicalName": "UNIVERSIDAD ANTONIO RUIZ DE MONTOYA",
+      "duplicateIds": [
+        63
+      ],
+      "aliases": [
+        "Universidad Antonio Ruiz de Montoya",
+        "UARM"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 980,
+      "canonicalName": "UNIVERSIDAD CATOLICA DE SANTA MARIA",
+      "duplicateIds": [
+        72,
+        1073
+      ],
+      "aliases": [
+        "Universidad Católica de Santa María",
+        "UCSM",
+        "UNIVERSIDAD CATÓLICA DE SANTA MARÍA"
+      ],
+      "academicInfoAffected": 1
+    },
+    {
+      "canonicalId": 788,
+      "canonicalName": "UNIVERSIDAD CATOLICA DE TRUJILLO BENEDICTO XVI",
+      "duplicateIds": [
+        80
+      ],
+      "aliases": [
+        "Universidad Católica de Trujillo Benedicto XVI"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 885,
+      "canonicalName": "UNIVERSIDAD CATÓLICA SAN PABLO",
+      "duplicateIds": [
+        73,
+        878
+      ],
+      "aliases": [
+        "Universidad Católica San Pablo",
+        "UCSP",
+        "UNIVERSIDAD CATOLICA SAN PABLO"
+      ],
+      "academicInfoAffected": 3
+    },
+    {
+      "canonicalId": 1096,
+      "canonicalName": "UNIVERSIDAD CATÓLICA SANTO TORIBIO DE MOGROVEJO",
+      "duplicateIds": [
+        70
+      ],
+      "aliases": [
+        "Universidad Católica Santo Toribio de Mogrovejo",
+        "USAT"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 77,
+      "canonicalName": "Universidad Continental",
+      "duplicateIds": [
+        789
+      ],
+      "aliases": [
+        "UNIVERSIDAD CONTINENTAL"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 898,
+      "canonicalName": "UNIVERSIDAD DE INGENIERIA Y TECNOLOGIA",
+      "duplicateIds": [
+        62,
+        939
+      ],
+      "aliases": [
+        "Universidad de Ingeniería y Tecnología",
+        "UTEC",
+        "UNIVERSIDAD DE INGENIERÍA Y TECNOLOGÍA"
+      ],
+      "academicInfoAffected": 1
+    },
+    {
+      "canonicalId": 981,
+      "canonicalName": "UNIVERSIDAD DE INGENIERÍA Y TECNOLOGÍA - UTEC",
+      "duplicateIds": [
+        803
+      ],
+      "aliases": [
+        "UNIVERSIDAD DE INGENIERÍA Y TECNOLOGÍA UTEC"
+      ],
+      "academicInfoAffected": 1
+    },
+    {
+      "canonicalId": 802,
+      "canonicalName": "UNIVERSIDAD DE LIMA",
+      "duplicateIds": [
+        52
+      ],
+      "aliases": [
+        "Universidad de Lima",
+        "ULIMA"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 794,
+      "canonicalName": "UNIVERSIDAD DE PIURA",
+      "duplicateIds": [
+        71
+      ],
+      "aliases": [
+        "Universidad de Piura",
+        "UDEP"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 1038,
+      "canonicalName": "UNIVERSIDAD DE SAN MARTIN DE PORRES",
+      "duplicateIds": [
+        60
+      ],
+      "aliases": [
+        "Universidad de San Martín de Porres",
+        "USMP"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 1000,
+      "canonicalName": "UNIVERSIDAD DEL PACIFICO",
+      "duplicateIds": [
+        51
+      ],
+      "aliases": [
+        "Universidad del Pacífico"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 827,
+      "canonicalName": "UNIVERSIDAD ESAN",
+      "duplicateIds": [
+        53
+      ],
+      "aliases": [
+        "Universidad ESAN"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 1033,
+      "canonicalName": "UNIVERSIDAD FEMENINA DEL SAGRADO CORAZON",
+      "duplicateIds": [
+        64
+      ],
+      "aliases": [
+        "Universidad Femenina del Sagrado Corazón",
+        "UNIFE"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 892,
+      "canonicalName": "UNIVERSIDAD JAIME BAUSATE Y MEZA",
+      "duplicateIds": [
+        66
+      ],
+      "aliases": [
+        "Universidad Jaime Bausate y Meza",
+        "UJBM"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 906,
+      "canonicalName": "UNIVERSIDAD LA SALLE",
+      "duplicateIds": [
+        76
+      ],
+      "aliases": [
+        "Universidad La Salle",
+        "ULASALLE"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 891,
+      "canonicalName": "UNIVERSIDAD NACIONAL AGRARIA DE LA SELVA",
+      "duplicateIds": [
+        35
+      ],
+      "aliases": [
+        "Universidad Nacional Agraria de la Selva",
+        "UNAS"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 986,
+      "canonicalName": "UNIVERSIDAD NACIONAL AGRARIA LA MOLINA",
+      "duplicateIds": [
+        3
+      ],
+      "aliases": [
+        "Universidad Nacional Agraria La Molina",
+        "UNALM"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 1023,
+      "canonicalName": "UNIVERSIDAD NACIONAL DANIEL ALCIDES CARRION",
+      "duplicateIds": [
+        22,
+        1063
+      ],
+      "aliases": [
+        "Universidad Nacional Daniel Alcides Carrión",
+        "UNDAC",
+        "UNIVERSIDAD NACIONAL DANIEL ALCIDES CARRIÓN"
+      ],
+      "academicInfoAffected": 1
+    },
+    {
+      "canonicalId": 893,
+      "canonicalName": "UNIVERSIDAD NACIONAL DE CAJAMARCA",
+      "duplicateIds": [
+        13
+      ],
+      "aliases": [
+        "Universidad Nacional de Cajamarca"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 866,
+      "canonicalName": "UNIVERSIDAD NACIONAL DE CAÑETE",
+      "duplicateIds": [
+        46
+      ],
+      "aliases": [
+        "Universidad Nacional de Cañete",
+        "UNDC"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 832,
+      "canonicalName": "UNIVERSIDAD NACIONAL DE HUANCAVELICA",
+      "duplicateIds": [
+        23
+      ],
+      "aliases": [
+        "Universidad Nacional de Huancavelica"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 964,
+      "canonicalName": "UNIVERSIDAD NACIONAL DE JULIACA",
+      "duplicateIds": [
+        33
+      ],
+      "aliases": [
+        "Universidad Nacional de Juliaca",
+        "UNAJ"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 813,
+      "canonicalName": "UNIVERSIDAD NACIONAL DE MOQUEGUA",
+      "duplicateIds": [
+        29
+      ],
+      "aliases": [
+        "Universidad Nacional de Moquegua",
+        "UNAM"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 1079,
+      "canonicalName": "UNIVERSIDAD NACIONAL DE PIURA",
+      "duplicateIds": [
+        8
+      ],
+      "aliases": [
+        "Universidad Nacional de Piura"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 947,
+      "canonicalName": "UNIVERSIDAD NACIONAL DE SAN AGUSTIN DE AREQUIPA",
+      "duplicateIds": [
+        10,
+        1056
+      ],
+      "aliases": [
+        "Universidad Nacional de San Agustín de Arequipa",
+        "UNSA",
+        "UNIVERSIDAD NACIONAL DE SAN AGUSTÍN DE AREQUIPA"
+      ],
+      "academicInfoAffected": 26
+    },
+    {
+      "canonicalId": 1020,
+      "canonicalName": "UNIVERSIDAD NACIONAL DE SAN CRISTÓBAL DE HUAMANGA",
+      "duplicateIds": [
+        903
+      ],
+      "aliases": [
+        "UNIVERSIDAD NACIONAL DE SAN CRISTOBAL DE HUAMANGA"
+      ],
+      "academicInfoAffected": 14
+    },
+    {
+      "canonicalId": 1007,
+      "canonicalName": "UNIVERSIDAD NACIONAL DE SAN MARTÍN",
+      "duplicateIds": [
+        17
+      ],
+      "aliases": [
+        "Universidad Nacional de San Martín",
+        "UNSM"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 974,
+      "canonicalName": "UNIVERSIDAD NACIONAL DE TRUJILLO",
+      "duplicateIds": [
+        7
+      ],
+      "aliases": [
+        "Universidad Nacional de Trujillo"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 828,
+      "canonicalName": "UNIVERSIDAD NACIONAL DE UCAYALI",
+      "duplicateIds": [
+        19
+      ],
+      "aliases": [
+        "Universidad Nacional de Ucayali"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 1046,
+      "canonicalName": "UNIVERSIDAD NACIONAL DEL ALTIPLANO",
+      "duplicateIds": [
+        12
+      ],
+      "aliases": [
+        "Universidad Nacional del Altiplano",
+        "UNAP-PUNO"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 798,
+      "canonicalName": "UNIVERSIDAD NACIONAL DEL CALLAO",
+      "duplicateIds": [
+        5
+      ],
+      "aliases": [
+        "Universidad Nacional del Callao",
+        "UNAC"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 877,
+      "canonicalName": "UNIVERSIDAD NACIONAL DEL CENTRO DEL PERU",
+      "duplicateIds": [
+        11,
+        950
+      ],
+      "aliases": [
+        "Universidad Nacional del Centro del Perú",
+        "UNCP",
+        "UNIVERSIDAD NACIONAL DEL CENTRO DEL PERÚ"
+      ],
+      "academicInfoAffected": 16
+    },
+    {
+      "canonicalId": 855,
+      "canonicalName": "UNIVERSIDAD NACIONAL JOSE FAUSTINO SANCHEZ CARRION",
+      "duplicateIds": [
+        34,
+        887
+      ],
+      "aliases": [
+        "Universidad Nacional José Faustino Sánchez Carrión",
+        "UNJFSC",
+        "UNIVERSIDAD NACIONAL JOSÉ FAUSTINO SÁNCHEZ CARRION"
+      ],
+      "academicInfoAffected": 1
+    },
+    {
+      "canonicalId": 858,
+      "canonicalName": "UNIVERSIDAD NACIONAL JOSE MARIA ARGUEDAS",
+      "duplicateIds": [
+        32
+      ],
+      "aliases": [
+        "Universidad Nacional José María Arguedas",
+        "UNAJMA"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 938,
+      "canonicalName": "UNIVERSIDAD NACIONAL MAYOR DE SAN MARCOS",
+      "duplicateIds": [
+        1
+      ],
+      "aliases": [
+        "Universidad Nacional Mayor de San Marcos",
+        "UNMSM"
+      ],
+      "academicInfoAffected": 2
+    },
+    {
+      "canonicalId": 1060,
+      "canonicalName": "UNIVERSIDAD NACIONAL MICAELA BASTIDAS DE APURIMAC",
+      "duplicateIds": [
+        30
+      ],
+      "aliases": [
+        "Universidad Nacional Micaela Bastidas de Apurímac",
+        "UNAMBA"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 837,
+      "canonicalName": "UNIVERSIDAD NACIONAL PEDRO RUIZ GALLO",
+      "duplicateIds": [
+        6
+      ],
+      "aliases": [
+        "Universidad Nacional Pedro Ruiz Gallo",
+        "UNPRG"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 933,
+      "canonicalName": "UNIVERSIDAD NACIONAL SANTIAGO ANTUNEZ DE MAYOLO",
+      "duplicateIds": [
+        26,
+        896
+      ],
+      "aliases": [
+        "Universidad Nacional Santiago Antúnez de Mayolo",
+        "UNASAM",
+        "UNIVERSIDAD NACIONAL SANTIAGO ANTÚNEZ DE MAYOLO"
+      ],
+      "academicInfoAffected": 1
+    },
+    {
+      "canonicalId": 944,
+      "canonicalName": "UNIVERSIDAD NACIONAL TORIBIO RODRIGUEZ DE MENDOZA DE AMAZONAS",
+      "duplicateIds": [
+        21
+      ],
+      "aliases": [
+        "Universidad Nacional Toribio Rodríguez de Mendoza de Amazonas",
+        "UNTRM"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 901,
+      "canonicalName": "UNIVERSIDAD NORBERT WIENER",
+      "duplicateIds": [
+        65
+      ],
+      "aliases": [
+        "Universidad Norbert Wiener"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 1051,
+      "canonicalName": "UNIVERSIDAD PARTICULAR DE CHICLAYO",
+      "duplicateIds": [
+        88
+      ],
+      "aliases": [
+        "Universidad Particular de Chiclayo",
+        "UDCH"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 815,
+      "canonicalName": "UNIVERSIDAD PERUANA CAYETANO HEREDIA",
+      "duplicateIds": [
+        50
+      ],
+      "aliases": [
+        "Universidad Peruana Cayetano Heredia",
+        "UPCH"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 821,
+      "canonicalName": "UNIVERSIDAD PERUANA LOS ANDES",
+      "duplicateIds": [
+        82
+      ],
+      "aliases": [
+        "Universidad Peruana Los Andes",
+        "UPLA"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 862,
+      "canonicalName": "UNIVERSIDAD PERUANA UNION",
+      "duplicateIds": [
+        78,
+        851
+      ],
+      "aliases": [
+        "Universidad Peruana Unión",
+        "UPeU",
+        "UNIVERSIDAD PERUANA UNIÓN"
+      ],
+      "academicInfoAffected": 1
+    },
+    {
+      "canonicalId": 1058,
+      "canonicalName": "UNIVERSIDAD PRIVADA ANTENOR ORREGO",
+      "duplicateIds": [
+        69
+      ],
+      "aliases": [
+        "Universidad Privada Antenor Orrego",
+        "UPAO"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 929,
+      "canonicalName": "UNIVERSIDAD PRIVADA DE TACNA",
+      "duplicateIds": [
+        75
+      ],
+      "aliases": [
+        "Universidad Privada de Tacna"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 861,
+      "canonicalName": "UNIVERSIDAD PRIVADA DEL NORTE",
+      "duplicateIds": [
+        57
+      ],
+      "aliases": [
+        "Universidad Privada del Norte"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 829,
+      "canonicalName": "UNIVERSIDAD RICARDO PALMA",
+      "duplicateIds": [
+        58
+      ],
+      "aliases": [
+        "Universidad Ricardo Palma"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 833,
+      "canonicalName": "UNIVERSIDAD SAN IGNACIO DE LOYOLA",
+      "duplicateIds": [
+        59
+      ],
+      "aliases": [
+        "Universidad San Ignacio de Loyola",
+        "USIL"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 1090,
+      "canonicalName": "UNIVERSIDAD SEÑOR DE SIPÁN",
+      "duplicateIds": [
+        83
+      ],
+      "aliases": [
+        "Universidad Señor de Sipán"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 1005,
+      "canonicalName": "UNIVERSIDAD TECNOLÓGICA DEL PERÚ",
+      "duplicateIds": [
+        61
+      ],
+      "aliases": [
+        "Universidad Tecnológica del Perú"
+      ],
+      "academicInfoAffected": 0
+    }
+  ],
+  "specialties": [
+    {
+      "canonicalId": 323,
+      "canonicalName": "ADMINISTRACIÓN",
+      "duplicateIds": [
+        22,
+        706
+      ],
+      "aliases": [
+        "Administración",
+        "ADMINISTRACION"
+      ],
+      "academicInfoAffected": 14
+    },
+    {
+      "canonicalId": 397,
+      "canonicalName": "ADMINISTRACIÓN DE EMPRESAS",
+      "duplicateIds": [
+        23,
+        796
+      ],
+      "aliases": [
+        "Administración de Empresas",
+        "ADMINISTRACION DE EMPRESAS"
+      ],
+      "academicInfoAffected": 6
+    },
+    {
+      "canonicalId": 664,
+      "canonicalName": "ADMINISTRACION Y NEGOCIOS INTERNACIONALES",
+      "duplicateIds": [
+        701
+      ],
+      "aliases": [
+        "ADMINISTRACIÓN Y NEGOCIOS INTERNACIONALES"
+      ],
+      "academicInfoAffected": 1
+    },
+    {
+      "canonicalId": 751,
+      "canonicalName": "BIOLOGIA",
+      "duplicateIds": [
+        315
+      ],
+      "aliases": [
+        "BIOLOGÍA"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 700,
+      "canonicalName": "CONTABILIDAD",
+      "duplicateIds": [
+        25
+      ],
+      "aliases": [
+        "Contabilidad"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 500,
+      "canonicalName": "DERECHO",
+      "duplicateIds": [
+        29
+      ],
+      "aliases": [
+        "Derecho"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 656,
+      "canonicalName": "ECONOMÍA",
+      "duplicateIds": [
+        24,
+        423
+      ],
+      "aliases": [
+        "Economía",
+        "ECONOMIA"
+      ],
+      "academicInfoAffected": 6
+    },
+    {
+      "canonicalId": 536,
+      "canonicalName": "EDUCACIÓN",
+      "duplicateIds": [
+        30
+      ],
+      "aliases": [
+        "Educación"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 569,
+      "canonicalName": "ELECTRONICA",
+      "duplicateIds": [
+        287
+      ],
+      "aliases": [
+        "ELECTRÓNICA"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 680,
+      "canonicalName": "ESCUELA PROFESIONAL DE INGENIERIA DE MINAS",
+      "duplicateIds": [
+        784
+      ],
+      "aliases": [
+        "ESCUELA PROFESIONAL DE INGENIERÍA DE MINAS"
+      ],
+      "academicInfoAffected": 1
+    },
+    {
+      "canonicalId": 614,
+      "canonicalName": "EXPLOTACIÓN DE MINAS",
+      "duplicateIds": [
+        654
+      ],
+      "aliases": [
+        "EXPLOTACION DE MINAS"
+      ],
+      "academicInfoAffected": 8
+    },
+    {
+      "canonicalId": 795,
+      "canonicalName": "EXPLOTACIÓN MINERA",
+      "duplicateIds": [
+        431
+      ],
+      "aliases": [
+        "EXPLOTACION MINERA"
+      ],
+      "academicInfoAffected": 1
+    },
+    {
+      "canonicalId": 392,
+      "canonicalName": "FINANZAS",
+      "duplicateIds": [
+        26
+      ],
+      "aliases": [
+        "Finanzas"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 379,
+      "canonicalName": "GEOLOGÍA",
+      "duplicateIds": [
+        4,
+        322,
+        484
+      ],
+      "aliases": [],
+      "academicInfoAffected": 3
+    },
+    {
+      "canonicalId": 450,
+      "canonicalName": "GEOLOGIA Y EXPLORACION",
+      "duplicateIds": [
+        425
+      ],
+      "aliases": [
+        "GEOLOGÍA Y EXPLORACIÓN"
+      ],
+      "academicInfoAffected": 2
+    },
+    {
+      "canonicalId": 261,
+      "canonicalName": "GEOTECNIA",
+      "duplicateIds": [
+        6
+      ],
+      "aliases": [
+        "Geotecnia"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 816,
+      "canonicalName": "INFORMÁTICA",
+      "duplicateIds": [
+        894
+      ],
+      "aliases": [
+        "INFORMATICA"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 579,
+      "canonicalName": "ING. AMBIENTAL",
+      "duplicateIds": [
+        433,
+        502,
+        523
+      ],
+      "aliases": [
+        "ING.AMBIENTAL",
+        "ING-AMBIENTAL",
+        "ING AMBIENTAL"
+      ],
+      "academicInfoAffected": 5
+    },
+    {
+      "canonicalId": 893,
+      "canonicalName": "ING. CIVIL",
+      "duplicateIds": [
+        481,
+        727
+      ],
+      "aliases": [
+        "ING.CIVIL",
+        "ING CIVIL"
+      ],
+      "academicInfoAffected": 3
+    },
+    {
+      "canonicalId": 867,
+      "canonicalName": "ING DE MINAS",
+      "duplicateIds": [
+        566,
+        684,
+        864
+      ],
+      "aliases": [
+        "ING.DE MINAS",
+        "ING.  DE MINAS",
+        "ING. DE MINAS"
+      ],
+      "academicInfoAffected": 21
+    },
+    {
+      "canonicalId": 301,
+      "canonicalName": "ING. GEOLÓGICA",
+      "duplicateIds": [
+        346,
+        432,
+        493,
+        628,
+        912
+      ],
+      "aliases": [
+        "ING.GEOLÓGICA",
+        "ING. GEÓLOGICA",
+        "ING. GEOLOGICA",
+        "ING GEOLOGICA",
+        "ING GEOLÓGICA"
+      ],
+      "academicInfoAffected": 8
+    },
+    {
+      "canonicalId": 547,
+      "canonicalName": "ING. METALÚRGICA",
+      "duplicateIds": [
+        277,
+        312
+      ],
+      "aliases": [
+        "ING. METALURGICA",
+        "ING METALURGICA"
+      ],
+      "academicInfoAffected": 2
+    },
+    {
+      "canonicalId": 378,
+      "canonicalName": "ING. MINAS",
+      "duplicateIds": [
+        441,
+        715
+      ],
+      "aliases": [
+        "ING MINAS",
+        "ING.MINAS"
+      ],
+      "academicInfoAffected": 14
+    },
+    {
+      "canonicalId": 331,
+      "canonicalName": "ING. QUÍMICA",
+      "duplicateIds": [
+        242
+      ],
+      "aliases": [
+        "ING. QUIMICA"
+      ],
+      "academicInfoAffected": 2
+    },
+    {
+      "canonicalId": 318,
+      "canonicalName": "INGENERIA DE GESTION MINERA",
+      "duplicateIds": [
+        271
+      ],
+      "aliases": [
+        "INGENERÍA DE GESTIÓN MINERA"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 285,
+      "canonicalName": "INGENERIA DE MINAS",
+      "duplicateIds": [
+        333
+      ],
+      "aliases": [
+        "INGENERÍA DE MINAS"
+      ],
+      "academicInfoAffected": 1
+    },
+    {
+      "canonicalId": 303,
+      "canonicalName": "INGENIERA QUIMICA",
+      "duplicateIds": [
+        236
+      ],
+      "aliases": [
+        "INGENIERA QUÍMICA"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 440,
+      "canonicalName": "INGENIERÍA",
+      "duplicateIds": [
+        252
+      ],
+      "aliases": [],
+      "academicInfoAffected": 4
+    },
+    {
+      "canonicalId": 753,
+      "canonicalName": "INGENIERIA AGRICOLA",
+      "duplicateIds": [
+        483
+      ],
+      "aliases": [
+        "INGENIERÍA AGRÍCOLA"
+      ],
+      "academicInfoAffected": 1
+    },
+    {
+      "canonicalId": 772,
+      "canonicalName": "INGENIERÍA AMBIENTAL",
+      "duplicateIds": [
+        19,
+        328
+      ],
+      "aliases": [
+        "Ingeniería Ambiental",
+        "INGENIERIA AMBIENTAL"
+      ],
+      "academicInfoAffected": 50
+    },
+    {
+      "canonicalId": 522,
+      "canonicalName": "INGENIERÍA AMBIENTAL Y DE RECURSOS NATURALES",
+      "duplicateIds": [
+        357
+      ],
+      "aliases": [
+        "INGENIERIA AMBIENTAL Y DE RECURSOS NATURALES"
+      ],
+      "academicInfoAffected": 1
+    },
+    {
+      "canonicalId": 803,
+      "canonicalName": "INGENIERÍA AMBIENTAL Y RECURSOS NATURALES",
+      "duplicateIds": [
+        326
+      ],
+      "aliases": [
+        "INGENIERIA AMBIENTAL Y RECURSOS NATURALES"
+      ],
+      "academicInfoAffected": 2
+    },
+    {
+      "canonicalId": 830,
+      "canonicalName": "INGENIERÍA AMBIENTAL Y SEGURIDAD INDUSTRIAL",
+      "duplicateIds": [
+        840
+      ],
+      "aliases": [
+        "INGENIERIA AMBIENTAL Y SEGURIDAD INDUSTRIAL"
+      ],
+      "academicInfoAffected": 1
+    },
+    {
+      "canonicalId": 652,
+      "canonicalName": "INGENIERÍA CIVIL",
+      "duplicateIds": [
+        7,
+        780
+      ],
+      "aliases": [
+        "Ingeniería Civil",
+        "INGENIERIA CIVIL"
+      ],
+      "academicInfoAffected": 26
+    },
+    {
+      "canonicalId": 841,
+      "canonicalName": "INGENIERÍA COMERCIAL",
+      "duplicateIds": [
+        534
+      ],
+      "aliases": [
+        "INGENIERIA COMERCIAL"
+      ],
+      "academicInfoAffected": 1
+    },
+    {
+      "canonicalId": 389,
+      "canonicalName": "INGENIERÍA DE GESTIÓN MINERA",
+      "duplicateIds": [
+        240,
+        574
+      ],
+      "aliases": [
+        "INGENIERIA DE GESTION MINERA",
+        "INGENIERIA DE GESTIÓN MINERA"
+      ],
+      "academicInfoAffected": 11
+    },
+    {
+      "canonicalId": 436,
+      "canonicalName": "INGENIERÍA DE MATERIALES",
+      "duplicateIds": [
+        366
+      ],
+      "aliases": [
+        "INGENIERIA DE MATERIALES"
+      ],
+      "academicInfoAffected": 1
+    },
+    {
+      "canonicalId": 532,
+      "canonicalName": "INGENIERÍA DE MINA",
+      "duplicateIds": [
+        923
+      ],
+      "aliases": [
+        "INGENIERIA DE MINA"
+      ],
+      "academicInfoAffected": 1
+    },
+    {
+      "canonicalId": 809,
+      "canonicalName": "INGENIERÍA DE MINAS",
+      "duplicateIds": [
+        1,
+        335,
+        348,
+        464,
+        635,
+        775
+      ],
+      "aliases": [
+        "Ingeniería de Minas",
+        "INGENIERIA  DE MINAS",
+        "INGENIERÍA  DE  MINAS",
+        "INGENIERIA DE MINAS",
+        "INGENIERÌA DE MINAS",
+        "INGENIERÍA  DE MINAS"
+      ],
+      "academicInfoAffected": 450
+    },
+    {
+      "canonicalId": 808,
+      "canonicalName": "INGENIERIA DE SOFTWARE",
+      "duplicateIds": [
+        15
+      ],
+      "aliases": [
+        "Ingeniería de Software"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 675,
+      "canonicalName": "INGENIERÍA ELÉCTRICA",
+      "duplicateIds": [
+        10,
+        580,
+        679
+      ],
+      "aliases": [
+        "Ingeniería Eléctrica",
+        "INGENIERIA ELECTRICA",
+        "INGENIERÍA ELECTRICA"
+      ],
+      "academicInfoAffected": 7
+    },
+    {
+      "canonicalId": 713,
+      "canonicalName": "INGENIERÍA ELECTRÓNICA",
+      "duplicateIds": [
+        11,
+        343
+      ],
+      "aliases": [
+        "Ingeniería Electrónica",
+        "INGENIERIA ELECTRONICA"
+      ],
+      "academicInfoAffected": 6
+    },
+    {
+      "canonicalId": 347,
+      "canonicalName": "INGENIERÍA EN SEGURIDAD LABORAL Y AMBIENTAL",
+      "duplicateIds": [
+        777
+      ],
+      "aliases": [
+        "INGENIERIA EN SEGURIDAD LABORAL Y AMBIENTAL"
+      ],
+      "academicInfoAffected": 1
+    },
+    {
+      "canonicalId": 438,
+      "canonicalName": "INGENIERÍA GEOFÍSICA",
+      "duplicateIds": [
+        657
+      ],
+      "aliases": [
+        "INGENIERIA GEOFISICA"
+      ],
+      "academicInfoAffected": 2
+    },
+    {
+      "canonicalId": 553,
+      "canonicalName": "INGENIERÍA GEOGRÁFICA",
+      "duplicateIds": [
+        733
+      ],
+      "aliases": [
+        "INGENIERIA GEOGRÁFICA"
+      ],
+      "academicInfoAffected": 1
+    },
+    {
+      "canonicalId": 774,
+      "canonicalName": "INGENIERÍA GEOLÓGICA",
+      "duplicateIds": [
+        2,
+        463,
+        513,
+        570,
+        658,
+        688,
+        741,
+        768,
+        844,
+        905
+      ],
+      "aliases": [
+        "Ingeniería Geológica",
+        "INGENIERIA  GEOLOGICA",
+        "INGENIERIA  GEOLÓGICA",
+        "INGENIERÍA GEÓLOGICA",
+        "INGENIERÍA  GEOLÓGICA",
+        "INGENIERIA GEOLOGICA",
+        "INGENIERIA GEOLÒGICA",
+        "INGENIERÌA GEOLÒGICA",
+        "INGENIERÍA GEOLOGICA",
+        "INGENIERIA GEOLÓGICA"
+      ],
+      "academicInfoAffected": 122
+    },
+    {
+      "canonicalId": 879,
+      "canonicalName": "INGENIERÍA GEOLÓGICA-GEOTECNIA",
+      "duplicateIds": [
+        225,
+        773,
+        814
+      ],
+      "aliases": [
+        "INGENIERÍA GEOLÓGICA - GEOTECNIA",
+        "INGENIERIA GEOLÓGICA - GEOTECNIA",
+        "INGENIERÍA GEOLÓGICA GEOTECNIA"
+      ],
+      "academicInfoAffected": 2
+    },
+    {
+      "canonicalId": 417,
+      "canonicalName": "INGENIERÍA GEOLÓGICA Y GEOTECNIA",
+      "duplicateIds": [
+        885
+      ],
+      "aliases": [
+        "INGENIERIA GEOLOGICA Y GEOTECNIA"
+      ],
+      "academicInfoAffected": 2
+    },
+    {
+      "canonicalId": 725,
+      "canonicalName": "INGENIERÍA INDUSTRIAL",
+      "duplicateIds": [
+        8,
+        480
+      ],
+      "aliases": [
+        "Ingeniería Industrial",
+        "INGENIERIA INDUSTRIAL"
+      ],
+      "academicInfoAffected": 32
+    },
+    {
+      "canonicalId": 786,
+      "canonicalName": "INGENIERÍA MECÁNICA",
+      "duplicateIds": [
+        9,
+        476,
+        552,
+        724
+      ],
+      "aliases": [
+        "Ingeniería Mecánica",
+        "INGENIERÍA MECANICA",
+        "INGENIERIA MECANICA",
+        "INGENIERIA MECÁNICA"
+      ],
+      "academicInfoAffected": 14
+    },
+    {
+      "canonicalId": 567,
+      "canonicalName": "INGENIERÍA MECÁNICA DE FLUIDOS",
+      "duplicateIds": [
+        226,
+        391
+      ],
+      "aliases": [
+        "INGENIERIA MECANICA DE FLUIDOS",
+        "INGENIERÍA MECANICA DE FLUIDOS"
+      ],
+      "academicInfoAffected": 2
+    },
+    {
+      "canonicalId": 925,
+      "canonicalName": "INGENIERÍA MECÁNICA ELÉCTRICA",
+      "duplicateIds": [
+        659
+      ],
+      "aliases": [
+        "INGENIERIA MECANICA ELECTRICA"
+      ],
+      "academicInfoAffected": 1
+    },
+    {
+      "canonicalId": 906,
+      "canonicalName": "INGENIERÍA METALÚRGIA",
+      "duplicateIds": [
+        405
+      ],
+      "aliases": [
+        "INGENIERIA METALURGIA"
+      ],
+      "academicInfoAffected": 1
+    },
+    {
+      "canonicalId": 563,
+      "canonicalName": "INGENIERÍA METALÚRGICA",
+      "duplicateIds": [
+        3,
+        332,
+        531,
+        921
+      ],
+      "aliases": [
+        "Ingeniería Metalúrgica",
+        "INGENIERÍA METALURGICA",
+        "INGENIERIA METALURGICA",
+        "INGENIERIA METALÚRGICA"
+      ],
+      "academicInfoAffected": 77
+    },
+    {
+      "canonicalId": 297,
+      "canonicalName": "INGENIERIA METALURGICA Y DE MATERIALES",
+      "duplicateIds": [
+        309
+      ],
+      "aliases": [
+        "INGENIERÍA METALÚRGICA Y DE MATERIALES"
+      ],
+      "academicInfoAffected": 2
+    },
+    {
+      "canonicalId": 356,
+      "canonicalName": "INGENIERIA MINAS",
+      "duplicateIds": [
+        582,
+        681
+      ],
+      "aliases": [
+        "INGENIERÍA  MINAS",
+        "INGENIERÍA MINAS"
+      ],
+      "academicInfoAffected": 2
+    },
+    {
+      "canonicalId": 375,
+      "canonicalName": "INGENIERÍA QUÍMICA",
+      "duplicateIds": [
+        13,
+        437,
+        586,
+        736
+      ],
+      "aliases": [
+        "Ingeniería Química",
+        "INGENIERIA QUIMICA",
+        "INGENIERÌA QUÌMICA",
+        "INGENIERÍA QUIMICA"
+      ],
+      "academicInfoAffected": 20
+    },
+    {
+      "canonicalId": 822,
+      "canonicalName": "INGENIERÍA SANITARIA",
+      "duplicateIds": [
+        20
+      ],
+      "aliases": [
+        "Ingeniería Sanitaria"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 353,
+      "canonicalName": "INGENIERO MECÁNICO",
+      "duplicateIds": [
+        838
+      ],
+      "aliases": [
+        "INGENIERO MECANICO"
+      ],
+      "academicInfoAffected": 1
+    },
+    {
+      "canonicalId": 452,
+      "canonicalName": "INGENIERO QUIMICO",
+      "duplicateIds": [
+        667
+      ],
+      "aliases": [
+        "INGENIERO QUÍMICO"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 788,
+      "canonicalName": "MANTENIMIENTO DE EQUIPO PESADO",
+      "duplicateIds": [
+        865
+      ],
+      "aliases": [
+        "MANTENIMIENTO DE EQUIPÓ PESADO"
+      ],
+      "academicInfoAffected": 1
+    },
+    {
+      "canonicalId": 710,
+      "canonicalName": "MANTENIMIENTO ELÉCTRICO E INSTRUMENTACIÓN",
+      "duplicateIds": [
+        707
+      ],
+      "aliases": [
+        "MANTENIMIENTO ELECTRICO E INSTRUMENTACION"
+      ],
+      "academicInfoAffected": 4
+    },
+    {
+      "canonicalId": 546,
+      "canonicalName": "MECANICO ELÉCTRICISTA",
+      "duplicateIds": [
+        750
+      ],
+      "aliases": [
+        "MECANICO ELECTRICISTA"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 720,
+      "canonicalName": "MECATRONICA",
+      "duplicateIds": [
+        604
+      ],
+      "aliases": [
+        "MECATRÓNICA"
+      ],
+      "academicInfoAffected": 1
+    },
+    {
+      "canonicalId": 855,
+      "canonicalName": "NEGOCIOS INTERNACIONALES",
+      "duplicateIds": [
+        27
+      ],
+      "aliases": [
+        "Negocios Internacionales"
+      ],
+      "academicInfoAffected": 0
+    },
+    {
+      "canonicalId": 383,
+      "canonicalName": "PERFORACIÓN Y VOLADURA",
+      "duplicateIds": [
+        538
+      ],
+      "aliases": [
+        "PERFORACION Y VOLADURA"
+      ],
+      "academicInfoAffected": 1
+    },
+    {
+      "canonicalId": 758,
+      "canonicalName": "PREVENCIÓN DE RIESGOS, SEGURIDAD Y SALUD OCUPACIONAL",
+      "duplicateIds": [
+        554,
+        676
+      ],
+      "aliases": [
+        "PREVENCION DE RIESGOS, SEGURIDAD Y SALUD OCUPACIONAL",
+        "PREVENCIÓN DE RIESGOS SEGURIDAD Y SALUD OCUPACIONAL"
+      ],
+      "academicInfoAffected": 2
+    },
+    {
+      "canonicalId": 255,
+      "canonicalName": "PROCESOS METALÚRGICOS Y QUÍMICOS",
+      "duplicateIds": [
+        217,
+        770
+      ],
+      "aliases": [
+        "PROCESOS METALURGICOS Y QUÍMICOS",
+        "PROCESOS METALURGICOS Y QUIMICOS"
+      ],
+      "academicInfoAffected": 3
+    },
+    {
+      "canonicalId": 887,
+      "canonicalName": "PSICOLOGÍA",
+      "duplicateIds": [
+        293
+      ],
+      "aliases": [
+        "PSICOLOGIA"
+      ],
+      "academicInfoAffected": 1
+    }
+  ]
+}

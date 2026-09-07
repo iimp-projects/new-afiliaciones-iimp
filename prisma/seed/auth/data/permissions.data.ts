@@ -107,6 +107,7 @@ export const permissionsData: Prisma.PermissionCreateManyInput[] = [
   { action: "read", subject: "catalogs", description: "Consultar catálogos." },
   { action: "update", subject: "catalogs", description: "Editar catálogos." },
   { action: "delete", subject: "catalogs", description: "Eliminar catálogos." },
+  { action: "merge", subject: "catalogs", description: "Fusionar registros de catálogos." },
 
   // ===========================================================================
   // REPORTS

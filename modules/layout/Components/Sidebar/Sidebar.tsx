@@ -81,18 +81,18 @@ export function Sidebar({
                     > */}
           <button
             onClick={() => logoutAction()} // 
-            className={`w-full flex items-center ${isCollapsed ? "justify-center" : "gap-3"} px-3 py-3 rounded-xl transition-all outline-none text-slate-500 hover:bg-red-50 hover:text-red-600 group`}
+            className={`w-full flex items-center ${isCollapsed ? "justify-center" : "gap-2"} px-3 py-2 rounded-xl transition-all outline-none text-slate-500 hover:bg-red-50 hover:text-red-600 group`}
             title="Cerrar Sesión"
           >
-            <div className="w-8 h-8 rounded-lg bg-slate-100 group-hover:bg-red-100 flex items-center justify-center text-slate-500 group-hover:text-red-600 transition-colors shrink-0">
+            <div className="w-7 h-7 rounded-lg bg-slate-100 group-hover:bg-red-100 flex items-center justify-center text-slate-500 group-hover:text-red-600 transition-colors shrink-0">
               <LogOut
-                size={18}
+                size={16}
                 strokeWidth={2.5}
                 className={isCollapsed ? "" : "ml-1"}
               />
             </div>
             {!isCollapsed && (
-              <span className="text-sm font-bold tracking-wide whitespace-nowrap">
+              <span className="text-[13px] font-bold tracking-wide whitespace-nowrap">
                 Cerrar Sesión
               </span>
             )}

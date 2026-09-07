@@ -29,16 +29,16 @@ export function SidebarItem({ item, isNested = false, isCollapsed = false, onMob
         }
 
         return (
-            <div className="mb-6 mt-4">
+            <div className="mb-5 mt-3">
                 {!isCollapsed ? (
-                    <p className="px-4 mb-3 text-[11px] font-extrabold text-slate-400/80 uppercase tracking-widest whitespace-nowrap overflow-hidden">
+                    <p className="px-4 mb-2 text-[10px] font-extrabold text-slate-400/80 uppercase tracking-widest whitespace-nowrap overflow-hidden">
                         {item.title}
                     </p>
                 ) : (
                     <hr className="my-5 border-slate-200 mx-4" />
                 )}
                 
-                <div className="flex flex-col gap-1.5 px-2">
+                <div className="flex flex-col gap-1 px-2">
                     {item.children?.map((child) => (
                         <SidebarItem key={child.id} item={child} isNested={false} isCollapsed={isCollapsed} onMobileClick={onMobileClick} />
                     ))}
@@ -65,29 +65,29 @@ export function SidebarItem({ item, isNested = false, isCollapsed = false, onMob
                 <button
                     onClick={() => !isCollapsed && setIsOpen(!isOpen)}
                     title={isCollapsed ? item.title : undefined}
-                    className={`flex items-center justify-between w-full px-4 py-3 rounded-2xl transition-all duration-300 outline-none ${
+                    className={`flex items-center justify-between w-full px-4 py-2 rounded-2xl transition-all duration-300 outline-none ${
                         isActive 
                         ? "bg-[#c39254]/10 text-[#a3722a] font-bold" 
                         // MEJORA: Hover dorado suave y texto oscuro para que resalte
                         : "text-slate-500 hover:bg-[#c39254]/10 hover:text-[#a3722a] font-medium"
                     } ${isCollapsed ? "justify-center px-0 w-12 h-12 mx-auto rounded-xl" : ""}`}
                 >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2.5">
                         <DynamicIcon 
                             name={item.icon} 
-                            size={20} 
+                            size={17} 
                             strokeWidth={isActive ? 2.5 : 2} 
                             className={isActive ? "text-[#a3722a]" : "text-slate-400"} 
                         />
-                        {!isCollapsed && <span className="text-[14px] tracking-wide whitespace-nowrap">{item.title}</span>}
+                        {!isCollapsed && <span className="text-[13px] tracking-wide whitespace-nowrap">{item.title}</span>}
                     </div>
-                    {!isCollapsed && <ChevronDown size={16} strokeWidth={2.5} className={`transition-transform duration-300 ${isOpen ? "rotate-180 text-[#a3722a]" : "text-slate-300"}`} />}
+                    {!isCollapsed && <ChevronDown size={14} strokeWidth={2.5} className={`transition-transform duration-300 ${isOpen ? "rotate-180 text-[#a3722a]" : "text-slate-300"}`} />}
                 </button>
                 
                 {!isCollapsed && (
                     <div className={`grid transition-all duration-300 ease-in-out ${isOpen ? "grid-rows-[1fr] opacity-100 mt-1.5" : "grid-rows-[0fr] opacity-0"}`}>
                         <div className="overflow-hidden">
-                            <div className="pl-4 ml-6 border-l-2 border-slate-100 flex flex-col gap-1 py-1">
+                            <div className="pl-4 ml-6 border-l-2 border-slate-100 flex flex-col gap-0.5 py-0.5">
                                 {item.children!.map((child) => (
                                     <SidebarItem key={child.id} item={child} isNested={true} isCollapsed={isCollapsed} onMobileClick={onMobileClick} />
                                 ))}
@@ -107,23 +107,23 @@ export function SidebarItem({ item, isNested = false, isCollapsed = false, onMob
             href={item.href || "#"}
             onClick={onMobileClick}
             title={isCollapsed ? item.title : undefined}
-            className={`group flex items-center justify-between px-4 py-3 rounded-2xl transition-all duration-300 outline-none mb-1.5 ${
+            className={`group flex items-center justify-between px-4 py-2 rounded-2xl transition-all duration-300 outline-none mb-1 ${
                 isActive
                 ? "bg-gradient-to-r from-[#dca45c] to-[#c39254] text-white font-bold shadow-md shadow-[#c39254]/30" 
                 // MEJORA: Hover dorado suave para que notes claramente cuando pasas el mouse
                 : "text-slate-500 hover:bg-[#c39254]/10 hover:text-[#a3722a] font-medium"
-            } ${isNested ? "py-2.5 text-[13px]" : "text-[14px]"} ${isCollapsed ? "justify-center px-0 w-12 h-12 mx-auto rounded-xl" : ""}`}
+            } ${isNested ? "py-2 text-[12px]" : "text-[13px]"} ${isCollapsed ? "justify-center px-0 w-12 h-12 mx-auto rounded-xl" : ""}`}
         >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5">
                 {item.icon ? (
                     <DynamicIcon 
                         name={item.icon} 
-                        size={isNested ? 18 : 20} 
+                        size={isNested ? 16 : 17} 
                         strokeWidth={isActive ? 2.5 : 2} 
                         className={isActive ? "text-white" : "text-slate-400 group-hover:text-[#a3722a] transition-colors"} 
                     />
                 ) : (
-                    <Dot size={20} strokeWidth={3} className={isActive ? "text-white" : "text-slate-300 group-hover:text-[#a3722a]"} />
+                    <Dot size={17} strokeWidth={3} className={isActive ? "text-white" : "text-slate-300 group-hover:text-[#a3722a]"} />
                 )}
                 {!isCollapsed && <span className="tracking-wide whitespace-nowrap">{item.title}</span>}
             </div>

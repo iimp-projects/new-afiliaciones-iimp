@@ -1,0 +1,20 @@
+{
+  "timestamp": "2026-09-06T22:33:34.480Z",
+  "mode": "EXECUTE",
+  "status": "COMMITTED",
+  "plan": "config/academic-residual-duplicates.final-plan.json",
+  "expectedUpdates": 69,
+  "actualUpdates": 69,
+  "expectedDeactivations": 17,
+  "actualDeactivations": 17,
+  "duplicateReferencesRemaining": 0,
+  "canonicalIdsActive": true,
+  "academicInfoBefore": 5130,
+  "academicInfoAfter": 5130,
+  "universityIdNullBefore": 84,
+  "universityIdNullAfter": 84,
+  "degreeIdChanged": false,
+  "degreeTitleChanged": false,
+  "rollback": false,
+  "errors": []
+}

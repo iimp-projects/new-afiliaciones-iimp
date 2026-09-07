@@ -1,8 +1,9 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any -- existing generic dropdown contract. */
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { Search, Filter, Trash2, ChevronDown, ArrowDownUp, X } from "lucide-react";
+import { Search, Filter, Trash2, ChevronDown, ArrowDownUp, X, LayoutGrid, List } from "lucide-react";
 
 const MODALIDADES = [
   { value: "ALL", label: "Todos los tipos" },
@@ -75,7 +76,7 @@ const CustomDropdown = ({ value, options, onChange, topLabel, className = "", he
   );
 };
 
-export function AsociadosFilterBar({ total, currentQuery, currentType, currentSort }: { total: number, currentQuery: string, currentType: string, currentSort: string }) {
+export function AsociadosFilterBar({ total, currentQuery, currentType, currentSort, viewMode, onViewModeChange }: { total: number, currentQuery: string, currentType: string, currentSort: string; viewMode: "grid" | "list"; onViewModeChange: (mode: "grid" | "list") => void }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -155,8 +156,9 @@ export function AsociadosFilterBar({ total, currentQuery, currentType, currentSo
                   <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest">Filtros Secundarios</h3>
                   <button onClick={() => setShowAdvanced(false)} className="text-slate-400 hover:text-slate-700"><X size={16} /></button>
                 </div>
-                <div className="p-5 space-y-4 text-center">
-                  <p className="text-sm font-medium text-slate-500">Más filtros en desarrollo...</p>
+                <div className="p-5 space-y-4">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Vista</p>
+                  <div className="grid grid-cols-2 gap-2"><button type="button" onClick={() => onViewModeChange("grid")} className={`inline-flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-bold ${viewMode === "grid" ? "border-[#C5A059] bg-[#C5A059]/10 text-[#7f561e]" : "border-slate-200 text-slate-500"}`}><LayoutGrid size={14}/>Tarjetas</button><button type="button" onClick={() => onViewModeChange("list")} className={`inline-flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-bold ${viewMode === "list" ? "border-[#C5A059] bg-[#C5A059]/10 text-[#7f561e]" : "border-slate-200 text-slate-500"}`}><List size={14}/>Lista</button></div>
                 </div>
               </div>
             )}

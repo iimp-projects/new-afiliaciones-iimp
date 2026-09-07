@@ -1,0 +1,1307 @@
+{
+  "generatedAt": "2026-09-06T21:53:53.830Z",
+  "rows": [
+    {
+      "entity": "University",
+      "duplicateId": 6,
+      "canonicalId": 837,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 7,
+      "canonicalId": 974,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 8,
+      "canonicalId": 1079,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 11,
+      "canonicalId": 877,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 12,
+      "canonicalId": 1046,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 13,
+      "canonicalId": 893,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 17,
+      "canonicalId": 1007,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 19,
+      "canonicalId": 828,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 21,
+      "canonicalId": 944,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 22,
+      "canonicalId": 1023,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 23,
+      "canonicalId": 832,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 26,
+      "canonicalId": 933,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 29,
+      "canonicalId": 813,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 30,
+      "canonicalId": 1060,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 32,
+      "canonicalId": 858,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 33,
+      "canonicalId": 964,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 34,
+      "canonicalId": 855,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 35,
+      "canonicalId": 891,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 46,
+      "canonicalId": 866,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 49,
+      "canonicalId": 928,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 50,
+      "canonicalId": 815,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 51,
+      "canonicalId": 1000,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 52,
+      "canonicalId": 802,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 53,
+      "canonicalId": 827,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 57,
+      "canonicalId": 861,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 58,
+      "canonicalId": 829,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 59,
+      "canonicalId": 833,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 60,
+      "canonicalId": 1038,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 61,
+      "canonicalId": 1005,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 62,
+      "canonicalId": 898,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 63,
+      "canonicalId": 1067,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 64,
+      "canonicalId": 1033,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 65,
+      "canonicalId": 901,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 66,
+      "canonicalId": 892,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 69,
+      "canonicalId": 1058,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 70,
+      "canonicalId": 1096,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 71,
+      "canonicalId": 794,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 72,
+      "canonicalId": 980,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 3,
+      "canonicalId": 986,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 5,
+      "canonicalId": 798,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 789,
+      "canonicalId": 77,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 1,
+      "canonicalId": 938,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 10,
+      "canonicalId": 947,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 73,
+      "canonicalId": 885,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 74,
+      "canonicalId": 1017,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 75,
+      "canonicalId": 929,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 76,
+      "canonicalId": 906,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 78,
+      "canonicalId": 862,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 80,
+      "canonicalId": 788,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 82,
+      "canonicalId": 821,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 83,
+      "canonicalId": 1090,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 88,
+      "canonicalId": 1051,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 799,
+      "canonicalId": 25,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 803,
+      "canonicalId": 981,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 851,
+      "canonicalId": 862,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 878,
+      "canonicalId": 885,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 887,
+      "canonicalId": 855,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 896,
+      "canonicalId": 933,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 903,
+      "canonicalId": 1020,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 939,
+      "canonicalId": 898,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 950,
+      "canonicalId": 877,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 990,
+      "canonicalId": 928,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 1056,
+      "canonicalId": 947,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 1063,
+      "canonicalId": 1023,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "University",
+      "duplicateId": 1073,
+      "canonicalId": 980,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 1,
+      "canonicalId": 809,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 2,
+      "canonicalId": 774,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 3,
+      "canonicalId": 563,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 4,
+      "canonicalId": 379,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 6,
+      "canonicalId": 261,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 7,
+      "canonicalId": 652,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 8,
+      "canonicalId": 725,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 9,
+      "canonicalId": 786,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 10,
+      "canonicalId": 675,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 11,
+      "canonicalId": 713,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 13,
+      "canonicalId": 375,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 15,
+      "canonicalId": 808,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 19,
+      "canonicalId": 772,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 20,
+      "canonicalId": 822,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 22,
+      "canonicalId": 323,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 23,
+      "canonicalId": 397,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 24,
+      "canonicalId": 656,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 25,
+      "canonicalId": 700,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 26,
+      "canonicalId": 392,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 27,
+      "canonicalId": 855,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 29,
+      "canonicalId": 500,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 30,
+      "canonicalId": 536,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 217,
+      "canonicalId": 255,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 225,
+      "canonicalId": 879,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 226,
+      "canonicalId": 567,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 236,
+      "canonicalId": 303,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 240,
+      "canonicalId": 389,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 242,
+      "canonicalId": 331,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 252,
+      "canonicalId": 440,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 271,
+      "canonicalId": 318,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 277,
+      "canonicalId": 547,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 287,
+      "canonicalId": 569,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 293,
+      "canonicalId": 887,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 309,
+      "canonicalId": 297,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 312,
+      "canonicalId": 547,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 315,
+      "canonicalId": 751,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 322,
+      "canonicalId": 379,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 326,
+      "canonicalId": 803,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 328,
+      "canonicalId": 772,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 332,
+      "canonicalId": 563,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 333,
+      "canonicalId": 285,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 335,
+      "canonicalId": 809,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 343,
+      "canonicalId": 713,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 346,
+      "canonicalId": 301,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 348,
+      "canonicalId": 809,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 357,
+      "canonicalId": 522,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 366,
+      "canonicalId": 436,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 391,
+      "canonicalId": 567,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 405,
+      "canonicalId": 906,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 423,
+      "canonicalId": 656,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 425,
+      "canonicalId": 450,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 431,
+      "canonicalId": 795,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 432,
+      "canonicalId": 301,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 433,
+      "canonicalId": 579,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 437,
+      "canonicalId": 375,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 441,
+      "canonicalId": 378,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 463,
+      "canonicalId": 774,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 464,
+      "canonicalId": 809,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 476,
+      "canonicalId": 786,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 480,
+      "canonicalId": 725,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 481,
+      "canonicalId": 893,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 483,
+      "canonicalId": 753,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 484,
+      "canonicalId": 379,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 493,
+      "canonicalId": 301,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 502,
+      "canonicalId": 579,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 513,
+      "canonicalId": 774,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 523,
+      "canonicalId": 579,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 531,
+      "canonicalId": 563,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 534,
+      "canonicalId": 841,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 538,
+      "canonicalId": 383,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 552,
+      "canonicalId": 786,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 554,
+      "canonicalId": 758,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 566,
+      "canonicalId": 867,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 570,
+      "canonicalId": 774,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 574,
+      "canonicalId": 389,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 580,
+      "canonicalId": 675,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 582,
+      "canonicalId": 356,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 586,
+      "canonicalId": 375,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 604,
+      "canonicalId": 720,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 628,
+      "canonicalId": 301,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 635,
+      "canonicalId": 809,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 654,
+      "canonicalId": 614,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 657,
+      "canonicalId": 438,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 658,
+      "canonicalId": 774,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 659,
+      "canonicalId": 925,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 667,
+      "canonicalId": 452,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 676,
+      "canonicalId": 758,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 679,
+      "canonicalId": 675,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 681,
+      "canonicalId": 356,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 684,
+      "canonicalId": 867,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 688,
+      "canonicalId": 774,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 701,
+      "canonicalId": 664,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 706,
+      "canonicalId": 323,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 707,
+      "canonicalId": 710,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 715,
+      "canonicalId": 378,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 724,
+      "canonicalId": 786,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 727,
+      "canonicalId": 893,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 733,
+      "canonicalId": 553,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 736,
+      "canonicalId": 375,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 741,
+      "canonicalId": 774,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 750,
+      "canonicalId": 546,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 768,
+      "canonicalId": 774,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 770,
+      "canonicalId": 255,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 773,
+      "canonicalId": 879,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 775,
+      "canonicalId": 809,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 777,
+      "canonicalId": 347,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 780,
+      "canonicalId": 652,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 784,
+      "canonicalId": 680,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 796,
+      "canonicalId": 397,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 814,
+      "canonicalId": 879,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 838,
+      "canonicalId": 353,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 840,
+      "canonicalId": 830,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 844,
+      "canonicalId": 774,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 864,
+      "canonicalId": 867,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 865,
+      "canonicalId": 788,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 885,
+      "canonicalId": 417,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 894,
+      "canonicalId": 816,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 905,
+      "canonicalId": 774,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 912,
+      "canonicalId": 301,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 921,
+      "canonicalId": 563,
+      "isActiveBefore": true,
+      "references": 0
+    },
+    {
+      "entity": "Specialty",
+      "duplicateId": 923,
+      "canonicalId": 532,
+      "isActiveBefore": true,
+      "references": 0
+    }
+  ]
+}

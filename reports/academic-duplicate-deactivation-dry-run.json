@@ -1,0 +1,2700 @@
+{
+  "generatedAt": "2026-09-06T21:51:25.267Z",
+  "readOnly": true,
+  "summary": {
+    "universities": {
+      "duplicateIds": 65,
+      "currentlyActive": 65,
+      "currentlyInactive": 0,
+      "references": 0,
+      "canonicalInactive": 0
+    },
+    "specialties": {
+      "duplicateIds": 121,
+      "currentlyActive": 121,
+      "currentlyInactive": 0,
+      "references": 0,
+      "canonicalInactive": 0
+    }
+  },
+  "universities": [
+    {
+      "canonicalId": 928,
+      "canonicalName": "PONTIFICIA UNIVERSIDAD CATOLICA DEL PERU",
+      "canonicalActive": true,
+      "duplicateIds": [
+        49,
+        990
+      ],
+      "duplicateMembers": [
+        {
+          "id": 49,
+          "name": "Pontificia Universidad Católica del Perú",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 990,
+          "name": "PONTIFICIA UNIVERSIDAD CATÓLICA DEL PERÚ",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 1017,
+      "canonicalName": "UNIVERSIDAD ANDINA DEL CUSCO",
+      "canonicalActive": true,
+      "duplicateIds": [
+        74
+      ],
+      "duplicateMembers": [
+        {
+          "id": 74,
+          "name": "Universidad Andina del Cusco",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 1067,
+      "canonicalName": "UNIVERSIDAD ANTONIO RUIZ DE MONTOYA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        63
+      ],
+      "duplicateMembers": [
+        {
+          "id": 63,
+          "name": "Universidad Antonio Ruiz de Montoya",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 980,
+      "canonicalName": "UNIVERSIDAD CATOLICA DE SANTA MARIA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        72,
+        1073
+      ],
+      "duplicateMembers": [
+        {
+          "id": 72,
+          "name": "Universidad Católica de Santa María",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 1073,
+          "name": "UNIVERSIDAD CATÓLICA DE SANTA MARÍA",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 788,
+      "canonicalName": "UNIVERSIDAD CATOLICA DE TRUJILLO BENEDICTO XVI",
+      "canonicalActive": true,
+      "duplicateIds": [
+        80
+      ],
+      "duplicateMembers": [
+        {
+          "id": 80,
+          "name": "Universidad Católica de Trujillo Benedicto XVI",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 885,
+      "canonicalName": "UNIVERSIDAD CATÓLICA SAN PABLO",
+      "canonicalActive": true,
+      "duplicateIds": [
+        73,
+        878
+      ],
+      "duplicateMembers": [
+        {
+          "id": 73,
+          "name": "Universidad Católica San Pablo",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 878,
+          "name": "UNIVERSIDAD CATOLICA SAN PABLO",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 1096,
+      "canonicalName": "UNIVERSIDAD CATÓLICA SANTO TORIBIO DE MOGROVEJO",
+      "canonicalActive": true,
+      "duplicateIds": [
+        70
+      ],
+      "duplicateMembers": [
+        {
+          "id": 70,
+          "name": "Universidad Católica Santo Toribio de Mogrovejo",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 77,
+      "canonicalName": "Universidad Continental",
+      "canonicalActive": true,
+      "duplicateIds": [
+        789
+      ],
+      "duplicateMembers": [
+        {
+          "id": 789,
+          "name": "UNIVERSIDAD CONTINENTAL",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 898,
+      "canonicalName": "UNIVERSIDAD DE INGENIERIA Y TECNOLOGIA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        62,
+        939
+      ],
+      "duplicateMembers": [
+        {
+          "id": 62,
+          "name": "Universidad de Ingeniería y Tecnología",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 939,
+          "name": "UNIVERSIDAD DE INGENIERÍA Y TECNOLOGÍA",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 981,
+      "canonicalName": "UNIVERSIDAD DE INGENIERÍA Y TECNOLOGÍA - UTEC",
+      "canonicalActive": true,
+      "duplicateIds": [
+        803
+      ],
+      "duplicateMembers": [
+        {
+          "id": 803,
+          "name": "UNIVERSIDAD DE INGENIERÍA Y TECNOLOGÍA UTEC",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 802,
+      "canonicalName": "UNIVERSIDAD DE LIMA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        52
+      ],
+      "duplicateMembers": [
+        {
+          "id": 52,
+          "name": "Universidad de Lima",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 794,
+      "canonicalName": "UNIVERSIDAD DE PIURA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        71
+      ],
+      "duplicateMembers": [
+        {
+          "id": 71,
+          "name": "Universidad de Piura",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 1038,
+      "canonicalName": "UNIVERSIDAD DE SAN MARTIN DE PORRES",
+      "canonicalActive": true,
+      "duplicateIds": [
+        60
+      ],
+      "duplicateMembers": [
+        {
+          "id": 60,
+          "name": "Universidad de San Martín de Porres",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 1000,
+      "canonicalName": "UNIVERSIDAD DEL PACIFICO",
+      "canonicalActive": true,
+      "duplicateIds": [
+        51
+      ],
+      "duplicateMembers": [
+        {
+          "id": 51,
+          "name": "Universidad del Pacífico",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 827,
+      "canonicalName": "UNIVERSIDAD ESAN",
+      "canonicalActive": true,
+      "duplicateIds": [
+        53
+      ],
+      "duplicateMembers": [
+        {
+          "id": 53,
+          "name": "Universidad ESAN",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 1033,
+      "canonicalName": "UNIVERSIDAD FEMENINA DEL SAGRADO CORAZON",
+      "canonicalActive": true,
+      "duplicateIds": [
+        64
+      ],
+      "duplicateMembers": [
+        {
+          "id": 64,
+          "name": "Universidad Femenina del Sagrado Corazón",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 892,
+      "canonicalName": "UNIVERSIDAD JAIME BAUSATE Y MEZA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        66
+      ],
+      "duplicateMembers": [
+        {
+          "id": 66,
+          "name": "Universidad Jaime Bausate y Meza",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 906,
+      "canonicalName": "UNIVERSIDAD LA SALLE",
+      "canonicalActive": true,
+      "duplicateIds": [
+        76
+      ],
+      "duplicateMembers": [
+        {
+          "id": 76,
+          "name": "Universidad La Salle",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 891,
+      "canonicalName": "UNIVERSIDAD NACIONAL AGRARIA DE LA SELVA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        35
+      ],
+      "duplicateMembers": [
+        {
+          "id": 35,
+          "name": "Universidad Nacional Agraria de la Selva",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 986,
+      "canonicalName": "UNIVERSIDAD NACIONAL AGRARIA LA MOLINA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        3
+      ],
+      "duplicateMembers": [
+        {
+          "id": 3,
+          "name": "Universidad Nacional Agraria La Molina",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 1023,
+      "canonicalName": "UNIVERSIDAD NACIONAL DANIEL ALCIDES CARRION",
+      "canonicalActive": true,
+      "duplicateIds": [
+        22,
+        1063
+      ],
+      "duplicateMembers": [
+        {
+          "id": 22,
+          "name": "Universidad Nacional Daniel Alcides Carrión",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 1063,
+          "name": "UNIVERSIDAD NACIONAL DANIEL ALCIDES CARRIÓN",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 893,
+      "canonicalName": "UNIVERSIDAD NACIONAL DE CAJAMARCA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        13
+      ],
+      "duplicateMembers": [
+        {
+          "id": 13,
+          "name": "Universidad Nacional de Cajamarca",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 866,
+      "canonicalName": "UNIVERSIDAD NACIONAL DE CAÑETE",
+      "canonicalActive": true,
+      "duplicateIds": [
+        46
+      ],
+      "duplicateMembers": [
+        {
+          "id": 46,
+          "name": "Universidad Nacional de Cañete",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 832,
+      "canonicalName": "UNIVERSIDAD NACIONAL DE HUANCAVELICA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        23
+      ],
+      "duplicateMembers": [
+        {
+          "id": 23,
+          "name": "Universidad Nacional de Huancavelica",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 964,
+      "canonicalName": "UNIVERSIDAD NACIONAL DE JULIACA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        33
+      ],
+      "duplicateMembers": [
+        {
+          "id": 33,
+          "name": "Universidad Nacional de Juliaca",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 813,
+      "canonicalName": "UNIVERSIDAD NACIONAL DE MOQUEGUA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        29
+      ],
+      "duplicateMembers": [
+        {
+          "id": 29,
+          "name": "Universidad Nacional de Moquegua",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 1079,
+      "canonicalName": "UNIVERSIDAD NACIONAL DE PIURA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        8
+      ],
+      "duplicateMembers": [
+        {
+          "id": 8,
+          "name": "Universidad Nacional de Piura",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 947,
+      "canonicalName": "UNIVERSIDAD NACIONAL DE SAN AGUSTIN DE AREQUIPA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        10,
+        1056
+      ],
+      "duplicateMembers": [
+        {
+          "id": 10,
+          "name": "Universidad Nacional de San Agustín de Arequipa",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 1056,
+          "name": "UNIVERSIDAD NACIONAL DE SAN AGUSTÍN DE AREQUIPA",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 1020,
+      "canonicalName": "UNIVERSIDAD NACIONAL DE SAN CRISTÓBAL DE HUAMANGA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        903
+      ],
+      "duplicateMembers": [
+        {
+          "id": 903,
+          "name": "UNIVERSIDAD NACIONAL DE SAN CRISTOBAL DE HUAMANGA",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 1007,
+      "canonicalName": "UNIVERSIDAD NACIONAL DE SAN MARTÍN",
+      "canonicalActive": true,
+      "duplicateIds": [
+        17
+      ],
+      "duplicateMembers": [
+        {
+          "id": 17,
+          "name": "Universidad Nacional de San Martín",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 974,
+      "canonicalName": "UNIVERSIDAD NACIONAL DE TRUJILLO",
+      "canonicalActive": true,
+      "duplicateIds": [
+        7
+      ],
+      "duplicateMembers": [
+        {
+          "id": 7,
+          "name": "Universidad Nacional de Trujillo",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 828,
+      "canonicalName": "UNIVERSIDAD NACIONAL DE UCAYALI",
+      "canonicalActive": true,
+      "duplicateIds": [
+        19
+      ],
+      "duplicateMembers": [
+        {
+          "id": 19,
+          "name": "Universidad Nacional de Ucayali",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 1046,
+      "canonicalName": "UNIVERSIDAD NACIONAL DEL ALTIPLANO",
+      "canonicalActive": true,
+      "duplicateIds": [
+        12
+      ],
+      "duplicateMembers": [
+        {
+          "id": 12,
+          "name": "Universidad Nacional del Altiplano",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 798,
+      "canonicalName": "UNIVERSIDAD NACIONAL DEL CALLAO",
+      "canonicalActive": true,
+      "duplicateIds": [
+        5
+      ],
+      "duplicateMembers": [
+        {
+          "id": 5,
+          "name": "Universidad Nacional del Callao",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 877,
+      "canonicalName": "UNIVERSIDAD NACIONAL DEL CENTRO DEL PERU",
+      "canonicalActive": true,
+      "duplicateIds": [
+        11,
+        950
+      ],
+      "duplicateMembers": [
+        {
+          "id": 11,
+          "name": "Universidad Nacional del Centro del Perú",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 950,
+          "name": "UNIVERSIDAD NACIONAL DEL CENTRO DEL PERÚ",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 855,
+      "canonicalName": "UNIVERSIDAD NACIONAL JOSE FAUSTINO SANCHEZ CARRION",
+      "canonicalActive": true,
+      "duplicateIds": [
+        34,
+        887
+      ],
+      "duplicateMembers": [
+        {
+          "id": 34,
+          "name": "Universidad Nacional José Faustino Sánchez Carrión",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 887,
+          "name": "UNIVERSIDAD NACIONAL JOSÉ FAUSTINO SÁNCHEZ CARRION",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 858,
+      "canonicalName": "UNIVERSIDAD NACIONAL JOSE MARIA ARGUEDAS",
+      "canonicalActive": true,
+      "duplicateIds": [
+        32
+      ],
+      "duplicateMembers": [
+        {
+          "id": 32,
+          "name": "Universidad Nacional José María Arguedas",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 938,
+      "canonicalName": "UNIVERSIDAD NACIONAL MAYOR DE SAN MARCOS",
+      "canonicalActive": true,
+      "duplicateIds": [
+        1
+      ],
+      "duplicateMembers": [
+        {
+          "id": 1,
+          "name": "Universidad Nacional Mayor de San Marcos",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 1060,
+      "canonicalName": "UNIVERSIDAD NACIONAL MICAELA BASTIDAS DE APURIMAC",
+      "canonicalActive": true,
+      "duplicateIds": [
+        30
+      ],
+      "duplicateMembers": [
+        {
+          "id": 30,
+          "name": "Universidad Nacional Micaela Bastidas de Apurímac",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 837,
+      "canonicalName": "UNIVERSIDAD NACIONAL PEDRO RUIZ GALLO",
+      "canonicalActive": true,
+      "duplicateIds": [
+        6
+      ],
+      "duplicateMembers": [
+        {
+          "id": 6,
+          "name": "Universidad Nacional Pedro Ruiz Gallo",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 933,
+      "canonicalName": "UNIVERSIDAD NACIONAL SANTIAGO ANTUNEZ DE MAYOLO",
+      "canonicalActive": true,
+      "duplicateIds": [
+        26,
+        896
+      ],
+      "duplicateMembers": [
+        {
+          "id": 26,
+          "name": "Universidad Nacional Santiago Antúnez de Mayolo",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 896,
+          "name": "UNIVERSIDAD NACIONAL SANTIAGO ANTÚNEZ DE MAYOLO",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 944,
+      "canonicalName": "UNIVERSIDAD NACIONAL TORIBIO RODRIGUEZ DE MENDOZA DE AMAZONAS",
+      "canonicalActive": true,
+      "duplicateIds": [
+        21
+      ],
+      "duplicateMembers": [
+        {
+          "id": 21,
+          "name": "Universidad Nacional Toribio Rodríguez de Mendoza de Amazonas",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 901,
+      "canonicalName": "UNIVERSIDAD NORBERT WIENER",
+      "canonicalActive": true,
+      "duplicateIds": [
+        65
+      ],
+      "duplicateMembers": [
+        {
+          "id": 65,
+          "name": "Universidad Norbert Wiener",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 1051,
+      "canonicalName": "UNIVERSIDAD PARTICULAR DE CHICLAYO",
+      "canonicalActive": true,
+      "duplicateIds": [
+        88
+      ],
+      "duplicateMembers": [
+        {
+          "id": 88,
+          "name": "Universidad Particular de Chiclayo",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 815,
+      "canonicalName": "UNIVERSIDAD PERUANA CAYETANO HEREDIA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        50
+      ],
+      "duplicateMembers": [
+        {
+          "id": 50,
+          "name": "Universidad Peruana Cayetano Heredia",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 821,
+      "canonicalName": "UNIVERSIDAD PERUANA LOS ANDES",
+      "canonicalActive": true,
+      "duplicateIds": [
+        82
+      ],
+      "duplicateMembers": [
+        {
+          "id": 82,
+          "name": "Universidad Peruana Los Andes",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 862,
+      "canonicalName": "UNIVERSIDAD PERUANA UNION",
+      "canonicalActive": true,
+      "duplicateIds": [
+        78,
+        851
+      ],
+      "duplicateMembers": [
+        {
+          "id": 78,
+          "name": "Universidad Peruana Unión",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 851,
+          "name": "UNIVERSIDAD PERUANA UNIÓN",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 1058,
+      "canonicalName": "UNIVERSIDAD PRIVADA ANTENOR ORREGO",
+      "canonicalActive": true,
+      "duplicateIds": [
+        69
+      ],
+      "duplicateMembers": [
+        {
+          "id": 69,
+          "name": "Universidad Privada Antenor Orrego",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 929,
+      "canonicalName": "UNIVERSIDAD PRIVADA DE TACNA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        75
+      ],
+      "duplicateMembers": [
+        {
+          "id": 75,
+          "name": "Universidad Privada de Tacna",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 861,
+      "canonicalName": "UNIVERSIDAD PRIVADA DEL NORTE",
+      "canonicalActive": true,
+      "duplicateIds": [
+        57
+      ],
+      "duplicateMembers": [
+        {
+          "id": 57,
+          "name": "Universidad Privada del Norte",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 829,
+      "canonicalName": "UNIVERSIDAD RICARDO PALMA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        58
+      ],
+      "duplicateMembers": [
+        {
+          "id": 58,
+          "name": "Universidad Ricardo Palma",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 833,
+      "canonicalName": "UNIVERSIDAD SAN IGNACIO DE LOYOLA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        59
+      ],
+      "duplicateMembers": [
+        {
+          "id": 59,
+          "name": "Universidad San Ignacio de Loyola",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 1090,
+      "canonicalName": "UNIVERSIDAD SEÑOR DE SIPÁN",
+      "canonicalActive": true,
+      "duplicateIds": [
+        83
+      ],
+      "duplicateMembers": [
+        {
+          "id": 83,
+          "name": "Universidad Señor de Sipán",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 1005,
+      "canonicalName": "UNIVERSIDAD TECNOLÓGICA DEL PERÚ",
+      "canonicalActive": true,
+      "duplicateIds": [
+        61
+      ],
+      "duplicateMembers": [
+        {
+          "id": 61,
+          "name": "Universidad Tecnológica del Perú",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 25,
+      "canonicalName": "Universidad Nacional del Santa",
+      "canonicalActive": true,
+      "duplicateIds": [
+        799
+      ],
+      "duplicateMembers": [
+        {
+          "id": 799,
+          "name": "UNIVERSIDAD NACIONAL DEL SANTA",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    }
+  ],
+  "specialties": [
+    {
+      "canonicalId": 323,
+      "canonicalName": "ADMINISTRACIÓN",
+      "canonicalActive": true,
+      "duplicateIds": [
+        22,
+        706
+      ],
+      "duplicateMembers": [
+        {
+          "id": 22,
+          "name": "Administración",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 706,
+          "name": "ADMINISTRACION",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 397,
+      "canonicalName": "ADMINISTRACIÓN DE EMPRESAS",
+      "canonicalActive": true,
+      "duplicateIds": [
+        23,
+        796
+      ],
+      "duplicateMembers": [
+        {
+          "id": 23,
+          "name": "Administración de Empresas",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 796,
+          "name": "ADMINISTRACION DE EMPRESAS",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 664,
+      "canonicalName": "ADMINISTRACION Y NEGOCIOS INTERNACIONALES",
+      "canonicalActive": true,
+      "duplicateIds": [
+        701
+      ],
+      "duplicateMembers": [
+        {
+          "id": 701,
+          "name": "ADMINISTRACIÓN Y NEGOCIOS INTERNACIONALES",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 751,
+      "canonicalName": "BIOLOGIA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        315
+      ],
+      "duplicateMembers": [
+        {
+          "id": 315,
+          "name": "BIOLOGÍA",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 700,
+      "canonicalName": "CONTABILIDAD",
+      "canonicalActive": true,
+      "duplicateIds": [
+        25
+      ],
+      "duplicateMembers": [
+        {
+          "id": 25,
+          "name": "Contabilidad",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 500,
+      "canonicalName": "DERECHO",
+      "canonicalActive": true,
+      "duplicateIds": [
+        29
+      ],
+      "duplicateMembers": [
+        {
+          "id": 29,
+          "name": "Derecho",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 656,
+      "canonicalName": "ECONOMÍA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        24,
+        423
+      ],
+      "duplicateMembers": [
+        {
+          "id": 24,
+          "name": "Economía",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 423,
+          "name": "ECONOMIA",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 536,
+      "canonicalName": "EDUCACIÓN",
+      "canonicalActive": true,
+      "duplicateIds": [
+        30
+      ],
+      "duplicateMembers": [
+        {
+          "id": 30,
+          "name": "Educación",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 569,
+      "canonicalName": "ELECTRONICA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        287
+      ],
+      "duplicateMembers": [
+        {
+          "id": 287,
+          "name": "ELECTRÓNICA",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 680,
+      "canonicalName": "ESCUELA PROFESIONAL DE INGENIERIA DE MINAS",
+      "canonicalActive": true,
+      "duplicateIds": [
+        784
+      ],
+      "duplicateMembers": [
+        {
+          "id": 784,
+          "name": "ESCUELA PROFESIONAL DE INGENIERÍA DE MINAS",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 614,
+      "canonicalName": "EXPLOTACIÓN DE MINAS",
+      "canonicalActive": true,
+      "duplicateIds": [
+        654
+      ],
+      "duplicateMembers": [
+        {
+          "id": 654,
+          "name": "EXPLOTACION DE MINAS",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 795,
+      "canonicalName": "EXPLOTACIÓN MINERA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        431
+      ],
+      "duplicateMembers": [
+        {
+          "id": 431,
+          "name": "EXPLOTACION MINERA",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 392,
+      "canonicalName": "FINANZAS",
+      "canonicalActive": true,
+      "duplicateIds": [
+        26
+      ],
+      "duplicateMembers": [
+        {
+          "id": 26,
+          "name": "Finanzas",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 379,
+      "canonicalName": "GEOLOGÍA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        4,
+        322,
+        484
+      ],
+      "duplicateMembers": [
+        {
+          "id": 4,
+          "name": "Geología",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 322,
+          "name": "GEÓLOGIA",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 484,
+          "name": "GEOLOGIA",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 450,
+      "canonicalName": "GEOLOGIA Y EXPLORACION",
+      "canonicalActive": true,
+      "duplicateIds": [
+        425
+      ],
+      "duplicateMembers": [
+        {
+          "id": 425,
+          "name": "GEOLOGÍA Y EXPLORACIÓN",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 261,
+      "canonicalName": "GEOTECNIA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        6
+      ],
+      "duplicateMembers": [
+        {
+          "id": 6,
+          "name": "Geotecnia",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 816,
+      "canonicalName": "INFORMÁTICA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        894
+      ],
+      "duplicateMembers": [
+        {
+          "id": 894,
+          "name": "INFORMATICA",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 579,
+      "canonicalName": "ING. AMBIENTAL",
+      "canonicalActive": true,
+      "duplicateIds": [
+        433,
+        502,
+        523
+      ],
+      "duplicateMembers": [
+        {
+          "id": 433,
+          "name": "ING.AMBIENTAL",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 502,
+          "name": "ING-AMBIENTAL",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 523,
+          "name": "ING AMBIENTAL",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 893,
+      "canonicalName": "ING. CIVIL",
+      "canonicalActive": true,
+      "duplicateIds": [
+        481,
+        727
+      ],
+      "duplicateMembers": [
+        {
+          "id": 481,
+          "name": "ING.CIVIL",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 727,
+          "name": "ING CIVIL",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 867,
+      "canonicalName": "ING DE MINAS",
+      "canonicalActive": true,
+      "duplicateIds": [
+        566,
+        684,
+        864
+      ],
+      "duplicateMembers": [
+        {
+          "id": 566,
+          "name": "ING.DE MINAS",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 684,
+          "name": "ING.  DE MINAS",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 864,
+          "name": "ING. DE MINAS",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 301,
+      "canonicalName": "ING. GEOLÓGICA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        346,
+        432,
+        493,
+        628,
+        912
+      ],
+      "duplicateMembers": [
+        {
+          "id": 346,
+          "name": "ING.GEOLÓGICA",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 432,
+          "name": "ING. GEÓLOGICA",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 493,
+          "name": "ING. GEOLOGICA",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 628,
+          "name": "ING GEOLOGICA",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 912,
+          "name": "ING GEOLÓGICA",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 547,
+      "canonicalName": "ING. METALÚRGICA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        277,
+        312
+      ],
+      "duplicateMembers": [
+        {
+          "id": 277,
+          "name": "ING. METALURGICA",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 312,
+          "name": "ING METALURGICA",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 378,
+      "canonicalName": "ING. MINAS",
+      "canonicalActive": true,
+      "duplicateIds": [
+        441,
+        715
+      ],
+      "duplicateMembers": [
+        {
+          "id": 441,
+          "name": "ING MINAS",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 715,
+          "name": "ING.MINAS",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 331,
+      "canonicalName": "ING. QUÍMICA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        242
+      ],
+      "duplicateMembers": [
+        {
+          "id": 242,
+          "name": "ING. QUIMICA",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 318,
+      "canonicalName": "INGENERIA DE GESTION MINERA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        271
+      ],
+      "duplicateMembers": [
+        {
+          "id": 271,
+          "name": "INGENERÍA DE GESTIÓN MINERA",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 285,
+      "canonicalName": "INGENERIA DE MINAS",
+      "canonicalActive": true,
+      "duplicateIds": [
+        333
+      ],
+      "duplicateMembers": [
+        {
+          "id": 333,
+          "name": "INGENERÍA DE MINAS",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 303,
+      "canonicalName": "INGENIERA QUIMICA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        236
+      ],
+      "duplicateMembers": [
+        {
+          "id": 236,
+          "name": "INGENIERA QUÍMICA",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 440,
+      "canonicalName": "INGENIERÍA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        252
+      ],
+      "duplicateMembers": [
+        {
+          "id": 252,
+          "name": "INGENIERIA",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 753,
+      "canonicalName": "INGENIERIA AGRICOLA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        483
+      ],
+      "duplicateMembers": [
+        {
+          "id": 483,
+          "name": "INGENIERÍA AGRÍCOLA",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 772,
+      "canonicalName": "INGENIERÍA AMBIENTAL",
+      "canonicalActive": true,
+      "duplicateIds": [
+        19,
+        328
+      ],
+      "duplicateMembers": [
+        {
+          "id": 19,
+          "name": "Ingeniería Ambiental",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 328,
+          "name": "INGENIERIA AMBIENTAL",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 522,
+      "canonicalName": "INGENIERÍA AMBIENTAL Y DE RECURSOS NATURALES",
+      "canonicalActive": true,
+      "duplicateIds": [
+        357
+      ],
+      "duplicateMembers": [
+        {
+          "id": 357,
+          "name": "INGENIERIA AMBIENTAL Y DE RECURSOS NATURALES",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 803,
+      "canonicalName": "INGENIERÍA AMBIENTAL Y RECURSOS NATURALES",
+      "canonicalActive": true,
+      "duplicateIds": [
+        326
+      ],
+      "duplicateMembers": [
+        {
+          "id": 326,
+          "name": "INGENIERIA AMBIENTAL Y RECURSOS NATURALES",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 830,
+      "canonicalName": "INGENIERÍA AMBIENTAL Y SEGURIDAD INDUSTRIAL",
+      "canonicalActive": true,
+      "duplicateIds": [
+        840
+      ],
+      "duplicateMembers": [
+        {
+          "id": 840,
+          "name": "INGENIERIA AMBIENTAL Y SEGURIDAD INDUSTRIAL",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 652,
+      "canonicalName": "INGENIERÍA CIVIL",
+      "canonicalActive": true,
+      "duplicateIds": [
+        7,
+        780
+      ],
+      "duplicateMembers": [
+        {
+          "id": 7,
+          "name": "Ingeniería Civil",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 780,
+          "name": "INGENIERIA CIVIL",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 841,
+      "canonicalName": "INGENIERÍA COMERCIAL",
+      "canonicalActive": true,
+      "duplicateIds": [
+        534
+      ],
+      "duplicateMembers": [
+        {
+          "id": 534,
+          "name": "INGENIERIA COMERCIAL",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 389,
+      "canonicalName": "INGENIERÍA DE GESTIÓN MINERA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        240,
+        574
+      ],
+      "duplicateMembers": [
+        {
+          "id": 240,
+          "name": "INGENIERIA DE GESTION MINERA",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 574,
+          "name": "INGENIERIA DE GESTIÓN MINERA",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 436,
+      "canonicalName": "INGENIERÍA DE MATERIALES",
+      "canonicalActive": true,
+      "duplicateIds": [
+        366
+      ],
+      "duplicateMembers": [
+        {
+          "id": 366,
+          "name": "INGENIERIA DE MATERIALES",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 532,
+      "canonicalName": "INGENIERÍA DE MINA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        923
+      ],
+      "duplicateMembers": [
+        {
+          "id": 923,
+          "name": "INGENIERIA DE MINA",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 809,
+      "canonicalName": "INGENIERÍA DE MINAS",
+      "canonicalActive": true,
+      "duplicateIds": [
+        1,
+        335,
+        348,
+        464,
+        635,
+        775
+      ],
+      "duplicateMembers": [
+        {
+          "id": 1,
+          "name": "Ingeniería de Minas",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 335,
+          "name": "INGENIERIA  DE MINAS",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 348,
+          "name": "INGENIERÍA  DE  MINAS",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 464,
+          "name": "INGENIERIA DE MINAS",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 635,
+          "name": "INGENIERÌA DE MINAS",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 775,
+          "name": "INGENIERÍA  DE MINAS",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 808,
+      "canonicalName": "INGENIERIA DE SOFTWARE",
+      "canonicalActive": true,
+      "duplicateIds": [
+        15
+      ],
+      "duplicateMembers": [
+        {
+          "id": 15,
+          "name": "Ingeniería de Software",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 675,
+      "canonicalName": "INGENIERÍA ELÉCTRICA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        10,
+        580,
+        679
+      ],
+      "duplicateMembers": [
+        {
+          "id": 10,
+          "name": "Ingeniería Eléctrica",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 580,
+          "name": "INGENIERIA ELECTRICA",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 679,
+          "name": "INGENIERÍA ELECTRICA",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 713,
+      "canonicalName": "INGENIERÍA ELECTRÓNICA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        11,
+        343
+      ],
+      "duplicateMembers": [
+        {
+          "id": 11,
+          "name": "Ingeniería Electrónica",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 343,
+          "name": "INGENIERIA ELECTRONICA",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 347,
+      "canonicalName": "INGENIERÍA EN SEGURIDAD LABORAL Y AMBIENTAL",
+      "canonicalActive": true,
+      "duplicateIds": [
+        777
+      ],
+      "duplicateMembers": [
+        {
+          "id": 777,
+          "name": "INGENIERIA EN SEGURIDAD LABORAL Y AMBIENTAL",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 438,
+      "canonicalName": "INGENIERÍA GEOFÍSICA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        657
+      ],
+      "duplicateMembers": [
+        {
+          "id": 657,
+          "name": "INGENIERIA GEOFISICA",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 553,
+      "canonicalName": "INGENIERÍA GEOGRÁFICA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        733
+      ],
+      "duplicateMembers": [
+        {
+          "id": 733,
+          "name": "INGENIERIA GEOGRÁFICA",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 774,
+      "canonicalName": "INGENIERÍA GEOLÓGICA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        2,
+        463,
+        513,
+        570,
+        658,
+        688,
+        741,
+        768,
+        844,
+        905
+      ],
+      "duplicateMembers": [
+        {
+          "id": 2,
+          "name": "Ingeniería Geológica",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 463,
+          "name": "INGENIERIA  GEOLOGICA",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 513,
+          "name": "INGENIERIA  GEOLÓGICA",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 570,
+          "name": "INGENIERÍA GEÓLOGICA",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 658,
+          "name": "INGENIERÍA  GEOLÓGICA",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 688,
+          "name": "INGENIERIA GEOLOGICA",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 741,
+          "name": "INGENIERIA GEOLÒGICA",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 768,
+          "name": "INGENIERÌA GEOLÒGICA",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 844,
+          "name": "INGENIERÍA GEOLOGICA",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 905,
+          "name": "INGENIERIA GEOLÓGICA",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 879,
+      "canonicalName": "INGENIERÍA GEOLÓGICA-GEOTECNIA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        225,
+        773,
+        814
+      ],
+      "duplicateMembers": [
+        {
+          "id": 225,
+          "name": "INGENIERÍA GEOLÓGICA - GEOTECNIA",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 773,
+          "name": "INGENIERIA GEOLÓGICA - GEOTECNIA",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 814,
+          "name": "INGENIERÍA GEOLÓGICA GEOTECNIA",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 417,
+      "canonicalName": "INGENIERÍA GEOLÓGICA Y GEOTECNIA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        885
+      ],
+      "duplicateMembers": [
+        {
+          "id": 885,
+          "name": "INGENIERIA GEOLOGICA Y GEOTECNIA",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 725,
+      "canonicalName": "INGENIERÍA INDUSTRIAL",
+      "canonicalActive": true,
+      "duplicateIds": [
+        8,
+        480
+      ],
+      "duplicateMembers": [
+        {
+          "id": 8,
+          "name": "Ingeniería Industrial",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 480,
+          "name": "INGENIERIA INDUSTRIAL",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 786,
+      "canonicalName": "INGENIERÍA MECÁNICA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        9,
+        476,
+        552,
+        724
+      ],
+      "duplicateMembers": [
+        {
+          "id": 9,
+          "name": "Ingeniería Mecánica",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 476,
+          "name": "INGENIERÍA MECANICA",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 552,
+          "name": "INGENIERIA MECANICA",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 724,
+          "name": "INGENIERIA MECÁNICA",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 567,
+      "canonicalName": "INGENIERÍA MECÁNICA DE FLUIDOS",
+      "canonicalActive": true,
+      "duplicateIds": [
+        226,
+        391
+      ],
+      "duplicateMembers": [
+        {
+          "id": 226,
+          "name": "INGENIERIA MECANICA DE FLUIDOS",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 391,
+          "name": "INGENIERÍA MECANICA DE FLUIDOS",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 925,
+      "canonicalName": "INGENIERÍA MECÁNICA ELÉCTRICA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        659
+      ],
+      "duplicateMembers": [
+        {
+          "id": 659,
+          "name": "INGENIERIA MECANICA ELECTRICA",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 906,
+      "canonicalName": "INGENIERÍA METALÚRGIA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        405
+      ],
+      "duplicateMembers": [
+        {
+          "id": 405,
+          "name": "INGENIERIA METALURGIA",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 563,
+      "canonicalName": "INGENIERÍA METALÚRGICA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        3,
+        332,
+        531,
+        921
+      ],
+      "duplicateMembers": [
+        {
+          "id": 3,
+          "name": "Ingeniería Metalúrgica",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 332,
+          "name": "INGENIERÍA METALURGICA",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 531,
+          "name": "INGENIERIA METALURGICA",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 921,
+          "name": "INGENIERIA METALÚRGICA",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 297,
+      "canonicalName": "INGENIERIA METALURGICA Y DE MATERIALES",
+      "canonicalActive": true,
+      "duplicateIds": [
+        309
+      ],
+      "duplicateMembers": [
+        {
+          "id": 309,
+          "name": "INGENIERÍA METALÚRGICA Y DE MATERIALES",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 356,
+      "canonicalName": "INGENIERIA MINAS",
+      "canonicalActive": true,
+      "duplicateIds": [
+        582,
+        681
+      ],
+      "duplicateMembers": [
+        {
+          "id": 582,
+          "name": "INGENIERÍA  MINAS",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 681,
+          "name": "INGENIERÍA MINAS",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 375,
+      "canonicalName": "INGENIERÍA QUÍMICA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        13,
+        437,
+        586,
+        736
+      ],
+      "duplicateMembers": [
+        {
+          "id": 13,
+          "name": "Ingeniería Química",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 437,
+          "name": "INGENIERIA QUIMICA",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 586,
+          "name": "INGENIERÌA QUÌMICA",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 736,
+          "name": "INGENIERÍA QUIMICA",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 822,
+      "canonicalName": "INGENIERÍA SANITARIA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        20
+      ],
+      "duplicateMembers": [
+        {
+          "id": 20,
+          "name": "Ingeniería Sanitaria",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 353,
+      "canonicalName": "INGENIERO MECÁNICO",
+      "canonicalActive": true,
+      "duplicateIds": [
+        838
+      ],
+      "duplicateMembers": [
+        {
+          "id": 838,
+          "name": "INGENIERO MECANICO",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 452,
+      "canonicalName": "INGENIERO QUIMICO",
+      "canonicalActive": true,
+      "duplicateIds": [
+        667
+      ],
+      "duplicateMembers": [
+        {
+          "id": 667,
+          "name": "INGENIERO QUÍMICO",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 788,
+      "canonicalName": "MANTENIMIENTO DE EQUIPO PESADO",
+      "canonicalActive": true,
+      "duplicateIds": [
+        865
+      ],
+      "duplicateMembers": [
+        {
+          "id": 865,
+          "name": "MANTENIMIENTO DE EQUIPÓ PESADO",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 710,
+      "canonicalName": "MANTENIMIENTO ELÉCTRICO E INSTRUMENTACIÓN",
+      "canonicalActive": true,
+      "duplicateIds": [
+        707
+      ],
+      "duplicateMembers": [
+        {
+          "id": 707,
+          "name": "MANTENIMIENTO ELECTRICO E INSTRUMENTACION",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 546,
+      "canonicalName": "MECANICO ELÉCTRICISTA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        750
+      ],
+      "duplicateMembers": [
+        {
+          "id": 750,
+          "name": "MECANICO ELECTRICISTA",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 720,
+      "canonicalName": "MECATRONICA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        604
+      ],
+      "duplicateMembers": [
+        {
+          "id": 604,
+          "name": "MECATRÓNICA",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 855,
+      "canonicalName": "NEGOCIOS INTERNACIONALES",
+      "canonicalActive": true,
+      "duplicateIds": [
+        27
+      ],
+      "duplicateMembers": [
+        {
+          "id": 27,
+          "name": "Negocios Internacionales",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 383,
+      "canonicalName": "PERFORACIÓN Y VOLADURA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        538
+      ],
+      "duplicateMembers": [
+        {
+          "id": 538,
+          "name": "PERFORACION Y VOLADURA",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 758,
+      "canonicalName": "PREVENCIÓN DE RIESGOS, SEGURIDAD Y SALUD OCUPACIONAL",
+      "canonicalActive": true,
+      "duplicateIds": [
+        554,
+        676
+      ],
+      "duplicateMembers": [
+        {
+          "id": 554,
+          "name": "PREVENCION DE RIESGOS, SEGURIDAD Y SALUD OCUPACIONAL",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 676,
+          "name": "PREVENCIÓN DE RIESGOS SEGURIDAD Y SALUD OCUPACIONAL",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 255,
+      "canonicalName": "PROCESOS METALÚRGICOS Y QUÍMICOS",
+      "canonicalActive": true,
+      "duplicateIds": [
+        217,
+        770
+      ],
+      "duplicateMembers": [
+        {
+          "id": 217,
+          "name": "PROCESOS METALURGICOS Y QUÍMICOS",
+          "isActive": true,
+          "references": 0
+        },
+        {
+          "id": 770,
+          "name": "PROCESOS METALURGICOS Y QUIMICOS",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    },
+    {
+      "canonicalId": 887,
+      "canonicalName": "PSICOLOGÍA",
+      "canonicalActive": true,
+      "duplicateIds": [
+        293
+      ],
+      "duplicateMembers": [
+        {
+          "id": 293,
+          "name": "PSICOLOGIA",
+          "isActive": true,
+          "references": 0
+        }
+      ],
+      "references": 0,
+      "classification": "DEACTIVATION_CANDIDATE"
+    }
+  ],
+  "excluded": {
+    "manualReviewUniversities": 5,
+    "unresolvedInvalidSpecialties": 5,
+    "invalidUnreferencedSpecialties": 1
+  },
+  "apiVerification": {
+    "universitiesRouteFiltersIsActive": true,
+    "specialtiesRouteFiltersIsActive": true,
+    "educationStepUsesBothRoutes": true
+  }
+}

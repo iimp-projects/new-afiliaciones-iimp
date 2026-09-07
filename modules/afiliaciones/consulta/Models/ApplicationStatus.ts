@@ -1,5 +1,5 @@
 export type AreaStatusType = "PENDING" | "APPROVED" | "OBSERVED" | "REJECTED" | "NOT_REQUIRED";
-export type GlobalStatusType = "SUBMITTED" | "IN_REVIEW" | "OBSERVED" | "APPROVED" | "REJECTED";
+export type GlobalStatusType = "DRAFT" | "PENDING" | "UNDER_EVALUACION" | "OBSERVED" | "RESOLVED" | "READY_FOR_PAYMENT" | "COMPLETED" | "REJECTED";
 
 export interface ConsultationQuery {
   documentType: string;
@@ -9,31 +9,47 @@ export interface ConsultationQuery {
 
 export interface AreaDetail {
   status: AreaStatusType;
-  label?: string;            // Ej: "1 de 2 Aprobados", "En espera"
-  observation?: string;      // Detalle en caso de observación
+  label?: string;
+  observation?: string;
   evaluator?: string;
 }
 
 export interface ApplicationStatusData {
-  id?: number | string;           
-  applicationId?: number | string;
+  id?: number | string;
+  applicationId?: number;
   status: GlobalStatusType;
   applicationCode: string;
   applicantName?: string;
+  affiliateType?: string;
+  completedPayment?: {
+    id: number;
+    status: "PAID";
+    amount: number;
+    currency: string;
+    gateway: string;
+    transactionId?: string | null;
+    authorizationCode?: string | null;
+    paymentDate?: string | Date | null;
+    gatewayTransactionDate?: string | Date | null;
+    cardBrand?: string | null;
+    maskedCard?: string | null;
+    cardType?: string | null;
+    traceNumber?: string | null;
+    billing?: { taxId: string; businessName: string; billingAddress?: string | null; invoice?: { type: string; serie: string; number: string; issueDate: string | Date; pdfUrl?: string | null } | null } | null;
+  } | null;
   submissionDate?: string;
   updatedAt?: string;
-
-  // Evaluación detallada por áreas
+  draftData?: any;
+  pendingObservations?: Array<{ id: number; department: string; message: string; fieldPaths: string[] }>;
+  observations?: string[];
   areas: {
     sponsors: AreaDetail & { approvedCount: number; requiredCount: number };
     associates: AreaDetail;
     logistics: AreaDetail;
-    legal?: AreaDetail;      // Condicional: Solo si Logística observa
-    board: AreaDetail;      // Directorio / Comité
+    legal?: AreaDetail;
+    board: AreaDetail;
     payment: AreaDetail;
   };
-
-  // Datos adicionales para estados finales
   totalAmount?: number;
   rejectionReason?: string;
 }

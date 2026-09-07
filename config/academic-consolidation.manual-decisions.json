@@ -1,0 +1,357 @@
+{
+  "generatedAt": "2026-09-06T21:39:06.734Z",
+  "readOnly": true,
+  "universities": [
+    {
+      "type": "UNIVERSITY",
+      "ids": [
+        115,
+        912
+      ],
+      "canonicalId": null,
+      "duplicateIds": [],
+      "decision": "MANUAL_REVIEW",
+      "reason": "País almacenado inconsistente con el nombre institucional; no se puede aprobar una consolidación sin confirmar countryId y procedencia.",
+      "evidence": [
+        {
+          "id": 115,
+          "name": "Pontificia Universidad Católica de Chile",
+          "acronym": "PUC",
+          "country": "Argentina",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 912,
+          "name": "PONTIFICIA UNIVERSIDAD CATÓLICA DE CHILE",
+          "acronym": null,
+          "country": "Perú",
+          "academicInfoReferences": 2,
+          "draftOccurrences": 0
+        }
+      ]
+    },
+    {
+      "type": "UNIVERSITY",
+      "ids": [
+        114,
+        962
+      ],
+      "canonicalId": null,
+      "duplicateIds": [],
+      "decision": "MANUAL_REVIEW",
+      "reason": "País almacenado inconsistente con el nombre institucional; no se puede aprobar una consolidación sin confirmar countryId y procedencia.",
+      "evidence": [
+        {
+          "id": 114,
+          "name": "Universidad de Chile",
+          "acronym": "UCHILE",
+          "country": "Argentina",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 962,
+          "name": "UNIVERSIDAD DE CHILE",
+          "acronym": null,
+          "country": "Perú",
+          "academicInfoReferences": 3,
+          "draftOccurrences": 0
+        }
+      ]
+    },
+    {
+      "type": "UNIVERSITY",
+      "ids": [
+        116,
+        852
+      ],
+      "canonicalId": null,
+      "duplicateIds": [],
+      "decision": "MANUAL_REVIEW",
+      "reason": "País almacenado inconsistente con el nombre institucional; no se puede aprobar una consolidación sin confirmar countryId y procedencia.",
+      "evidence": [
+        {
+          "id": 116,
+          "name": "Universidad de Concepción",
+          "acronym": "UDEC",
+          "country": "Argentina",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 852,
+          "name": "UNIVERSIDAD DE CONCEPCION",
+          "acronym": null,
+          "country": "Perú",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0
+        }
+      ]
+    },
+    {
+      "type": "UNIVERSITY",
+      "ids": [
+        120,
+        812
+      ],
+      "canonicalId": null,
+      "duplicateIds": [],
+      "decision": "MANUAL_REVIEW",
+      "reason": "País almacenado inconsistente con el nombre institucional; no se puede aprobar una consolidación sin confirmar countryId y procedencia.",
+      "evidence": [
+        {
+          "id": 120,
+          "name": "Universidad Nacional de Colombia",
+          "acronym": "UNAL",
+          "country": "Brasil",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 812,
+          "name": "UNIVERSIDAD NACIONAL DE COLOMBIA",
+          "acronym": null,
+          "country": "Perú",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        }
+      ]
+    },
+    {
+      "type": "UNIVERSITY",
+      "ids": [
+        119,
+        969
+      ],
+      "canonicalId": null,
+      "duplicateIds": [],
+      "decision": "MANUAL_REVIEW",
+      "reason": "País almacenado inconsistente con el nombre institucional; no se puede aprobar una consolidación sin confirmar countryId y procedencia.",
+      "evidence": [
+        {
+          "id": 119,
+          "name": "Universidad Nacional de La Plata",
+          "acronym": "UNLP",
+          "country": "Bolivia",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 969,
+          "name": "UNIVERSIDAD NACIONAL DE LA PLATA",
+          "acronym": null,
+          "country": "Perú",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0
+        }
+      ]
+    },
+    {
+      "type": "UNIVERSITY",
+      "ids": [
+        25,
+        799
+      ],
+      "canonicalId": 25,
+      "duplicateIds": [
+        799
+      ],
+      "decision": "APPROVE_MERGE",
+      "reason": "Mismo nombre normalizado, mismo país Perú y el registro 25 conserva el acrónimo UNS; el registro 799 tiene 2 referencias pero carece de acrónimo.",
+      "evidence": [
+        {
+          "id": 25,
+          "name": "Universidad Nacional del Santa",
+          "acronym": "UNS",
+          "country": "Perú",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 799,
+          "name": "UNIVERSIDAD NACIONAL DEL SANTA",
+          "acronym": null,
+          "country": "Perú",
+          "academicInfoReferences": 2,
+          "draftOccurrences": 0
+        }
+      ]
+    }
+  ],
+  "invalidSpecialties": [
+    {
+      "type": "SPECIALTY_INVALID",
+      "specialtyId": 368,
+      "value": "-",
+      "decision": "NEEDS_MANUAL_INPUT",
+      "recommendation": "KEEP_UNRESOLVED",
+      "reason": "El valor es un año o guion y no aporta evidencia para inferir una especialidad canónica; no se reasigna automáticamente.",
+      "academicInfo": [
+        {
+          "academicInfoId": 71193,
+          "personId": 4577,
+          "personName": "Jherson Vilcarano Rojas",
+          "applications": [
+            {
+              "id": 164246,
+              "applicationCode": "230900",
+              "status": "COMPLETED"
+            }
+          ]
+        },
+        {
+          "academicInfoId": 71344,
+          "personId": 8427,
+          "personName": "Elizabeth Estela  Devia Bravo",
+          "applications": [
+            {
+              "id": 164402,
+              "applicationCode": "232088",
+              "status": "COMPLETED"
+            }
+          ]
+        },
+        {
+          "academicInfoId": 71851,
+          "personId": 5298,
+          "personName": "Juan Carlos  Malaga  Fernandez ",
+          "applications": [
+            {
+              "id": 164920,
+              "applicationCode": "LEGACY-6970",
+              "status": "PENDING"
+            }
+          ]
+        },
+        {
+          "academicInfoId": 72159,
+          "personId": 5358,
+          "personName": "Carlos César Arévalo Salles",
+          "applications": [
+            {
+              "id": 164972,
+              "applicationCode": "LEGACY-7049",
+              "status": "PENDING"
+            },
+            {
+              "id": 165233,
+              "applicationCode": "233844",
+              "status": "COMPLETED"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "SPECIALTY_INVALID",
+      "specialtyId": 387,
+      "value": "2011",
+      "decision": "NEEDS_MANUAL_INPUT",
+      "recommendation": "KEEP_UNRESOLVED",
+      "reason": "El valor es un año o guion y no aporta evidencia para inferir una especialidad canónica; no se reasigna automáticamente.",
+      "academicInfo": [
+        {
+          "academicInfoId": 71219,
+          "personId": 4606,
+          "personName": "Magaly Melendez Acosta",
+          "applications": [
+            {
+              "id": 164273,
+              "applicationCode": "LEGACY-5909",
+              "status": "REJECTED"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "SPECIALTY_INVALID",
+      "specialtyId": 528,
+      "value": "2022",
+      "decision": "NEEDS_MANUAL_INPUT",
+      "recommendation": "KEEP_UNRESOLVED",
+      "reason": "El valor es un año o guion y no aporta evidencia para inferir una especialidad canónica; no se reasigna automáticamente.",
+      "academicInfo": [
+        {
+          "academicInfoId": 69638,
+          "personId": 2906,
+          "personName": "Carlos Eduardo Toscano Alor",
+          "applications": [
+            {
+              "id": 162656,
+              "applicationCode": "LEGACY-3307",
+              "status": "REJECTED"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "SPECIALTY_INVALID",
+      "specialtyId": 526,
+      "value": "2023",
+      "decision": "NEEDS_MANUAL_INPUT",
+      "recommendation": "KEEP_UNRESOLVED",
+      "reason": "El valor es un año o guion y no aporta evidencia para inferir una especialidad canónica; no se reasigna automáticamente.",
+      "academicInfo": [
+        {
+          "academicInfoId": 69592,
+          "personId": 2849,
+          "personName": "Enzo Chambi Pacori",
+          "applications": [
+            {
+              "id": 162609,
+              "applicationCode": "LEGACY-3240",
+              "status": "REJECTED"
+            }
+          ]
+        },
+        {
+          "academicInfoId": 71547,
+          "personId": 4982,
+          "personName": "Juan Fernando  Sánchez  Montero ",
+          "applications": [
+            {
+              "id": 164610,
+              "applicationCode": "LEGACY-6553",
+              "status": "REJECTED"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "SPECIALTY_INVALID",
+      "specialtyId": 412,
+      "value": "2024",
+      "decision": "NEEDS_MANUAL_INPUT",
+      "recommendation": "KEEP_UNRESOLVED",
+      "reason": "El valor es un año o guion y no aporta evidencia para inferir una especialidad canónica; no se reasigna automáticamente.",
+      "academicInfo": []
+    },
+    {
+      "type": "SPECIALTY_INVALID",
+      "specialtyId": 284,
+      "value": "2026",
+      "decision": "NEEDS_MANUAL_INPUT",
+      "recommendation": "KEEP_UNRESOLVED",
+      "reason": "El valor es un año o guion y no aporta evidencia para inferir una especialidad canónica; no se reasigna automáticamente.",
+      "academicInfo": [
+        {
+          "academicInfoId": 71182,
+          "personId": 4568,
+          "personName": "Tania Milagros Ccalla  Vargas",
+          "applications": [
+            {
+              "id": 164235,
+              "applicationCode": "LEGACY-5823",
+              "status": "REJECTED"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "pending": 11
+}

@@ -1,0 +1,2649 @@
+{
+  "generatedAt": "2026-09-06T21:35:04.980Z",
+  "readOnly": true,
+  "institutions": [
+    {
+      "canonicalId": 928,
+      "canonicalName": "PONTIFICIA UNIVERSIDAD CATOLICA DEL PERU",
+      "aliases": [
+        "Pontificia Universidad Católica del Perú",
+        "PUCP",
+        "PONTIFICIA UNIVERSIDAD CATÓLICA DEL PERÚ"
+      ]
+    },
+    {
+      "canonicalId": 1017,
+      "canonicalName": "UNIVERSIDAD ANDINA DEL CUSCO",
+      "aliases": [
+        "Universidad Andina del Cusco",
+        "UAC"
+      ]
+    },
+    {
+      "canonicalId": 1067,
+      "canonicalName": "UNIVERSIDAD ANTONIO RUIZ DE MONTOYA",
+      "aliases": [
+        "Universidad Antonio Ruiz de Montoya",
+        "UARM"
+      ]
+    },
+    {
+      "canonicalId": 980,
+      "canonicalName": "UNIVERSIDAD CATOLICA DE SANTA MARIA",
+      "aliases": [
+        "Universidad Católica de Santa María",
+        "UCSM",
+        "UNIVERSIDAD CATÓLICA DE SANTA MARÍA"
+      ]
+    },
+    {
+      "canonicalId": 788,
+      "canonicalName": "UNIVERSIDAD CATOLICA DE TRUJILLO BENEDICTO XVI",
+      "aliases": [
+        "Universidad Católica de Trujillo Benedicto XVI",
+        "UCT"
+      ]
+    },
+    {
+      "canonicalId": 885,
+      "canonicalName": "UNIVERSIDAD CATÓLICA SAN PABLO",
+      "aliases": [
+        "Universidad Católica San Pablo",
+        "UCSP",
+        "UNIVERSIDAD CATOLICA SAN PABLO"
+      ]
+    },
+    {
+      "canonicalId": 1096,
+      "canonicalName": "UNIVERSIDAD CATÓLICA SANTO TORIBIO DE MOGROVEJO",
+      "aliases": [
+        "Universidad Católica Santo Toribio de Mogrovejo",
+        "USAT"
+      ]
+    },
+    {
+      "canonicalId": 77,
+      "canonicalName": "Universidad Continental",
+      "aliases": [
+        "UC",
+        "UNIVERSIDAD CONTINENTAL"
+      ]
+    },
+    {
+      "canonicalId": 898,
+      "canonicalName": "UNIVERSIDAD DE INGENIERIA Y TECNOLOGIA",
+      "aliases": [
+        "Universidad de Ingeniería y Tecnología",
+        "UTEC",
+        "UNIVERSIDAD DE INGENIERÍA Y TECNOLOGÍA"
+      ]
+    },
+    {
+      "canonicalId": 981,
+      "canonicalName": "UNIVERSIDAD DE INGENIERÍA Y TECNOLOGÍA - UTEC",
+      "aliases": [
+        "UNIVERSIDAD DE INGENIERÍA Y TECNOLOGÍA UTEC"
+      ]
+    },
+    {
+      "canonicalId": 802,
+      "canonicalName": "UNIVERSIDAD DE LIMA",
+      "aliases": [
+        "Universidad de Lima",
+        "ULIMA"
+      ]
+    },
+    {
+      "canonicalId": 794,
+      "canonicalName": "UNIVERSIDAD DE PIURA",
+      "aliases": [
+        "Universidad de Piura",
+        "UDEP"
+      ]
+    },
+    {
+      "canonicalId": 1038,
+      "canonicalName": "UNIVERSIDAD DE SAN MARTIN DE PORRES",
+      "aliases": [
+        "Universidad de San Martín de Porres",
+        "USMP"
+      ]
+    },
+    {
+      "canonicalId": 1000,
+      "canonicalName": "UNIVERSIDAD DEL PACIFICO",
+      "aliases": [
+        "Universidad del Pacífico",
+        "UP"
+      ]
+    },
+    {
+      "canonicalId": 827,
+      "canonicalName": "UNIVERSIDAD ESAN",
+      "aliases": [
+        "Universidad ESAN",
+        "UE"
+      ]
+    },
+    {
+      "canonicalId": 1033,
+      "canonicalName": "UNIVERSIDAD FEMENINA DEL SAGRADO CORAZON",
+      "aliases": [
+        "Universidad Femenina del Sagrado Corazón",
+        "UNIFE"
+      ]
+    },
+    {
+      "canonicalId": 892,
+      "canonicalName": "UNIVERSIDAD JAIME BAUSATE Y MEZA",
+      "aliases": [
+        "Universidad Jaime Bausate y Meza",
+        "UJBM"
+      ]
+    },
+    {
+      "canonicalId": 906,
+      "canonicalName": "UNIVERSIDAD LA SALLE",
+      "aliases": [
+        "Universidad La Salle",
+        "ULASALLE"
+      ]
+    },
+    {
+      "canonicalId": 891,
+      "canonicalName": "UNIVERSIDAD NACIONAL AGRARIA DE LA SELVA",
+      "aliases": [
+        "Universidad Nacional Agraria de la Selva",
+        "UNAS"
+      ]
+    },
+    {
+      "canonicalId": 986,
+      "canonicalName": "UNIVERSIDAD NACIONAL AGRARIA LA MOLINA",
+      "aliases": [
+        "Universidad Nacional Agraria La Molina",
+        "UNALM"
+      ]
+    },
+    {
+      "canonicalId": 1023,
+      "canonicalName": "UNIVERSIDAD NACIONAL DANIEL ALCIDES CARRION",
+      "aliases": [
+        "Universidad Nacional Daniel Alcides Carrión",
+        "UNDAC",
+        "UNIVERSIDAD NACIONAL DANIEL ALCIDES CARRIÓN"
+      ]
+    },
+    {
+      "canonicalId": 893,
+      "canonicalName": "UNIVERSIDAD NACIONAL DE CAJAMARCA",
+      "aliases": [
+        "Universidad Nacional de Cajamarca",
+        "UNC"
+      ]
+    },
+    {
+      "canonicalId": 866,
+      "canonicalName": "UNIVERSIDAD NACIONAL DE CAÑETE",
+      "aliases": [
+        "Universidad Nacional de Cañete",
+        "UNDC"
+      ]
+    },
+    {
+      "canonicalId": 832,
+      "canonicalName": "UNIVERSIDAD NACIONAL DE HUANCAVELICA",
+      "aliases": [
+        "Universidad Nacional de Huancavelica",
+        "UNH"
+      ]
+    },
+    {
+      "canonicalId": 964,
+      "canonicalName": "UNIVERSIDAD NACIONAL DE JULIACA",
+      "aliases": [
+        "Universidad Nacional de Juliaca",
+        "UNAJ"
+      ]
+    },
+    {
+      "canonicalId": 813,
+      "canonicalName": "UNIVERSIDAD NACIONAL DE MOQUEGUA",
+      "aliases": [
+        "Universidad Nacional de Moquegua",
+        "UNAM"
+      ]
+    },
+    {
+      "canonicalId": 1079,
+      "canonicalName": "UNIVERSIDAD NACIONAL DE PIURA",
+      "aliases": [
+        "Universidad Nacional de Piura",
+        "UNP"
+      ]
+    },
+    {
+      "canonicalId": 947,
+      "canonicalName": "UNIVERSIDAD NACIONAL DE SAN AGUSTIN DE AREQUIPA",
+      "aliases": [
+        "Universidad Nacional de San Agustín de Arequipa",
+        "UNSA",
+        "UNIVERSIDAD NACIONAL DE SAN AGUSTÍN DE AREQUIPA"
+      ]
+    },
+    {
+      "canonicalId": 1020,
+      "canonicalName": "UNIVERSIDAD NACIONAL DE SAN CRISTÓBAL DE HUAMANGA",
+      "aliases": [
+        "UNIVERSIDAD NACIONAL DE SAN CRISTOBAL DE HUAMANGA"
+      ]
+    },
+    {
+      "canonicalId": 1007,
+      "canonicalName": "UNIVERSIDAD NACIONAL DE SAN MARTÍN",
+      "aliases": [
+        "Universidad Nacional de San Martín",
+        "UNSM"
+      ]
+    },
+    {
+      "canonicalId": 974,
+      "canonicalName": "UNIVERSIDAD NACIONAL DE TRUJILLO",
+      "aliases": [
+        "Universidad Nacional de Trujillo",
+        "UNT"
+      ]
+    },
+    {
+      "canonicalId": 828,
+      "canonicalName": "UNIVERSIDAD NACIONAL DE UCAYALI",
+      "aliases": [
+        "Universidad Nacional de Ucayali",
+        "UNU"
+      ]
+    },
+    {
+      "canonicalId": 1046,
+      "canonicalName": "UNIVERSIDAD NACIONAL DEL ALTIPLANO",
+      "aliases": [
+        "Universidad Nacional del Altiplano",
+        "UNAP-PUNO"
+      ]
+    },
+    {
+      "canonicalId": 798,
+      "canonicalName": "UNIVERSIDAD NACIONAL DEL CALLAO",
+      "aliases": [
+        "Universidad Nacional del Callao",
+        "UNAC"
+      ]
+    },
+    {
+      "canonicalId": 877,
+      "canonicalName": "UNIVERSIDAD NACIONAL DEL CENTRO DEL PERU",
+      "aliases": [
+        "Universidad Nacional del Centro del Perú",
+        "UNCP",
+        "UNIVERSIDAD NACIONAL DEL CENTRO DEL PERÚ"
+      ]
+    },
+    {
+      "canonicalId": 855,
+      "canonicalName": "UNIVERSIDAD NACIONAL JOSE FAUSTINO SANCHEZ CARRION",
+      "aliases": [
+        "Universidad Nacional José Faustino Sánchez Carrión",
+        "UNJFSC",
+        "UNIVERSIDAD NACIONAL JOSÉ FAUSTINO SÁNCHEZ CARRION"
+      ]
+    },
+    {
+      "canonicalId": 858,
+      "canonicalName": "UNIVERSIDAD NACIONAL JOSE MARIA ARGUEDAS",
+      "aliases": [
+        "Universidad Nacional José María Arguedas",
+        "UNAJMA"
+      ]
+    },
+    {
+      "canonicalId": 938,
+      "canonicalName": "UNIVERSIDAD NACIONAL MAYOR DE SAN MARCOS",
+      "aliases": [
+        "Universidad Nacional Mayor de San Marcos",
+        "UNMSM"
+      ]
+    },
+    {
+      "canonicalId": 1060,
+      "canonicalName": "UNIVERSIDAD NACIONAL MICAELA BASTIDAS DE APURIMAC",
+      "aliases": [
+        "Universidad Nacional Micaela Bastidas de Apurímac",
+        "UNAMBA"
+      ]
+    },
+    {
+      "canonicalId": 837,
+      "canonicalName": "UNIVERSIDAD NACIONAL PEDRO RUIZ GALLO",
+      "aliases": [
+        "Universidad Nacional Pedro Ruiz Gallo",
+        "UNPRG"
+      ]
+    },
+    {
+      "canonicalId": 933,
+      "canonicalName": "UNIVERSIDAD NACIONAL SANTIAGO ANTUNEZ DE MAYOLO",
+      "aliases": [
+        "Universidad Nacional Santiago Antúnez de Mayolo",
+        "UNASAM",
+        "UNIVERSIDAD NACIONAL SANTIAGO ANTÚNEZ DE MAYOLO"
+      ]
+    },
+    {
+      "canonicalId": 944,
+      "canonicalName": "UNIVERSIDAD NACIONAL TORIBIO RODRIGUEZ DE MENDOZA DE AMAZONAS",
+      "aliases": [
+        "Universidad Nacional Toribio Rodríguez de Mendoza de Amazonas",
+        "UNTRM"
+      ]
+    },
+    {
+      "canonicalId": 901,
+      "canonicalName": "UNIVERSIDAD NORBERT WIENER",
+      "aliases": [
+        "Universidad Norbert Wiener",
+        "NW"
+      ]
+    },
+    {
+      "canonicalId": 1051,
+      "canonicalName": "UNIVERSIDAD PARTICULAR DE CHICLAYO",
+      "aliases": [
+        "Universidad Particular de Chiclayo",
+        "UDCH"
+      ]
+    },
+    {
+      "canonicalId": 815,
+      "canonicalName": "UNIVERSIDAD PERUANA CAYETANO HEREDIA",
+      "aliases": [
+        "Universidad Peruana Cayetano Heredia",
+        "UPCH"
+      ]
+    },
+    {
+      "canonicalId": 821,
+      "canonicalName": "UNIVERSIDAD PERUANA LOS ANDES",
+      "aliases": [
+        "Universidad Peruana Los Andes",
+        "UPLA"
+      ]
+    },
+    {
+      "canonicalId": 862,
+      "canonicalName": "UNIVERSIDAD PERUANA UNION",
+      "aliases": [
+        "Universidad Peruana Unión",
+        "UPeU",
+        "UNIVERSIDAD PERUANA UNIÓN"
+      ]
+    },
+    {
+      "canonicalId": 1058,
+      "canonicalName": "UNIVERSIDAD PRIVADA ANTENOR ORREGO",
+      "aliases": [
+        "Universidad Privada Antenor Orrego",
+        "UPAO"
+      ]
+    },
+    {
+      "canonicalId": 929,
+      "canonicalName": "UNIVERSIDAD PRIVADA DE TACNA",
+      "aliases": [
+        "Universidad Privada de Tacna",
+        "UPT"
+      ]
+    },
+    {
+      "canonicalId": 861,
+      "canonicalName": "UNIVERSIDAD PRIVADA DEL NORTE",
+      "aliases": [
+        "Universidad Privada del Norte",
+        "UPN"
+      ]
+    },
+    {
+      "canonicalId": 829,
+      "canonicalName": "UNIVERSIDAD RICARDO PALMA",
+      "aliases": [
+        "Universidad Ricardo Palma",
+        "URP"
+      ]
+    },
+    {
+      "canonicalId": 833,
+      "canonicalName": "UNIVERSIDAD SAN IGNACIO DE LOYOLA",
+      "aliases": [
+        "Universidad San Ignacio de Loyola",
+        "USIL"
+      ]
+    },
+    {
+      "canonicalId": 1090,
+      "canonicalName": "UNIVERSIDAD SEÑOR DE SIPÁN",
+      "aliases": [
+        "Universidad Señor de Sipán",
+        "USS"
+      ]
+    },
+    {
+      "canonicalId": 1005,
+      "canonicalName": "UNIVERSIDAD TECNOLÓGICA DEL PERÚ",
+      "aliases": [
+        "Universidad Tecnológica del Perú",
+        "UTP"
+      ]
+    }
+  ],
+  "specialties": [
+    {
+      "canonicalId": 323,
+      "canonicalName": "ADMINISTRACIÓN",
+      "aliases": [
+        "Administración",
+        "ADMINISTRACION"
+      ]
+    },
+    {
+      "canonicalId": 397,
+      "canonicalName": "ADMINISTRACIÓN DE EMPRESAS",
+      "aliases": [
+        "Administración de Empresas",
+        "ADMINISTRACION DE EMPRESAS"
+      ]
+    },
+    {
+      "canonicalId": 664,
+      "canonicalName": "ADMINISTRACION Y NEGOCIOS INTERNACIONALES",
+      "aliases": [
+        "ADMINISTRACIÓN Y NEGOCIOS INTERNACIONALES"
+      ]
+    },
+    {
+      "canonicalId": 751,
+      "canonicalName": "BIOLOGIA",
+      "aliases": [
+        "BIOLOGÍA"
+      ]
+    },
+    {
+      "canonicalId": 700,
+      "canonicalName": "CONTABILIDAD",
+      "aliases": [
+        "Contabilidad"
+      ]
+    },
+    {
+      "canonicalId": 500,
+      "canonicalName": "DERECHO",
+      "aliases": [
+        "Derecho"
+      ]
+    },
+    {
+      "canonicalId": 656,
+      "canonicalName": "ECONOMÍA",
+      "aliases": [
+        "Economía",
+        "ECONOMIA"
+      ]
+    },
+    {
+      "canonicalId": 536,
+      "canonicalName": "EDUCACIÓN",
+      "aliases": [
+        "Educación"
+      ]
+    },
+    {
+      "canonicalId": 569,
+      "canonicalName": "ELECTRONICA",
+      "aliases": [
+        "ELECTRÓNICA"
+      ]
+    },
+    {
+      "canonicalId": 680,
+      "canonicalName": "ESCUELA PROFESIONAL DE INGENIERIA DE MINAS",
+      "aliases": [
+        "ESCUELA PROFESIONAL DE INGENIERÍA DE MINAS"
+      ]
+    },
+    {
+      "canonicalId": 614,
+      "canonicalName": "EXPLOTACIÓN DE MINAS",
+      "aliases": [
+        "EXPLOTACION DE MINAS"
+      ]
+    },
+    {
+      "canonicalId": 795,
+      "canonicalName": "EXPLOTACIÓN MINERA",
+      "aliases": [
+        "EXPLOTACION MINERA"
+      ]
+    },
+    {
+      "canonicalId": 392,
+      "canonicalName": "FINANZAS",
+      "aliases": [
+        "Finanzas"
+      ]
+    },
+    {
+      "canonicalId": 379,
+      "canonicalName": "GEOLOGÍA",
+      "aliases": [
+        "Geología",
+        "GEÓLOGIA",
+        "GEOLOGIA"
+      ]
+    },
+    {
+      "canonicalId": 450,
+      "canonicalName": "GEOLOGIA Y EXPLORACION",
+      "aliases": [
+        "GEOLOGÍA Y EXPLORACIÓN"
+      ]
+    },
+    {
+      "canonicalId": 261,
+      "canonicalName": "GEOTECNIA",
+      "aliases": [
+        "Geotecnia"
+      ]
+    },
+    {
+      "canonicalId": 816,
+      "canonicalName": "INFORMÁTICA",
+      "aliases": [
+        "INFORMATICA"
+      ]
+    },
+    {
+      "canonicalId": 579,
+      "canonicalName": "ING. AMBIENTAL",
+      "aliases": [
+        "ING.AMBIENTAL",
+        "ING-AMBIENTAL",
+        "ING AMBIENTAL"
+      ]
+    },
+    {
+      "canonicalId": 893,
+      "canonicalName": "ING. CIVIL",
+      "aliases": [
+        "ING.CIVIL",
+        "ING CIVIL"
+      ]
+    },
+    {
+      "canonicalId": 867,
+      "canonicalName": "ING DE MINAS",
+      "aliases": [
+        "ING.DE MINAS",
+        "ING.  DE MINAS",
+        "ING. DE MINAS"
+      ]
+    },
+    {
+      "canonicalId": 301,
+      "canonicalName": "ING. GEOLÓGICA",
+      "aliases": [
+        "ING.GEOLÓGICA",
+        "ING. GEÓLOGICA",
+        "ING. GEOLOGICA",
+        "ING GEOLOGICA",
+        "ING GEOLÓGICA"
+      ]
+    },
+    {
+      "canonicalId": 547,
+      "canonicalName": "ING. METALÚRGICA",
+      "aliases": [
+        "ING. METALURGICA",
+        "ING METALURGICA"
+      ]
+    },
+    {
+      "canonicalId": 378,
+      "canonicalName": "ING. MINAS",
+      "aliases": [
+        "ING MINAS",
+        "ING.MINAS"
+      ]
+    },
+    {
+      "canonicalId": 331,
+      "canonicalName": "ING. QUÍMICA",
+      "aliases": [
+        "ING. QUIMICA"
+      ]
+    },
+    {
+      "canonicalId": 318,
+      "canonicalName": "INGENERIA DE GESTION MINERA",
+      "aliases": [
+        "INGENERÍA DE GESTIÓN MINERA"
+      ]
+    },
+    {
+      "canonicalId": 285,
+      "canonicalName": "INGENERIA DE MINAS",
+      "aliases": [
+        "INGENERÍA DE MINAS"
+      ]
+    },
+    {
+      "canonicalId": 303,
+      "canonicalName": "INGENIERA QUIMICA",
+      "aliases": [
+        "INGENIERA QUÍMICA"
+      ]
+    },
+    {
+      "canonicalId": 440,
+      "canonicalName": "INGENIERÍA",
+      "aliases": [
+        "INGENIERIA"
+      ]
+    },
+    {
+      "canonicalId": 753,
+      "canonicalName": "INGENIERIA AGRICOLA",
+      "aliases": [
+        "INGENIERÍA AGRÍCOLA"
+      ]
+    },
+    {
+      "canonicalId": 772,
+      "canonicalName": "INGENIERÍA AMBIENTAL",
+      "aliases": [
+        "Ingeniería Ambiental",
+        "INGENIERIA AMBIENTAL"
+      ]
+    },
+    {
+      "canonicalId": 522,
+      "canonicalName": "INGENIERÍA AMBIENTAL Y DE RECURSOS NATURALES",
+      "aliases": [
+        "INGENIERIA AMBIENTAL Y DE RECURSOS NATURALES"
+      ]
+    },
+    {
+      "canonicalId": 803,
+      "canonicalName": "INGENIERÍA AMBIENTAL Y RECURSOS NATURALES",
+      "aliases": [
+        "INGENIERIA AMBIENTAL Y RECURSOS NATURALES"
+      ]
+    },
+    {
+      "canonicalId": 830,
+      "canonicalName": "INGENIERÍA AMBIENTAL Y SEGURIDAD INDUSTRIAL",
+      "aliases": [
+        "INGENIERIA AMBIENTAL Y SEGURIDAD INDUSTRIAL"
+      ]
+    },
+    {
+      "canonicalId": 652,
+      "canonicalName": "INGENIERÍA CIVIL",
+      "aliases": [
+        "Ingeniería Civil",
+        "INGENIERIA CIVIL"
+      ]
+    },
+    {
+      "canonicalId": 841,
+      "canonicalName": "INGENIERÍA COMERCIAL",
+      "aliases": [
+        "INGENIERIA COMERCIAL"
+      ]
+    },
+    {
+      "canonicalId": 389,
+      "canonicalName": "INGENIERÍA DE GESTIÓN MINERA",
+      "aliases": [
+        "INGENIERIA DE GESTION MINERA",
+        "INGENIERIA DE GESTIÓN MINERA"
+      ]
+    },
+    {
+      "canonicalId": 436,
+      "canonicalName": "INGENIERÍA DE MATERIALES",
+      "aliases": [
+        "INGENIERIA DE MATERIALES"
+      ]
+    },
+    {
+      "canonicalId": 532,
+      "canonicalName": "INGENIERÍA DE MINA",
+      "aliases": [
+        "INGENIERIA DE MINA"
+      ]
+    },
+    {
+      "canonicalId": 809,
+      "canonicalName": "INGENIERÍA DE MINAS",
+      "aliases": [
+        "Ingeniería de Minas",
+        "INGENIERIA  DE MINAS",
+        "INGENIERÍA  DE  MINAS",
+        "INGENIERIA DE MINAS",
+        "INGENIERÌA DE MINAS",
+        "INGENIERÍA  DE MINAS"
+      ]
+    },
+    {
+      "canonicalId": 808,
+      "canonicalName": "INGENIERIA DE SOFTWARE",
+      "aliases": [
+        "Ingeniería de Software"
+      ]
+    },
+    {
+      "canonicalId": 675,
+      "canonicalName": "INGENIERÍA ELÉCTRICA",
+      "aliases": [
+        "Ingeniería Eléctrica",
+        "INGENIERIA ELECTRICA",
+        "INGENIERÍA ELECTRICA"
+      ]
+    },
+    {
+      "canonicalId": 713,
+      "canonicalName": "INGENIERÍA ELECTRÓNICA",
+      "aliases": [
+        "Ingeniería Electrónica",
+        "INGENIERIA ELECTRONICA"
+      ]
+    },
+    {
+      "canonicalId": 347,
+      "canonicalName": "INGENIERÍA EN SEGURIDAD LABORAL Y AMBIENTAL",
+      "aliases": [
+        "INGENIERIA EN SEGURIDAD LABORAL Y AMBIENTAL"
+      ]
+    },
+    {
+      "canonicalId": 438,
+      "canonicalName": "INGENIERÍA GEOFÍSICA",
+      "aliases": [
+        "INGENIERIA GEOFISICA"
+      ]
+    },
+    {
+      "canonicalId": 553,
+      "canonicalName": "INGENIERÍA GEOGRÁFICA",
+      "aliases": [
+        "INGENIERIA GEOGRÁFICA"
+      ]
+    },
+    {
+      "canonicalId": 774,
+      "canonicalName": "INGENIERÍA GEOLÓGICA",
+      "aliases": [
+        "Ingeniería Geológica",
+        "INGENIERIA  GEOLOGICA",
+        "INGENIERIA  GEOLÓGICA",
+        "INGENIERÍA GEÓLOGICA",
+        "INGENIERÍA  GEOLÓGICA",
+        "INGENIERIA GEOLOGICA",
+        "INGENIERIA GEOLÒGICA",
+        "INGENIERÌA GEOLÒGICA",
+        "INGENIERÍA GEOLOGICA",
+        "INGENIERIA GEOLÓGICA"
+      ]
+    },
+    {
+      "canonicalId": 879,
+      "canonicalName": "INGENIERÍA GEOLÓGICA-GEOTECNIA",
+      "aliases": [
+        "INGENIERÍA GEOLÓGICA - GEOTECNIA",
+        "INGENIERIA GEOLÓGICA - GEOTECNIA",
+        "INGENIERÍA GEOLÓGICA GEOTECNIA"
+      ]
+    },
+    {
+      "canonicalId": 417,
+      "canonicalName": "INGENIERÍA GEOLÓGICA Y GEOTECNIA",
+      "aliases": [
+        "INGENIERIA GEOLOGICA Y GEOTECNIA"
+      ]
+    },
+    {
+      "canonicalId": 725,
+      "canonicalName": "INGENIERÍA INDUSTRIAL",
+      "aliases": [
+        "Ingeniería Industrial",
+        "INGENIERIA INDUSTRIAL"
+      ]
+    },
+    {
+      "canonicalId": 786,
+      "canonicalName": "INGENIERÍA MECÁNICA",
+      "aliases": [
+        "Ingeniería Mecánica",
+        "INGENIERÍA MECANICA",
+        "INGENIERIA MECANICA",
+        "INGENIERIA MECÁNICA"
+      ]
+    },
+    {
+      "canonicalId": 567,
+      "canonicalName": "INGENIERÍA MECÁNICA DE FLUIDOS",
+      "aliases": [
+        "INGENIERIA MECANICA DE FLUIDOS",
+        "INGENIERÍA MECANICA DE FLUIDOS"
+      ]
+    },
+    {
+      "canonicalId": 925,
+      "canonicalName": "INGENIERÍA MECÁNICA ELÉCTRICA",
+      "aliases": [
+        "INGENIERIA MECANICA ELECTRICA"
+      ]
+    },
+    {
+      "canonicalId": 906,
+      "canonicalName": "INGENIERÍA METALÚRGIA",
+      "aliases": [
+        "INGENIERIA METALURGIA"
+      ]
+    },
+    {
+      "canonicalId": 563,
+      "canonicalName": "INGENIERÍA METALÚRGICA",
+      "aliases": [
+        "Ingeniería Metalúrgica",
+        "INGENIERÍA METALURGICA",
+        "INGENIERIA METALURGICA",
+        "INGENIERIA METALÚRGICA"
+      ]
+    },
+    {
+      "canonicalId": 297,
+      "canonicalName": "INGENIERIA METALURGICA Y DE MATERIALES",
+      "aliases": [
+        "INGENIERÍA METALÚRGICA Y DE MATERIALES"
+      ]
+    },
+    {
+      "canonicalId": 356,
+      "canonicalName": "INGENIERIA MINAS",
+      "aliases": [
+        "INGENIERÍA  MINAS",
+        "INGENIERÍA MINAS"
+      ]
+    },
+    {
+      "canonicalId": 375,
+      "canonicalName": "INGENIERÍA QUÍMICA",
+      "aliases": [
+        "Ingeniería Química",
+        "INGENIERIA QUIMICA",
+        "INGENIERÌA QUÌMICA",
+        "INGENIERÍA QUIMICA"
+      ]
+    },
+    {
+      "canonicalId": 822,
+      "canonicalName": "INGENIERÍA SANITARIA",
+      "aliases": [
+        "Ingeniería Sanitaria"
+      ]
+    },
+    {
+      "canonicalId": 353,
+      "canonicalName": "INGENIERO MECÁNICO",
+      "aliases": [
+        "INGENIERO MECANICO"
+      ]
+    },
+    {
+      "canonicalId": 452,
+      "canonicalName": "INGENIERO QUIMICO",
+      "aliases": [
+        "INGENIERO QUÍMICO"
+      ]
+    },
+    {
+      "canonicalId": 788,
+      "canonicalName": "MANTENIMIENTO DE EQUIPO PESADO",
+      "aliases": [
+        "MANTENIMIENTO DE EQUIPÓ PESADO"
+      ]
+    },
+    {
+      "canonicalId": 710,
+      "canonicalName": "MANTENIMIENTO ELÉCTRICO E INSTRUMENTACIÓN",
+      "aliases": [
+        "MANTENIMIENTO ELECTRICO E INSTRUMENTACION"
+      ]
+    },
+    {
+      "canonicalId": 546,
+      "canonicalName": "MECANICO ELÉCTRICISTA",
+      "aliases": [
+        "MECANICO ELECTRICISTA"
+      ]
+    },
+    {
+      "canonicalId": 720,
+      "canonicalName": "MECATRONICA",
+      "aliases": [
+        "MECATRÓNICA"
+      ]
+    },
+    {
+      "canonicalId": 855,
+      "canonicalName": "NEGOCIOS INTERNACIONALES",
+      "aliases": [
+        "Negocios Internacionales"
+      ]
+    },
+    {
+      "canonicalId": 383,
+      "canonicalName": "PERFORACIÓN Y VOLADURA",
+      "aliases": [
+        "PERFORACION Y VOLADURA"
+      ]
+    },
+    {
+      "canonicalId": 758,
+      "canonicalName": "PREVENCIÓN DE RIESGOS, SEGURIDAD Y SALUD OCUPACIONAL",
+      "aliases": [
+        "PREVENCION DE RIESGOS, SEGURIDAD Y SALUD OCUPACIONAL",
+        "PREVENCIÓN DE RIESGOS SEGURIDAD Y SALUD OCUPACIONAL"
+      ]
+    },
+    {
+      "canonicalId": 255,
+      "canonicalName": "PROCESOS METALÚRGICOS Y QUÍMICOS",
+      "aliases": [
+        "PROCESOS METALURGICOS Y QUÍMICOS",
+        "PROCESOS METALURGICOS Y QUIMICOS"
+      ]
+    },
+    {
+      "canonicalId": 887,
+      "canonicalName": "PSICOLOGÍA",
+      "aliases": [
+        "PSICOLOGIA"
+      ]
+    }
+  ],
+  "audit": {
+    "safe": [
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 928,
+        "canonicalName": "PONTIFICIA UNIVERSIDAD CATOLICA DEL PERU",
+        "alias": "Pontificia Universidad Católica del Perú",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 928,
+        "canonicalName": "PONTIFICIA UNIVERSIDAD CATOLICA DEL PERU",
+        "alias": "PUCP",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 928,
+        "canonicalName": "PONTIFICIA UNIVERSIDAD CATOLICA DEL PERU",
+        "alias": "PONTIFICIA UNIVERSIDAD CATÓLICA DEL PERÚ",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 1017,
+        "canonicalName": "UNIVERSIDAD ANDINA DEL CUSCO",
+        "alias": "Universidad Andina del Cusco",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 1067,
+        "canonicalName": "UNIVERSIDAD ANTONIO RUIZ DE MONTOYA",
+        "alias": "Universidad Antonio Ruiz de Montoya",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 1067,
+        "canonicalName": "UNIVERSIDAD ANTONIO RUIZ DE MONTOYA",
+        "alias": "UARM",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 980,
+        "canonicalName": "UNIVERSIDAD CATOLICA DE SANTA MARIA",
+        "alias": "Universidad Católica de Santa María",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 980,
+        "canonicalName": "UNIVERSIDAD CATOLICA DE SANTA MARIA",
+        "alias": "UCSM",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 980,
+        "canonicalName": "UNIVERSIDAD CATOLICA DE SANTA MARIA",
+        "alias": "UNIVERSIDAD CATÓLICA DE SANTA MARÍA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 788,
+        "canonicalName": "UNIVERSIDAD CATOLICA DE TRUJILLO BENEDICTO XVI",
+        "alias": "Universidad Católica de Trujillo Benedicto XVI",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 885,
+        "canonicalName": "UNIVERSIDAD CATÓLICA SAN PABLO",
+        "alias": "Universidad Católica San Pablo",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 885,
+        "canonicalName": "UNIVERSIDAD CATÓLICA SAN PABLO",
+        "alias": "UCSP",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 885,
+        "canonicalName": "UNIVERSIDAD CATÓLICA SAN PABLO",
+        "alias": "UNIVERSIDAD CATOLICA SAN PABLO",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 1096,
+        "canonicalName": "UNIVERSIDAD CATÓLICA SANTO TORIBIO DE MOGROVEJO",
+        "alias": "Universidad Católica Santo Toribio de Mogrovejo",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 1096,
+        "canonicalName": "UNIVERSIDAD CATÓLICA SANTO TORIBIO DE MOGROVEJO",
+        "alias": "USAT",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 77,
+        "canonicalName": "Universidad Continental",
+        "alias": "UNIVERSIDAD CONTINENTAL",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 898,
+        "canonicalName": "UNIVERSIDAD DE INGENIERIA Y TECNOLOGIA",
+        "alias": "Universidad de Ingeniería y Tecnología",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 898,
+        "canonicalName": "UNIVERSIDAD DE INGENIERIA Y TECNOLOGIA",
+        "alias": "UTEC",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 898,
+        "canonicalName": "UNIVERSIDAD DE INGENIERIA Y TECNOLOGIA",
+        "alias": "UNIVERSIDAD DE INGENIERÍA Y TECNOLOGÍA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 981,
+        "canonicalName": "UNIVERSIDAD DE INGENIERÍA Y TECNOLOGÍA - UTEC",
+        "alias": "UNIVERSIDAD DE INGENIERÍA Y TECNOLOGÍA UTEC",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 802,
+        "canonicalName": "UNIVERSIDAD DE LIMA",
+        "alias": "Universidad de Lima",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 802,
+        "canonicalName": "UNIVERSIDAD DE LIMA",
+        "alias": "ULIMA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 794,
+        "canonicalName": "UNIVERSIDAD DE PIURA",
+        "alias": "Universidad de Piura",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 794,
+        "canonicalName": "UNIVERSIDAD DE PIURA",
+        "alias": "UDEP",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 1038,
+        "canonicalName": "UNIVERSIDAD DE SAN MARTIN DE PORRES",
+        "alias": "Universidad de San Martín de Porres",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 1038,
+        "canonicalName": "UNIVERSIDAD DE SAN MARTIN DE PORRES",
+        "alias": "USMP",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 1000,
+        "canonicalName": "UNIVERSIDAD DEL PACIFICO",
+        "alias": "Universidad del Pacífico",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 827,
+        "canonicalName": "UNIVERSIDAD ESAN",
+        "alias": "Universidad ESAN",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 1033,
+        "canonicalName": "UNIVERSIDAD FEMENINA DEL SAGRADO CORAZON",
+        "alias": "Universidad Femenina del Sagrado Corazón",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 1033,
+        "canonicalName": "UNIVERSIDAD FEMENINA DEL SAGRADO CORAZON",
+        "alias": "UNIFE",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 892,
+        "canonicalName": "UNIVERSIDAD JAIME BAUSATE Y MEZA",
+        "alias": "Universidad Jaime Bausate y Meza",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 892,
+        "canonicalName": "UNIVERSIDAD JAIME BAUSATE Y MEZA",
+        "alias": "UJBM",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 906,
+        "canonicalName": "UNIVERSIDAD LA SALLE",
+        "alias": "Universidad La Salle",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 906,
+        "canonicalName": "UNIVERSIDAD LA SALLE",
+        "alias": "ULASALLE",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 891,
+        "canonicalName": "UNIVERSIDAD NACIONAL AGRARIA DE LA SELVA",
+        "alias": "Universidad Nacional Agraria de la Selva",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 891,
+        "canonicalName": "UNIVERSIDAD NACIONAL AGRARIA DE LA SELVA",
+        "alias": "UNAS",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 986,
+        "canonicalName": "UNIVERSIDAD NACIONAL AGRARIA LA MOLINA",
+        "alias": "Universidad Nacional Agraria La Molina",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 986,
+        "canonicalName": "UNIVERSIDAD NACIONAL AGRARIA LA MOLINA",
+        "alias": "UNALM",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 1023,
+        "canonicalName": "UNIVERSIDAD NACIONAL DANIEL ALCIDES CARRION",
+        "alias": "Universidad Nacional Daniel Alcides Carrión",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 1023,
+        "canonicalName": "UNIVERSIDAD NACIONAL DANIEL ALCIDES CARRION",
+        "alias": "UNDAC",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 1023,
+        "canonicalName": "UNIVERSIDAD NACIONAL DANIEL ALCIDES CARRION",
+        "alias": "UNIVERSIDAD NACIONAL DANIEL ALCIDES CARRIÓN",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 893,
+        "canonicalName": "UNIVERSIDAD NACIONAL DE CAJAMARCA",
+        "alias": "Universidad Nacional de Cajamarca",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 866,
+        "canonicalName": "UNIVERSIDAD NACIONAL DE CAÑETE",
+        "alias": "Universidad Nacional de Cañete",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 866,
+        "canonicalName": "UNIVERSIDAD NACIONAL DE CAÑETE",
+        "alias": "UNDC",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 832,
+        "canonicalName": "UNIVERSIDAD NACIONAL DE HUANCAVELICA",
+        "alias": "Universidad Nacional de Huancavelica",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 964,
+        "canonicalName": "UNIVERSIDAD NACIONAL DE JULIACA",
+        "alias": "Universidad Nacional de Juliaca",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 964,
+        "canonicalName": "UNIVERSIDAD NACIONAL DE JULIACA",
+        "alias": "UNAJ",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 813,
+        "canonicalName": "UNIVERSIDAD NACIONAL DE MOQUEGUA",
+        "alias": "Universidad Nacional de Moquegua",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 813,
+        "canonicalName": "UNIVERSIDAD NACIONAL DE MOQUEGUA",
+        "alias": "UNAM",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 1079,
+        "canonicalName": "UNIVERSIDAD NACIONAL DE PIURA",
+        "alias": "Universidad Nacional de Piura",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 947,
+        "canonicalName": "UNIVERSIDAD NACIONAL DE SAN AGUSTIN DE AREQUIPA",
+        "alias": "Universidad Nacional de San Agustín de Arequipa",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 947,
+        "canonicalName": "UNIVERSIDAD NACIONAL DE SAN AGUSTIN DE AREQUIPA",
+        "alias": "UNSA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 947,
+        "canonicalName": "UNIVERSIDAD NACIONAL DE SAN AGUSTIN DE AREQUIPA",
+        "alias": "UNIVERSIDAD NACIONAL DE SAN AGUSTÍN DE AREQUIPA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 1020,
+        "canonicalName": "UNIVERSIDAD NACIONAL DE SAN CRISTÓBAL DE HUAMANGA",
+        "alias": "UNIVERSIDAD NACIONAL DE SAN CRISTOBAL DE HUAMANGA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 1007,
+        "canonicalName": "UNIVERSIDAD NACIONAL DE SAN MARTÍN",
+        "alias": "Universidad Nacional de San Martín",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 1007,
+        "canonicalName": "UNIVERSIDAD NACIONAL DE SAN MARTÍN",
+        "alias": "UNSM",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 974,
+        "canonicalName": "UNIVERSIDAD NACIONAL DE TRUJILLO",
+        "alias": "Universidad Nacional de Trujillo",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 828,
+        "canonicalName": "UNIVERSIDAD NACIONAL DE UCAYALI",
+        "alias": "Universidad Nacional de Ucayali",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 1046,
+        "canonicalName": "UNIVERSIDAD NACIONAL DEL ALTIPLANO",
+        "alias": "Universidad Nacional del Altiplano",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 1046,
+        "canonicalName": "UNIVERSIDAD NACIONAL DEL ALTIPLANO",
+        "alias": "UNAP-PUNO",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 798,
+        "canonicalName": "UNIVERSIDAD NACIONAL DEL CALLAO",
+        "alias": "Universidad Nacional del Callao",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 798,
+        "canonicalName": "UNIVERSIDAD NACIONAL DEL CALLAO",
+        "alias": "UNAC",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 877,
+        "canonicalName": "UNIVERSIDAD NACIONAL DEL CENTRO DEL PERU",
+        "alias": "Universidad Nacional del Centro del Perú",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 877,
+        "canonicalName": "UNIVERSIDAD NACIONAL DEL CENTRO DEL PERU",
+        "alias": "UNCP",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 877,
+        "canonicalName": "UNIVERSIDAD NACIONAL DEL CENTRO DEL PERU",
+        "alias": "UNIVERSIDAD NACIONAL DEL CENTRO DEL PERÚ",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 855,
+        "canonicalName": "UNIVERSIDAD NACIONAL JOSE FAUSTINO SANCHEZ CARRION",
+        "alias": "Universidad Nacional José Faustino Sánchez Carrión",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 855,
+        "canonicalName": "UNIVERSIDAD NACIONAL JOSE FAUSTINO SANCHEZ CARRION",
+        "alias": "UNJFSC",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 855,
+        "canonicalName": "UNIVERSIDAD NACIONAL JOSE FAUSTINO SANCHEZ CARRION",
+        "alias": "UNIVERSIDAD NACIONAL JOSÉ FAUSTINO SÁNCHEZ CARRION",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 858,
+        "canonicalName": "UNIVERSIDAD NACIONAL JOSE MARIA ARGUEDAS",
+        "alias": "Universidad Nacional José María Arguedas",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 858,
+        "canonicalName": "UNIVERSIDAD NACIONAL JOSE MARIA ARGUEDAS",
+        "alias": "UNAJMA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 938,
+        "canonicalName": "UNIVERSIDAD NACIONAL MAYOR DE SAN MARCOS",
+        "alias": "Universidad Nacional Mayor de San Marcos",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 938,
+        "canonicalName": "UNIVERSIDAD NACIONAL MAYOR DE SAN MARCOS",
+        "alias": "UNMSM",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 1060,
+        "canonicalName": "UNIVERSIDAD NACIONAL MICAELA BASTIDAS DE APURIMAC",
+        "alias": "Universidad Nacional Micaela Bastidas de Apurímac",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 1060,
+        "canonicalName": "UNIVERSIDAD NACIONAL MICAELA BASTIDAS DE APURIMAC",
+        "alias": "UNAMBA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 837,
+        "canonicalName": "UNIVERSIDAD NACIONAL PEDRO RUIZ GALLO",
+        "alias": "Universidad Nacional Pedro Ruiz Gallo",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 837,
+        "canonicalName": "UNIVERSIDAD NACIONAL PEDRO RUIZ GALLO",
+        "alias": "UNPRG",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 933,
+        "canonicalName": "UNIVERSIDAD NACIONAL SANTIAGO ANTUNEZ DE MAYOLO",
+        "alias": "Universidad Nacional Santiago Antúnez de Mayolo",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 933,
+        "canonicalName": "UNIVERSIDAD NACIONAL SANTIAGO ANTUNEZ DE MAYOLO",
+        "alias": "UNASAM",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 933,
+        "canonicalName": "UNIVERSIDAD NACIONAL SANTIAGO ANTUNEZ DE MAYOLO",
+        "alias": "UNIVERSIDAD NACIONAL SANTIAGO ANTÚNEZ DE MAYOLO",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 944,
+        "canonicalName": "UNIVERSIDAD NACIONAL TORIBIO RODRIGUEZ DE MENDOZA DE AMAZONAS",
+        "alias": "Universidad Nacional Toribio Rodríguez de Mendoza de Amazonas",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 944,
+        "canonicalName": "UNIVERSIDAD NACIONAL TORIBIO RODRIGUEZ DE MENDOZA DE AMAZONAS",
+        "alias": "UNTRM",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 901,
+        "canonicalName": "UNIVERSIDAD NORBERT WIENER",
+        "alias": "Universidad Norbert Wiener",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 1051,
+        "canonicalName": "UNIVERSIDAD PARTICULAR DE CHICLAYO",
+        "alias": "Universidad Particular de Chiclayo",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 1051,
+        "canonicalName": "UNIVERSIDAD PARTICULAR DE CHICLAYO",
+        "alias": "UDCH",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 815,
+        "canonicalName": "UNIVERSIDAD PERUANA CAYETANO HEREDIA",
+        "alias": "Universidad Peruana Cayetano Heredia",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 815,
+        "canonicalName": "UNIVERSIDAD PERUANA CAYETANO HEREDIA",
+        "alias": "UPCH",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 821,
+        "canonicalName": "UNIVERSIDAD PERUANA LOS ANDES",
+        "alias": "Universidad Peruana Los Andes",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 821,
+        "canonicalName": "UNIVERSIDAD PERUANA LOS ANDES",
+        "alias": "UPLA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 862,
+        "canonicalName": "UNIVERSIDAD PERUANA UNION",
+        "alias": "Universidad Peruana Unión",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 862,
+        "canonicalName": "UNIVERSIDAD PERUANA UNION",
+        "alias": "UPeU",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 862,
+        "canonicalName": "UNIVERSIDAD PERUANA UNION",
+        "alias": "UNIVERSIDAD PERUANA UNIÓN",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 1058,
+        "canonicalName": "UNIVERSIDAD PRIVADA ANTENOR ORREGO",
+        "alias": "Universidad Privada Antenor Orrego",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 1058,
+        "canonicalName": "UNIVERSIDAD PRIVADA ANTENOR ORREGO",
+        "alias": "UPAO",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 929,
+        "canonicalName": "UNIVERSIDAD PRIVADA DE TACNA",
+        "alias": "Universidad Privada de Tacna",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 861,
+        "canonicalName": "UNIVERSIDAD PRIVADA DEL NORTE",
+        "alias": "Universidad Privada del Norte",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 829,
+        "canonicalName": "UNIVERSIDAD RICARDO PALMA",
+        "alias": "Universidad Ricardo Palma",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 833,
+        "canonicalName": "UNIVERSIDAD SAN IGNACIO DE LOYOLA",
+        "alias": "Universidad San Ignacio de Loyola",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 833,
+        "canonicalName": "UNIVERSIDAD SAN IGNACIO DE LOYOLA",
+        "alias": "USIL",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 1090,
+        "canonicalName": "UNIVERSIDAD SEÑOR DE SIPÁN",
+        "alias": "Universidad Señor de Sipán",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 1005,
+        "canonicalName": "UNIVERSIDAD TECNOLÓGICA DEL PERÚ",
+        "alias": "Universidad Tecnológica del Perú",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 323,
+        "canonicalName": "ADMINISTRACIÓN",
+        "alias": "Administración",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 323,
+        "canonicalName": "ADMINISTRACIÓN",
+        "alias": "ADMINISTRACION",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 397,
+        "canonicalName": "ADMINISTRACIÓN DE EMPRESAS",
+        "alias": "Administración de Empresas",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 397,
+        "canonicalName": "ADMINISTRACIÓN DE EMPRESAS",
+        "alias": "ADMINISTRACION DE EMPRESAS",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 664,
+        "canonicalName": "ADMINISTRACION Y NEGOCIOS INTERNACIONALES",
+        "alias": "ADMINISTRACIÓN Y NEGOCIOS INTERNACIONALES",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 751,
+        "canonicalName": "BIOLOGIA",
+        "alias": "BIOLOGÍA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 700,
+        "canonicalName": "CONTABILIDAD",
+        "alias": "Contabilidad",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 500,
+        "canonicalName": "DERECHO",
+        "alias": "Derecho",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 656,
+        "canonicalName": "ECONOMÍA",
+        "alias": "Economía",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 656,
+        "canonicalName": "ECONOMÍA",
+        "alias": "ECONOMIA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 536,
+        "canonicalName": "EDUCACIÓN",
+        "alias": "Educación",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 569,
+        "canonicalName": "ELECTRONICA",
+        "alias": "ELECTRÓNICA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 680,
+        "canonicalName": "ESCUELA PROFESIONAL DE INGENIERIA DE MINAS",
+        "alias": "ESCUELA PROFESIONAL DE INGENIERÍA DE MINAS",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 614,
+        "canonicalName": "EXPLOTACIÓN DE MINAS",
+        "alias": "EXPLOTACION DE MINAS",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 795,
+        "canonicalName": "EXPLOTACIÓN MINERA",
+        "alias": "EXPLOTACION MINERA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 392,
+        "canonicalName": "FINANZAS",
+        "alias": "Finanzas",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 450,
+        "canonicalName": "GEOLOGIA Y EXPLORACION",
+        "alias": "GEOLOGÍA Y EXPLORACIÓN",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 261,
+        "canonicalName": "GEOTECNIA",
+        "alias": "Geotecnia",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 816,
+        "canonicalName": "INFORMÁTICA",
+        "alias": "INFORMATICA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 579,
+        "canonicalName": "ING. AMBIENTAL",
+        "alias": "ING.AMBIENTAL",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 579,
+        "canonicalName": "ING. AMBIENTAL",
+        "alias": "ING-AMBIENTAL",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 579,
+        "canonicalName": "ING. AMBIENTAL",
+        "alias": "ING AMBIENTAL",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 893,
+        "canonicalName": "ING. CIVIL",
+        "alias": "ING.CIVIL",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 893,
+        "canonicalName": "ING. CIVIL",
+        "alias": "ING CIVIL",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 867,
+        "canonicalName": "ING DE MINAS",
+        "alias": "ING.DE MINAS",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 867,
+        "canonicalName": "ING DE MINAS",
+        "alias": "ING.  DE MINAS",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 867,
+        "canonicalName": "ING DE MINAS",
+        "alias": "ING. DE MINAS",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 301,
+        "canonicalName": "ING. GEOLÓGICA",
+        "alias": "ING.GEOLÓGICA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 301,
+        "canonicalName": "ING. GEOLÓGICA",
+        "alias": "ING. GEÓLOGICA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 301,
+        "canonicalName": "ING. GEOLÓGICA",
+        "alias": "ING. GEOLOGICA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 301,
+        "canonicalName": "ING. GEOLÓGICA",
+        "alias": "ING GEOLOGICA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 301,
+        "canonicalName": "ING. GEOLÓGICA",
+        "alias": "ING GEOLÓGICA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 547,
+        "canonicalName": "ING. METALÚRGICA",
+        "alias": "ING. METALURGICA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 547,
+        "canonicalName": "ING. METALÚRGICA",
+        "alias": "ING METALURGICA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 378,
+        "canonicalName": "ING. MINAS",
+        "alias": "ING MINAS",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 378,
+        "canonicalName": "ING. MINAS",
+        "alias": "ING.MINAS",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 331,
+        "canonicalName": "ING. QUÍMICA",
+        "alias": "ING. QUIMICA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 318,
+        "canonicalName": "INGENERIA DE GESTION MINERA",
+        "alias": "INGENERÍA DE GESTIÓN MINERA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 285,
+        "canonicalName": "INGENERIA DE MINAS",
+        "alias": "INGENERÍA DE MINAS",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 303,
+        "canonicalName": "INGENIERA QUIMICA",
+        "alias": "INGENIERA QUÍMICA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 753,
+        "canonicalName": "INGENIERIA AGRICOLA",
+        "alias": "INGENIERÍA AGRÍCOLA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 772,
+        "canonicalName": "INGENIERÍA AMBIENTAL",
+        "alias": "Ingeniería Ambiental",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 772,
+        "canonicalName": "INGENIERÍA AMBIENTAL",
+        "alias": "INGENIERIA AMBIENTAL",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 522,
+        "canonicalName": "INGENIERÍA AMBIENTAL Y DE RECURSOS NATURALES",
+        "alias": "INGENIERIA AMBIENTAL Y DE RECURSOS NATURALES",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 803,
+        "canonicalName": "INGENIERÍA AMBIENTAL Y RECURSOS NATURALES",
+        "alias": "INGENIERIA AMBIENTAL Y RECURSOS NATURALES",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 830,
+        "canonicalName": "INGENIERÍA AMBIENTAL Y SEGURIDAD INDUSTRIAL",
+        "alias": "INGENIERIA AMBIENTAL Y SEGURIDAD INDUSTRIAL",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 652,
+        "canonicalName": "INGENIERÍA CIVIL",
+        "alias": "Ingeniería Civil",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 652,
+        "canonicalName": "INGENIERÍA CIVIL",
+        "alias": "INGENIERIA CIVIL",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 841,
+        "canonicalName": "INGENIERÍA COMERCIAL",
+        "alias": "INGENIERIA COMERCIAL",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 389,
+        "canonicalName": "INGENIERÍA DE GESTIÓN MINERA",
+        "alias": "INGENIERIA DE GESTION MINERA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 389,
+        "canonicalName": "INGENIERÍA DE GESTIÓN MINERA",
+        "alias": "INGENIERIA DE GESTIÓN MINERA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 436,
+        "canonicalName": "INGENIERÍA DE MATERIALES",
+        "alias": "INGENIERIA DE MATERIALES",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 532,
+        "canonicalName": "INGENIERÍA DE MINA",
+        "alias": "INGENIERIA DE MINA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 809,
+        "canonicalName": "INGENIERÍA DE MINAS",
+        "alias": "Ingeniería de Minas",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 809,
+        "canonicalName": "INGENIERÍA DE MINAS",
+        "alias": "INGENIERIA  DE MINAS",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 809,
+        "canonicalName": "INGENIERÍA DE MINAS",
+        "alias": "INGENIERÍA  DE  MINAS",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 809,
+        "canonicalName": "INGENIERÍA DE MINAS",
+        "alias": "INGENIERIA DE MINAS",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 809,
+        "canonicalName": "INGENIERÍA DE MINAS",
+        "alias": "INGENIERÌA DE MINAS",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 809,
+        "canonicalName": "INGENIERÍA DE MINAS",
+        "alias": "INGENIERÍA  DE MINAS",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 808,
+        "canonicalName": "INGENIERIA DE SOFTWARE",
+        "alias": "Ingeniería de Software",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 675,
+        "canonicalName": "INGENIERÍA ELÉCTRICA",
+        "alias": "Ingeniería Eléctrica",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 675,
+        "canonicalName": "INGENIERÍA ELÉCTRICA",
+        "alias": "INGENIERIA ELECTRICA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 675,
+        "canonicalName": "INGENIERÍA ELÉCTRICA",
+        "alias": "INGENIERÍA ELECTRICA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 713,
+        "canonicalName": "INGENIERÍA ELECTRÓNICA",
+        "alias": "Ingeniería Electrónica",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 713,
+        "canonicalName": "INGENIERÍA ELECTRÓNICA",
+        "alias": "INGENIERIA ELECTRONICA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 347,
+        "canonicalName": "INGENIERÍA EN SEGURIDAD LABORAL Y AMBIENTAL",
+        "alias": "INGENIERIA EN SEGURIDAD LABORAL Y AMBIENTAL",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 438,
+        "canonicalName": "INGENIERÍA GEOFÍSICA",
+        "alias": "INGENIERIA GEOFISICA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 553,
+        "canonicalName": "INGENIERÍA GEOGRÁFICA",
+        "alias": "INGENIERIA GEOGRÁFICA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 774,
+        "canonicalName": "INGENIERÍA GEOLÓGICA",
+        "alias": "Ingeniería Geológica",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 774,
+        "canonicalName": "INGENIERÍA GEOLÓGICA",
+        "alias": "INGENIERIA  GEOLOGICA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 774,
+        "canonicalName": "INGENIERÍA GEOLÓGICA",
+        "alias": "INGENIERIA  GEOLÓGICA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 774,
+        "canonicalName": "INGENIERÍA GEOLÓGICA",
+        "alias": "INGENIERÍA GEÓLOGICA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 774,
+        "canonicalName": "INGENIERÍA GEOLÓGICA",
+        "alias": "INGENIERÍA  GEOLÓGICA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 774,
+        "canonicalName": "INGENIERÍA GEOLÓGICA",
+        "alias": "INGENIERIA GEOLOGICA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 774,
+        "canonicalName": "INGENIERÍA GEOLÓGICA",
+        "alias": "INGENIERIA GEOLÒGICA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 774,
+        "canonicalName": "INGENIERÍA GEOLÓGICA",
+        "alias": "INGENIERÌA GEOLÒGICA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 774,
+        "canonicalName": "INGENIERÍA GEOLÓGICA",
+        "alias": "INGENIERÍA GEOLOGICA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 774,
+        "canonicalName": "INGENIERÍA GEOLÓGICA",
+        "alias": "INGENIERIA GEOLÓGICA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 879,
+        "canonicalName": "INGENIERÍA GEOLÓGICA-GEOTECNIA",
+        "alias": "INGENIERÍA GEOLÓGICA - GEOTECNIA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 879,
+        "canonicalName": "INGENIERÍA GEOLÓGICA-GEOTECNIA",
+        "alias": "INGENIERIA GEOLÓGICA - GEOTECNIA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 879,
+        "canonicalName": "INGENIERÍA GEOLÓGICA-GEOTECNIA",
+        "alias": "INGENIERÍA GEOLÓGICA GEOTECNIA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 417,
+        "canonicalName": "INGENIERÍA GEOLÓGICA Y GEOTECNIA",
+        "alias": "INGENIERIA GEOLOGICA Y GEOTECNIA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 725,
+        "canonicalName": "INGENIERÍA INDUSTRIAL",
+        "alias": "Ingeniería Industrial",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 725,
+        "canonicalName": "INGENIERÍA INDUSTRIAL",
+        "alias": "INGENIERIA INDUSTRIAL",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 786,
+        "canonicalName": "INGENIERÍA MECÁNICA",
+        "alias": "Ingeniería Mecánica",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 786,
+        "canonicalName": "INGENIERÍA MECÁNICA",
+        "alias": "INGENIERÍA MECANICA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 786,
+        "canonicalName": "INGENIERÍA MECÁNICA",
+        "alias": "INGENIERIA MECANICA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 786,
+        "canonicalName": "INGENIERÍA MECÁNICA",
+        "alias": "INGENIERIA MECÁNICA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 567,
+        "canonicalName": "INGENIERÍA MECÁNICA DE FLUIDOS",
+        "alias": "INGENIERIA MECANICA DE FLUIDOS",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 567,
+        "canonicalName": "INGENIERÍA MECÁNICA DE FLUIDOS",
+        "alias": "INGENIERÍA MECANICA DE FLUIDOS",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 925,
+        "canonicalName": "INGENIERÍA MECÁNICA ELÉCTRICA",
+        "alias": "INGENIERIA MECANICA ELECTRICA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 906,
+        "canonicalName": "INGENIERÍA METALÚRGIA",
+        "alias": "INGENIERIA METALURGIA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 563,
+        "canonicalName": "INGENIERÍA METALÚRGICA",
+        "alias": "Ingeniería Metalúrgica",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 563,
+        "canonicalName": "INGENIERÍA METALÚRGICA",
+        "alias": "INGENIERÍA METALURGICA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 563,
+        "canonicalName": "INGENIERÍA METALÚRGICA",
+        "alias": "INGENIERIA METALURGICA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 563,
+        "canonicalName": "INGENIERÍA METALÚRGICA",
+        "alias": "INGENIERIA METALÚRGICA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 297,
+        "canonicalName": "INGENIERIA METALURGICA Y DE MATERIALES",
+        "alias": "INGENIERÍA METALÚRGICA Y DE MATERIALES",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 356,
+        "canonicalName": "INGENIERIA MINAS",
+        "alias": "INGENIERÍA  MINAS",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 356,
+        "canonicalName": "INGENIERIA MINAS",
+        "alias": "INGENIERÍA MINAS",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 375,
+        "canonicalName": "INGENIERÍA QUÍMICA",
+        "alias": "Ingeniería Química",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 375,
+        "canonicalName": "INGENIERÍA QUÍMICA",
+        "alias": "INGENIERIA QUIMICA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 375,
+        "canonicalName": "INGENIERÍA QUÍMICA",
+        "alias": "INGENIERÌA QUÌMICA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 375,
+        "canonicalName": "INGENIERÍA QUÍMICA",
+        "alias": "INGENIERÍA QUIMICA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 822,
+        "canonicalName": "INGENIERÍA SANITARIA",
+        "alias": "Ingeniería Sanitaria",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 353,
+        "canonicalName": "INGENIERO MECÁNICO",
+        "alias": "INGENIERO MECANICO",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 452,
+        "canonicalName": "INGENIERO QUIMICO",
+        "alias": "INGENIERO QUÍMICO",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 788,
+        "canonicalName": "MANTENIMIENTO DE EQUIPO PESADO",
+        "alias": "MANTENIMIENTO DE EQUIPÓ PESADO",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 710,
+        "canonicalName": "MANTENIMIENTO ELÉCTRICO E INSTRUMENTACIÓN",
+        "alias": "MANTENIMIENTO ELECTRICO E INSTRUMENTACION",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 546,
+        "canonicalName": "MECANICO ELÉCTRICISTA",
+        "alias": "MECANICO ELECTRICISTA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 720,
+        "canonicalName": "MECATRONICA",
+        "alias": "MECATRÓNICA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 855,
+        "canonicalName": "NEGOCIOS INTERNACIONALES",
+        "alias": "Negocios Internacionales",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 383,
+        "canonicalName": "PERFORACIÓN Y VOLADURA",
+        "alias": "PERFORACION Y VOLADURA",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 758,
+        "canonicalName": "PREVENCIÓN DE RIESGOS, SEGURIDAD Y SALUD OCUPACIONAL",
+        "alias": "PREVENCION DE RIESGOS, SEGURIDAD Y SALUD OCUPACIONAL",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 758,
+        "canonicalName": "PREVENCIÓN DE RIESGOS, SEGURIDAD Y SALUD OCUPACIONAL",
+        "alias": "PREVENCIÓN DE RIESGOS SEGURIDAD Y SALUD OCUPACIONAL",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 255,
+        "canonicalName": "PROCESOS METALÚRGICOS Y QUÍMICOS",
+        "alias": "PROCESOS METALURGICOS Y QUÍMICOS",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 255,
+        "canonicalName": "PROCESOS METALÚRGICOS Y QUÍMICOS",
+        "alias": "PROCESOS METALURGICOS Y QUIMICOS",
+        "classification": "SAFE_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 887,
+        "canonicalName": "PSICOLOGÍA",
+        "alias": "PSICOLOGIA",
+        "classification": "SAFE_ALIAS"
+      }
+    ],
+    "review": [
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 1017,
+        "canonicalName": "UNIVERSIDAD ANDINA DEL CUSCO",
+        "alias": "UAC",
+        "classification": "REVIEW_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 788,
+        "canonicalName": "UNIVERSIDAD CATOLICA DE TRUJILLO BENEDICTO XVI",
+        "alias": "UCT",
+        "classification": "REVIEW_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 77,
+        "canonicalName": "Universidad Continental",
+        "alias": "UC",
+        "classification": "REVIEW_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 1000,
+        "canonicalName": "UNIVERSIDAD DEL PACIFICO",
+        "alias": "UP",
+        "classification": "REVIEW_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 827,
+        "canonicalName": "UNIVERSIDAD ESAN",
+        "alias": "UE",
+        "classification": "REVIEW_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 893,
+        "canonicalName": "UNIVERSIDAD NACIONAL DE CAJAMARCA",
+        "alias": "UNC",
+        "classification": "REVIEW_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 832,
+        "canonicalName": "UNIVERSIDAD NACIONAL DE HUANCAVELICA",
+        "alias": "UNH",
+        "classification": "REVIEW_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 1079,
+        "canonicalName": "UNIVERSIDAD NACIONAL DE PIURA",
+        "alias": "UNP",
+        "classification": "REVIEW_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 974,
+        "canonicalName": "UNIVERSIDAD NACIONAL DE TRUJILLO",
+        "alias": "UNT",
+        "classification": "REVIEW_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 828,
+        "canonicalName": "UNIVERSIDAD NACIONAL DE UCAYALI",
+        "alias": "UNU",
+        "classification": "REVIEW_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 901,
+        "canonicalName": "UNIVERSIDAD NORBERT WIENER",
+        "alias": "NW",
+        "classification": "REVIEW_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 929,
+        "canonicalName": "UNIVERSIDAD PRIVADA DE TACNA",
+        "alias": "UPT",
+        "classification": "REVIEW_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 861,
+        "canonicalName": "UNIVERSIDAD PRIVADA DEL NORTE",
+        "alias": "UPN",
+        "classification": "REVIEW_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 829,
+        "canonicalName": "UNIVERSIDAD RICARDO PALMA",
+        "alias": "URP",
+        "classification": "REVIEW_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 1090,
+        "canonicalName": "UNIVERSIDAD SEÑOR DE SIPÁN",
+        "alias": "USS",
+        "classification": "REVIEW_ALIAS"
+      },
+      {
+        "type": "UNIVERSITY",
+        "canonicalId": 1005,
+        "canonicalName": "UNIVERSIDAD TECNOLÓGICA DEL PERÚ",
+        "alias": "UTP",
+        "classification": "REVIEW_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 379,
+        "canonicalName": "GEOLOGÍA",
+        "alias": "Geología",
+        "classification": "REVIEW_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 379,
+        "canonicalName": "GEOLOGÍA",
+        "alias": "GEÓLOGIA",
+        "classification": "REVIEW_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 379,
+        "canonicalName": "GEOLOGÍA",
+        "alias": "GEOLOGIA",
+        "classification": "REVIEW_ALIAS"
+      },
+      {
+        "type": "SPECIALTY",
+        "canonicalId": 440,
+        "canonicalName": "INGENIERÍA",
+        "alias": "INGENIERIA",
+        "classification": "REVIEW_ALIAS"
+      }
+    ],
+    "invalid": []
+  }
+}

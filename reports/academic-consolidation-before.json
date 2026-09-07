@@ -1,0 +1,5226 @@
+{
+  "generatedAt": "2026-09-06T21:44:57.842Z",
+  "readOnlySnapshot": true,
+  "rows": [
+    {
+      "id": 68329,
+      "universityId": 990,
+      "specialtyId": 863
+    },
+    {
+      "id": 68331,
+      "universityId": 990,
+      "specialtyId": 485
+    },
+    {
+      "id": 68332,
+      "universityId": 1056,
+      "specialtyId": 920
+    },
+    {
+      "id": 68334,
+      "universityId": 1056,
+      "specialtyId": 610
+    },
+    {
+      "id": 68341,
+      "universityId": 1056,
+      "specialtyId": 298
+    },
+    {
+      "id": 68353,
+      "universityId": 990,
+      "specialtyId": 595
+    },
+    {
+      "id": 68359,
+      "universityId": 1056,
+      "specialtyId": 595
+    },
+    {
+      "id": 68366,
+      "universityId": 1056,
+      "specialtyId": 595
+    },
+    {
+      "id": 68369,
+      "universityId": 1056,
+      "specialtyId": 595
+    },
+    {
+      "id": 68373,
+      "universityId": 1056,
+      "specialtyId": 595
+    },
+    {
+      "id": 68375,
+      "universityId": 990,
+      "specialtyId": 595
+    },
+    {
+      "id": 68376,
+      "universityId": 990,
+      "specialtyId": 595
+    },
+    {
+      "id": 68400,
+      "universityId": 1056,
+      "specialtyId": 595
+    },
+    {
+      "id": 68404,
+      "universityId": 990,
+      "specialtyId": 595
+    },
+    {
+      "id": 68407,
+      "universityId": 1056,
+      "specialtyId": 595
+    },
+    {
+      "id": 68412,
+      "universityId": 990,
+      "specialtyId": 595
+    },
+    {
+      "id": 68426,
+      "universityId": 990,
+      "specialtyId": 595
+    },
+    {
+      "id": 68428,
+      "universityId": 1056,
+      "specialtyId": 595
+    },
+    {
+      "id": 68432,
+      "universityId": 1056,
+      "specialtyId": 595
+    },
+    {
+      "id": 68434,
+      "universityId": 990,
+      "specialtyId": 732
+    },
+    {
+      "id": 68460,
+      "universityId": 990,
+      "specialtyId": 595
+    },
+    {
+      "id": 68465,
+      "universityId": 1056,
+      "specialtyId": 920
+    },
+    {
+      "id": 68473,
+      "universityId": 1056,
+      "specialtyId": 595
+    },
+    {
+      "id": 68475,
+      "universityId": 1056,
+      "specialtyId": 595
+    },
+    {
+      "id": 68482,
+      "universityId": 990,
+      "specialtyId": 418
+    },
+    {
+      "id": 68484,
+      "universityId": 990,
+      "specialtyId": 920
+    },
+    {
+      "id": 68485,
+      "universityId": 990,
+      "specialtyId": 418
+    },
+    {
+      "id": 68502,
+      "universityId": 1056,
+      "specialtyId": 595
+    },
+    {
+      "id": 68509,
+      "universityId": 1056,
+      "specialtyId": 595
+    },
+    {
+      "id": 68510,
+      "universityId": 1056,
+      "specialtyId": 595
+    },
+    {
+      "id": 68511,
+      "universityId": 990,
+      "specialtyId": 920
+    },
+    {
+      "id": 68541,
+      "universityId": 1056,
+      "specialtyId": 298
+    },
+    {
+      "id": 68544,
+      "universityId": 990,
+      "specialtyId": 856
+    },
+    {
+      "id": 68546,
+      "universityId": 990,
+      "specialtyId": 506
+    },
+    {
+      "id": 68553,
+      "universityId": 1056,
+      "specialtyId": 506
+    },
+    {
+      "id": 68556,
+      "universityId": 990,
+      "specialtyId": 390
+    },
+    {
+      "id": 68567,
+      "universityId": 1056,
+      "specialtyId": 298
+    },
+    {
+      "id": 68573,
+      "universityId": 990,
+      "specialtyId": 595
+    },
+    {
+      "id": 68574,
+      "universityId": 990,
+      "specialtyId": 390
+    },
+    {
+      "id": 68584,
+      "universityId": 1056,
+      "specialtyId": 595
+    },
+    {
+      "id": 68603,
+      "universityId": 1056,
+      "specialtyId": 595
+    },
+    {
+      "id": 68606,
+      "universityId": 990,
+      "specialtyId": 920
+    },
+    {
+      "id": 68609,
+      "universityId": 990,
+      "specialtyId": 920
+    },
+    {
+      "id": 68610,
+      "universityId": 1056,
+      "specialtyId": 685
+    },
+    {
+      "id": 68616,
+      "universityId": 1056,
+      "specialtyId": 685
+    },
+    {
+      "id": 68632,
+      "universityId": 990,
+      "specialtyId": 595
+    },
+    {
+      "id": 68633,
+      "universityId": 990,
+      "specialtyId": 863
+    },
+    {
+      "id": 68639,
+      "universityId": 990,
+      "specialtyId": 595
+    },
+    {
+      "id": 68657,
+      "universityId": 990,
+      "specialtyId": 732
+    },
+    {
+      "id": 68658,
+      "universityId": 990,
+      "specialtyId": 920
+    },
+    {
+      "id": 68677,
+      "universityId": 1056,
+      "specialtyId": 298
+    },
+    {
+      "id": 68679,
+      "universityId": 1056,
+      "specialtyId": 863
+    },
+    {
+      "id": 68715,
+      "universityId": 990,
+      "specialtyId": 856
+    },
+    {
+      "id": 68722,
+      "universityId": 990,
+      "specialtyId": 863
+    },
+    {
+      "id": 68844,
+      "universityId": 1068,
+      "specialtyId": 423
+    },
+    {
+      "id": 68851,
+      "universityId": 843,
+      "specialtyId": 464
+    },
+    {
+      "id": 68853,
+      "universityId": 974,
+      "specialtyId": 464
+    },
+    {
+      "id": 68862,
+      "universityId": 1079,
+      "specialtyId": 464
+    },
+    {
+      "id": 68868,
+      "universityId": 1020,
+      "specialtyId": 464
+    },
+    {
+      "id": 68871,
+      "universityId": 877,
+      "specialtyId": 464
+    },
+    {
+      "id": 68875,
+      "universityId": 1014,
+      "specialtyId": 464
+    },
+    {
+      "id": 68876,
+      "universityId": 893,
+      "specialtyId": 464
+    },
+    {
+      "id": 68882,
+      "universityId": 1020,
+      "specialtyId": 464
+    },
+    {
+      "id": 68883,
+      "universityId": 1020,
+      "specialtyId": 464
+    },
+    {
+      "id": 68885,
+      "universityId": 817,
+      "specialtyId": 480
+    },
+    {
+      "id": 68888,
+      "universityId": 1014,
+      "specialtyId": 335
+    },
+    {
+      "id": 68891,
+      "universityId": 1020,
+      "specialtyId": 464
+    },
+    {
+      "id": 68894,
+      "universityId": 843,
+      "specialtyId": 464
+    },
+    {
+      "id": 68901,
+      "universityId": 974,
+      "specialtyId": 464
+    },
+    {
+      "id": 68904,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 68915,
+      "universityId": 843,
+      "specialtyId": 464
+    },
+    {
+      "id": 68927,
+      "universityId": 941,
+      "specialtyId": 252
+    },
+    {
+      "id": 68931,
+      "universityId": 77,
+      "specialtyId": 464
+    },
+    {
+      "id": 68933,
+      "universityId": 1019,
+      "specialtyId": 658
+    },
+    {
+      "id": 68936,
+      "universityId": 1003,
+      "specialtyId": 493
+    },
+    {
+      "id": 68938,
+      "universityId": 938,
+      "specialtyId": 531
+    },
+    {
+      "id": 68943,
+      "universityId": 1019,
+      "specialtyId": 688
+    },
+    {
+      "id": 68944,
+      "universityId": 1020,
+      "specialtyId": 464
+    },
+    {
+      "id": 68945,
+      "universityId": 817,
+      "specialtyId": 480
+    },
+    {
+      "id": 68949,
+      "universityId": 877,
+      "specialtyId": 464
+    },
+    {
+      "id": 68950,
+      "universityId": 918,
+      "specialtyId": 464
+    },
+    {
+      "id": 68985,
+      "universityId": 1019,
+      "specialtyId": 437
+    },
+    {
+      "id": 68989,
+      "universityId": 938,
+      "specialtyId": 441
+    },
+    {
+      "id": 68995,
+      "universityId": 1078,
+      "specialtyId": 240
+    },
+    {
+      "id": 68996,
+      "universityId": 974,
+      "specialtyId": 464
+    },
+    {
+      "id": 68997,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 68998,
+      "universityId": 893,
+      "specialtyId": 864
+    },
+    {
+      "id": 68999,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 69012,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 69027,
+      "universityId": 980,
+      "specialtyId": 864
+    },
+    {
+      "id": 69035,
+      "universityId": 980,
+      "specialtyId": 480
+    },
+    {
+      "id": 69040,
+      "universityId": 980,
+      "specialtyId": 464
+    },
+    {
+      "id": 69041,
+      "universityId": 1078,
+      "specialtyId": 574
+    },
+    {
+      "id": 69045,
+      "universityId": 938,
+      "specialtyId": 688
+    },
+    {
+      "id": 69050,
+      "universityId": 1081,
+      "specialtyId": 531
+    },
+    {
+      "id": 69058,
+      "universityId": 1095,
+      "specialtyId": 773
+    },
+    {
+      "id": 69060,
+      "universityId": 1046,
+      "specialtyId": 464
+    },
+    {
+      "id": 69061,
+      "universityId": 1046,
+      "specialtyId": 441
+    },
+    {
+      "id": 69064,
+      "universityId": 1046,
+      "specialtyId": 538
+    },
+    {
+      "id": 69065,
+      "universityId": 1046,
+      "specialtyId": 464
+    },
+    {
+      "id": 69074,
+      "universityId": 1046,
+      "specialtyId": 464
+    },
+    {
+      "id": 69075,
+      "universityId": 1046,
+      "specialtyId": 464
+    },
+    {
+      "id": 69080,
+      "universityId": 832,
+      "specialtyId": 464
+    },
+    {
+      "id": 69083,
+      "universityId": 1046,
+      "specialtyId": 688
+    },
+    {
+      "id": 69094,
+      "universityId": 938,
+      "specialtyId": 464
+    },
+    {
+      "id": 69095,
+      "universityId": 893,
+      "specialtyId": 464
+    },
+    {
+      "id": 69106,
+      "universityId": 1081,
+      "specialtyId": 464
+    },
+    {
+      "id": 69108,
+      "universityId": 832,
+      "specialtyId": 464
+    },
+    {
+      "id": 69109,
+      "universityId": 980,
+      "specialtyId": 480
+    },
+    {
+      "id": 69114,
+      "universityId": 832,
+      "specialtyId": 464
+    },
+    {
+      "id": 69118,
+      "universityId": 832,
+      "specialtyId": 923
+    },
+    {
+      "id": 69127,
+      "universityId": 832,
+      "specialtyId": 715
+    },
+    {
+      "id": 69129,
+      "universityId": 980,
+      "specialtyId": 480
+    },
+    {
+      "id": 69134,
+      "universityId": 1004,
+      "specialtyId": 464
+    },
+    {
+      "id": 69138,
+      "universityId": 1023,
+      "specialtyId": 464
+    },
+    {
+      "id": 69140,
+      "universityId": 1046,
+      "specialtyId": 844
+    },
+    {
+      "id": 69141,
+      "universityId": 843,
+      "specialtyId": 688
+    },
+    {
+      "id": 69143,
+      "universityId": 1046,
+      "specialtyId": 688
+    },
+    {
+      "id": 69145,
+      "universityId": 843,
+      "specialtyId": 905
+    },
+    {
+      "id": 69146,
+      "universityId": 1081,
+      "specialtyId": 531
+    },
+    {
+      "id": 69150,
+      "universityId": 1046,
+      "specialtyId": 688
+    },
+    {
+      "id": 69153,
+      "universityId": 1070,
+      "specialtyId": 706
+    },
+    {
+      "id": 69158,
+      "universityId": 1046,
+      "specialtyId": 464
+    },
+    {
+      "id": 69161,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 69164,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 69167,
+      "universityId": 832,
+      "specialtyId": 464
+    },
+    {
+      "id": 69169,
+      "universityId": 1060,
+      "specialtyId": 464
+    },
+    {
+      "id": 69171,
+      "universityId": 832,
+      "specialtyId": 864
+    },
+    {
+      "id": 69173,
+      "universityId": 1019,
+      "specialtyId": 531
+    },
+    {
+      "id": 69183,
+      "universityId": 832,
+      "specialtyId": 864
+    },
+    {
+      "id": 69185,
+      "universityId": 832,
+      "specialtyId": 464
+    },
+    {
+      "id": 69190,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 69191,
+      "universityId": 1019,
+      "specialtyId": 332
+    },
+    {
+      "id": 69207,
+      "universityId": 1004,
+      "specialtyId": 464
+    },
+    {
+      "id": 69208,
+      "universityId": 813,
+      "specialtyId": 464
+    },
+    {
+      "id": 69210,
+      "universityId": 1004,
+      "specialtyId": 480
+    },
+    {
+      "id": 69212,
+      "universityId": 1060,
+      "specialtyId": 464
+    },
+    {
+      "id": 69215,
+      "universityId": 813,
+      "specialtyId": 464
+    },
+    {
+      "id": 69217,
+      "universityId": 813,
+      "specialtyId": 464
+    },
+    {
+      "id": 69222,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 69224,
+      "universityId": 813,
+      "specialtyId": 464
+    },
+    {
+      "id": 69228,
+      "universityId": 832,
+      "specialtyId": 464
+    },
+    {
+      "id": 69233,
+      "universityId": 974,
+      "specialtyId": 328
+    },
+    {
+      "id": 69234,
+      "universityId": 843,
+      "specialtyId": 464
+    },
+    {
+      "id": 69237,
+      "universityId": 1079,
+      "specialtyId": 775
+    },
+    {
+      "id": 69238,
+      "universityId": 843,
+      "specialtyId": 464
+    },
+    {
+      "id": 69247,
+      "universityId": 822,
+      "specialtyId": 464
+    },
+    {
+      "id": 69251,
+      "universityId": 832,
+      "specialtyId": 464
+    },
+    {
+      "id": 69256,
+      "universityId": 1014,
+      "specialtyId": 464
+    },
+    {
+      "id": 69257,
+      "universityId": 834,
+      "specialtyId": 464
+    },
+    {
+      "id": 69258,
+      "universityId": 933,
+      "specialtyId": 464
+    },
+    {
+      "id": 69259,
+      "universityId": 813,
+      "specialtyId": 464
+    },
+    {
+      "id": 69264,
+      "universityId": 991,
+      "specialtyId": 217
+    },
+    {
+      "id": 69266,
+      "universityId": 1014,
+      "specialtyId": 464
+    },
+    {
+      "id": 69271,
+      "universityId": 817,
+      "specialtyId": 464
+    },
+    {
+      "id": 69277,
+      "universityId": 813,
+      "specialtyId": 784
+    },
+    {
+      "id": 69278,
+      "universityId": 798,
+      "specialtyId": 437
+    },
+    {
+      "id": 69282,
+      "universityId": 938,
+      "specialtyId": 531
+    },
+    {
+      "id": 69293,
+      "universityId": 1023,
+      "specialtyId": 688
+    },
+    {
+      "id": 69300,
+      "universityId": 822,
+      "specialtyId": 464
+    },
+    {
+      "id": 69305,
+      "universityId": 1019,
+      "specialtyId": 864
+    },
+    {
+      "id": 69311,
+      "universityId": 938,
+      "specialtyId": 921
+    },
+    {
+      "id": 69312,
+      "universityId": 822,
+      "specialtyId": 464
+    },
+    {
+      "id": 69316,
+      "universityId": 843,
+      "specialtyId": 688
+    },
+    {
+      "id": 69320,
+      "universityId": 938,
+      "specialtyId": 464
+    },
+    {
+      "id": 69323,
+      "universityId": 1019,
+      "specialtyId": 864
+    },
+    {
+      "id": 69325,
+      "universityId": 832,
+      "specialtyId": 464
+    },
+    {
+      "id": 69328,
+      "universityId": 832,
+      "specialtyId": 464
+    },
+    {
+      "id": 69332,
+      "universityId": 832,
+      "specialtyId": 464
+    },
+    {
+      "id": 69334,
+      "universityId": 832,
+      "specialtyId": 464
+    },
+    {
+      "id": 69337,
+      "universityId": 819,
+      "specialtyId": 580
+    },
+    {
+      "id": 69339,
+      "universityId": 819,
+      "specialtyId": 580
+    },
+    {
+      "id": 69347,
+      "universityId": 843,
+      "specialtyId": 464
+    },
+    {
+      "id": 69352,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 69353,
+      "universityId": 843,
+      "specialtyId": 464
+    },
+    {
+      "id": 69355,
+      "universityId": 843,
+      "specialtyId": 464
+    },
+    {
+      "id": 69366,
+      "universityId": 1023,
+      "specialtyId": 688
+    },
+    {
+      "id": 69368,
+      "universityId": 843,
+      "specialtyId": 464
+    },
+    {
+      "id": 69372,
+      "universityId": 832,
+      "specialtyId": 464
+    },
+    {
+      "id": 69380,
+      "universityId": 843,
+      "specialtyId": 464
+    },
+    {
+      "id": 69385,
+      "universityId": 1019,
+      "specialtyId": 437
+    },
+    {
+      "id": 69386,
+      "universityId": 1019,
+      "specialtyId": 580
+    },
+    {
+      "id": 69388,
+      "universityId": 974,
+      "specialtyId": 464
+    },
+    {
+      "id": 69389,
+      "universityId": 831,
+      "specialtyId": 480
+    },
+    {
+      "id": 69390,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 69395,
+      "universityId": 979,
+      "specialtyId": 431
+    },
+    {
+      "id": 69397,
+      "universityId": 928,
+      "specialtyId": 464
+    },
+    {
+      "id": 69409,
+      "universityId": 819,
+      "specialtyId": 464
+    },
+    {
+      "id": 69414,
+      "universityId": 928,
+      "specialtyId": 464
+    },
+    {
+      "id": 69422,
+      "universityId": 938,
+      "specialtyId": 796
+    },
+    {
+      "id": 69425,
+      "universityId": 938,
+      "specialtyId": 464
+    },
+    {
+      "id": 69426,
+      "universityId": 938,
+      "specialtyId": 464
+    },
+    {
+      "id": 69429,
+      "universityId": 1004,
+      "specialtyId": 464
+    },
+    {
+      "id": 69432,
+      "universityId": 1081,
+      "specialtyId": 864
+    },
+    {
+      "id": 69433,
+      "universityId": 94,
+      "specialtyId": 706
+    },
+    {
+      "id": 69435,
+      "universityId": 938,
+      "specialtyId": 464
+    },
+    {
+      "id": 69436,
+      "universityId": 832,
+      "specialtyId": 464
+    },
+    {
+      "id": 69442,
+      "universityId": 877,
+      "specialtyId": 464
+    },
+    {
+      "id": 69445,
+      "universityId": 877,
+      "specialtyId": 441
+    },
+    {
+      "id": 69446,
+      "universityId": 877,
+      "specialtyId": 441
+    },
+    {
+      "id": 69449,
+      "universityId": 1081,
+      "specialtyId": 688
+    },
+    {
+      "id": 69450,
+      "universityId": 1014,
+      "specialtyId": 464
+    },
+    {
+      "id": 69455,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 69462,
+      "universityId": 974,
+      "specialtyId": 464
+    },
+    {
+      "id": 69472,
+      "universityId": 1019,
+      "specialtyId": 332
+    },
+    {
+      "id": 69474,
+      "universityId": 980,
+      "specialtyId": 464
+    },
+    {
+      "id": 69475,
+      "universityId": 938,
+      "specialtyId": 332
+    },
+    {
+      "id": 69486,
+      "universityId": 817,
+      "specialtyId": 464
+    },
+    {
+      "id": 69488,
+      "universityId": 893,
+      "specialtyId": 688
+    },
+    {
+      "id": 69489,
+      "universityId": 933,
+      "specialtyId": 464
+    },
+    {
+      "id": 69497,
+      "universityId": 990,
+      "specialtyId": 476
+    },
+    {
+      "id": 69511,
+      "universityId": 928,
+      "specialtyId": 464
+    },
+    {
+      "id": 69515,
+      "universityId": 980,
+      "specialtyId": 480
+    },
+    {
+      "id": 69520,
+      "universityId": 1019,
+      "specialtyId": 921
+    },
+    {
+      "id": 69522,
+      "universityId": 879,
+      "specialtyId": 480
+    },
+    {
+      "id": 69523,
+      "universityId": 1020,
+      "specialtyId": 464
+    },
+    {
+      "id": 69526,
+      "universityId": 831,
+      "specialtyId": 464
+    },
+    {
+      "id": 69527,
+      "universityId": 938,
+      "specialtyId": 464
+    },
+    {
+      "id": 69531,
+      "universityId": 1000,
+      "specialtyId": 423
+    },
+    {
+      "id": 69533,
+      "universityId": 1014,
+      "specialtyId": 688
+    },
+    {
+      "id": 69540,
+      "universityId": 991,
+      "specialtyId": 865
+    },
+    {
+      "id": 69542,
+      "universityId": 991,
+      "specialtyId": 554
+    },
+    {
+      "id": 69556,
+      "universityId": 991,
+      "specialtyId": 707
+    },
+    {
+      "id": 69557,
+      "universityId": 991,
+      "specialtyId": 654
+    },
+    {
+      "id": 69560,
+      "universityId": 991,
+      "specialtyId": 676
+    },
+    {
+      "id": 69562,
+      "universityId": 893,
+      "specialtyId": 464
+    },
+    {
+      "id": 69563,
+      "universityId": 991,
+      "specialtyId": 654
+    },
+    {
+      "id": 69565,
+      "universityId": 77,
+      "specialtyId": 727
+    },
+    {
+      "id": 69568,
+      "universityId": 991,
+      "specialtyId": 654
+    },
+    {
+      "id": 69569,
+      "universityId": 991,
+      "specialtyId": 654
+    },
+    {
+      "id": 69571,
+      "universityId": 947,
+      "specialtyId": 531
+    },
+    {
+      "id": 69577,
+      "universityId": 1063,
+      "specialtyId": 809
+    },
+    {
+      "id": 69599,
+      "universityId": 1019,
+      "specialtyId": 905
+    },
+    {
+      "id": 69600,
+      "universityId": 1004,
+      "specialtyId": 464
+    },
+    {
+      "id": 69601,
+      "universityId": 1004,
+      "specialtyId": 780
+    },
+    {
+      "id": 69602,
+      "universityId": 947,
+      "specialtyId": 688
+    },
+    {
+      "id": 69612,
+      "universityId": 938,
+      "specialtyId": 688
+    },
+    {
+      "id": 69618,
+      "universityId": 974,
+      "specialtyId": 635
+    },
+    {
+      "id": 69620,
+      "universityId": 938,
+      "specialtyId": 464
+    },
+    {
+      "id": 69623,
+      "universityId": 947,
+      "specialtyId": 480
+    },
+    {
+      "id": 69624,
+      "universityId": 1014,
+      "specialtyId": 464
+    },
+    {
+      "id": 69628,
+      "universityId": 991,
+      "specialtyId": 654
+    },
+    {
+      "id": 69629,
+      "universityId": 1019,
+      "specialtyId": 531
+    },
+    {
+      "id": 69632,
+      "universityId": 877,
+      "specialtyId": 464
+    },
+    {
+      "id": 69636,
+      "universityId": 947,
+      "specialtyId": 531
+    },
+    {
+      "id": 69641,
+      "universityId": 1095,
+      "specialtyId": 464
+    },
+    {
+      "id": 69642,
+      "universityId": 938,
+      "specialtyId": 328
+    },
+    {
+      "id": 69648,
+      "universityId": 1019,
+      "specialtyId": 844
+    },
+    {
+      "id": 69650,
+      "universityId": 877,
+      "specialtyId": 531
+    },
+    {
+      "id": 69656,
+      "universityId": 893,
+      "specialtyId": 905
+    },
+    {
+      "id": 69658,
+      "universityId": 1014,
+      "specialtyId": 464
+    },
+    {
+      "id": 69661,
+      "universityId": 938,
+      "specialtyId": 464
+    },
+    {
+      "id": 69663,
+      "universityId": 803,
+      "specialtyId": 786
+    },
+    {
+      "id": 69665,
+      "universityId": 1014,
+      "specialtyId": 688
+    },
+    {
+      "id": 69676,
+      "universityId": 991,
+      "specialtyId": 654
+    },
+    {
+      "id": 69678,
+      "universityId": 991,
+      "specialtyId": 707
+    },
+    {
+      "id": 69681,
+      "universityId": 991,
+      "specialtyId": 425
+    },
+    {
+      "id": 69683,
+      "universityId": 851,
+      "specialtyId": 772
+    },
+    {
+      "id": 69687,
+      "universityId": 831,
+      "specialtyId": 464
+    },
+    {
+      "id": 69695,
+      "universityId": 947,
+      "specialtyId": 464
+    },
+    {
+      "id": 69697,
+      "universityId": 1019,
+      "specialtyId": 905
+    },
+    {
+      "id": 69704,
+      "universityId": 1095,
+      "specialtyId": 328
+    },
+    {
+      "id": 69708,
+      "universityId": 1023,
+      "specialtyId": 464
+    },
+    {
+      "id": 69709,
+      "universityId": 831,
+      "specialtyId": 464
+    },
+    {
+      "id": 69715,
+      "universityId": 1023,
+      "specialtyId": 864
+    },
+    {
+      "id": 69719,
+      "universityId": 893,
+      "specialtyId": 464
+    },
+    {
+      "id": 69723,
+      "universityId": 991,
+      "specialtyId": 770
+    },
+    {
+      "id": 69724,
+      "universityId": 1004,
+      "specialtyId": 252
+    },
+    {
+      "id": 69725,
+      "universityId": 1020,
+      "specialtyId": 464
+    },
+    {
+      "id": 69736,
+      "universityId": 1004,
+      "specialtyId": 328
+    },
+    {
+      "id": 69737,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 69740,
+      "universityId": 798,
+      "specialtyId": 736
+    },
+    {
+      "id": 69743,
+      "universityId": 1095,
+      "specialtyId": 534
+    },
+    {
+      "id": 69750,
+      "universityId": 813,
+      "specialtyId": 464
+    },
+    {
+      "id": 69751,
+      "universityId": 1004,
+      "specialtyId": 464
+    },
+    {
+      "id": 69754,
+      "universityId": 938,
+      "specialtyId": 332
+    },
+    {
+      "id": 69756,
+      "universityId": 843,
+      "specialtyId": 464
+    },
+    {
+      "id": 69757,
+      "universityId": 1004,
+      "specialtyId": 464
+    },
+    {
+      "id": 69759,
+      "universityId": 1019,
+      "specialtyId": 688
+    },
+    {
+      "id": 69760,
+      "universityId": 843,
+      "specialtyId": 464
+    },
+    {
+      "id": 69762,
+      "universityId": 843,
+      "specialtyId": 464
+    },
+    {
+      "id": 69763,
+      "universityId": 843,
+      "specialtyId": 464
+    },
+    {
+      "id": 69764,
+      "universityId": 843,
+      "specialtyId": 464
+    },
+    {
+      "id": 69765,
+      "universityId": 843,
+      "specialtyId": 464
+    },
+    {
+      "id": 69771,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 69772,
+      "universityId": 991,
+      "specialtyId": 707
+    },
+    {
+      "id": 69773,
+      "universityId": 974,
+      "specialtyId": 464
+    },
+    {
+      "id": 69778,
+      "universityId": 822,
+      "specialtyId": 464
+    },
+    {
+      "id": 69780,
+      "universityId": 810,
+      "specialtyId": 464
+    },
+    {
+      "id": 69781,
+      "universityId": 861,
+      "specialtyId": 780
+    },
+    {
+      "id": 69798,
+      "universityId": 832,
+      "specialtyId": 464
+    },
+    {
+      "id": 69799,
+      "universityId": 843,
+      "specialtyId": 864
+    },
+    {
+      "id": 69803,
+      "universityId": 810,
+      "specialtyId": 464
+    },
+    {
+      "id": 69805,
+      "universityId": 832,
+      "specialtyId": 464
+    },
+    {
+      "id": 69809,
+      "universityId": 843,
+      "specialtyId": 552
+    },
+    {
+      "id": 69814,
+      "universityId": 877,
+      "specialtyId": 838
+    },
+    {
+      "id": 69815,
+      "universityId": 1079,
+      "specialtyId": 741
+    },
+    {
+      "id": 69818,
+      "universityId": 991,
+      "specialtyId": 707
+    },
+    {
+      "id": 69820,
+      "universityId": 947,
+      "specialtyId": 531
+    },
+    {
+      "id": 69828,
+      "universityId": 947,
+      "specialtyId": 328
+    },
+    {
+      "id": 69834,
+      "universityId": 843,
+      "specialtyId": 688
+    },
+    {
+      "id": 69838,
+      "universityId": 843,
+      "specialtyId": 905
+    },
+    {
+      "id": 69841,
+      "universityId": 829,
+      "specialtyId": 780
+    },
+    {
+      "id": 69843,
+      "universityId": 1079,
+      "specialtyId": 688
+    },
+    {
+      "id": 69844,
+      "universityId": 1019,
+      "specialtyId": 905
+    },
+    {
+      "id": 69845,
+      "universityId": 947,
+      "specialtyId": 464
+    },
+    {
+      "id": 69846,
+      "universityId": 843,
+      "specialtyId": 464
+    },
+    {
+      "id": 69855,
+      "universityId": 947,
+      "specialtyId": 688
+    },
+    {
+      "id": 69857,
+      "universityId": 947,
+      "specialtyId": 531
+    },
+    {
+      "id": 69862,
+      "universityId": 1019,
+      "specialtyId": 688
+    },
+    {
+      "id": 69868,
+      "universityId": 939,
+      "specialtyId": 652
+    },
+    {
+      "id": 69876,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 69878,
+      "universityId": 893,
+      "specialtyId": 464
+    },
+    {
+      "id": 69885,
+      "universityId": 974,
+      "specialtyId": 864
+    },
+    {
+      "id": 69886,
+      "universityId": 1058,
+      "specialtyId": 780
+    },
+    {
+      "id": 69888,
+      "universityId": 843,
+      "specialtyId": 464
+    },
+    {
+      "id": 69903,
+      "universityId": 810,
+      "specialtyId": 464
+    },
+    {
+      "id": 69906,
+      "universityId": 810,
+      "specialtyId": 464
+    },
+    {
+      "id": 69911,
+      "universityId": 950,
+      "specialtyId": 464
+    },
+    {
+      "id": 69915,
+      "universityId": 947,
+      "specialtyId": 531
+    },
+    {
+      "id": 69921,
+      "universityId": 947,
+      "specialtyId": 343
+    },
+    {
+      "id": 69922,
+      "universityId": 1023,
+      "specialtyId": 464
+    },
+    {
+      "id": 69927,
+      "universityId": 1019,
+      "specialtyId": 531
+    },
+    {
+      "id": 69930,
+      "universityId": 947,
+      "specialtyId": 531
+    },
+    {
+      "id": 69933,
+      "universityId": 1078,
+      "specialtyId": 780
+    },
+    {
+      "id": 69937,
+      "universityId": 947,
+      "specialtyId": 780
+    },
+    {
+      "id": 69944,
+      "universityId": 1038,
+      "specialtyId": 423
+    },
+    {
+      "id": 69947,
+      "universityId": 1095,
+      "specialtyId": 814
+    },
+    {
+      "id": 69955,
+      "universityId": 822,
+      "specialtyId": 464
+    },
+    {
+      "id": 69956,
+      "universityId": 1004,
+      "specialtyId": 464
+    },
+    {
+      "id": 69960,
+      "universityId": 1014,
+      "specialtyId": 464
+    },
+    {
+      "id": 69962,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 69963,
+      "universityId": 1019,
+      "specialtyId": 921
+    },
+    {
+      "id": 69965,
+      "universityId": 893,
+      "specialtyId": 566
+    },
+    {
+      "id": 69972,
+      "universityId": 813,
+      "specialtyId": 464
+    },
+    {
+      "id": 69973,
+      "universityId": 813,
+      "specialtyId": 464
+    },
+    {
+      "id": 69980,
+      "universityId": 813,
+      "specialtyId": 464
+    },
+    {
+      "id": 69986,
+      "universityId": 813,
+      "specialtyId": 464
+    },
+    {
+      "id": 69990,
+      "universityId": 813,
+      "specialtyId": 433
+    },
+    {
+      "id": 69992,
+      "universityId": 813,
+      "specialtyId": 328
+    },
+    {
+      "id": 69993,
+      "universityId": 813,
+      "specialtyId": 464
+    },
+    {
+      "id": 69998,
+      "universityId": 1004,
+      "specialtyId": 864
+    },
+    {
+      "id": 70003,
+      "universityId": 1060,
+      "specialtyId": 464
+    },
+    {
+      "id": 70005,
+      "universityId": 877,
+      "specialtyId": 464
+    },
+    {
+      "id": 70010,
+      "universityId": 1019,
+      "specialtyId": 552
+    },
+    {
+      "id": 70014,
+      "universityId": 1004,
+      "specialtyId": 441
+    },
+    {
+      "id": 70015,
+      "universityId": 974,
+      "specialtyId": 328
+    },
+    {
+      "id": 70018,
+      "universityId": 1020,
+      "specialtyId": 464
+    },
+    {
+      "id": 70019,
+      "universityId": 1004,
+      "specialtyId": 464
+    },
+    {
+      "id": 70024,
+      "universityId": 974,
+      "specialtyId": 328
+    },
+    {
+      "id": 70025,
+      "universityId": 802,
+      "specialtyId": 796
+    },
+    {
+      "id": 70026,
+      "universityId": 947,
+      "specialtyId": 864
+    },
+    {
+      "id": 70029,
+      "universityId": 864,
+      "specialtyId": 780
+    },
+    {
+      "id": 70031,
+      "universityId": 974,
+      "specialtyId": 242
+    },
+    {
+      "id": 70036,
+      "universityId": 1004,
+      "specialtyId": 328
+    },
+    {
+      "id": 70037,
+      "universityId": 974,
+      "specialtyId": 464
+    },
+    {
+      "id": 70039,
+      "universityId": 831,
+      "specialtyId": 552
+    },
+    {
+      "id": 70045,
+      "universityId": 1079,
+      "specialtyId": 688
+    },
+    {
+      "id": 70050,
+      "universityId": 1019,
+      "specialtyId": 552
+    },
+    {
+      "id": 70054,
+      "universityId": 1004,
+      "specialtyId": 464
+    },
+    {
+      "id": 70060,
+      "universityId": 947,
+      "specialtyId": 480
+    },
+    {
+      "id": 70061,
+      "universityId": 878,
+      "specialtyId": 587
+    },
+    {
+      "id": 70075,
+      "universityId": 855,
+      "specialtyId": 437
+    },
+    {
+      "id": 70085,
+      "universityId": 819,
+      "specialtyId": 464
+    },
+    {
+      "id": 70086,
+      "universityId": 1014,
+      "specialtyId": 464
+    },
+    {
+      "id": 70093,
+      "universityId": 797,
+      "specialtyId": 464
+    },
+    {
+      "id": 70107,
+      "universityId": 1070,
+      "specialtyId": 328
+    },
+    {
+      "id": 70117,
+      "universityId": 817,
+      "specialtyId": 464
+    },
+    {
+      "id": 70126,
+      "universityId": 1060,
+      "specialtyId": 464
+    },
+    {
+      "id": 70136,
+      "universityId": 947,
+      "specialtyId": 464
+    },
+    {
+      "id": 70141,
+      "universityId": 1019,
+      "specialtyId": 531
+    },
+    {
+      "id": 70147,
+      "universityId": 933,
+      "specialtyId": 464
+    },
+    {
+      "id": 70148,
+      "universityId": 947,
+      "specialtyId": 531
+    },
+    {
+      "id": 70155,
+      "universityId": 1079,
+      "specialtyId": 464
+    },
+    {
+      "id": 70160,
+      "universityId": 1039,
+      "specialtyId": 328
+    },
+    {
+      "id": 70161,
+      "universityId": 1019,
+      "specialtyId": 780
+    },
+    {
+      "id": 70169,
+      "universityId": 1089,
+      "specialtyId": 464
+    },
+    {
+      "id": 70171,
+      "universityId": 947,
+      "specialtyId": 844
+    },
+    {
+      "id": 70172,
+      "universityId": 817,
+      "specialtyId": 441
+    },
+    {
+      "id": 70180,
+      "universityId": 813,
+      "specialtyId": 464
+    },
+    {
+      "id": 70181,
+      "universityId": 947,
+      "specialtyId": 531
+    },
+    {
+      "id": 70187,
+      "universityId": 1079,
+      "specialtyId": 688
+    },
+    {
+      "id": 70188,
+      "universityId": 1023,
+      "specialtyId": 464
+    },
+    {
+      "id": 70195,
+      "universityId": 1023,
+      "specialtyId": 464
+    },
+    {
+      "id": 70197,
+      "universityId": 1023,
+      "specialtyId": 688
+    },
+    {
+      "id": 70198,
+      "universityId": 947,
+      "specialtyId": 688
+    },
+    {
+      "id": 70199,
+      "universityId": 947,
+      "specialtyId": 484
+    },
+    {
+      "id": 70204,
+      "universityId": 933,
+      "specialtyId": 464
+    },
+    {
+      "id": 70212,
+      "universityId": 832,
+      "specialtyId": 464
+    },
+    {
+      "id": 70213,
+      "universityId": 832,
+      "specialtyId": 464
+    },
+    {
+      "id": 70214,
+      "universityId": 832,
+      "specialtyId": 464
+    },
+    {
+      "id": 70215,
+      "universityId": 832,
+      "specialtyId": 464
+    },
+    {
+      "id": 70219,
+      "universityId": 947,
+      "specialtyId": 464
+    },
+    {
+      "id": 70223,
+      "universityId": 947,
+      "specialtyId": 464
+    },
+    {
+      "id": 70224,
+      "universityId": 947,
+      "specialtyId": 464
+    },
+    {
+      "id": 70230,
+      "universityId": 947,
+      "specialtyId": 464
+    },
+    {
+      "id": 70231,
+      "universityId": 1080,
+      "specialtyId": 328
+    },
+    {
+      "id": 70233,
+      "universityId": 1079,
+      "specialtyId": 688
+    },
+    {
+      "id": 70234,
+      "universityId": 947,
+      "specialtyId": 464
+    },
+    {
+      "id": 70236,
+      "universityId": 1089,
+      "specialtyId": 531
+    },
+    {
+      "id": 70244,
+      "universityId": 933,
+      "specialtyId": 464
+    },
+    {
+      "id": 70247,
+      "universityId": 832,
+      "specialtyId": 464
+    },
+    {
+      "id": 70250,
+      "universityId": 1014,
+      "specialtyId": 912
+    },
+    {
+      "id": 70251,
+      "universityId": 947,
+      "specialtyId": 464
+    },
+    {
+      "id": 70256,
+      "universityId": 947,
+      "specialtyId": 464
+    },
+    {
+      "id": 70269,
+      "universityId": 1014,
+      "specialtyId": 905
+    },
+    {
+      "id": 70270,
+      "universityId": 947,
+      "specialtyId": 688
+    },
+    {
+      "id": 70272,
+      "universityId": 947,
+      "specialtyId": 332
+    },
+    {
+      "id": 70274,
+      "universityId": 947,
+      "specialtyId": 480
+    },
+    {
+      "id": 70280,
+      "universityId": 1023,
+      "specialtyId": 688
+    },
+    {
+      "id": 70282,
+      "universityId": 1004,
+      "specialtyId": 464
+    },
+    {
+      "id": 70283,
+      "universityId": 980,
+      "specialtyId": 464
+    },
+    {
+      "id": 70284,
+      "universityId": 832,
+      "specialtyId": 464
+    },
+    {
+      "id": 70286,
+      "universityId": 831,
+      "specialtyId": 604
+    },
+    {
+      "id": 70288,
+      "universityId": 843,
+      "specialtyId": 464
+    },
+    {
+      "id": 70290,
+      "universityId": 974,
+      "specialtyId": 332
+    },
+    {
+      "id": 70294,
+      "universityId": 947,
+      "specialtyId": 493
+    },
+    {
+      "id": 70296,
+      "universityId": 947,
+      "specialtyId": 464
+    },
+    {
+      "id": 70297,
+      "universityId": 974,
+      "specialtyId": 921
+    },
+    {
+      "id": 70301,
+      "universityId": 933,
+      "specialtyId": 464
+    },
+    {
+      "id": 70302,
+      "universityId": 933,
+      "specialtyId": 464
+    },
+    {
+      "id": 70306,
+      "universityId": 1079,
+      "specialtyId": 464
+    },
+    {
+      "id": 70311,
+      "universityId": 1019,
+      "specialtyId": 688
+    },
+    {
+      "id": 70312,
+      "universityId": 822,
+      "specialtyId": 464
+    },
+    {
+      "id": 70313,
+      "universityId": 822,
+      "specialtyId": 464
+    },
+    {
+      "id": 70315,
+      "universityId": null,
+      "specialtyId": 328
+    },
+    {
+      "id": 70319,
+      "universityId": 1095,
+      "specialtyId": 328
+    },
+    {
+      "id": 70323,
+      "universityId": 980,
+      "specialtyId": 464
+    },
+    {
+      "id": 70324,
+      "universityId": 843,
+      "specialtyId": 531
+    },
+    {
+      "id": 70327,
+      "universityId": 947,
+      "specialtyId": 464
+    },
+    {
+      "id": 70328,
+      "universityId": 928,
+      "specialtyId": 476
+    },
+    {
+      "id": 70329,
+      "universityId": 819,
+      "specialtyId": 464
+    },
+    {
+      "id": 70330,
+      "universityId": 938,
+      "specialtyId": 391
+    },
+    {
+      "id": 70350,
+      "universityId": 938,
+      "specialtyId": 864
+    },
+    {
+      "id": 70355,
+      "universityId": 947,
+      "specialtyId": 531
+    },
+    {
+      "id": 70359,
+      "universityId": 822,
+      "specialtyId": 659
+    },
+    {
+      "id": 70360,
+      "universityId": 1014,
+      "specialtyId": 688
+    },
+    {
+      "id": 70362,
+      "universityId": 1014,
+      "specialtyId": 688
+    },
+    {
+      "id": 70365,
+      "universityId": 1014,
+      "specialtyId": 688
+    },
+    {
+      "id": 70368,
+      "universityId": 947,
+      "specialtyId": 464
+    },
+    {
+      "id": 70376,
+      "universityId": 843,
+      "specialtyId": 580
+    },
+    {
+      "id": 70378,
+      "universityId": 843,
+      "specialtyId": 688
+    },
+    {
+      "id": 70380,
+      "universityId": 1014,
+      "specialtyId": 688
+    },
+    {
+      "id": 70381,
+      "universityId": 980,
+      "specialtyId": 464
+    },
+    {
+      "id": 70382,
+      "universityId": 938,
+      "specialtyId": 464
+    },
+    {
+      "id": 70389,
+      "universityId": 822,
+      "specialtyId": 464
+    },
+    {
+      "id": 70395,
+      "universityId": 938,
+      "specialtyId": 688
+    },
+    {
+      "id": 70402,
+      "universityId": 1089,
+      "specialtyId": 688
+    },
+    {
+      "id": 70403,
+      "universityId": 1019,
+      "specialtyId": 688
+    },
+    {
+      "id": 70404,
+      "universityId": 918,
+      "specialtyId": 464
+    },
+    {
+      "id": 70412,
+      "universityId": 1079,
+      "specialtyId": 464
+    },
+    {
+      "id": 70415,
+      "universityId": 990,
+      "specialtyId": 809
+    },
+    {
+      "id": 70416,
+      "universityId": 1081,
+      "specialtyId": 332
+    },
+    {
+      "id": 70420,
+      "universityId": 928,
+      "specialtyId": 464
+    },
+    {
+      "id": 70433,
+      "universityId": 843,
+      "specialtyId": 531
+    },
+    {
+      "id": 70435,
+      "universityId": 1004,
+      "specialtyId": 464
+    },
+    {
+      "id": 70437,
+      "universityId": 831,
+      "specialtyId": 777
+    },
+    {
+      "id": 70442,
+      "universityId": 1079,
+      "specialtyId": 840
+    },
+    {
+      "id": 70445,
+      "universityId": 1079,
+      "specialtyId": 464
+    },
+    {
+      "id": 70453,
+      "universityId": 1079,
+      "specialtyId": 688
+    },
+    {
+      "id": 70454,
+      "universityId": 1019,
+      "specialtyId": 780
+    },
+    {
+      "id": 70456,
+      "universityId": 817,
+      "specialtyId": 328
+    },
+    {
+      "id": 70460,
+      "universityId": 1023,
+      "specialtyId": 464
+    },
+    {
+      "id": 70461,
+      "universityId": 986,
+      "specialtyId": 483
+    },
+    {
+      "id": 70462,
+      "universityId": 1081,
+      "specialtyId": 688
+    },
+    {
+      "id": 70463,
+      "universityId": 1023,
+      "specialtyId": 464
+    },
+    {
+      "id": 70465,
+      "universityId": 1079,
+      "specialtyId": 464
+    },
+    {
+      "id": 70471,
+      "universityId": 813,
+      "specialtyId": 328
+    },
+    {
+      "id": 70472,
+      "universityId": 1081,
+      "specialtyId": 531
+    },
+    {
+      "id": 70476,
+      "universityId": 1019,
+      "specialtyId": 328
+    },
+    {
+      "id": 70479,
+      "universityId": 817,
+      "specialtyId": 780
+    },
+    {
+      "id": 70480,
+      "universityId": 1078,
+      "specialtyId": 240
+    },
+    {
+      "id": 70483,
+      "universityId": 1079,
+      "specialtyId": 905
+    },
+    {
+      "id": 70487,
+      "universityId": 877,
+      "specialtyId": 679
+    },
+    {
+      "id": 70489,
+      "universityId": 1019,
+      "specialtyId": 780
+    },
+    {
+      "id": 70506,
+      "universityId": 952,
+      "specialtyId": 480
+    },
+    {
+      "id": 70509,
+      "universityId": 810,
+      "specialtyId": 464
+    },
+    {
+      "id": 70513,
+      "universityId": 938,
+      "specialtyId": 480
+    },
+    {
+      "id": 70517,
+      "universityId": 990,
+      "specialtyId": 241
+    },
+    {
+      "id": 70518,
+      "universityId": 1095,
+      "specialtyId": 464
+    },
+    {
+      "id": 70523,
+      "universityId": 817,
+      "specialtyId": 464
+    },
+    {
+      "id": 70527,
+      "universityId": 928,
+      "specialtyId": 464
+    },
+    {
+      "id": 70529,
+      "universityId": 1081,
+      "specialtyId": 688
+    },
+    {
+      "id": 70533,
+      "universityId": 877,
+      "specialtyId": 464
+    },
+    {
+      "id": 70535,
+      "universityId": 928,
+      "specialtyId": 552
+    },
+    {
+      "id": 70538,
+      "universityId": 980,
+      "specialtyId": 328
+    },
+    {
+      "id": 70539,
+      "universityId": 1014,
+      "specialtyId": 464
+    },
+    {
+      "id": 70541,
+      "universityId": 813,
+      "specialtyId": 464
+    },
+    {
+      "id": 70543,
+      "universityId": 877,
+      "specialtyId": 464
+    },
+    {
+      "id": 70546,
+      "universityId": 974,
+      "specialtyId": 464
+    },
+    {
+      "id": 70552,
+      "universityId": 893,
+      "specialtyId": 635
+    },
+    {
+      "id": 70557,
+      "universityId": 843,
+      "specialtyId": 464
+    },
+    {
+      "id": 70561,
+      "universityId": 949,
+      "specialtyId": 328
+    },
+    {
+      "id": 70568,
+      "universityId": 1019,
+      "specialtyId": 531
+    },
+    {
+      "id": 70570,
+      "universityId": 991,
+      "specialtyId": 425
+    },
+    {
+      "id": 70572,
+      "universityId": 855,
+      "specialtyId": 531
+    },
+    {
+      "id": 70587,
+      "universityId": 1023,
+      "specialtyId": 332
+    },
+    {
+      "id": 70596,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 70604,
+      "universityId": 938,
+      "specialtyId": 464
+    },
+    {
+      "id": 70605,
+      "universityId": 938,
+      "specialtyId": 464
+    },
+    {
+      "id": 70609,
+      "universityId": 938,
+      "specialtyId": 531
+    },
+    {
+      "id": 70611,
+      "universityId": 1014,
+      "specialtyId": 464
+    },
+    {
+      "id": 70628,
+      "universityId": 1023,
+      "specialtyId": 464
+    },
+    {
+      "id": 70629,
+      "universityId": 1038,
+      "specialtyId": 480
+    },
+    {
+      "id": 70634,
+      "universityId": 1019,
+      "specialtyId": 531
+    },
+    {
+      "id": 70635,
+      "universityId": 938,
+      "specialtyId": 464
+    },
+    {
+      "id": 70636,
+      "universityId": 1079,
+      "specialtyId": 464
+    },
+    {
+      "id": 70641,
+      "universityId": 843,
+      "specialtyId": 688
+    },
+    {
+      "id": 70642,
+      "universityId": 843,
+      "specialtyId": 688
+    },
+    {
+      "id": 70645,
+      "universityId": 877,
+      "specialtyId": 531
+    },
+    {
+      "id": 70646,
+      "universityId": 1014,
+      "specialtyId": 464
+    },
+    {
+      "id": 70649,
+      "universityId": 938,
+      "specialtyId": 688
+    },
+    {
+      "id": 70652,
+      "universityId": 1004,
+      "specialtyId": 464
+    },
+    {
+      "id": 70654,
+      "universityId": 992,
+      "specialtyId": 688
+    },
+    {
+      "id": 70658,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 70659,
+      "universityId": 843,
+      "specialtyId": 688
+    },
+    {
+      "id": 70660,
+      "universityId": 933,
+      "specialtyId": 464
+    },
+    {
+      "id": 70669,
+      "universityId": 938,
+      "specialtyId": 464
+    },
+    {
+      "id": 70670,
+      "universityId": 1079,
+      "specialtyId": 464
+    },
+    {
+      "id": 70677,
+      "universityId": 1007,
+      "specialtyId": 328
+    },
+    {
+      "id": 70686,
+      "universityId": 974,
+      "specialtyId": 531
+    },
+    {
+      "id": 70689,
+      "universityId": 1014,
+      "specialtyId": 464
+    },
+    {
+      "id": 70690,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 70693,
+      "universityId": 819,
+      "specialtyId": 464
+    },
+    {
+      "id": 70695,
+      "universityId": 980,
+      "specialtyId": 464
+    },
+    {
+      "id": 70696,
+      "universityId": 1081,
+      "specialtyId": 688
+    },
+    {
+      "id": 70697,
+      "universityId": 928,
+      "specialtyId": 780
+    },
+    {
+      "id": 70700,
+      "universityId": 991,
+      "specialtyId": 770
+    },
+    {
+      "id": 70701,
+      "universityId": 893,
+      "specialtyId": 464
+    },
+    {
+      "id": 70703,
+      "universityId": 938,
+      "specialtyId": 531
+    },
+    {
+      "id": 70704,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 70706,
+      "universityId": 986,
+      "specialtyId": 328
+    },
+    {
+      "id": 70712,
+      "universityId": 1060,
+      "specialtyId": 464
+    },
+    {
+      "id": 70715,
+      "universityId": 843,
+      "specialtyId": 531
+    },
+    {
+      "id": 70719,
+      "universityId": 992,
+      "specialtyId": 715
+    },
+    {
+      "id": 70721,
+      "universityId": 938,
+      "specialtyId": 733
+    },
+    {
+      "id": 70722,
+      "universityId": 938,
+      "specialtyId": 706
+    },
+    {
+      "id": 70735,
+      "universityId": 938,
+      "specialtyId": 531
+    },
+    {
+      "id": 70736,
+      "universityId": 991,
+      "specialtyId": 654
+    },
+    {
+      "id": 70741,
+      "universityId": 991,
+      "specialtyId": 654
+    },
+    {
+      "id": 70743,
+      "universityId": 1081,
+      "specialtyId": 570
+    },
+    {
+      "id": 70747,
+      "universityId": 1019,
+      "specialtyId": 312
+    },
+    {
+      "id": 70748,
+      "universityId": 893,
+      "specialtyId": 464
+    },
+    {
+      "id": 70749,
+      "universityId": 956,
+      "specialtyId": 328
+    },
+    {
+      "id": 70762,
+      "universityId": 1081,
+      "specialtyId": 531
+    },
+    {
+      "id": 70766,
+      "universityId": 933,
+      "specialtyId": 464
+    },
+    {
+      "id": 70767,
+      "universityId": 843,
+      "specialtyId": 464
+    },
+    {
+      "id": 70768,
+      "universityId": 798,
+      "specialtyId": 480
+    },
+    {
+      "id": 70770,
+      "universityId": 1078,
+      "specialtyId": 240
+    },
+    {
+      "id": 70773,
+      "universityId": 798,
+      "specialtyId": 326
+    },
+    {
+      "id": 70778,
+      "universityId": 1081,
+      "specialtyId": 688
+    },
+    {
+      "id": 70781,
+      "universityId": 893,
+      "specialtyId": 464
+    },
+    {
+      "id": 70786,
+      "universityId": 974,
+      "specialtyId": 715
+    },
+    {
+      "id": 70792,
+      "universityId": 1019,
+      "specialtyId": 688
+    },
+    {
+      "id": 70795,
+      "universityId": 1019,
+      "specialtyId": 480
+    },
+    {
+      "id": 70802,
+      "universityId": 959,
+      "specialtyId": 464
+    },
+    {
+      "id": 70804,
+      "universityId": 822,
+      "specialtyId": 464
+    },
+    {
+      "id": 70807,
+      "universityId": 1058,
+      "specialtyId": 780
+    },
+    {
+      "id": 70809,
+      "universityId": 831,
+      "specialtyId": 252
+    },
+    {
+      "id": 70818,
+      "universityId": 819,
+      "specialtyId": 523
+    },
+    {
+      "id": 70821,
+      "universityId": 822,
+      "specialtyId": 464
+    },
+    {
+      "id": 70824,
+      "universityId": 933,
+      "specialtyId": 780
+    },
+    {
+      "id": 70828,
+      "universityId": 832,
+      "specialtyId": 464
+    },
+    {
+      "id": 70832,
+      "universityId": 1014,
+      "specialtyId": 464
+    },
+    {
+      "id": 70834,
+      "universityId": 1078,
+      "specialtyId": 701
+    },
+    {
+      "id": 70838,
+      "universityId": 831,
+      "specialtyId": 706
+    },
+    {
+      "id": 70839,
+      "universityId": 938,
+      "specialtyId": 464
+    },
+    {
+      "id": 70841,
+      "universityId": 938,
+      "specialtyId": 464
+    },
+    {
+      "id": 70844,
+      "universityId": 1078,
+      "specialtyId": 780
+    },
+    {
+      "id": 70845,
+      "universityId": 1023,
+      "specialtyId": 921
+    },
+    {
+      "id": 70847,
+      "universityId": 938,
+      "specialtyId": 464
+    },
+    {
+      "id": 70861,
+      "universityId": 822,
+      "specialtyId": 332
+    },
+    {
+      "id": 70862,
+      "universityId": 938,
+      "specialtyId": 688
+    },
+    {
+      "id": 70863,
+      "universityId": 928,
+      "specialtyId": 333
+    },
+    {
+      "id": 70867,
+      "universityId": 877,
+      "specialtyId": 464
+    },
+    {
+      "id": 70877,
+      "universityId": 819,
+      "specialtyId": 796
+    },
+    {
+      "id": 70881,
+      "universityId": 877,
+      "specialtyId": 464
+    },
+    {
+      "id": 70886,
+      "universityId": 817,
+      "specialtyId": 480
+    },
+    {
+      "id": 70887,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 70890,
+      "universityId": 1081,
+      "specialtyId": 688
+    },
+    {
+      "id": 70891,
+      "universityId": 855,
+      "specialtyId": 531
+    },
+    {
+      "id": 70893,
+      "universityId": 1079,
+      "specialtyId": 463
+    },
+    {
+      "id": 70894,
+      "universityId": 856,
+      "specialtyId": 480
+    },
+    {
+      "id": 70895,
+      "universityId": 1019,
+      "specialtyId": 905
+    },
+    {
+      "id": 70898,
+      "universityId": 882,
+      "specialtyId": 780
+    },
+    {
+      "id": 70904,
+      "universityId": 1078,
+      "specialtyId": 240
+    },
+    {
+      "id": 70905,
+      "universityId": 1004,
+      "specialtyId": 464
+    },
+    {
+      "id": 70913,
+      "universityId": 1019,
+      "specialtyId": 688
+    },
+    {
+      "id": 70914,
+      "universityId": 1078,
+      "specialtyId": 328
+    },
+    {
+      "id": 70922,
+      "universityId": 1019,
+      "specialtyId": 844
+    },
+    {
+      "id": 70924,
+      "universityId": 899,
+      "specialtyId": 464
+    },
+    {
+      "id": 70925,
+      "universityId": 1078,
+      "specialtyId": 240
+    },
+    {
+      "id": 70930,
+      "universityId": 928,
+      "specialtyId": 480
+    },
+    {
+      "id": 70933,
+      "universityId": 893,
+      "specialtyId": 844
+    },
+    {
+      "id": 70937,
+      "universityId": 810,
+      "specialtyId": 464
+    },
+    {
+      "id": 70942,
+      "universityId": 843,
+      "specialtyId": 768
+    },
+    {
+      "id": 70947,
+      "universityId": 843,
+      "specialtyId": 531
+    },
+    {
+      "id": 70948,
+      "universityId": 1004,
+      "specialtyId": 780
+    },
+    {
+      "id": 70955,
+      "universityId": 1073,
+      "specialtyId": 809
+    },
+    {
+      "id": 70956,
+      "universityId": 877,
+      "specialtyId": 531
+    },
+    {
+      "id": 70957,
+      "universityId": 1081,
+      "specialtyId": 657
+    },
+    {
+      "id": 70958,
+      "universityId": 1014,
+      "specialtyId": 464
+    },
+    {
+      "id": 70961,
+      "universityId": 822,
+      "specialtyId": 464
+    },
+    {
+      "id": 70966,
+      "universityId": 1020,
+      "specialtyId": 464
+    },
+    {
+      "id": 70968,
+      "universityId": 974,
+      "specialtyId": 464
+    },
+    {
+      "id": 70972,
+      "universityId": 1078,
+      "specialtyId": 780
+    },
+    {
+      "id": 70976,
+      "universityId": 1079,
+      "specialtyId": 844
+    },
+    {
+      "id": 70977,
+      "universityId": 1019,
+      "specialtyId": 921
+    },
+    {
+      "id": 70979,
+      "universityId": 1079,
+      "specialtyId": 513
+    },
+    {
+      "id": 70983,
+      "universityId": 843,
+      "specialtyId": 688
+    },
+    {
+      "id": 70985,
+      "universityId": 1019,
+      "specialtyId": 844
+    },
+    {
+      "id": 70987,
+      "universityId": 938,
+      "specialtyId": 531
+    },
+    {
+      "id": 70993,
+      "universityId": 877,
+      "specialtyId": 464
+    },
+    {
+      "id": 71001,
+      "universityId": 819,
+      "specialtyId": 464
+    },
+    {
+      "id": 71002,
+      "universityId": 1078,
+      "specialtyId": 780
+    },
+    {
+      "id": 71003,
+      "universityId": 832,
+      "specialtyId": 464
+    },
+    {
+      "id": 71005,
+      "universityId": 974,
+      "specialtyId": 405
+    },
+    {
+      "id": 71007,
+      "universityId": 813,
+      "specialtyId": 715
+    },
+    {
+      "id": 71014,
+      "universityId": 1081,
+      "specialtyId": 464
+    },
+    {
+      "id": 71015,
+      "universityId": 928,
+      "specialtyId": 905
+    },
+    {
+      "id": 71022,
+      "universityId": 974,
+      "specialtyId": 464
+    },
+    {
+      "id": 71028,
+      "universityId": 843,
+      "specialtyId": 688
+    },
+    {
+      "id": 71029,
+      "universityId": 1014,
+      "specialtyId": 464
+    },
+    {
+      "id": 71040,
+      "universityId": 878,
+      "specialtyId": 619
+    },
+    {
+      "id": 71048,
+      "universityId": 1078,
+      "specialtyId": 780
+    },
+    {
+      "id": 71051,
+      "universityId": 843,
+      "specialtyId": 464
+    },
+    {
+      "id": 71060,
+      "universityId": 980,
+      "specialtyId": 464
+    },
+    {
+      "id": 71065,
+      "universityId": 893,
+      "specialtyId": 688
+    },
+    {
+      "id": 71069,
+      "universityId": 1023,
+      "specialtyId": 332
+    },
+    {
+      "id": 71070,
+      "universityId": 974,
+      "specialtyId": 437
+    },
+    {
+      "id": 71082,
+      "universityId": 1081,
+      "specialtyId": 464
+    },
+    {
+      "id": 71086,
+      "universityId": 1019,
+      "specialtyId": 688
+    },
+    {
+      "id": 71091,
+      "universityId": 1078,
+      "specialtyId": 240
+    },
+    {
+      "id": 71092,
+      "universityId": 933,
+      "specialtyId": 464
+    },
+    {
+      "id": 71095,
+      "universityId": 822,
+      "specialtyId": 464
+    },
+    {
+      "id": 71097,
+      "universityId": 1081,
+      "specialtyId": 531
+    },
+    {
+      "id": 71099,
+      "universityId": 1081,
+      "specialtyId": 688
+    },
+    {
+      "id": 71116,
+      "universityId": 1019,
+      "specialtyId": 921
+    },
+    {
+      "id": 71120,
+      "universityId": 843,
+      "specialtyId": 688
+    },
+    {
+      "id": 71121,
+      "universityId": 887,
+      "specialtyId": 563
+    },
+    {
+      "id": 71123,
+      "universityId": 1081,
+      "specialtyId": 464
+    },
+    {
+      "id": 71124,
+      "universityId": 843,
+      "specialtyId": 493
+    },
+    {
+      "id": 71126,
+      "universityId": 802,
+      "specialtyId": 480
+    },
+    {
+      "id": 71129,
+      "universityId": 855,
+      "specialtyId": 921
+    },
+    {
+      "id": 71132,
+      "universityId": 1014,
+      "specialtyId": 905
+    },
+    {
+      "id": 71134,
+      "universityId": 877,
+      "specialtyId": 464
+    },
+    {
+      "id": 71135,
+      "universityId": 877,
+      "specialtyId": 464
+    },
+    {
+      "id": 71136,
+      "universityId": 1023,
+      "specialtyId": 464
+    },
+    {
+      "id": 71138,
+      "universityId": 1081,
+      "specialtyId": 905
+    },
+    {
+      "id": 71141,
+      "universityId": 1020,
+      "specialtyId": 464
+    },
+    {
+      "id": 71142,
+      "universityId": 802,
+      "specialtyId": 481
+    },
+    {
+      "id": 71144,
+      "universityId": 1019,
+      "specialtyId": 688
+    },
+    {
+      "id": 71146,
+      "universityId": 877,
+      "specialtyId": 309
+    },
+    {
+      "id": 71151,
+      "universityId": 843,
+      "specialtyId": 343
+    },
+    {
+      "id": 71156,
+      "universityId": 831,
+      "specialtyId": 780
+    },
+    {
+      "id": 71158,
+      "universityId": 938,
+      "specialtyId": 531
+    },
+    {
+      "id": 71159,
+      "universityId": 843,
+      "specialtyId": 688
+    },
+    {
+      "id": 71175,
+      "universityId": 1079,
+      "specialtyId": 464
+    },
+    {
+      "id": 71176,
+      "universityId": null,
+      "specialtyId": 552
+    },
+    {
+      "id": 71179,
+      "universityId": 1014,
+      "specialtyId": 464
+    },
+    {
+      "id": 71188,
+      "universityId": 798,
+      "specialtyId": 326
+    },
+    {
+      "id": 71190,
+      "universityId": 817,
+      "specialtyId": 328
+    },
+    {
+      "id": 71191,
+      "universityId": 938,
+      "specialtyId": 464
+    },
+    {
+      "id": 71192,
+      "universityId": 831,
+      "specialtyId": 441
+    },
+    {
+      "id": 71197,
+      "universityId": 1004,
+      "specialtyId": 464
+    },
+    {
+      "id": 71209,
+      "universityId": 1081,
+      "specialtyId": 688
+    },
+    {
+      "id": 71210,
+      "universityId": 1081,
+      "specialtyId": 688
+    },
+    {
+      "id": 71211,
+      "universityId": 819,
+      "specialtyId": 464
+    },
+    {
+      "id": 71213,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 71214,
+      "universityId": 1081,
+      "specialtyId": 464
+    },
+    {
+      "id": 71215,
+      "universityId": 1078,
+      "specialtyId": 328
+    },
+    {
+      "id": 71217,
+      "universityId": 813,
+      "specialtyId": 464
+    },
+    {
+      "id": 71224,
+      "universityId": 798,
+      "specialtyId": 552
+    },
+    {
+      "id": 71228,
+      "universityId": 1014,
+      "specialtyId": 464
+    },
+    {
+      "id": 71229,
+      "universityId": 1081,
+      "specialtyId": 484
+    },
+    {
+      "id": 71234,
+      "universityId": 1014,
+      "specialtyId": 464
+    },
+    {
+      "id": 71236,
+      "universityId": 885,
+      "specialtyId": 480
+    },
+    {
+      "id": 71238,
+      "universityId": 1019,
+      "specialtyId": 864
+    },
+    {
+      "id": 71242,
+      "universityId": 822,
+      "specialtyId": 437
+    },
+    {
+      "id": 71250,
+      "universityId": 822,
+      "specialtyId": 464
+    },
+    {
+      "id": 71251,
+      "universityId": 974,
+      "specialtyId": 531
+    },
+    {
+      "id": 71253,
+      "universityId": 1081,
+      "specialtyId": 464
+    },
+    {
+      "id": 71268,
+      "universityId": 1014,
+      "specialtyId": 464
+    },
+    {
+      "id": 71272,
+      "universityId": 1014,
+      "specialtyId": 464
+    },
+    {
+      "id": 71277,
+      "universityId": 938,
+      "specialtyId": 688
+    },
+    {
+      "id": 71279,
+      "universityId": 1014,
+      "specialtyId": 464
+    },
+    {
+      "id": 71280,
+      "universityId": 877,
+      "specialtyId": 464
+    },
+    {
+      "id": 71282,
+      "universityId": 893,
+      "specialtyId": 464
+    },
+    {
+      "id": 71287,
+      "universityId": 810,
+      "specialtyId": 464
+    },
+    {
+      "id": 71293,
+      "universityId": 938,
+      "specialtyId": 688
+    },
+    {
+      "id": 71294,
+      "universityId": 1081,
+      "specialtyId": 657
+    },
+    {
+      "id": 71297,
+      "universityId": 1038,
+      "specialtyId": 480
+    },
+    {
+      "id": 71299,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 71300,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 71302,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 71303,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 71304,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 71305,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 71317,
+      "universityId": 1079,
+      "specialtyId": 464
+    },
+    {
+      "id": 71318,
+      "universityId": null,
+      "specialtyId": 706
+    },
+    {
+      "id": 71324,
+      "universityId": 810,
+      "specialtyId": 864
+    },
+    {
+      "id": 71329,
+      "universityId": 893,
+      "specialtyId": 328
+    },
+    {
+      "id": 71330,
+      "universityId": 990,
+      "specialtyId": 823
+    },
+    {
+      "id": 71331,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 71337,
+      "universityId": null,
+      "specialtyId": 628
+    },
+    {
+      "id": 71343,
+      "universityId": 955,
+      "specialtyId": 552
+    },
+    {
+      "id": 71350,
+      "universityId": 1079,
+      "specialtyId": 464
+    },
+    {
+      "id": 71353,
+      "universityId": 1019,
+      "specialtyId": 688
+    },
+    {
+      "id": 71354,
+      "universityId": 877,
+      "specialtyId": 464
+    },
+    {
+      "id": 71355,
+      "universityId": 893,
+      "specialtyId": 684
+    },
+    {
+      "id": 71357,
+      "universityId": 1022,
+      "specialtyId": 293
+    },
+    {
+      "id": 71361,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 71362,
+      "universityId": 1019,
+      "specialtyId": 531
+    },
+    {
+      "id": 71364,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 71369,
+      "universityId": 1014,
+      "specialtyId": 464
+    },
+    {
+      "id": 71373,
+      "universityId": 831,
+      "specialtyId": 464
+    },
+    {
+      "id": 71389,
+      "universityId": 1020,
+      "specialtyId": 464
+    },
+    {
+      "id": 71394,
+      "universityId": 1004,
+      "specialtyId": 905
+    },
+    {
+      "id": 71397,
+      "universityId": 1089,
+      "specialtyId": 688
+    },
+    {
+      "id": 71403,
+      "universityId": 919,
+      "specialtyId": 523
+    },
+    {
+      "id": 71404,
+      "universityId": 1014,
+      "specialtyId": 464
+    },
+    {
+      "id": 71421,
+      "universityId": 1019,
+      "specialtyId": 328
+    },
+    {
+      "id": 71431,
+      "universityId": 810,
+      "specialtyId": 464
+    },
+    {
+      "id": 71433,
+      "universityId": 819,
+      "specialtyId": 464
+    },
+    {
+      "id": 71435,
+      "universityId": 794,
+      "specialtyId": 706
+    },
+    {
+      "id": 71436,
+      "universityId": 819,
+      "specialtyId": 464
+    },
+    {
+      "id": 71441,
+      "universityId": null,
+      "specialtyId": 706
+    },
+    {
+      "id": 71444,
+      "universityId": null,
+      "specialtyId": 464
+    },
+    {
+      "id": 71446,
+      "universityId": null,
+      "specialtyId": 437
+    },
+    {
+      "id": 71449,
+      "universityId": 933,
+      "specialtyId": 464
+    },
+    {
+      "id": 71450,
+      "universityId": 903,
+      "specialtyId": 809
+    },
+    {
+      "id": 71453,
+      "universityId": 819,
+      "specialtyId": 464
+    },
+    {
+      "id": 71454,
+      "universityId": 843,
+      "specialtyId": 688
+    },
+    {
+      "id": 71455,
+      "universityId": 928,
+      "specialtyId": 688
+    },
+    {
+      "id": 71456,
+      "universityId": null,
+      "specialtyId": 688
+    },
+    {
+      "id": 71460,
+      "universityId": 963,
+      "specialtyId": 423
+    },
+    {
+      "id": 71473,
+      "universityId": 1019,
+      "specialtyId": 688
+    },
+    {
+      "id": 71479,
+      "universityId": 903,
+      "specialtyId": 809
+    },
+    {
+      "id": 71480,
+      "universityId": 1089,
+      "specialtyId": 437
+    },
+    {
+      "id": 71487,
+      "universityId": null,
+      "specialtyId": 706
+    },
+    {
+      "id": 71491,
+      "universityId": 843,
+      "specialtyId": 437
+    },
+    {
+      "id": 71495,
+      "universityId": 843,
+      "specialtyId": 335
+    },
+    {
+      "id": 71498,
+      "universityId": 980,
+      "specialtyId": 523
+    },
+    {
+      "id": 71512,
+      "universityId": 974,
+      "specialtyId": 328
+    },
+    {
+      "id": 71519,
+      "universityId": 1079,
+      "specialtyId": 864
+    },
+    {
+      "id": 71522,
+      "universityId": 933,
+      "specialtyId": 582
+    },
+    {
+      "id": 71528,
+      "universityId": 962,
+      "specialtyId": 706
+    },
+    {
+      "id": 71534,
+      "universityId": 858,
+      "specialtyId": 328
+    },
+    {
+      "id": 71540,
+      "universityId": 944,
+      "specialtyId": 328
+    },
+    {
+      "id": 71545,
+      "universityId": 929,
+      "specialtyId": 780
+    },
+    {
+      "id": 71551,
+      "universityId": 815,
+      "specialtyId": 328
+    },
+    {
+      "id": 71553,
+      "universityId": 974,
+      "specialtyId": 328
+    },
+    {
+      "id": 71560,
+      "universityId": 974,
+      "specialtyId": 464
+    },
+    {
+      "id": 71561,
+      "universityId": 893,
+      "specialtyId": 706
+    },
+    {
+      "id": 71563,
+      "universityId": 1089,
+      "specialtyId": 464
+    },
+    {
+      "id": 71567,
+      "universityId": 810,
+      "specialtyId": 464
+    },
+    {
+      "id": 71570,
+      "universityId": 1014,
+      "specialtyId": 681
+    },
+    {
+      "id": 71571,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 71577,
+      "universityId": 938,
+      "specialtyId": 226
+    },
+    {
+      "id": 71578,
+      "universityId": 1081,
+      "specialtyId": 343
+    },
+    {
+      "id": 71583,
+      "universityId": 1019,
+      "specialtyId": 780
+    },
+    {
+      "id": 71590,
+      "universityId": 1079,
+      "specialtyId": 464
+    },
+    {
+      "id": 71599,
+      "universityId": 1014,
+      "specialtyId": 464
+    },
+    {
+      "id": 71606,
+      "universityId": 933,
+      "specialtyId": 464
+    },
+    {
+      "id": 71613,
+      "universityId": 843,
+      "specialtyId": 688
+    },
+    {
+      "id": 71615,
+      "universityId": 893,
+      "specialtyId": 464
+    },
+    {
+      "id": 71617,
+      "universityId": 1081,
+      "specialtyId": 780
+    },
+    {
+      "id": 71618,
+      "universityId": 1023,
+      "specialtyId": 328
+    },
+    {
+      "id": 71620,
+      "universityId": 843,
+      "specialtyId": 464
+    },
+    {
+      "id": 71626,
+      "universityId": 1019,
+      "specialtyId": 688
+    },
+    {
+      "id": 71627,
+      "universityId": 1004,
+      "specialtyId": 464
+    },
+    {
+      "id": 71631,
+      "universityId": 1023,
+      "specialtyId": 464
+    },
+    {
+      "id": 71638,
+      "universityId": 1014,
+      "specialtyId": 864
+    },
+    {
+      "id": 71643,
+      "universityId": 1081,
+      "specialtyId": 464
+    },
+    {
+      "id": 71646,
+      "universityId": 831,
+      "specialtyId": 343
+    },
+    {
+      "id": 71650,
+      "universityId": 917,
+      "specialtyId": 885
+    },
+    {
+      "id": 71658,
+      "universityId": 893,
+      "specialtyId": 464
+    },
+    {
+      "id": 71664,
+      "universityId": 1019,
+      "specialtyId": 688
+    },
+    {
+      "id": 71667,
+      "universityId": 893,
+      "specialtyId": 844
+    },
+    {
+      "id": 71668,
+      "universityId": 1004,
+      "specialtyId": 432
+    },
+    {
+      "id": 71670,
+      "universityId": 1081,
+      "specialtyId": 464
+    },
+    {
+      "id": 71673,
+      "universityId": 1078,
+      "specialtyId": 480
+    },
+    {
+      "id": 71676,
+      "universityId": 1014,
+      "specialtyId": 464
+    },
+    {
+      "id": 71677,
+      "universityId": 856,
+      "specialtyId": 328
+    },
+    {
+      "id": 71681,
+      "universityId": 798,
+      "specialtyId": 580
+    },
+    {
+      "id": 71684,
+      "universityId": 822,
+      "specialtyId": 332
+    },
+    {
+      "id": 71685,
+      "universityId": 1055,
+      "specialtyId": 706
+    },
+    {
+      "id": 71690,
+      "universityId": 877,
+      "specialtyId": 464
+    },
+    {
+      "id": 71695,
+      "universityId": 980,
+      "specialtyId": 552
+    },
+    {
+      "id": 71696,
+      "universityId": 1081,
+      "specialtyId": 464
+    },
+    {
+      "id": 71701,
+      "universityId": 933,
+      "specialtyId": 464
+    },
+    {
+      "id": 71704,
+      "universityId": 896,
+      "specialtyId": 809
+    },
+    {
+      "id": 71706,
+      "universityId": 843,
+      "specialtyId": 688
+    },
+    {
+      "id": 71710,
+      "universityId": 1081,
+      "specialtyId": 464
+    },
+    {
+      "id": 71714,
+      "universityId": 1081,
+      "specialtyId": 464
+    },
+    {
+      "id": 71716,
+      "universityId": 893,
+      "specialtyId": 464
+    },
+    {
+      "id": 71724,
+      "universityId": 1014,
+      "specialtyId": 688
+    },
+    {
+      "id": 71725,
+      "universityId": 917,
+      "specialtyId": 464
+    },
+    {
+      "id": 71726,
+      "universityId": 1014,
+      "specialtyId": 464
+    },
+    {
+      "id": 71730,
+      "universityId": 903,
+      "specialtyId": 464
+    },
+    {
+      "id": 71731,
+      "universityId": 917,
+      "specialtyId": 464
+    },
+    {
+      "id": 71736,
+      "universityId": 1004,
+      "specialtyId": 464
+    },
+    {
+      "id": 71738,
+      "universityId": 917,
+      "specialtyId": 464
+    },
+    {
+      "id": 71744,
+      "universityId": 893,
+      "specialtyId": 464
+    },
+    {
+      "id": 71745,
+      "universityId": 873,
+      "specialtyId": 706
+    },
+    {
+      "id": 71747,
+      "universityId": 1079,
+      "specialtyId": 464
+    },
+    {
+      "id": 71749,
+      "universityId": 1081,
+      "specialtyId": 464
+    },
+    {
+      "id": 71751,
+      "universityId": 1004,
+      "specialtyId": 905
+    },
+    {
+      "id": 71753,
+      "universityId": 1019,
+      "specialtyId": 531
+    },
+    {
+      "id": 71757,
+      "universityId": 829,
+      "specialtyId": 343
+    },
+    {
+      "id": 71758,
+      "universityId": 1081,
+      "specialtyId": 464
+    },
+    {
+      "id": 71778,
+      "universityId": 1081,
+      "specialtyId": 464
+    },
+    {
+      "id": 71780,
+      "universityId": 877,
+      "specialtyId": 464
+    },
+    {
+      "id": 71782,
+      "universityId": 843,
+      "specialtyId": 464
+    },
+    {
+      "id": 71783,
+      "universityId": 974,
+      "specialtyId": 464
+    },
+    {
+      "id": 71784,
+      "universityId": 877,
+      "specialtyId": 464
+    },
+    {
+      "id": 71786,
+      "universityId": null,
+      "specialtyId": 688
+    },
+    {
+      "id": 71790,
+      "universityId": 1004,
+      "specialtyId": 464
+    },
+    {
+      "id": 71791,
+      "universityId": 877,
+      "specialtyId": 464
+    },
+    {
+      "id": 71793,
+      "universityId": 903,
+      "specialtyId": 458
+    },
+    {
+      "id": 71794,
+      "universityId": 843,
+      "specialtyId": 688
+    },
+    {
+      "id": 71803,
+      "universityId": 856,
+      "specialtyId": 480
+    },
+    {
+      "id": 71804,
+      "universityId": 1064,
+      "specialtyId": 423
+    },
+    {
+      "id": 71805,
+      "universityId": 832,
+      "specialtyId": 464
+    },
+    {
+      "id": 71807,
+      "universityId": 832,
+      "specialtyId": 464
+    },
+    {
+      "id": 71817,
+      "universityId": null,
+      "specialtyId": 312
+    },
+    {
+      "id": 71824,
+      "universityId": 1078,
+      "specialtyId": 240
+    },
+    {
+      "id": 71825,
+      "universityId": 1078,
+      "specialtyId": 706
+    },
+    {
+      "id": 71828,
+      "universityId": 1004,
+      "specialtyId": 464
+    },
+    {
+      "id": 71831,
+      "universityId": 817,
+      "specialtyId": 464
+    },
+    {
+      "id": 71834,
+      "universityId": 832,
+      "specialtyId": 464
+    },
+    {
+      "id": 71835,
+      "universityId": 832,
+      "specialtyId": 464
+    },
+    {
+      "id": 71836,
+      "universityId": 832,
+      "specialtyId": 464
+    },
+    {
+      "id": 71837,
+      "universityId": 832,
+      "specialtyId": 464
+    },
+    {
+      "id": 71838,
+      "universityId": 832,
+      "specialtyId": 464
+    },
+    {
+      "id": 71839,
+      "universityId": 832,
+      "specialtyId": 464
+    },
+    {
+      "id": 71843,
+      "universityId": 938,
+      "specialtyId": 464
+    },
+    {
+      "id": 71844,
+      "universityId": 831,
+      "specialtyId": 464
+    },
+    {
+      "id": 71846,
+      "universityId": null,
+      "specialtyId": 552
+    },
+    {
+      "id": 71852,
+      "universityId": 903,
+      "specialtyId": 464
+    },
+    {
+      "id": 71856,
+      "universityId": 1004,
+      "specialtyId": 464
+    },
+    {
+      "id": 71860,
+      "universityId": 819,
+      "specialtyId": 480
+    },
+    {
+      "id": 71866,
+      "universityId": 1023,
+      "specialtyId": 464
+    },
+    {
+      "id": 71878,
+      "universityId": 1081,
+      "specialtyId": 531
+    },
+    {
+      "id": 71880,
+      "universityId": 917,
+      "specialtyId": 464
+    },
+    {
+      "id": 71890,
+      "universityId": 938,
+      "specialtyId": 464
+    },
+    {
+      "id": 71895,
+      "universityId": 903,
+      "specialtyId": 464
+    },
+    {
+      "id": 71896,
+      "universityId": 878,
+      "specialtyId": 772
+    },
+    {
+      "id": 71900,
+      "universityId": 917,
+      "specialtyId": 328
+    },
+    {
+      "id": 71901,
+      "universityId": 1081,
+      "specialtyId": 464
+    },
+    {
+      "id": 71911,
+      "universityId": 980,
+      "specialtyId": 796
+    },
+    {
+      "id": 71921,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 71922,
+      "universityId": 885,
+      "specialtyId": 328
+    },
+    {
+      "id": 71923,
+      "universityId": 1081,
+      "specialtyId": 464
+    },
+    {
+      "id": 71927,
+      "universityId": 1089,
+      "specialtyId": 464
+    },
+    {
+      "id": 71931,
+      "universityId": 1014,
+      "specialtyId": 464
+    },
+    {
+      "id": 71932,
+      "universityId": 1081,
+      "specialtyId": 464
+    },
+    {
+      "id": 71933,
+      "universityId": 933,
+      "specialtyId": 464
+    },
+    {
+      "id": 71936,
+      "universityId": 1081,
+      "specialtyId": 464
+    },
+    {
+      "id": 71938,
+      "universityId": 950,
+      "specialtyId": 465
+    },
+    {
+      "id": 71944,
+      "universityId": 822,
+      "specialtyId": 464
+    },
+    {
+      "id": 71946,
+      "universityId": 974,
+      "specialtyId": 464
+    },
+    {
+      "id": 71948,
+      "universityId": 974,
+      "specialtyId": 464
+    },
+    {
+      "id": 71949,
+      "universityId": 1004,
+      "specialtyId": 464
+    },
+    {
+      "id": 71951,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 71966,
+      "universityId": 1081,
+      "specialtyId": 480
+    },
+    {
+      "id": 71967,
+      "universityId": 992,
+      "specialtyId": 464
+    },
+    {
+      "id": 71969,
+      "universityId": 950,
+      "specialtyId": 809
+    },
+    {
+      "id": 71971,
+      "universityId": 1081,
+      "specialtyId": 464
+    },
+    {
+      "id": 71972,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 71974,
+      "universityId": 898,
+      "specialtyId": 724
+    },
+    {
+      "id": 71975,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 71976,
+      "universityId": 938,
+      "specialtyId": 464
+    },
+    {
+      "id": 71977,
+      "universityId": 862,
+      "specialtyId": 328
+    },
+    {
+      "id": 71984,
+      "universityId": 1014,
+      "specialtyId": 531
+    },
+    {
+      "id": 71985,
+      "universityId": 992,
+      "specialtyId": 464
+    },
+    {
+      "id": 71988,
+      "universityId": 843,
+      "specialtyId": 580
+    },
+    {
+      "id": 71990,
+      "universityId": 1078,
+      "specialtyId": 574
+    },
+    {
+      "id": 71991,
+      "universityId": 813,
+      "specialtyId": 464
+    },
+    {
+      "id": 71992,
+      "universityId": 903,
+      "specialtyId": 809
+    },
+    {
+      "id": 71994,
+      "universityId": 938,
+      "specialtyId": 688
+    },
+    {
+      "id": 71997,
+      "universityId": 903,
+      "specialtyId": 464
+    },
+    {
+      "id": 72003,
+      "universityId": 788,
+      "specialtyId": 464
+    },
+    {
+      "id": 72004,
+      "universityId": 928,
+      "specialtyId": 688
+    },
+    {
+      "id": 72007,
+      "universityId": 819,
+      "specialtyId": 464
+    },
+    {
+      "id": 72009,
+      "universityId": 974,
+      "specialtyId": 464
+    },
+    {
+      "id": 72010,
+      "universityId": 950,
+      "specialtyId": 531
+    },
+    {
+      "id": 72015,
+      "universityId": 855,
+      "specialtyId": 531
+    },
+    {
+      "id": 72017,
+      "universityId": 1079,
+      "specialtyId": 688
+    },
+    {
+      "id": 72019,
+      "universityId": 928,
+      "specialtyId": 464
+    },
+    {
+      "id": 72022,
+      "universityId": 1019,
+      "specialtyId": 736
+    },
+    {
+      "id": 72025,
+      "universityId": 974,
+      "specialtyId": 464
+    },
+    {
+      "id": 72026,
+      "universityId": 1095,
+      "specialtyId": 464
+    },
+    {
+      "id": 72027,
+      "universityId": 802,
+      "specialtyId": 480
+    },
+    {
+      "id": 72032,
+      "universityId": 1004,
+      "specialtyId": 464
+    },
+    {
+      "id": 72035,
+      "universityId": 1014,
+      "specialtyId": 464
+    },
+    {
+      "id": 72038,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 72044,
+      "universityId": 950,
+      "specialtyId": 375
+    },
+    {
+      "id": 72045,
+      "universityId": 903,
+      "specialtyId": 809
+    },
+    {
+      "id": 72046,
+      "universityId": 862,
+      "specialtyId": 328
+    },
+    {
+      "id": 72051,
+      "universityId": 1081,
+      "specialtyId": 343
+    },
+    {
+      "id": 72056,
+      "universityId": 1014,
+      "specialtyId": 531
+    },
+    {
+      "id": 72059,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 72060,
+      "universityId": 831,
+      "specialtyId": 480
+    },
+    {
+      "id": 72061,
+      "universityId": 992,
+      "specialtyId": 688
+    },
+    {
+      "id": 72062,
+      "universityId": 817,
+      "specialtyId": 464
+    },
+    {
+      "id": 72063,
+      "universityId": 802,
+      "specialtyId": 480
+    },
+    {
+      "id": 72066,
+      "universityId": 950,
+      "specialtyId": 309
+    },
+    {
+      "id": 72068,
+      "universityId": 1081,
+      "specialtyId": 328
+    },
+    {
+      "id": 72069,
+      "universityId": 1019,
+      "specialtyId": 493
+    },
+    {
+      "id": 72070,
+      "universityId": 1014,
+      "specialtyId": 464
+    },
+    {
+      "id": 72072,
+      "universityId": 931,
+      "specialtyId": 437
+    },
+    {
+      "id": 72075,
+      "universityId": 1081,
+      "specialtyId": 464
+    },
+    {
+      "id": 72078,
+      "universityId": 813,
+      "specialtyId": 464
+    },
+    {
+      "id": 72080,
+      "universityId": 950,
+      "specialtyId": 809
+    },
+    {
+      "id": 72081,
+      "universityId": 1014,
+      "specialtyId": 464
+    },
+    {
+      "id": 72095,
+      "universityId": 1023,
+      "specialtyId": 531
+    },
+    {
+      "id": 72099,
+      "universityId": 949,
+      "specialtyId": 328
+    },
+    {
+      "id": 72105,
+      "universityId": 938,
+      "specialtyId": 905
+    },
+    {
+      "id": 72108,
+      "universityId": 813,
+      "specialtyId": 464
+    },
+    {
+      "id": 72112,
+      "universityId": 1081,
+      "specialtyId": 328
+    },
+    {
+      "id": 72115,
+      "universityId": 799,
+      "specialtyId": 786
+    },
+    {
+      "id": 72119,
+      "universityId": 798,
+      "specialtyId": 437
+    },
+    {
+      "id": 72121,
+      "universityId": 1060,
+      "specialtyId": 464
+    },
+    {
+      "id": 72126,
+      "universityId": 1081,
+      "specialtyId": 242
+    },
+    {
+      "id": 72127,
+      "universityId": 1079,
+      "specialtyId": 464
+    },
+    {
+      "id": 72129,
+      "universityId": 831,
+      "specialtyId": 552
+    },
+    {
+      "id": 72143,
+      "universityId": 819,
+      "specialtyId": 328
+    },
+    {
+      "id": 72145,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 72153,
+      "universityId": 843,
+      "specialtyId": 531
+    },
+    {
+      "id": 72160,
+      "universityId": 1014,
+      "specialtyId": 844
+    },
+    {
+      "id": 72162,
+      "universityId": 1079,
+      "specialtyId": 464
+    },
+    {
+      "id": 72165,
+      "universityId": 1014,
+      "specialtyId": 531
+    },
+    {
+      "id": 72172,
+      "universityId": 1079,
+      "specialtyId": 464
+    },
+    {
+      "id": 72179,
+      "universityId": 1014,
+      "specialtyId": 688
+    },
+    {
+      "id": 72180,
+      "universityId": 950,
+      "specialtyId": 527
+    },
+    {
+      "id": 72185,
+      "universityId": 1023,
+      "specialtyId": 464
+    },
+    {
+      "id": 72186,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 72199,
+      "universityId": 1081,
+      "specialtyId": 328
+    },
+    {
+      "id": 72204,
+      "universityId": 938,
+      "specialtyId": 252
+    },
+    {
+      "id": 72213,
+      "universityId": 802,
+      "specialtyId": 480
+    },
+    {
+      "id": 72218,
+      "universityId": 1060,
+      "specialtyId": 464
+    },
+    {
+      "id": 72220,
+      "universityId": 1014,
+      "specialtyId": 688
+    },
+    {
+      "id": 72225,
+      "universityId": 1023,
+      "specialtyId": 322
+    },
+    {
+      "id": 72228,
+      "universityId": 1004,
+      "specialtyId": 464
+    },
+    {
+      "id": 72239,
+      "universityId": 903,
+      "specialtyId": 809
+    },
+    {
+      "id": 72248,
+      "universityId": 903,
+      "specialtyId": 464
+    },
+    {
+      "id": 72254,
+      "universityId": 822,
+      "specialtyId": 464
+    },
+    {
+      "id": 72255,
+      "universityId": 929,
+      "specialtyId": 328
+    },
+    {
+      "id": 72256,
+      "universityId": 1095,
+      "specialtyId": 464
+    },
+    {
+      "id": 72258,
+      "universityId": 1078,
+      "specialtyId": 727
+    },
+    {
+      "id": 72262,
+      "universityId": 1014,
+      "specialtyId": 464
+    },
+    {
+      "id": 72265,
+      "universityId": 974,
+      "specialtyId": 464
+    },
+    {
+      "id": 72266,
+      "universityId": 1014,
+      "specialtyId": 464
+    },
+    {
+      "id": 72267,
+      "universityId": 1081,
+      "specialtyId": 531
+    },
+    {
+      "id": 72268,
+      "universityId": 1023,
+      "specialtyId": 332
+    },
+    {
+      "id": 72270,
+      "universityId": 1081,
+      "specialtyId": 905
+    },
+    {
+      "id": 72273,
+      "universityId": 1014,
+      "specialtyId": 464
+    },
+    {
+      "id": 72276,
+      "universityId": 856,
+      "specialtyId": 502
+    },
+    {
+      "id": 72277,
+      "universityId": 1014,
+      "specialtyId": 464
+    },
+    {
+      "id": 72280,
+      "universityId": 856,
+      "specialtyId": 328
+    },
+    {
+      "id": 72286,
+      "universityId": 1079,
+      "specialtyId": 464
+    },
+    {
+      "id": 72287,
+      "universityId": 1014,
+      "specialtyId": 464
+    },
+    {
+      "id": 72291,
+      "universityId": 1023,
+      "specialtyId": 688
+    },
+    {
+      "id": 72298,
+      "universityId": 959,
+      "specialtyId": 464
+    },
+    {
+      "id": 72306,
+      "universityId": 1039,
+      "specialtyId": 706
+    },
+    {
+      "id": 72307,
+      "universityId": 928,
+      "specialtyId": 464
+    },
+    {
+      "id": 72310,
+      "universityId": 950,
+      "specialtyId": 437
+    },
+    {
+      "id": 72314,
+      "universityId": 960,
+      "specialtyId": 531
+    },
+    {
+      "id": 72317,
+      "universityId": 1079,
+      "specialtyId": 464
+    },
+    {
+      "id": 72318,
+      "universityId": 933,
+      "specialtyId": 715
+    },
+    {
+      "id": 72323,
+      "universityId": 802,
+      "specialtyId": 423
+    },
+    {
+      "id": 72333,
+      "universityId": 938,
+      "specialtyId": 531
+    },
+    {
+      "id": 72335,
+      "universityId": 1079,
+      "specialtyId": 688
+    },
+    {
+      "id": 72336,
+      "universityId": 950,
+      "specialtyId": 375
+    },
+    {
+      "id": 72339,
+      "universityId": 798,
+      "specialtyId": 437
+    },
+    {
+      "id": 72343,
+      "universityId": 903,
+      "specialtyId": 809
+    },
+    {
+      "id": 72344,
+      "universityId": 1019,
+      "specialtyId": 437
+    },
+    {
+      "id": 72346,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 72348,
+      "universityId": 802,
+      "specialtyId": 796
+    },
+    {
+      "id": 72350,
+      "universityId": 950,
+      "specialtyId": 464
+    },
+    {
+      "id": 72354,
+      "universityId": 903,
+      "specialtyId": 809
+    },
+    {
+      "id": 72357,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 72362,
+      "universityId": 950,
+      "specialtyId": 786
+    },
+    {
+      "id": 72374,
+      "universityId": 822,
+      "specialtyId": 464
+    },
+    {
+      "id": 72376,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 72382,
+      "universityId": 950,
+      "specialtyId": 464
+    },
+    {
+      "id": 72383,
+      "universityId": 822,
+      "specialtyId": 715
+    },
+    {
+      "id": 72384,
+      "universityId": 1078,
+      "specialtyId": 480
+    },
+    {
+      "id": 72385,
+      "universityId": 1095,
+      "specialtyId": 464
+    },
+    {
+      "id": 72391,
+      "universityId": 950,
+      "specialtyId": 464
+    },
+    {
+      "id": 72397,
+      "universityId": 1019,
+      "specialtyId": 864
+    },
+    {
+      "id": 72402,
+      "universityId": 1079,
+      "specialtyId": 844
+    },
+    {
+      "id": 72406,
+      "universityId": 947,
+      "specialtyId": 688
+    },
+    {
+      "id": 72409,
+      "universityId": 1060,
+      "specialtyId": 464
+    },
+    {
+      "id": 72417,
+      "universityId": 1078,
+      "specialtyId": 574
+    },
+    {
+      "id": 72421,
+      "universityId": 1078,
+      "specialtyId": 328
+    },
+    {
+      "id": 72424,
+      "universityId": 822,
+      "specialtyId": 464
+    },
+    {
+      "id": 72431,
+      "universityId": null,
+      "specialtyId": 796
+    },
+    {
+      "id": 72433,
+      "universityId": 893,
+      "specialtyId": 688
+    },
+    {
+      "id": 72434,
+      "universityId": null,
+      "specialtyId": 688
+    },
+    {
+      "id": 72439,
+      "universityId": 947,
+      "specialtyId": 366
+    },
+    {
+      "id": 72443,
+      "universityId": 798,
+      "specialtyId": 437
+    },
+    {
+      "id": 72445,
+      "universityId": 893,
+      "specialtyId": 688
+    },
+    {
+      "id": 72446,
+      "universityId": 1078,
+      "specialtyId": 240
+    },
+    {
+      "id": 72451,
+      "universityId": 831,
+      "specialtyId": 780
+    },
+    {
+      "id": 72452,
+      "universityId": 1079,
+      "specialtyId": 464
+    },
+    {
+      "id": 72455,
+      "universityId": 799,
+      "specialtyId": 786
+    },
+    {
+      "id": 72458,
+      "universityId": 819,
+      "specialtyId": 328
+    },
+    {
+      "id": 72461,
+      "universityId": 893,
+      "specialtyId": 464
+    },
+    {
+      "id": 72462,
+      "universityId": 798,
+      "specialtyId": 437
+    },
+    {
+      "id": 72463,
+      "universityId": 798,
+      "specialtyId": 357
+    },
+    {
+      "id": 72464,
+      "universityId": 1019,
+      "specialtyId": 328
+    },
+    {
+      "id": 72467,
+      "universityId": 950,
+      "specialtyId": 809
+    },
+    {
+      "id": 72469,
+      "universityId": 843,
+      "specialtyId": 688
+    },
+    {
+      "id": 72472,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 72474,
+      "universityId": 843,
+      "specialtyId": 688
+    },
+    {
+      "id": 72485,
+      "universityId": 947,
+      "specialtyId": 921
+    },
+    {
+      "id": 72487,
+      "universityId": 1014,
+      "specialtyId": 531
+    },
+    {
+      "id": 72488,
+      "universityId": 862,
+      "specialtyId": 328
+    },
+    {
+      "id": 72493,
+      "universityId": 817,
+      "specialtyId": 464
+    },
+    {
+      "id": 72494,
+      "universityId": 843,
+      "specialtyId": 688
+    },
+    {
+      "id": 72496,
+      "universityId": 947,
+      "specialtyId": 332
+    },
+    {
+      "id": 72497,
+      "universityId": 1095,
+      "specialtyId": 885
+    },
+    {
+      "id": 72499,
+      "universityId": 843,
+      "specialtyId": 493
+    },
+    {
+      "id": 72504,
+      "universityId": 1014,
+      "specialtyId": 464
+    },
+    {
+      "id": 72507,
+      "universityId": 938,
+      "specialtyId": 441
+    },
+    {
+      "id": 72511,
+      "universityId": 947,
+      "specialtyId": 328
+    },
+    {
+      "id": 72515,
+      "universityId": 1095,
+      "specialtyId": 464
+    },
+    {
+      "id": 72516,
+      "universityId": 947,
+      "specialtyId": 531
+    },
+    {
+      "id": 72519,
+      "universityId": 1019,
+      "specialtyId": 464
+    },
+    {
+      "id": 72521,
+      "universityId": 1014,
+      "specialtyId": 864
+    },
+    {
+      "id": 72526,
+      "universityId": 877,
+      "specialtyId": 464
+    },
+    {
+      "id": 72528,
+      "universityId": 831,
+      "specialtyId": 464
+    },
+    {
+      "id": 72531,
+      "universityId": 903,
+      "specialtyId": 809
+    },
+    {
+      "id": 72532,
+      "universityId": null,
+      "specialtyId": 780
+    },
+    {
+      "id": 72538,
+      "universityId": 1019,
+      "specialtyId": 437
+    },
+    {
+      "id": 72545,
+      "universityId": 950,
+      "specialtyId": 809
+    },
+    {
+      "id": 72548,
+      "universityId": 1019,
+      "specialtyId": 437
+    },
+    {
+      "id": 72554,
+      "universityId": 1019,
+      "specialtyId": 531
+    },
+    {
+      "id": 72555,
+      "universityId": 813,
+      "specialtyId": 464
+    },
+    {
+      "id": 72556,
+      "universityId": 1023,
+      "specialtyId": 464
+    },
+    {
+      "id": 72573,
+      "universityId": 1,
+      "specialtyId": null
+    },
+    {
+      "id": 72574,
+      "universityId": 1,
+      "specialtyId": null
+    }
+  ]
+}

@@ -7,6 +7,8 @@ import type { AcademicStudy } from "../../Models/AcademicStudy";
 import { AcademicStudyValidator } from "../../Validators/AcademicStudyValidator";
 import { MembershipType } from "../../Types/MembershipType";
 import { applicationApi } from "../../Services/ApplicationApi";
+import { ProcessLoadingOverlay } from "@/modules/shared/Components/ProcessLoadingOverlay";
+import { FieldHelp } from "@/modules/shared/Components/FieldHelp";
 
 export interface StepRef {
   submit: () => Promise<void>;
@@ -87,7 +89,7 @@ const SearchableSelect = ({ options, value, onChange, onBlur, disabled, placehol
             {filteredOptions.length > 0 ? (
               filteredOptions.map((option: any) => (
                 <div key={option.id} className={`px-3 py-2.5 text-sm rounded-lg cursor-pointer transition-colors flex items-center justify-between ${value === option.id ? "bg-[#C5A059]/10 text-[#C5A059] font-bold" : "hover:bg-gray-50 text-slate-700 font-medium"}`} onClick={() => { onChange(option.id); setIsOpen(false); }}>
-                  <span className="truncate pr-2">{option.name}</span>
+                  <span className="min-w-0 max-w-full whitespace-normal break-words pr-2 leading-snug">{option.name}</span>
                   {value === option.id && <CheckCircle2 size={14} className="shrink-0" />}
                 </div>
               ))
@@ -111,6 +113,7 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
 
     const [universities, setUniversities] = useState<CatalogItem[]>([]);
     const [specialties, setSpecialties] = useState<CatalogItem[]>([]);
+    const [degrees, setDegrees] = useState<CatalogItem[]>([]);
 
     // Estados para Estudiantes
     const isStudent = membershipType === MembershipType.STUDENT;
@@ -126,6 +129,7 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
     useEffect(() => {
       fetch("/api/catalogs/universities").then(res => res.json()).then(data => setUniversities([...data, { id: 0, name: "Otra" }]));
       fetch("/api/catalogs/specialties").then(res => res.json()).then(data => setSpecialties(data));
+      fetch("/api/master-data/degrees?status=ACTIVE&canonicalOnly=true&pageSize=100").then(res => res.json()).then(data => setDegrees(data.data ?? []));
     }, []);
 
     // Cargar preview de S3 si ya existía
@@ -175,6 +179,10 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
       }
 
       const newForm = { ...form, [field]: sanitizedValue };
+
+      if (field === "specialtyId") {
+        newForm.specialty = specialties.find((item) => item.id === Number(sanitizedValue))?.name ?? "";
+      }
 
       if (field === "institutionId" && rawValue !== 0) newForm.otherInstitution = "";
       
@@ -302,15 +310,11 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
           </div>
         )}
 
-        {isUploading && (
-          <div className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-white rounded-3xl p-8 flex flex-col items-center shadow-2xl animate-in zoom-in-95">
-              <svg className="animate-spin h-12 w-12 text-[#C5A059] mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-              <h3 className="text-lg font-bold text-[#2F3136]">Procesando solicitud...</h3>
-              <p className="text-sm text-gray-500 mt-2">Asegurando documentos y enviando expediente.</p>
-            </div>
-          </div>
-        )}
+        <ProcessLoadingOverlay
+          open={isUploading}
+          title="Guardando tu información académica"
+          description="Estamos preparando la información laboral de tu postulación."
+        />
 
         {globalError && (
           <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-600 font-bold text-sm flex items-center gap-3 shadow-sm">
@@ -334,11 +338,14 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
             </div>
           </div>
           <div className="p-8">
+            <div className="mb-6 flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3 text-xs leading-relaxed text-slate-600">
+              <Info className="mt-0.5 h-4 w-4 shrink-0 text-[#5B7FA3]" aria-hidden="true" />
+              <p>Complete la información de su formación principal. El grado académico indica el nivel alcanzado, la especialidad corresponde al área de estudio y el título obtenido es la denominación específica de su formación.</p>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-              
               <div className="xl:col-span-2">
                 <label className="text-xs font-bold text-slate-700 mb-1.5 block uppercase tracking-wide">
-                  Universidad / Instituto <span className="text-red-500">*</span>
+                  Universidad / Instituto <span className="text-red-500">*</span><FieldHelp title="Universidad o instituto" description="Seleccione la institución donde realizó estos estudios. Si no aparece en la lista, seleccione la opción Otra institución y especifique el nombre." />
                 </label>
                 <SearchableSelect options={universities} placeholder="Seleccione institución" value={form.institutionId} onChange={(val: any) => updateField("institutionId", val === "" ? undefined : Number(val))} onBlur={() => handleBlur("institutionId")} hasError={touched.institutionId && !!errors.institutionId} />
                 {getErrorText("institutionId")}
@@ -360,30 +367,32 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
                 {getErrorText("otherInstitution")}
               </div>
 
-              {/* Título (Solo para Activos) */}
-              {!isStudent && (
-                <div className="xl:col-span-2">
-                  <label className="text-xs font-bold text-slate-700 mb-1.5 block uppercase tracking-wide">
-                    Título o Grado <span className="text-red-500">*</span>
-                  </label>
-                  <input type="text" placeholder="Ej. Título de Ingeniero de Minas" value={form.degreeTitle} onChange={(e) => updateField("degreeTitle", e.target.value)} onBlur={() => handleBlur("degreeTitle")} className={getInputClass("degreeTitle")} />
-                  {getErrorText("degreeTitle")}
-                </div>
-              )}
+              {!isStudent && <div className="xl:col-span-2"><label className="text-xs font-bold text-slate-700 mb-1.5 block uppercase tracking-wide">Grado académico <span className="text-red-500">*</span><FieldHelp title="Grado académico" description="Indica el nivel académico alcanzado. Seleccione Otro únicamente si su grado no aparece en la lista." examples={["Técnico", "Bachiller", "Título profesional", "Maestría", "Doctorado"]} /></label><SearchableSelect options={degrees} placeholder="Seleccione grado" value={form.degreeId ?? ""} onChange={(val: number)=>updateField("degreeId",Number(val))} onBlur={()=>handleBlur("degreeId")} hasError={touched.degreeId && !!errors.degreeId}/>{getErrorText("degreeId")}{degrees.find((item) => item.id === form.degreeId)?.name?.toLowerCase() === "otro" ? <p className="mt-1 text-xs text-[#8b6a2b]">Seleccione esta opción únicamente si su grado académico no aparece en el catálogo.</p> : null}</div>}
 
               <div className="xl:col-span-2">
                 <label className="text-xs font-bold text-slate-700 mb-1.5 block uppercase tracking-wide">
-                  Especialidad <span className="text-red-500">*</span>
+                  Especialidad <span className="text-red-500">*</span><FieldHelp title="Especialidad" description="Corresponde al área o carrera de formación. Seleccione Otra especialidad solo si no encuentra su especialidad en el catálogo." examples={["Ingeniería de Minas", "Ingeniería Geológica", "Derecho", "Administración"]} />
                 </label>
-                <SearchableSelect options={specialties.map(s => ({ id: s.name, name: s.name }))} placeholder="Seleccione especialidad" value={form.specialty} onChange={(val: any) => updateField("specialty", val)} onBlur={() => handleBlur("specialty")} hasError={touched.specialty && !!errors.specialty} />
-                {getErrorText("specialty")}
+                <SearchableSelect options={specialties} placeholder="Seleccione especialidad" value={form.specialtyId ?? ""} onChange={(val: number) => updateField("specialtyId", Number(val))} onBlur={() => handleBlur("specialty")} hasError={touched.specialty && !!errors.specialty} />
+                {getErrorText("specialty")}{specialties.find((item) => item.id === form.specialtyId)?.name?.toLowerCase().startsWith("otra") ? <p className="mt-1 text-xs text-[#8b6a2b]">No encontró su especialidad en el catálogo. Especifique el nombre exacto.</p> : null}
               </div>
+
+              {/* Título obtenido (Solo para Activos) */}
+              {!isStudent && (
+                <div className="xl:col-span-2">
+                  <label className="text-xs font-bold text-slate-700 mb-1.5 block uppercase tracking-wide">
+                    Título obtenido <span className="text-red-500">*</span><FieldHelp title="Título obtenido" description="Escriba el nombre exacto del título o denominación obtenida. No coloque aquí únicamente Bachiller o Maestría si ya seleccionó ese nivel en Grado Académico." examples={["Ingeniero de Minas", "Abogado", "Magíster en Gestión Minera"]} />
+                  </label>
+                  <input type="text" placeholder="Ej. Ingeniero de Minas" value={form.degreeTitle} onChange={(e) => updateField("degreeTitle", e.target.value)} onBlur={() => handleBlur("degreeTitle")} className={getInputClass("degreeTitle")} />
+                  {getErrorText("degreeTitle")}
+                </div>
+              )}
 
               {/* Campos Exclusivos de Profesionales */}
               {!isStudent && (
                 <>
                   <div>
-                    <label className="text-xs font-bold text-slate-700 mb-1.5 block uppercase tracking-wide">Colegio Profesional</label>
+                    <label className="text-xs font-bold text-slate-700 mb-1.5 block uppercase tracking-wide">Colegio Profesional<FieldHelp title="Colegio profesional" description="Complete este campo solo si pertenece a un colegio profesional." examples={["CIP", "Colegio de Abogados", "Colegio de Economistas"]} /></label>
                     <input 
                     type="text" 
                     placeholder="Ej. CIP" 
@@ -395,7 +404,7 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
                   </div>
                   <div>
                     <label className="text-xs font-bold text-slate-700 mb-1.5 block uppercase tracking-wide">
-                      Nro Colegiatura 
+                      Nro Colegiatura <FieldHelp title="Número de colegiatura" description="Ingrese su número de colegiatura o registro profesional, si corresponde." />
                       {/* Solo es obligatorio si el usuario ha escrito un Colegio Profesional */}
                       {form.professionalAssociation && form.professionalAssociation.trim() !== "" ? (
                         <span className="text-red-500"> *</span>
@@ -424,7 +433,7 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
               {/* Años (Común, pero adaptado visualmente) */}
               <div>
                 <label className="text-xs font-bold text-slate-700 mb-1.5 block uppercase tracking-wide">
-                  Año de {isStudent ? 'Ingreso' : 'Ingreso'} {isStudent && <span className="text-red-500">*</span>}
+                    Año de Ingreso <FieldHelp title="Año de ingreso" description="Año en que inició sus estudios." /> {isStudent && <span className="text-red-500">*</span>}
                 </label>
                 <input type="text" placeholder="YYYY" value={form.admissionYear ?? ""} onChange={(e) => updateField("admissionYear", e.target.value as any)} onBlur={() => handleBlur("admissionYear")} className={getInputClass("admissionYear")} />
                 {getErrorText("admissionYear")}
@@ -432,7 +441,7 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
 
               {!isStudent && (
                 <div>
-                  <label className="text-xs font-bold text-slate-700 mb-1.5 block uppercase tracking-wide">Año de Egreso</label>
+                  <label className="text-xs font-bold text-slate-700 mb-1.5 block uppercase tracking-wide">Año de Egreso<FieldHelp title="Año de egreso" description="Año en que culminó o egresó de la institución." /></label>
                   <input type="text" placeholder="YYYY" value={form.graduationYear ?? ""} onChange={(e) => updateField("graduationYear", e.target.value as any)} onBlur={() => handleBlur("graduationYear")} className={getInputClass("graduationYear")} />
                   {getErrorText("graduationYear")}
                 </div>

@@ -1,0 +1,4154 @@
+{
+  "generatedAt": "2026-09-06T21:35:05.032Z",
+  "readOnly": true,
+  "summary": {
+    "totalGroups": 60,
+    "safeToMerge": 54,
+    "reviewRequired": 6,
+    "doNotMerge": 0,
+    "academicInfoAffected": 100,
+    "duplicateIdsInvolved": 64
+  },
+  "groups": [
+    {
+      "canonicalCandidate": {
+        "id": 912,
+        "name": "PONTIFICIA UNIVERSIDAD CATÓLICA DE CHILE"
+      },
+      "classification": "REVIEW_REQUIRED",
+      "duplicateIds": [
+        115
+      ],
+      "duplicateNames": [
+        "Pontificia Universidad Católica de Chile"
+      ],
+      "members": [
+        {
+          "id": 115,
+          "name": "Pontificia Universidad Católica de Chile",
+          "country": "Argentina",
+          "countryId": 2,
+          "acronym": "PUC",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 912,
+          "name": "PONTIFICIA UNIVERSIDAD CATÓLICA DE CHILE",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 2,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 2,
+      "countryIdsOrNames": [
+        "Argentina",
+        "Perú"
+      ],
+      "acronyms": [
+        "PUC"
+      ],
+      "metadataComparison": [
+        {
+          "id": 115,
+          "name": "Pontificia Universidad Católica de Chile",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 912,
+          "name": "PONTIFICIA UNIVERSIDAD CATÓLICA DE CHILE",
+          "academicInfoReferences": 2,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Ambigüedad de país, acrónimo o calidad de registro"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 928,
+        "name": "PONTIFICIA UNIVERSIDAD CATOLICA DEL PERU"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        49,
+        990
+      ],
+      "duplicateNames": [
+        "Pontificia Universidad Católica del Perú",
+        "PONTIFICIA UNIVERSIDAD CATÓLICA DEL PERÚ"
+      ],
+      "members": [
+        {
+          "id": 49,
+          "name": "Pontificia Universidad Católica del Perú",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "PUCP",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 928,
+          "name": "PONTIFICIA UNIVERSIDAD CATOLICA DEL PERU",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 182,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 990,
+          "name": "PONTIFICIA UNIVERSIDAD CATÓLICA DEL PERÚ",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 32,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 32,
+      "totalReferencesToCanonicalAfterDryRun": 214,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "PUCP"
+      ],
+      "metadataComparison": [
+        {
+          "id": 49,
+          "name": "Pontificia Universidad Católica del Perú",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 928,
+          "name": "PONTIFICIA UNIVERSIDAD CATOLICA DEL PERU",
+          "academicInfoReferences": 182,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 990,
+          "name": "PONTIFICIA UNIVERSIDAD CATÓLICA DEL PERÚ",
+          "academicInfoReferences": 32,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 1017,
+        "name": "UNIVERSIDAD ANDINA DEL CUSCO"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        74
+      ],
+      "duplicateNames": [
+        "Universidad Andina del Cusco"
+      ],
+      "members": [
+        {
+          "id": 74,
+          "name": "Universidad Andina del Cusco",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UAC",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 1017,
+          "name": "UNIVERSIDAD ANDINA DEL CUSCO",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 2,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 2,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UAC"
+      ],
+      "metadataComparison": [
+        {
+          "id": 74,
+          "name": "Universidad Andina del Cusco",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 1017,
+          "name": "UNIVERSIDAD ANDINA DEL CUSCO",
+          "academicInfoReferences": 2,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 1067,
+        "name": "UNIVERSIDAD ANTONIO RUIZ DE MONTOYA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        63
+      ],
+      "duplicateNames": [
+        "Universidad Antonio Ruiz de Montoya"
+      ],
+      "members": [
+        {
+          "id": 63,
+          "name": "Universidad Antonio Ruiz de Montoya",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UARM",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 1067,
+          "name": "UNIVERSIDAD ANTONIO RUIZ DE MONTOYA",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 3,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 3,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UARM"
+      ],
+      "metadataComparison": [
+        {
+          "id": 63,
+          "name": "Universidad Antonio Ruiz de Montoya",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 1067,
+          "name": "UNIVERSIDAD ANTONIO RUIZ DE MONTOYA",
+          "academicInfoReferences": 3,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 980,
+        "name": "UNIVERSIDAD CATOLICA DE SANTA MARIA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        72,
+        1073
+      ],
+      "duplicateNames": [
+        "Universidad Católica de Santa María",
+        "UNIVERSIDAD CATÓLICA DE SANTA MARÍA"
+      ],
+      "members": [
+        {
+          "id": 72,
+          "name": "Universidad Católica de Santa María",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UCSM",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 980,
+          "name": "UNIVERSIDAD CATOLICA DE SANTA MARIA",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 71,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 1073,
+          "name": "UNIVERSIDAD CATÓLICA DE SANTA MARÍA",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 1,
+      "totalReferencesToCanonicalAfterDryRun": 72,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UCSM"
+      ],
+      "metadataComparison": [
+        {
+          "id": 72,
+          "name": "Universidad Católica de Santa María",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 980,
+          "name": "UNIVERSIDAD CATOLICA DE SANTA MARIA",
+          "academicInfoReferences": 71,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 1073,
+          "name": "UNIVERSIDAD CATÓLICA DE SANTA MARÍA",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 788,
+        "name": "UNIVERSIDAD CATOLICA DE TRUJILLO BENEDICTO XVI"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        80
+      ],
+      "duplicateNames": [
+        "Universidad Católica de Trujillo Benedicto XVI"
+      ],
+      "members": [
+        {
+          "id": 80,
+          "name": "Universidad Católica de Trujillo Benedicto XVI",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UCT",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 788,
+          "name": "UNIVERSIDAD CATOLICA DE TRUJILLO BENEDICTO XVI",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 1,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UCT"
+      ],
+      "metadataComparison": [
+        {
+          "id": 80,
+          "name": "Universidad Católica de Trujillo Benedicto XVI",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 788,
+          "name": "UNIVERSIDAD CATOLICA DE TRUJILLO BENEDICTO XVI",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 885,
+        "name": "UNIVERSIDAD CATÓLICA SAN PABLO"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        73,
+        878
+      ],
+      "duplicateNames": [
+        "Universidad Católica San Pablo",
+        "UNIVERSIDAD CATOLICA SAN PABLO"
+      ],
+      "members": [
+        {
+          "id": 73,
+          "name": "Universidad Católica San Pablo",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UCSP",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 878,
+          "name": "UNIVERSIDAD CATOLICA SAN PABLO",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 3,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 885,
+          "name": "UNIVERSIDAD CATÓLICA SAN PABLO",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 16,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 3,
+      "totalReferencesToCanonicalAfterDryRun": 19,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UCSP"
+      ],
+      "metadataComparison": [
+        {
+          "id": 73,
+          "name": "Universidad Católica San Pablo",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 878,
+          "name": "UNIVERSIDAD CATOLICA SAN PABLO",
+          "academicInfoReferences": 3,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 885,
+          "name": "UNIVERSIDAD CATÓLICA SAN PABLO",
+          "academicInfoReferences": 16,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 1096,
+        "name": "UNIVERSIDAD CATÓLICA SANTO TORIBIO DE MOGROVEJO"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        70
+      ],
+      "duplicateNames": [
+        "Universidad Católica Santo Toribio de Mogrovejo"
+      ],
+      "members": [
+        {
+          "id": 70,
+          "name": "Universidad Católica Santo Toribio de Mogrovejo",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "USAT",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 1096,
+          "name": "UNIVERSIDAD CATÓLICA SANTO TORIBIO DE MOGROVEJO",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 3,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 3,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "USAT"
+      ],
+      "metadataComparison": [
+        {
+          "id": 70,
+          "name": "Universidad Católica Santo Toribio de Mogrovejo",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 1096,
+          "name": "UNIVERSIDAD CATÓLICA SANTO TORIBIO DE MOGROVEJO",
+          "academicInfoReferences": 3,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 77,
+        "name": "Universidad Continental"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        789
+      ],
+      "duplicateNames": [
+        "UNIVERSIDAD CONTINENTAL"
+      ],
+      "members": [
+        {
+          "id": 77,
+          "name": "Universidad Continental",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UC",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 45,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 789,
+          "name": "UNIVERSIDAD CONTINENTAL",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 45,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UC"
+      ],
+      "metadataComparison": [
+        {
+          "id": 77,
+          "name": "Universidad Continental",
+          "academicInfoReferences": 45,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 789,
+          "name": "UNIVERSIDAD CONTINENTAL",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 962,
+        "name": "UNIVERSIDAD DE CHILE"
+      },
+      "classification": "REVIEW_REQUIRED",
+      "duplicateIds": [
+        114
+      ],
+      "duplicateNames": [
+        "Universidad de Chile"
+      ],
+      "members": [
+        {
+          "id": 114,
+          "name": "Universidad de Chile",
+          "country": "Argentina",
+          "countryId": 2,
+          "acronym": "UCHILE",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 962,
+          "name": "UNIVERSIDAD DE CHILE",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 3,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 3,
+      "countryIdsOrNames": [
+        "Argentina",
+        "Perú"
+      ],
+      "acronyms": [
+        "UCHILE"
+      ],
+      "metadataComparison": [
+        {
+          "id": 114,
+          "name": "Universidad de Chile",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 962,
+          "name": "UNIVERSIDAD DE CHILE",
+          "academicInfoReferences": 3,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Ambigüedad de país, acrónimo o calidad de registro"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 852,
+        "name": "UNIVERSIDAD DE CONCEPCION"
+      },
+      "classification": "REVIEW_REQUIRED",
+      "duplicateIds": [
+        116
+      ],
+      "duplicateNames": [
+        "Universidad de Concepción"
+      ],
+      "members": [
+        {
+          "id": 116,
+          "name": "Universidad de Concepción",
+          "country": "Argentina",
+          "countryId": 2,
+          "acronym": "UDEC",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 852,
+          "name": "UNIVERSIDAD DE CONCEPCION",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 1,
+      "countryIdsOrNames": [
+        "Argentina",
+        "Perú"
+      ],
+      "acronyms": [
+        "UDEC"
+      ],
+      "metadataComparison": [
+        {
+          "id": 116,
+          "name": "Universidad de Concepción",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 852,
+          "name": "UNIVERSIDAD DE CONCEPCION",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Ambigüedad de país, acrónimo o calidad de registro"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 898,
+        "name": "UNIVERSIDAD DE INGENIERIA Y TECNOLOGIA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        62,
+        939
+      ],
+      "duplicateNames": [
+        "Universidad de Ingeniería y Tecnología",
+        "UNIVERSIDAD DE INGENIERÍA Y TECNOLOGÍA"
+      ],
+      "members": [
+        {
+          "id": 62,
+          "name": "Universidad de Ingeniería y Tecnología",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UTEC",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 898,
+          "name": "UNIVERSIDAD DE INGENIERIA Y TECNOLOGIA",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 19,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 939,
+          "name": "UNIVERSIDAD DE INGENIERÍA Y TECNOLOGÍA",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 1,
+      "totalReferencesToCanonicalAfterDryRun": 20,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UTEC"
+      ],
+      "metadataComparison": [
+        {
+          "id": 62,
+          "name": "Universidad de Ingeniería y Tecnología",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 898,
+          "name": "UNIVERSIDAD DE INGENIERIA Y TECNOLOGIA",
+          "academicInfoReferences": 19,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 939,
+          "name": "UNIVERSIDAD DE INGENIERÍA Y TECNOLOGÍA",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 981,
+        "name": "UNIVERSIDAD DE INGENIERÍA Y TECNOLOGÍA - UTEC"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        803
+      ],
+      "duplicateNames": [
+        "UNIVERSIDAD DE INGENIERÍA Y TECNOLOGÍA UTEC"
+      ],
+      "members": [
+        {
+          "id": 803,
+          "name": "UNIVERSIDAD DE INGENIERÍA Y TECNOLOGÍA UTEC",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 981,
+          "name": "UNIVERSIDAD DE INGENIERÍA Y TECNOLOGÍA - UTEC",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 3,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 1,
+      "totalReferencesToCanonicalAfterDryRun": 4,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 803,
+          "name": "UNIVERSIDAD DE INGENIERÍA Y TECNOLOGÍA UTEC",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 981,
+          "name": "UNIVERSIDAD DE INGENIERÍA Y TECNOLOGÍA - UTEC",
+          "academicInfoReferences": 3,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 802,
+        "name": "UNIVERSIDAD DE LIMA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        52
+      ],
+      "duplicateNames": [
+        "Universidad de Lima"
+      ],
+      "members": [
+        {
+          "id": 52,
+          "name": "Universidad de Lima",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "ULIMA",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 802,
+          "name": "UNIVERSIDAD DE LIMA",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 60,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 60,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "ULIMA"
+      ],
+      "metadataComparison": [
+        {
+          "id": 52,
+          "name": "Universidad de Lima",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 802,
+          "name": "UNIVERSIDAD DE LIMA",
+          "academicInfoReferences": 60,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 794,
+        "name": "UNIVERSIDAD DE PIURA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        71
+      ],
+      "duplicateNames": [
+        "Universidad de Piura"
+      ],
+      "members": [
+        {
+          "id": 71,
+          "name": "Universidad de Piura",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UDEP",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 794,
+          "name": "UNIVERSIDAD DE PIURA",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 21,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 21,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UDEP"
+      ],
+      "metadataComparison": [
+        {
+          "id": 71,
+          "name": "Universidad de Piura",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 794,
+          "name": "UNIVERSIDAD DE PIURA",
+          "academicInfoReferences": 21,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 1038,
+        "name": "UNIVERSIDAD DE SAN MARTIN DE PORRES"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        60
+      ],
+      "duplicateNames": [
+        "Universidad de San Martín de Porres"
+      ],
+      "members": [
+        {
+          "id": 60,
+          "name": "Universidad de San Martín de Porres",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "USMP",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 1038,
+          "name": "UNIVERSIDAD DE SAN MARTIN DE PORRES",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 22,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 22,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "USMP"
+      ],
+      "metadataComparison": [
+        {
+          "id": 60,
+          "name": "Universidad de San Martín de Porres",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 1038,
+          "name": "UNIVERSIDAD DE SAN MARTIN DE PORRES",
+          "academicInfoReferences": 22,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 1000,
+        "name": "UNIVERSIDAD DEL PACIFICO"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        51
+      ],
+      "duplicateNames": [
+        "Universidad del Pacífico"
+      ],
+      "members": [
+        {
+          "id": 51,
+          "name": "Universidad del Pacífico",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UP",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 1000,
+          "name": "UNIVERSIDAD DEL PACIFICO",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 16,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 16,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UP"
+      ],
+      "metadataComparison": [
+        {
+          "id": 51,
+          "name": "Universidad del Pacífico",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 1000,
+          "name": "UNIVERSIDAD DEL PACIFICO",
+          "academicInfoReferences": 16,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 827,
+        "name": "UNIVERSIDAD ESAN"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        53
+      ],
+      "duplicateNames": [
+        "Universidad ESAN"
+      ],
+      "members": [
+        {
+          "id": 53,
+          "name": "Universidad ESAN",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UE",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 827,
+          "name": "UNIVERSIDAD ESAN",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 17,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 17,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UE"
+      ],
+      "metadataComparison": [
+        {
+          "id": 53,
+          "name": "Universidad ESAN",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 827,
+          "name": "UNIVERSIDAD ESAN",
+          "academicInfoReferences": 17,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 1033,
+        "name": "UNIVERSIDAD FEMENINA DEL SAGRADO CORAZON"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        64
+      ],
+      "duplicateNames": [
+        "Universidad Femenina del Sagrado Corazón"
+      ],
+      "members": [
+        {
+          "id": 64,
+          "name": "Universidad Femenina del Sagrado Corazón",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UNIFE",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 1033,
+          "name": "UNIVERSIDAD FEMENINA DEL SAGRADO CORAZON",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 1,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UNIFE"
+      ],
+      "metadataComparison": [
+        {
+          "id": 64,
+          "name": "Universidad Femenina del Sagrado Corazón",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 1033,
+          "name": "UNIVERSIDAD FEMENINA DEL SAGRADO CORAZON",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 892,
+        "name": "UNIVERSIDAD JAIME BAUSATE Y MEZA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        66
+      ],
+      "duplicateNames": [
+        "Universidad Jaime Bausate y Meza"
+      ],
+      "members": [
+        {
+          "id": 66,
+          "name": "Universidad Jaime Bausate y Meza",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UJBM",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 892,
+          "name": "UNIVERSIDAD JAIME BAUSATE Y MEZA",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 1,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UJBM"
+      ],
+      "metadataComparison": [
+        {
+          "id": 66,
+          "name": "Universidad Jaime Bausate y Meza",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 892,
+          "name": "UNIVERSIDAD JAIME BAUSATE Y MEZA",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 906,
+        "name": "UNIVERSIDAD LA SALLE"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        76
+      ],
+      "duplicateNames": [
+        "Universidad La Salle"
+      ],
+      "members": [
+        {
+          "id": 76,
+          "name": "Universidad La Salle",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "ULASALLE",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 906,
+          "name": "UNIVERSIDAD LA SALLE",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 1,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "ULASALLE"
+      ],
+      "metadataComparison": [
+        {
+          "id": 76,
+          "name": "Universidad La Salle",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 906,
+          "name": "UNIVERSIDAD LA SALLE",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 891,
+        "name": "UNIVERSIDAD NACIONAL AGRARIA DE LA SELVA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        35
+      ],
+      "duplicateNames": [
+        "Universidad Nacional Agraria de la Selva"
+      ],
+      "members": [
+        {
+          "id": 35,
+          "name": "Universidad Nacional Agraria de la Selva",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UNAS",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 891,
+          "name": "UNIVERSIDAD NACIONAL AGRARIA DE LA SELVA",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 2,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 2,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UNAS"
+      ],
+      "metadataComparison": [
+        {
+          "id": 35,
+          "name": "Universidad Nacional Agraria de la Selva",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 891,
+          "name": "UNIVERSIDAD NACIONAL AGRARIA DE LA SELVA",
+          "academicInfoReferences": 2,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 986,
+        "name": "UNIVERSIDAD NACIONAL AGRARIA LA MOLINA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        3
+      ],
+      "duplicateNames": [
+        "Universidad Nacional Agraria La Molina"
+      ],
+      "members": [
+        {
+          "id": 3,
+          "name": "Universidad Nacional Agraria La Molina",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UNALM",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 986,
+          "name": "UNIVERSIDAD NACIONAL AGRARIA LA MOLINA",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 51,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 51,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UNALM"
+      ],
+      "metadataComparison": [
+        {
+          "id": 3,
+          "name": "Universidad Nacional Agraria La Molina",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 986,
+          "name": "UNIVERSIDAD NACIONAL AGRARIA LA MOLINA",
+          "academicInfoReferences": 51,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 1023,
+        "name": "UNIVERSIDAD NACIONAL DANIEL ALCIDES CARRION"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        22,
+        1063
+      ],
+      "duplicateNames": [
+        "Universidad Nacional Daniel Alcides Carrión",
+        "UNIVERSIDAD NACIONAL DANIEL ALCIDES CARRIÓN"
+      ],
+      "members": [
+        {
+          "id": 22,
+          "name": "Universidad Nacional Daniel Alcides Carrión",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UNDAC",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 1023,
+          "name": "UNIVERSIDAD NACIONAL DANIEL ALCIDES CARRION",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 100,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 1063,
+          "name": "UNIVERSIDAD NACIONAL DANIEL ALCIDES CARRIÓN",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 1,
+      "totalReferencesToCanonicalAfterDryRun": 101,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UNDAC"
+      ],
+      "metadataComparison": [
+        {
+          "id": 22,
+          "name": "Universidad Nacional Daniel Alcides Carrión",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 1023,
+          "name": "UNIVERSIDAD NACIONAL DANIEL ALCIDES CARRION",
+          "academicInfoReferences": 100,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 1063,
+          "name": "UNIVERSIDAD NACIONAL DANIEL ALCIDES CARRIÓN",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 893,
+        "name": "UNIVERSIDAD NACIONAL DE CAJAMARCA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        13
+      ],
+      "duplicateNames": [
+        "Universidad Nacional de Cajamarca"
+      ],
+      "members": [
+        {
+          "id": 13,
+          "name": "Universidad Nacional de Cajamarca",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UNC",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 893,
+          "name": "UNIVERSIDAD NACIONAL DE CAJAMARCA",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 163,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 163,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UNC"
+      ],
+      "metadataComparison": [
+        {
+          "id": 13,
+          "name": "Universidad Nacional de Cajamarca",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 893,
+          "name": "UNIVERSIDAD NACIONAL DE CAJAMARCA",
+          "academicInfoReferences": 163,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 866,
+        "name": "UNIVERSIDAD NACIONAL DE CAÑETE"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        46
+      ],
+      "duplicateNames": [
+        "Universidad Nacional de Cañete"
+      ],
+      "members": [
+        {
+          "id": 46,
+          "name": "Universidad Nacional de Cañete",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UNDC",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 866,
+          "name": "UNIVERSIDAD NACIONAL DE CAÑETE",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 1,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UNDC"
+      ],
+      "metadataComparison": [
+        {
+          "id": 46,
+          "name": "Universidad Nacional de Cañete",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 866,
+          "name": "UNIVERSIDAD NACIONAL DE CAÑETE",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 120,
+        "name": "Universidad Nacional de Colombia"
+      },
+      "classification": "REVIEW_REQUIRED",
+      "duplicateIds": [
+        812
+      ],
+      "duplicateNames": [
+        "UNIVERSIDAD NACIONAL DE COLOMBIA"
+      ],
+      "members": [
+        {
+          "id": 120,
+          "name": "Universidad Nacional de Colombia",
+          "country": "Brasil",
+          "countryId": 4,
+          "acronym": "UNAL",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 812,
+          "name": "UNIVERSIDAD NACIONAL DE COLOMBIA",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 0,
+      "countryIdsOrNames": [
+        "Brasil",
+        "Perú"
+      ],
+      "acronyms": [
+        "UNAL"
+      ],
+      "metadataComparison": [
+        {
+          "id": 120,
+          "name": "Universidad Nacional de Colombia",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 812,
+          "name": "UNIVERSIDAD NACIONAL DE COLOMBIA",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Ambigüedad de país, acrónimo o calidad de registro"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 832,
+        "name": "UNIVERSIDAD NACIONAL DE HUANCAVELICA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        23
+      ],
+      "duplicateNames": [
+        "Universidad Nacional de Huancavelica"
+      ],
+      "members": [
+        {
+          "id": 23,
+          "name": "Universidad Nacional de Huancavelica",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UNH",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 832,
+          "name": "UNIVERSIDAD NACIONAL DE HUANCAVELICA",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 69,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 69,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UNH"
+      ],
+      "metadataComparison": [
+        {
+          "id": 23,
+          "name": "Universidad Nacional de Huancavelica",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 832,
+          "name": "UNIVERSIDAD NACIONAL DE HUANCAVELICA",
+          "academicInfoReferences": 69,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 964,
+        "name": "UNIVERSIDAD NACIONAL DE JULIACA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        33
+      ],
+      "duplicateNames": [
+        "Universidad Nacional de Juliaca"
+      ],
+      "members": [
+        {
+          "id": 33,
+          "name": "Universidad Nacional de Juliaca",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UNAJ",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 964,
+          "name": "UNIVERSIDAD NACIONAL DE JULIACA",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 1,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UNAJ"
+      ],
+      "metadataComparison": [
+        {
+          "id": 33,
+          "name": "Universidad Nacional de Juliaca",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 964,
+          "name": "UNIVERSIDAD NACIONAL DE JULIACA",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 969,
+        "name": "UNIVERSIDAD NACIONAL DE LA PLATA"
+      },
+      "classification": "REVIEW_REQUIRED",
+      "duplicateIds": [
+        119
+      ],
+      "duplicateNames": [
+        "Universidad Nacional de La Plata"
+      ],
+      "members": [
+        {
+          "id": 119,
+          "name": "Universidad Nacional de La Plata",
+          "country": "Bolivia",
+          "countryId": 3,
+          "acronym": "UNLP",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 969,
+          "name": "UNIVERSIDAD NACIONAL DE LA PLATA",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 1,
+      "countryIdsOrNames": [
+        "Bolivia",
+        "Perú"
+      ],
+      "acronyms": [
+        "UNLP"
+      ],
+      "metadataComparison": [
+        {
+          "id": 119,
+          "name": "Universidad Nacional de La Plata",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 969,
+          "name": "UNIVERSIDAD NACIONAL DE LA PLATA",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Ambigüedad de país, acrónimo o calidad de registro"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 813,
+        "name": "UNIVERSIDAD NACIONAL DE MOQUEGUA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        29
+      ],
+      "duplicateNames": [
+        "Universidad Nacional de Moquegua"
+      ],
+      "members": [
+        {
+          "id": 29,
+          "name": "Universidad Nacional de Moquegua",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UNAM",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 813,
+          "name": "UNIVERSIDAD NACIONAL DE MOQUEGUA",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 76,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 76,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UNAM"
+      ],
+      "metadataComparison": [
+        {
+          "id": 29,
+          "name": "Universidad Nacional de Moquegua",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 813,
+          "name": "UNIVERSIDAD NACIONAL DE MOQUEGUA",
+          "academicInfoReferences": 76,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 1079,
+        "name": "UNIVERSIDAD NACIONAL DE PIURA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        8
+      ],
+      "duplicateNames": [
+        "Universidad Nacional de Piura"
+      ],
+      "members": [
+        {
+          "id": 8,
+          "name": "Universidad Nacional de Piura",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UNP",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 1079,
+          "name": "UNIVERSIDAD NACIONAL DE PIURA",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 155,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 155,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UNP"
+      ],
+      "metadataComparison": [
+        {
+          "id": 8,
+          "name": "Universidad Nacional de Piura",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 1079,
+          "name": "UNIVERSIDAD NACIONAL DE PIURA",
+          "academicInfoReferences": 155,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 947,
+        "name": "UNIVERSIDAD NACIONAL DE SAN AGUSTIN DE AREQUIPA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        10,
+        1056
+      ],
+      "duplicateNames": [
+        "Universidad Nacional de San Agustín de Arequipa",
+        "UNIVERSIDAD NACIONAL DE SAN AGUSTÍN DE AREQUIPA"
+      ],
+      "members": [
+        {
+          "id": 10,
+          "name": "Universidad Nacional de San Agustín de Arequipa",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UNSA",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 947,
+          "name": "UNIVERSIDAD NACIONAL DE SAN AGUSTIN DE AREQUIPA",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 168,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 1056,
+          "name": "UNIVERSIDAD NACIONAL DE SAN AGUSTÍN DE AREQUIPA",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 26,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 26,
+      "totalReferencesToCanonicalAfterDryRun": 194,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UNSA"
+      ],
+      "metadataComparison": [
+        {
+          "id": 10,
+          "name": "Universidad Nacional de San Agustín de Arequipa",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 947,
+          "name": "UNIVERSIDAD NACIONAL DE SAN AGUSTIN DE AREQUIPA",
+          "academicInfoReferences": 168,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 1056,
+          "name": "UNIVERSIDAD NACIONAL DE SAN AGUSTÍN DE AREQUIPA",
+          "academicInfoReferences": 26,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 1020,
+        "name": "UNIVERSIDAD NACIONAL DE SAN CRISTÓBAL DE HUAMANGA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        903
+      ],
+      "duplicateNames": [
+        "UNIVERSIDAD NACIONAL DE SAN CRISTOBAL DE HUAMANGA"
+      ],
+      "members": [
+        {
+          "id": 903,
+          "name": "UNIVERSIDAD NACIONAL DE SAN CRISTOBAL DE HUAMANGA",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 14,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 1020,
+          "name": "UNIVERSIDAD NACIONAL DE SAN CRISTÓBAL DE HUAMANGA",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 74,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 14,
+      "totalReferencesToCanonicalAfterDryRun": 88,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [],
+      "metadataComparison": [
+        {
+          "id": 903,
+          "name": "UNIVERSIDAD NACIONAL DE SAN CRISTOBAL DE HUAMANGA",
+          "academicInfoReferences": 14,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 1020,
+          "name": "UNIVERSIDAD NACIONAL DE SAN CRISTÓBAL DE HUAMANGA",
+          "academicInfoReferences": 74,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 1007,
+        "name": "UNIVERSIDAD NACIONAL DE SAN MARTÍN"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        17
+      ],
+      "duplicateNames": [
+        "Universidad Nacional de San Martín"
+      ],
+      "members": [
+        {
+          "id": 17,
+          "name": "Universidad Nacional de San Martín",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UNSM",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 1007,
+          "name": "UNIVERSIDAD NACIONAL DE SAN MARTÍN",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 1,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UNSM"
+      ],
+      "metadataComparison": [
+        {
+          "id": 17,
+          "name": "Universidad Nacional de San Martín",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 1007,
+          "name": "UNIVERSIDAD NACIONAL DE SAN MARTÍN",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 974,
+        "name": "UNIVERSIDAD NACIONAL DE TRUJILLO"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        7
+      ],
+      "duplicateNames": [
+        "Universidad Nacional de Trujillo"
+      ],
+      "members": [
+        {
+          "id": 7,
+          "name": "Universidad Nacional de Trujillo",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UNT",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 974,
+          "name": "UNIVERSIDAD NACIONAL DE TRUJILLO",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 192,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 192,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UNT"
+      ],
+      "metadataComparison": [
+        {
+          "id": 7,
+          "name": "Universidad Nacional de Trujillo",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 974,
+          "name": "UNIVERSIDAD NACIONAL DE TRUJILLO",
+          "academicInfoReferences": 192,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 828,
+        "name": "UNIVERSIDAD NACIONAL DE UCAYALI"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        19
+      ],
+      "duplicateNames": [
+        "Universidad Nacional de Ucayali"
+      ],
+      "members": [
+        {
+          "id": 19,
+          "name": "Universidad Nacional de Ucayali",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UNU",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 828,
+          "name": "UNIVERSIDAD NACIONAL DE UCAYALI",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 3,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 3,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UNU"
+      ],
+      "metadataComparison": [
+        {
+          "id": 19,
+          "name": "Universidad Nacional de Ucayali",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 828,
+          "name": "UNIVERSIDAD NACIONAL DE UCAYALI",
+          "academicInfoReferences": 3,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 1046,
+        "name": "UNIVERSIDAD NACIONAL DEL ALTIPLANO"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        12
+      ],
+      "duplicateNames": [
+        "Universidad Nacional del Altiplano"
+      ],
+      "members": [
+        {
+          "id": 12,
+          "name": "Universidad Nacional del Altiplano",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UNAP-PUNO",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 1046,
+          "name": "UNIVERSIDAD NACIONAL DEL ALTIPLANO",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 24,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 24,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UNAP-PUNO"
+      ],
+      "metadataComparison": [
+        {
+          "id": 12,
+          "name": "Universidad Nacional del Altiplano",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 1046,
+          "name": "UNIVERSIDAD NACIONAL DEL ALTIPLANO",
+          "academicInfoReferences": 24,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 798,
+        "name": "UNIVERSIDAD NACIONAL DEL CALLAO"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        5
+      ],
+      "duplicateNames": [
+        "Universidad Nacional del Callao"
+      ],
+      "members": [
+        {
+          "id": 5,
+          "name": "Universidad Nacional del Callao",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UNAC",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 798,
+          "name": "UNIVERSIDAD NACIONAL DEL CALLAO",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 56,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 56,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UNAC"
+      ],
+      "metadataComparison": [
+        {
+          "id": 5,
+          "name": "Universidad Nacional del Callao",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 798,
+          "name": "UNIVERSIDAD NACIONAL DEL CALLAO",
+          "academicInfoReferences": 56,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 877,
+        "name": "UNIVERSIDAD NACIONAL DEL CENTRO DEL PERU"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        11,
+        950
+      ],
+      "duplicateNames": [
+        "Universidad Nacional del Centro del Perú",
+        "UNIVERSIDAD NACIONAL DEL CENTRO DEL PERÚ"
+      ],
+      "members": [
+        {
+          "id": 11,
+          "name": "Universidad Nacional del Centro del Perú",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UNCP",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 877,
+          "name": "UNIVERSIDAD NACIONAL DEL CENTRO DEL PERU",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 138,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 950,
+          "name": "UNIVERSIDAD NACIONAL DEL CENTRO DEL PERÚ",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 16,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 16,
+      "totalReferencesToCanonicalAfterDryRun": 154,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UNCP"
+      ],
+      "metadataComparison": [
+        {
+          "id": 11,
+          "name": "Universidad Nacional del Centro del Perú",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 877,
+          "name": "UNIVERSIDAD NACIONAL DEL CENTRO DEL PERU",
+          "academicInfoReferences": 138,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 950,
+          "name": "UNIVERSIDAD NACIONAL DEL CENTRO DEL PERÚ",
+          "academicInfoReferences": 16,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 799,
+        "name": "UNIVERSIDAD NACIONAL DEL SANTA"
+      },
+      "classification": "REVIEW_REQUIRED",
+      "duplicateIds": [
+        25
+      ],
+      "duplicateNames": [
+        "Universidad Nacional del Santa"
+      ],
+      "members": [
+        {
+          "id": 25,
+          "name": "Universidad Nacional del Santa",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UNS",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 799,
+          "name": "UNIVERSIDAD NACIONAL DEL SANTA",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 2,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 2,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UNS"
+      ],
+      "metadataComparison": [
+        {
+          "id": 25,
+          "name": "Universidad Nacional del Santa",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 799,
+          "name": "UNIVERSIDAD NACIONAL DEL SANTA",
+          "academicInfoReferences": 2,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Ambigüedad de país, acrónimo o calidad de registro"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 855,
+        "name": "UNIVERSIDAD NACIONAL JOSE FAUSTINO SANCHEZ CARRION"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        34,
+        887
+      ],
+      "duplicateNames": [
+        "Universidad Nacional José Faustino Sánchez Carrión",
+        "UNIVERSIDAD NACIONAL JOSÉ FAUSTINO SÁNCHEZ CARRION"
+      ],
+      "members": [
+        {
+          "id": 34,
+          "name": "Universidad Nacional José Faustino Sánchez Carrión",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UNJFSC",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 855,
+          "name": "UNIVERSIDAD NACIONAL JOSE FAUSTINO SANCHEZ CARRION",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 17,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 887,
+          "name": "UNIVERSIDAD NACIONAL JOSÉ FAUSTINO SÁNCHEZ CARRION",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 1,
+      "totalReferencesToCanonicalAfterDryRun": 18,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UNJFSC"
+      ],
+      "metadataComparison": [
+        {
+          "id": 34,
+          "name": "Universidad Nacional José Faustino Sánchez Carrión",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 855,
+          "name": "UNIVERSIDAD NACIONAL JOSE FAUSTINO SANCHEZ CARRION",
+          "academicInfoReferences": 17,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 887,
+          "name": "UNIVERSIDAD NACIONAL JOSÉ FAUSTINO SÁNCHEZ CARRION",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 858,
+        "name": "UNIVERSIDAD NACIONAL JOSE MARIA ARGUEDAS"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        32
+      ],
+      "duplicateNames": [
+        "Universidad Nacional José María Arguedas"
+      ],
+      "members": [
+        {
+          "id": 32,
+          "name": "Universidad Nacional José María Arguedas",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UNAJMA",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 858,
+          "name": "UNIVERSIDAD NACIONAL JOSE MARIA ARGUEDAS",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 1,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UNAJMA"
+      ],
+      "metadataComparison": [
+        {
+          "id": 32,
+          "name": "Universidad Nacional José María Arguedas",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 858,
+          "name": "UNIVERSIDAD NACIONAL JOSE MARIA ARGUEDAS",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 938,
+        "name": "UNIVERSIDAD NACIONAL MAYOR DE SAN MARCOS"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        1
+      ],
+      "duplicateNames": [
+        "Universidad Nacional Mayor de San Marcos"
+      ],
+      "members": [
+        {
+          "id": 1,
+          "name": "Universidad Nacional Mayor de San Marcos",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UNMSM",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 2,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 938,
+          "name": "UNIVERSIDAD NACIONAL MAYOR DE SAN MARCOS",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 354,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 2,
+      "totalReferencesToCanonicalAfterDryRun": 356,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UNMSM"
+      ],
+      "metadataComparison": [
+        {
+          "id": 1,
+          "name": "Universidad Nacional Mayor de San Marcos",
+          "academicInfoReferences": 2,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 938,
+          "name": "UNIVERSIDAD NACIONAL MAYOR DE SAN MARCOS",
+          "academicInfoReferences": 354,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 1060,
+        "name": "UNIVERSIDAD NACIONAL MICAELA BASTIDAS DE APURIMAC"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        30
+      ],
+      "duplicateNames": [
+        "Universidad Nacional Micaela Bastidas de Apurímac"
+      ],
+      "members": [
+        {
+          "id": 30,
+          "name": "Universidad Nacional Micaela Bastidas de Apurímac",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UNAMBA",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 1060,
+          "name": "UNIVERSIDAD NACIONAL MICAELA BASTIDAS DE APURIMAC",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 30,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 30,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UNAMBA"
+      ],
+      "metadataComparison": [
+        {
+          "id": 30,
+          "name": "Universidad Nacional Micaela Bastidas de Apurímac",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 1060,
+          "name": "UNIVERSIDAD NACIONAL MICAELA BASTIDAS DE APURIMAC",
+          "academicInfoReferences": 30,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 837,
+        "name": "UNIVERSIDAD NACIONAL PEDRO RUIZ GALLO"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        6
+      ],
+      "duplicateNames": [
+        "Universidad Nacional Pedro Ruiz Gallo"
+      ],
+      "members": [
+        {
+          "id": 6,
+          "name": "Universidad Nacional Pedro Ruiz Gallo",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UNPRG",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 837,
+          "name": "UNIVERSIDAD NACIONAL PEDRO RUIZ GALLO",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 7,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 7,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UNPRG"
+      ],
+      "metadataComparison": [
+        {
+          "id": 6,
+          "name": "Universidad Nacional Pedro Ruiz Gallo",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 837,
+          "name": "UNIVERSIDAD NACIONAL PEDRO RUIZ GALLO",
+          "academicInfoReferences": 7,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 933,
+        "name": "UNIVERSIDAD NACIONAL SANTIAGO ANTUNEZ DE MAYOLO"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        26,
+        896
+      ],
+      "duplicateNames": [
+        "Universidad Nacional Santiago Antúnez de Mayolo",
+        "UNIVERSIDAD NACIONAL SANTIAGO ANTÚNEZ DE MAYOLO"
+      ],
+      "members": [
+        {
+          "id": 26,
+          "name": "Universidad Nacional Santiago Antúnez de Mayolo",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UNASAM",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 896,
+          "name": "UNIVERSIDAD NACIONAL SANTIAGO ANTÚNEZ DE MAYOLO",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 933,
+          "name": "UNIVERSIDAD NACIONAL SANTIAGO ANTUNEZ DE MAYOLO",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 78,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 1,
+      "totalReferencesToCanonicalAfterDryRun": 79,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UNASAM"
+      ],
+      "metadataComparison": [
+        {
+          "id": 26,
+          "name": "Universidad Nacional Santiago Antúnez de Mayolo",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 896,
+          "name": "UNIVERSIDAD NACIONAL SANTIAGO ANTÚNEZ DE MAYOLO",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 933,
+          "name": "UNIVERSIDAD NACIONAL SANTIAGO ANTUNEZ DE MAYOLO",
+          "academicInfoReferences": 78,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 944,
+        "name": "UNIVERSIDAD NACIONAL TORIBIO RODRIGUEZ DE MENDOZA DE AMAZONAS"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        21
+      ],
+      "duplicateNames": [
+        "Universidad Nacional Toribio Rodríguez de Mendoza de Amazonas"
+      ],
+      "members": [
+        {
+          "id": 21,
+          "name": "Universidad Nacional Toribio Rodríguez de Mendoza de Amazonas",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UNTRM",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 944,
+          "name": "UNIVERSIDAD NACIONAL TORIBIO RODRIGUEZ DE MENDOZA DE AMAZONAS",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 1,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UNTRM"
+      ],
+      "metadataComparison": [
+        {
+          "id": 21,
+          "name": "Universidad Nacional Toribio Rodríguez de Mendoza de Amazonas",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 944,
+          "name": "UNIVERSIDAD NACIONAL TORIBIO RODRIGUEZ DE MENDOZA DE AMAZONAS",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 901,
+        "name": "UNIVERSIDAD NORBERT WIENER"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        65
+      ],
+      "duplicateNames": [
+        "Universidad Norbert Wiener"
+      ],
+      "members": [
+        {
+          "id": 65,
+          "name": "Universidad Norbert Wiener",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "NW",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 901,
+          "name": "UNIVERSIDAD NORBERT WIENER",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 2,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 2,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "NW"
+      ],
+      "metadataComparison": [
+        {
+          "id": 65,
+          "name": "Universidad Norbert Wiener",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 901,
+          "name": "UNIVERSIDAD NORBERT WIENER",
+          "academicInfoReferences": 2,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 1051,
+        "name": "UNIVERSIDAD PARTICULAR DE CHICLAYO"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        88
+      ],
+      "duplicateNames": [
+        "Universidad Particular de Chiclayo"
+      ],
+      "members": [
+        {
+          "id": 88,
+          "name": "Universidad Particular de Chiclayo",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UDCH",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 1051,
+          "name": "UNIVERSIDAD PARTICULAR DE CHICLAYO",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 1,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UDCH"
+      ],
+      "metadataComparison": [
+        {
+          "id": 88,
+          "name": "Universidad Particular de Chiclayo",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 1051,
+          "name": "UNIVERSIDAD PARTICULAR DE CHICLAYO",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 815,
+        "name": "UNIVERSIDAD PERUANA CAYETANO HEREDIA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        50
+      ],
+      "duplicateNames": [
+        "Universidad Peruana Cayetano Heredia"
+      ],
+      "members": [
+        {
+          "id": 50,
+          "name": "Universidad Peruana Cayetano Heredia",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UPCH",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 815,
+          "name": "UNIVERSIDAD PERUANA CAYETANO HEREDIA",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 17,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 17,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UPCH"
+      ],
+      "metadataComparison": [
+        {
+          "id": 50,
+          "name": "Universidad Peruana Cayetano Heredia",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 815,
+          "name": "UNIVERSIDAD PERUANA CAYETANO HEREDIA",
+          "academicInfoReferences": 17,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 821,
+        "name": "UNIVERSIDAD PERUANA LOS ANDES"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        82
+      ],
+      "duplicateNames": [
+        "Universidad Peruana Los Andes"
+      ],
+      "members": [
+        {
+          "id": 82,
+          "name": "Universidad Peruana Los Andes",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UPLA",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 821,
+          "name": "UNIVERSIDAD PERUANA LOS ANDES",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 1,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UPLA"
+      ],
+      "metadataComparison": [
+        {
+          "id": 82,
+          "name": "Universidad Peruana Los Andes",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 821,
+          "name": "UNIVERSIDAD PERUANA LOS ANDES",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 862,
+        "name": "UNIVERSIDAD PERUANA UNION"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        78,
+        851
+      ],
+      "duplicateNames": [
+        "Universidad Peruana Unión",
+        "UNIVERSIDAD PERUANA UNIÓN"
+      ],
+      "members": [
+        {
+          "id": 78,
+          "name": "Universidad Peruana Unión",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UPeU",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 851,
+          "name": "UNIVERSIDAD PERUANA UNIÓN",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 862,
+          "name": "UNIVERSIDAD PERUANA UNION",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 3,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 1,
+      "totalReferencesToCanonicalAfterDryRun": 4,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UPeU"
+      ],
+      "metadataComparison": [
+        {
+          "id": 78,
+          "name": "Universidad Peruana Unión",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 851,
+          "name": "UNIVERSIDAD PERUANA UNIÓN",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        },
+        {
+          "id": 862,
+          "name": "UNIVERSIDAD PERUANA UNION",
+          "academicInfoReferences": 3,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 1058,
+        "name": "UNIVERSIDAD PRIVADA ANTENOR ORREGO"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        69
+      ],
+      "duplicateNames": [
+        "Universidad Privada Antenor Orrego"
+      ],
+      "members": [
+        {
+          "id": 69,
+          "name": "Universidad Privada Antenor Orrego",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UPAO",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 1058,
+          "name": "UNIVERSIDAD PRIVADA ANTENOR ORREGO",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 12,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 12,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UPAO"
+      ],
+      "metadataComparison": [
+        {
+          "id": 69,
+          "name": "Universidad Privada Antenor Orrego",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 1058,
+          "name": "UNIVERSIDAD PRIVADA ANTENOR ORREGO",
+          "academicInfoReferences": 12,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 929,
+        "name": "UNIVERSIDAD PRIVADA DE TACNA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        75
+      ],
+      "duplicateNames": [
+        "Universidad Privada de Tacna"
+      ],
+      "members": [
+        {
+          "id": 75,
+          "name": "Universidad Privada de Tacna",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UPT",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 929,
+          "name": "UNIVERSIDAD PRIVADA DE TACNA",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 5,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 5,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UPT"
+      ],
+      "metadataComparison": [
+        {
+          "id": 75,
+          "name": "Universidad Privada de Tacna",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 929,
+          "name": "UNIVERSIDAD PRIVADA DE TACNA",
+          "academicInfoReferences": 5,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 861,
+        "name": "UNIVERSIDAD PRIVADA DEL NORTE"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        57
+      ],
+      "duplicateNames": [
+        "Universidad Privada del Norte"
+      ],
+      "members": [
+        {
+          "id": 57,
+          "name": "Universidad Privada del Norte",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UPN",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 861,
+          "name": "UNIVERSIDAD PRIVADA DEL NORTE",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 1,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UPN"
+      ],
+      "metadataComparison": [
+        {
+          "id": 57,
+          "name": "Universidad Privada del Norte",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 861,
+          "name": "UNIVERSIDAD PRIVADA DEL NORTE",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 829,
+        "name": "UNIVERSIDAD RICARDO PALMA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        58
+      ],
+      "duplicateNames": [
+        "Universidad Ricardo Palma"
+      ],
+      "members": [
+        {
+          "id": 58,
+          "name": "Universidad Ricardo Palma",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "URP",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 829,
+          "name": "UNIVERSIDAD RICARDO PALMA",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 23,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 23,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "URP"
+      ],
+      "metadataComparison": [
+        {
+          "id": 58,
+          "name": "Universidad Ricardo Palma",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 829,
+          "name": "UNIVERSIDAD RICARDO PALMA",
+          "academicInfoReferences": 23,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 833,
+        "name": "UNIVERSIDAD SAN IGNACIO DE LOYOLA"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        59
+      ],
+      "duplicateNames": [
+        "Universidad San Ignacio de Loyola"
+      ],
+      "members": [
+        {
+          "id": 59,
+          "name": "Universidad San Ignacio de Loyola",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "USIL",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 833,
+          "name": "UNIVERSIDAD SAN IGNACIO DE LOYOLA",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 1,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "USIL"
+      ],
+      "metadataComparison": [
+        {
+          "id": 59,
+          "name": "Universidad San Ignacio de Loyola",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 833,
+          "name": "UNIVERSIDAD SAN IGNACIO DE LOYOLA",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 1090,
+        "name": "UNIVERSIDAD SEÑOR DE SIPÁN"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        83
+      ],
+      "duplicateNames": [
+        "Universidad Señor de Sipán"
+      ],
+      "members": [
+        {
+          "id": 83,
+          "name": "Universidad Señor de Sipán",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "USS",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 1090,
+          "name": "UNIVERSIDAD SEÑOR DE SIPÁN",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 1,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "USS"
+      ],
+      "metadataComparison": [
+        {
+          "id": 83,
+          "name": "Universidad Señor de Sipán",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 1090,
+          "name": "UNIVERSIDAD SEÑOR DE SIPÁN",
+          "academicInfoReferences": 1,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    },
+    {
+      "canonicalCandidate": {
+        "id": 1005,
+        "name": "UNIVERSIDAD TECNOLÓGICA DEL PERÚ"
+      },
+      "classification": "SAFE_TO_MERGE",
+      "duplicateIds": [
+        61
+      ],
+      "duplicateNames": [
+        "Universidad Tecnológica del Perú"
+      ],
+      "members": [
+        {
+          "id": 61,
+          "name": "Universidad Tecnológica del Perú",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": "UTP",
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0
+        },
+        {
+          "id": 1005,
+          "name": "UNIVERSIDAD TECNOLÓGICA DEL PERÚ",
+          "country": "Perú",
+          "countryId": 1,
+          "acronym": null,
+          "code": null,
+          "isActive": true,
+          "academicInfoReferences": 6,
+          "draftOccurrences": 0
+        }
+      ],
+      "affectedAcademicInfo": 0,
+      "totalReferencesToCanonicalAfterDryRun": 6,
+      "countryIdsOrNames": [
+        "Perú"
+      ],
+      "acronyms": [
+        "UTP"
+      ],
+      "metadataComparison": [
+        {
+          "id": 61,
+          "name": "Universidad Tecnológica del Perú",
+          "academicInfoReferences": 0,
+          "draftOccurrences": 0,
+          "hasAcronym": true,
+          "active": true
+        },
+        {
+          "id": 1005,
+          "name": "UNIVERSIDAD TECNOLÓGICA DEL PERÚ",
+          "academicInfoReferences": 6,
+          "draftOccurrences": 0,
+          "hasAcronym": false,
+          "active": true
+        }
+      ],
+      "reason": "Variantes equivalentes agrupadas; se propone el registro con mayor calidad/uso (UNIVERSITY)",
+      "risk": "Requiere transacción, validación de FKs y aprobación explícita"
+    }
+  ],
+  "proposedTransactionalPlan": [
+    "BEGIN",
+    "actualizar FKs duplicados hacia canonicalId",
+    "validar conteos y foreign keys",
+    "marcar duplicados inactivos o conservarlos como alias",
+    "no eliminar inmediatamente",
+    "COMMIT"
+  ],
+  "relationReview": {
+    "universityForeignKeys": [
+      {
+        "model": "AcademicInfo",
+        "field": "universityId",
+        "relation": "University",
+        "onDelete": "Restrict",
+        "onUpdate": "database default/not explicitly specified"
+      }
+    ],
+    "specialtyForeignKeys": [
+      {
+        "model": "AcademicInfo",
+        "field": "specialtyId",
+        "relation": "Specialty",
+        "onDelete": "Restrict",
+        "onUpdate": "database default/not explicitly specified"
+      }
+    ],
+    "note": "La revisión de schema.prisma no encontró otras relaciones que apunten directamente a University o Specialty."
+  }
+}
