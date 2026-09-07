@@ -3,6 +3,10 @@ import { randomUUID } from "crypto";
 import { StartApplicationDto } from "../DTOs/start-application.dto";
 import { Application } from "../Entities/Application";
 import { IApplicationRepository } from "../Repositories/Interfaces/IApplicationRepository";
+import { applicationIdentitySchema } from "./ApplicationLookupService";
+import { z } from "zod";
+import { ApplicationFlowError } from "./Exceptions/ApplicationFlowError";
+import { queryAuthorization } from "@/modules/afiliaciones/consulta/Services/QueryAuthorizationService";
 
 export class StartApplicationService {
 
@@ -12,16 +16,12 @@ export class StartApplicationService {
 
   async execute(
     dto: StartApplicationDto,
+    token?: string,
   ): Promise<Application> {
 
-    const draft =
-      await this.applicationRepository.findDraftByDocument(
-        dto.documentNumber,
-      );
-
-    if (draft) {
-      return draft;
-    }
+    const parsed = applicationIdentitySchema.extend({ affiliateType: z.enum(["ACTIVE", "STUDENT"]), email: z.string().trim().email(), phone: z.string().trim().min(6).max(30) }).safeParse(dto);
+    if (!parsed.success) throw new ApplicationFlowError("INVALID_INPUT", "Revisa los datos de la postulación.", 400);
+    dto = parsed.data;
 
     const applicationCode =
       this.generateApplicationCode();
@@ -29,7 +29,7 @@ export class StartApplicationService {
     const trackingCode =
       this.generateTrackingCode();
 
-    return await this.applicationRepository.create({
+    return await this.applicationRepository.createDraftIfAllowed({
 
       applicationCode,
 
@@ -51,7 +51,7 @@ export class StartApplicationService {
 
       draftData: {},
 
-    });
+    }, queryAuthorization.allowedIds(token));
 
   }
 

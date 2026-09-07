@@ -2,12 +2,16 @@
 import React, { useEffect, useState } from "react";
 import { X } from "lucide-react";
 
+import { ExistingApplicationGate } from "@/modules/afiliaciones/postulacion/Components/ExistingApplicationGate";
+import { ApplicationStateNotice } from "@/modules/afiliaciones/postulacion/Components/ApplicationStateNotice";
+import { ProcessLoadingOverlay } from "@/modules/shared/Components/ProcessLoadingOverlay";
+
 import { ConsultaHero } from "../Components/ConsultaHero";
 import { ConsultaHeader } from "../Components/ConsultaHeader";
 import { ConsultationForm } from "../Components/ConsultationForm";
 import { StatusInReview } from "../Components/StatusInReview";
 import { StatusObserved } from "../Components/StatusObserved";
-import { StatusApproved } from "../Components/StatusApproved";
+
 import { StatusRejected } from "../Components/StatusRejected";
 import { StatusPaymentReady } from "../Components/StatusPaymentReady"; // <-- IMPORTACIÓN
 import { useConsulta } from "../Hooks/useConsulta";
@@ -42,7 +46,10 @@ interface ConsultaViewProps {
 }
 
 export function ConsultaView({ initialPaymentCallback }: ConsultaViewProps) {
-  const { loading, statusData, setStatusData, handleConsult, handleRefresh, currentStatus } = useConsulta();
+  const { loading, statusData, setStatusData, handleConsult, handleRefresh, currentStatus, challenge, setChallenge, error, loadApplication, notice } = useConsulta();
+  const [authorizedGate, setAuthorizedGate] = useState(false);
+  const [showObservations, setShowObservations] = useState(false);
+  useEffect(() => { if (!initialPaymentCallback && new URLSearchParams(window.location.search).has("applicationId")) setAuthorizedGate(true); }, [initialPaymentCallback]);
   const [restored, setRestored] = useState<RestorePayload | null>(null);
   const [restoreState, setRestoreState] = useState<RestoreState>(initialPaymentCallback ? "RESTORING_PAYMENT" : "IDLE");
 
@@ -78,24 +85,28 @@ export function ConsultaView({ initialPaymentCallback }: ConsultaViewProps) {
     return (
       <main className="flex flex-col md:flex-row h-screen w-full overflow-hidden bg-surface font-sans antialiased animate-in fade-in duration-500">
         <ConsultaHero />
+        <ProcessLoadingOverlay open={loading} title="Preparando consulta..." description="Estamos procesando tu solicitud de forma segura." />
+        {(challenge || authorizedGate) && <ExistingApplicationGate challenge={challenge || undefined} authorized={authorizedGate} context="CONSULTA" onClose={() => { setChallenge(null); setAuthorizedGate(false); }} onQuery={async (application) => { await loadApplication(application); setAuthorizedGate(false); setShowObservations(false); }} />}
         <section className="w-full md:w-[45%] h-full flex flex-col relative overflow-hidden bg-surface-container-lowest overflow-y-auto scrollbar-thin scrollbar-thumb-outline-variant">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary-container/20 rounded-full blur-3xl pointer-events-none -translate-y-1/2 translate-x-1/4"></div>
           <div className="w-full max-w-[420px] px-6 py-10 mx-auto my-auto relative z-10">
             <ConsultaHeader />
             <ConsultationForm onSubmit={handleConsult} loading={loading} />
+            {!challenge && error && <p role="alert" className="mt-4 text-sm text-red-600">{error}</p>}
           </div>
         </section>
       </main>
     );
   }
 
-  // ESTADO 2: LISTO PARA PAGO (Toma el control de toda la pantalla como la postulación)
-  if (currentStatus === "READY_FOR_PAYMENT" || Boolean(restored)) {
-    return <StatusPaymentReady data={statusData} onCancel={() => setStatusData(null)} initialBillingData={restored?.billingData} restoredPayment={restored?.payment} failureMessage={restored?.failure?.message} failureCode={restored?.failure?.code} />;
+  if (notice.action === "DRAFT_RECOVERY" || notice.action === "UNKNOWN") {
+    return <main className="min-h-screen grid place-items-center bg-slate-50 p-6"><ApplicationStateNotice status={currentStatus || "UNKNOWN"} context="CONSULTA" onPrimary={statusData.recoveryUrl ? () => { window.location.href = statusData.recoveryUrl!; } : undefined} onClose={() => setStatusData(null)} /></main>;
   }
-
-  if (currentStatus === "COMPLETED" && (statusData.completedPayment || statusData.affiliateType === "STUDENT")) {
-    return <StatusCompleted data={statusData} onFinish={() => setStatusData(null)} />;
+  if (notice.action === "COMPLETED") {
+    return statusData.completedPayment || statusData.affiliateType === "STUDENT" ? <StatusCompleted data={statusData} onFinish={() => setStatusData(null)} /> : <main className="min-h-screen grid place-items-center bg-slate-50 p-6"><ApplicationStateNotice status="COMPLETED" context="CONSULTA" onClose={() => setStatusData(null)} /></main>;
+  }
+  if (notice.action === "CONTINUE_PAYMENT" || Boolean(restored)) {
+    return <StatusPaymentReady data={statusData} onCancel={() => setStatusData(null)} initialBillingData={restored?.billingData} restoredPayment={restored?.payment} failureMessage={restored?.failure?.message} failureCode={restored?.failure?.code} />;
   }
 
   // ESTADO 3: RESULTADOS NORMALES (En evaluación, Observado, Rechazado)
@@ -132,10 +143,10 @@ export function ConsultaView({ initialPaymentCallback }: ConsultaViewProps) {
               </div>
             </div>
 
-            {currentStatus === "IN_REVIEW" && <StatusInReview data={statusData} applicationId={statusData?.id || 101} onRefresh={handleRefresh} />}
-            {currentStatus === "OBSERVED" && <StatusObserved data={statusData as never} onUploadSuccess={handleRefresh} />}
-            {currentStatus === "COMPLETED" && <StatusApproved data={statusData} onProceedPayment={() => alert("Ya pagado")} />}
-            {currentStatus === "REJECTED" && <StatusRejected data={statusData} />}
+            <ApplicationStateNotice status={currentStatus || "UNKNOWN"} context="CONSULTA" canStartNew={statusData.canStartNew} onPrimary={notice.action === "REVIEW_OBSERVATIONS" ? () => setShowObservations(true) : notice.action === "START_NEW_APPLICATION" ? () => { window.location.href = statusData.affiliateType === "STUDENT" ? "/postulacion/estudiante" : "/postulacion/asociado"; } : undefined} />
+            {notice.action === "VIEW_STATUS" && <StatusInReview data={statusData} />}
+            {notice.action === "REVIEW_OBSERVATIONS" && showObservations && <StatusObserved data={statusData as never} onUploadSuccess={handleRefresh} />}
+            {notice.action === "VIEW_REJECTION" || currentStatus === "REJECTED" ? <StatusRejected data={statusData} /> : null}
 
             <div className="mt-10 pt-6 border-t border-slate-100 flex flex-col items-center">
               <button onClick={() => setStatusData(null)} className="w-full h-12 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-100 hover:text-slate-800 transition-all flex items-center justify-center gap-2">

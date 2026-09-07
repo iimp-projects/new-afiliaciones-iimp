@@ -1,4 +1,6 @@
-import { NextResponse } from "next/server";
+import { QUERY_COOKIE } from "@/modules/afiliaciones/consulta/Services/QueryAuthorizationService";
+import { applicationHttpError } from "@/modules/afiliaciones/postulacion/Services/ApplicationHttpError";
+import { NextRequest, NextResponse } from "next/server";
 
 import { ApplicationRepository } from "@/modules/afiliaciones/postulacion/Repositories/ApplicationRepository";
 import { SubmitApplicationService } from "@/modules/afiliaciones/postulacion/Services/SubmitApplicationService";
@@ -6,7 +8,7 @@ import { ApplicationValidator } from "@/modules/afiliaciones/postulacion/Validat
 import { ValidationException } from "@/modules/afiliaciones/postulacion/Services/Exceptions/ValidationException";
 
 export async function POST(
-    request: Request,
+    request: NextRequest,
     {
         params,
     }: {
@@ -29,7 +31,7 @@ export async function POST(
         );
 
         const application =
-            await service.execute(trackingCode);
+            await service.execute(trackingCode, request.cookies.get(QUERY_COOKIE)?.value);
 
         return NextResponse.json(
             {
@@ -57,18 +59,7 @@ export async function POST(
 
         }
 
-        return NextResponse.json(
-            {
-                success: false,
-                message:
-                    error instanceof Error
-                        ? error.message
-                        : "Ocurrió un error al enviar la postulación.",
-            },
-            {
-                status: 400,
-            }
-        );
+        return applicationHttpError(error);
 
     }
 }

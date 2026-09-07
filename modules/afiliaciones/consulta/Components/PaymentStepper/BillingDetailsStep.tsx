@@ -53,17 +53,6 @@ export default function BillingDetailsStep({ data, billingData, setBillingData }
           throw new Error("No se encontraron resultados");
         }
       } else {
-        const response = await applicationApi.validateDocument(billingData.tipoDocumento as any, billingData.numeroDocumento);
-        if (response.person && response.person.firstName) {
-          const fullName = `${response.person.firstName} ${response.person.paternalLastName} ${response.person.maternalLastName || ""}`.trim();
-          setBillingData({
-            ...billingData,
-            razonSocial: fullName,
-            direccionFiscal: data.draftData?.personalInformation?.address || "", 
-          });
-          setSearchFeedback({ type: 'success', message: 'Identidad validada correctamente.' });
-          setIsFormEnabled(true);
-        } else {
           const docNumberPostulante = data.draftData?.personalInformation?.documentNumber;
           if (docNumberPostulante === billingData.numeroDocumento && data.applicantName) {
             setBillingData({
@@ -76,7 +65,6 @@ export default function BillingDetailsStep({ data, billingData, setBillingData }
           } else {
             throw new Error("No se encontraron resultados");
           }
-        }
       }
     } catch (error: any) {
       setSearchFeedback({ type: 'warning', message: 'No se encontró el documento. Por favor, ingrese los datos manualmente.' });

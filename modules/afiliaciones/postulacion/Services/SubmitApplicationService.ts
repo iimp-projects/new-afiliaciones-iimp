@@ -6,6 +6,9 @@ import { ValidationException } from "./Exceptions/ValidationException";
 import { NotifySponsorsService } from "./NotifySponsorsService";
 import { NotifyApplicantService } from "./NotifyApplicantService";
 import { DeclarationPdfService } from "./DeclarationPdfService";
+import { ApplicationAccessService } from "./ApplicationAccessService";
+import { ApplicationFlowError } from "./Exceptions/ApplicationFlowError";
+import { canSubmitApplication } from "../Models/ApplicationAction";
 
 export class SubmitApplicationService {
   private readonly notifyService = new NotifySponsorsService();
@@ -17,8 +20,9 @@ export class SubmitApplicationService {
     private readonly validator: ApplicationValidator,
   ) {}
 
-  async execute(trackingCode: string): Promise<Application> {
+  async execute(trackingCode: string, token?: string): Promise<Application> {
     const application = await this.findApplication(trackingCode);
+    new ApplicationAccessService().require(Number(application.id), token);
     this.ensureDraft(application);
 
     const draft = this.getDraft(application);
@@ -78,8 +82,8 @@ export class SubmitApplicationService {
    * Verifica que la postulación pueda enviarse.
    */
   private ensureDraft(application: Application): void {
-    if (application.status !== "DRAFT" && application.status !== "PENDING") {
-      throw new Error("La postulación ya fue enviada.");
+    if (!canSubmitApplication(application.status)) {
+      throw new ApplicationFlowError("ALREADY_SUBMITTED", "Tu solicitud ya fue enviada. Puedes revisarla desde Consultar.");
     }
   }
 
