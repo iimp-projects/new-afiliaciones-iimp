@@ -96,12 +96,12 @@ export class NotifyApplicantService {
 
     const attachments = pdfBuffer
       ? [
-          {
-            filename: "Declaracion_Jurada_IIMP.pdf",
-            content: pdfBuffer,
-            contentType: "application/pdf",
-          },
-        ]
+        {
+          filename: "Declaracion_Jurada_IIMP.pdf",
+          content: pdfBuffer,
+          contentType: "application/pdf",
+        },
+      ]
       : [];
 
     try {
@@ -303,19 +303,17 @@ export class NotifyApplicantService {
               <div class="code-value">${trackingCode}</div>
             </div>
 
-            ${
-              observationComment
-                ? `
+            ${observationComment
+        ? `
             <div class="obs-box">
               <strong>Motivo de la Observación:</strong><br />
               ${observationComment}
             </div>`
-                : ""
-            }
+        : ""
+      }
 
-            ${
-              fieldLabels.length > 0
-                ? `
+            ${fieldLabels.length > 0
+        ? `
             <div class="field-list">
               <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: #64748B; margin-bottom: 8px;">
                 Campos o Documentos a Corregir:
@@ -324,8 +322,8 @@ export class NotifyApplicantService {
                 ${fieldLabels.map((f) => `<li class="field-item">${f}</li>`).join("")}
               </ul>
             </div>`
-                : ""
-            }
+        : ""
+      }
 
             <p style="font-size: 13px; color: #DC2626; font-weight: bold; text-align: center;">
               ⏳ Cuenta con un plazo de 5 días hábiles para ingresar al portal y subsanar las observaciones.
@@ -352,7 +350,7 @@ export class NotifyApplicantService {
     try {
       await this.mailService.sendMail({
         to: recipientEmail,
-        subject: `IIMP | Observaciones en su solicitud_ ${applicantName}`,
+        subject: `IIMP | Observaciones en Su Solicitud ${applicantName}`,
         html: htmlTemplate,
       });
       console.log("[NotifyApplicantService] Correo de observación enviado a:", recipientEmail);

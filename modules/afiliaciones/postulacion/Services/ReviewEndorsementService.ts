@@ -86,7 +86,7 @@ export class ReviewEndorsementService {
 
       await tx.securityEvent.create({
         data: {
-          type: Object.values(SecurityEventType)[0], 
+          type: Object.values(SecurityEventType)[0],
           ipAddress: options?.ipAddress || "SYSTEM",
           userAgent: options?.userAgent || "EMAIL_ACTION",
           metadata: {
@@ -161,7 +161,7 @@ export class ReviewEndorsementService {
             <div style="text-align: center; padding: 35px 30px 25px; border-bottom: 1px solid #EDF2F7;">
               <img src="https://s3-iimp-gestor-de-archivos-v3.s3.sa-east-1.amazonaws.com/boletines/images/IMG20260817_120138.png" alt="IIMP Logo" style="max-width: 160px; height: auto; display: block; margin: 0 auto 14px;" />
               <p style="margin: 0 0 6px; font-size: 11px; font-weight: 700; color: #C39254; letter-spacing: 1.5px; text-transform: uppercase;">Ecosistema Digital de Afiliaciones</p>
-              <h1 style="margin: 0; font-size: 20px; font-weight: 700; color: #C39254;">IIMP | Status de aprobación de aval_ ${applicantName}</h1>
+              <h1 style="margin: 0; font-size: 20px; font-weight: 700; color: #C39254;">Estado de Aprobación de Aval</h1>
             </div>
 
             <div class="content">

@@ -116,6 +116,30 @@ export class UpdateDraftService {
         };
         Object.keys(proposed).forEach((section) => compare(current[section], proposed[section], section));
 
+        // ── VALIDACIÓN NUEVA ──────────────────────────────────────────────────────
+        // Verificar que TODOS los campos observados fueron efectivamente modificados.
+        // Un campo se considera "atendido" cuando su valor en el draft propuesto
+        // difiere del valor en el draft actual (comparación profunda por JSON).
+        const getNestedValue = (obj: any, path: string): any =>
+            path.split(".").reduce((acc, key) => acc?.[key], obj);
+
+        const hasChanged = (path: string): boolean => {
+            const before = getNestedValue(current, path);
+            const after  = getNestedValue(proposed, path);
+            return JSON.stringify(before) !== JSON.stringify(after);
+        };
+
+        const unattended = [...allowed].filter((path) => !hasChanged(path));
+
+        if (unattended.length > 0) {
+            throw new ApplicationFlowError(
+                "CORRECTION_INCOMPLETE",
+                `Debe corregir todos los campos observados antes de enviar la subsanación. ` +
+                `Campos pendientes: ${unattended.join(", ")}.`
+            );
+        }
+        // ─────────────────────────────────────────────────────────────────────────
+
     }
 
     /**
