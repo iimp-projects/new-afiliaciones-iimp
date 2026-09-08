@@ -20,7 +20,7 @@ const input: CreatePaymentInput = {
   applicationId: 42,
   billingData: {
     tipoDocumento: "RUC",
-    numeroDocumento: "20123456789",
+    numeroDocumento: "10123456789",
     razonSocial: "Empresa de prueba SAC",
     direccionFiscal: "Av. Prueba 123",
     responsable: "Responsable de prueba",
@@ -118,7 +118,7 @@ describe("PaymentService", () => {
 
     expect(settings.getRegistrationPrice).toHaveBeenCalledOnce();
     expect(repository.created).toMatchObject({ applicationId: 42, amount: registrationPrice.toNumber(), currency: "PEN" });
-    expect(repository.created?.billingData.numeroDocumento).toBe("20123456789");
+    expect(repository.created?.billingData.numeroDocumento).toBe("10123456789");
     expect(result).toMatchObject({ paymentId: 99, status: scenario, amount: registrationPrice.toNumber(), currency: "PEN" });
     expect(repository.result?.status).toBe(scenario);
     expect(recalculate).toHaveBeenCalledTimes(scenario === "PAID" ? 1 : 0);
@@ -279,5 +279,15 @@ describe("PaymentService", () => {
     const service = new PaymentService(amountResolver as never, new MockPaymentProvider("PENDING"), repository, { recalculate: vi.fn() }, authorizedPayment, false, undefined, availability as never);
     await expect(service.initiate(input, "authorized")).rejects.toMatchObject({ status: 409 });
     expect(repository.created).toBeUndefined();
+  });
+
+  it("rechaza datos RUC 20 manipulados y falla si SUNAT no está disponible", async () => {
+    const repository = new PaymentRepositoryFake();
+    const lookup = { getRuc: vi.fn().mockResolvedValue({ status: "VERIFIED", data: { razonSocial: "Empresa oficial SAC", direccion: "Av. Oficial 123", numeroDocumento: "20123456789", estado: "ACTIVO", condicion: "HABIDO", departamento: "Lima", provincia: "Lima", distrito: "Lima" } }) };
+    const service = new PaymentService(undefined, new MockPaymentProvider("PENDING"), repository, { recalculate: vi.fn() }, authorizedPayment, false, undefined, undefined, lookup);
+    const request = { ...input, billingData: { ...input.billingData, numeroDocumento: "20123456789", razonSocial: "Manipulado", direccionFiscal: "Av. Alterada" } };
+    await expect(service.initiate(request, "authorized")).rejects.toMatchObject({ status: 422 });
+    lookup.getRuc.mockResolvedValueOnce({ status: "SERVICE_ERROR" });
+    await expect(service.initiate({ ...request, billingData: { ...request.billingData, razonSocial: "Empresa oficial SAC", direccionFiscal: "Av. Oficial 123" } }, "authorized")).rejects.toMatchObject({ status: 502 });
   });
 });

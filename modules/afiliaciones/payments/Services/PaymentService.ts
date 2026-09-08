@@ -1,4 +1,4 @@
-import { ApplicationStatus, PaymentGateway, PaymentStatus } from "@prisma/client";
+import { ApplicationStatus, BillingDocumentType, BillingReceiptType, BillingVerificationSource, BillingVerificationStatus, PaymentGateway, PaymentStatus } from "@prisma/client";
 import type { CreatePaymentInput } from "../DTOs/create-payment.schema";
 import type { AuthorizePaymentInput } from "../DTOs/authorize-payment.schema";
 import type { CreatePaymentResponse } from "../Models/PaymentResponse";
@@ -6,7 +6,7 @@ import { MockPaymentProvider } from "../Providers/MockPaymentProvider";
 import type { PaymentProvider } from "../Providers/PaymentProvider";
 import { NiubizPaymentProvider, NiubizProviderConfigurationError, NiubizProviderNotReadyError } from "../Providers/NiubizPaymentProvider";
 import { PaymentRepository } from "../Repositories/PaymentRepository";
-import type { IPaymentRepository, PaymentGatewayResult, PersistedPayment } from "../Repositories/Interfaces/IPaymentRepository";
+import type { BillingTraceability, IPaymentRepository, PaymentGatewayResult, PersistedPayment } from "../Repositories/Interfaces/IPaymentRepository";
 import { ApplicationStatusCalculatorService } from "../../postulacion/Services/ApplicationStatusCalculatorService";
 import { paymentConfig } from "../Config/PaymentConfig";
 import { PaymentAmountResolver } from "./PaymentAmountResolver";
@@ -14,6 +14,9 @@ import { paymentAuthorizationService } from "./PaymentAuthorizationService";
 import { NiubizAuthorizationHttpError, NiubizAuthorizationNetworkError } from "./Niubiz/NiubizAuthorizationService";
 import { PaymentConfirmationEmailService } from "./PaymentConfirmationEmailService";
 import { PaymentSettingsResolver } from "../../../security/system-settings/Services/PaymentSettingsResolver";
+import { billingDataSchema, type BillingDataInput } from "../DTOs/billing.schema";
+import { isLegalEntityRuc } from "../Rules/BillingDocumentRules";
+import { ApisNetPeService, type RucLookupResult } from "../../../shared/Services/ApisNetPeService";
 
 export class PaymentServiceError extends Error {
   constructor(message: string, readonly status: number) { super(message); }
@@ -29,10 +32,14 @@ export class PaymentService {
     private readonly isNiubizTest = paymentConfig.provider === "NIUBIZ" && paymentConfig.environment === "TEST",
     private readonly confirmationEmailService: Pick<PaymentConfirmationEmailService, "sendIfNeeded"> = new PaymentConfirmationEmailService(repository),
     private readonly paymentSettingsResolver: Pick<PaymentSettingsResolver, "assertPaymentInitiationAvailable" | "getNiubizCheckoutSettings"> = new PaymentSettingsResolver(),
+    private readonly rucLookup: Pick<ApisNetPeService, "getRuc"> = new ApisNetPeService(),
   ) {}
 
   async initiate(input: CreatePaymentInput, authorization: string | undefined, clientIp?: string): Promise<CreatePaymentResponse> {
     if (!this.authorizationService.verify(authorization, input.applicationId)) throw new PaymentServiceError("La autorización temporal de pago no es válida o expiró.", 403);
+    const applicationForBilling = await this.repository.findApplicationById(input.applicationId);
+    const resolvedBilling = await this.resolveBillingData(input.billingData, applicationForBilling?.documentNumber);
+    const billingData = resolvedBilling.billingData;
     const provider = await this.getInitiationProvider();
     this.assertProviderReady(provider);
     const startedPayment = await this.repository.withTransaction(async (tx) => {
@@ -43,7 +50,7 @@ export class PaymentService {
       if (activePayment) throw new PaymentServiceError("Ya existe un pago pendiente para esta postulación.", 409);
       await this.assertPaymentInitiationAvailable();
       const amount = await this.amountResolver.resolve();
-      const payment = await this.repository.createPendingPayment({ applicationId: input.applicationId, billingData: input.billingData, gateway: provider.gateway, ...amount }, tx);
+      const payment = await this.repository.createPendingPayment({ applicationId: input.applicationId, billingData, billingTraceability: resolvedBilling.billingTraceability, gateway: provider.gateway, ...amount }, tx);
       return { payment, application, resumed: false };
     });
 
@@ -51,7 +58,7 @@ export class PaymentService {
     const providerResult = await provider.initiate({
       paymentId: payment.id,
       applicationId: payment.applicationId,
-      billingData: input.billingData,
+      billingData,
       amount: payment.totalAmount,
       currency: payment.currency,
       customer: {
@@ -69,6 +76,26 @@ export class PaymentService {
       ? { ...providerResult, checkout: { ...providerResult.checkout, callbackUrl: this.withCallbackReference(providerResult.checkout.callbackUrl, payment) } }
       : providerResult;
     return this.toResponse(updatedPayment, responseProviderResult);
+  }
+
+  private async resolveBillingData(input: BillingDataInput, authorizedDocumentNumber?: string): Promise<{ billingData: BillingDataInput; billingTraceability: BillingTraceability }> {
+    const parsed = billingDataSchema.safeParse(input);
+    if (!parsed.success) throw new PaymentServiceError("Los datos de facturación no son válidos.", 422);
+    const billingData = parsed.data;
+    const documentType = billingData.tipoDocumento as BillingDocumentType;
+    const receiptType = documentType === BillingDocumentType.RUC ? BillingReceiptType.FACTURA : BillingReceiptType.BOLETA;
+    const manual = { documentType, receiptType, billingContact: billingData.responsable, verificationSource: BillingVerificationSource.MANUAL, verificationStatus: BillingVerificationStatus.NOT_VERIFIED } satisfies BillingTraceability;
+    if (documentType !== BillingDocumentType.RUC) {
+      const isAuthorized = billingData.numeroDocumento === authorizedDocumentNumber;
+      return { billingData, billingTraceability: isAuthorized ? { ...manual, verificationSource: BillingVerificationSource.PERSON_DATA, verificationStatus: BillingVerificationStatus.VERIFIED } : manual };
+    }
+    if (!isLegalEntityRuc(billingData.numeroDocumento)) return { billingData, billingTraceability: manual };
+    const lookup: RucLookupResult = await this.rucLookup.getRuc(billingData.numeroDocumento);
+    if (lookup.status === "SERVICE_ERROR") throw new PaymentServiceError("No se pudo verificar el RUC con SUNAT. Intente nuevamente.", 502);
+    if (lookup.status === "NOT_FOUND") return { billingData, billingTraceability: manual };
+    if (billingData.razonSocial.trim() !== lookup.data.razonSocial.trim() || billingData.direccionFiscal.trim() !== (lookup.data.direccion || "").trim()) throw new PaymentServiceError("Los datos oficiales del RUC no coinciden con SUNAT.", 422);
+    const officialBilling = { ...billingData, razonSocial: lookup.data.razonSocial, direccionFiscal: lookup.data.direccion || "" };
+    return { billingData: officialBilling, billingTraceability: { documentType, receiptType, billingContact: billingData.responsable, verificationSource: BillingVerificationSource.SUNAT, verificationStatus: BillingVerificationStatus.VERIFIED, verifiedBusinessName: lookup.data.razonSocial, verifiedBillingAddress: lookup.data.direccion || undefined, verifiedTaxStatus: lookup.data.estado || undefined, verifiedTaxCondition: lookup.data.condicion || undefined, verifiedAt: new Date() } };
   }
 
   async authorize(input: AuthorizePaymentInput, authorization: string | undefined): Promise<PersistedPayment> {

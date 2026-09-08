@@ -6,6 +6,7 @@ import { UpdateDraftDTO } from "../DTOs/update-draft.dto";
 import { ApplicationDraft } from "../Models/ApplicationDraft";
 import { blocksNewApplication, canEditApplication, canSubmitApplication, currentApplicationStates } from "../Models/ApplicationAction";
 import { ApplicationFlowError } from "../Services/Exceptions/ApplicationFlowError";
+import { normalizeEmploymentInformation } from "../Models/EmploymentInformation";
 
 export class ApplicationRepository implements IApplicationRepository {
   constructor(private readonly db = prisma) {}
@@ -158,6 +159,9 @@ export class ApplicationRepository implements IApplicationRepository {
         throw new ApplicationFlowError("APPLICATION_NOT_EDITABLE", "El estado de tu solicitud cambió. Revisa las acciones disponibles desde Consultar.");
       }
       const mergedDraft = { ...((application.draftData as Record<string, unknown>) ?? {}), ...dto.draftData };
+      if (mergedDraft.employmentInformation && typeof mergedDraft.employmentInformation === "object") {
+        mergedDraft.employmentInformation = normalizeEmploymentInformation(mergedDraft.employmentInformation as ApplicationDraft["employmentInformation"] extends infer T ? NonNullable<T> : never);
+      }
       const updated = await tx.membershipApplication.update({ where: { trackingCode }, data: { currentStep: application.status === "DRAFT" ? dto.currentStep : application.currentStep, draftData: mergedDraft as unknown as Prisma.InputJsonValue, lastAccessAt: new Date() } });
       return this.mapToEntity(updated);
     });
@@ -391,13 +395,15 @@ export class ApplicationRepository implements IApplicationRepository {
       return;
     }
 
-    const employment = draft.employmentInformation;
+    const employment = normalizeEmploymentInformation(draft.employmentInformation);
 
     await tx.employmentInfo.deleteMany({
       where: {
         personId,
       },
     });
+
+    if (employment.employmentStatus === "NOT_WORKING") return;
 
     await tx.employmentInfo.create({
       data: {

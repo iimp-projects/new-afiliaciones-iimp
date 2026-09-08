@@ -160,6 +160,14 @@ export class ApplicationApi {
     return result.data;
   }
 
+  async lookupRuc(ruc: string): Promise<{ status: "VERIFIED"; data: any } | { status: "NOT_FOUND" | "SERVICE_ERROR"; message: string }> {
+    const response = await fetch(`${this.baseUrl}/validate-ruc`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ruc }) });
+    const result = await response.json();
+    if (response.ok && result.success) return { status: "VERIFIED", data: result.data };
+    if (result.status === "NOT_FOUND" || result.status === "SERVICE_ERROR") return { status: result.status, message: result.message };
+    throw new Error(result.message ?? "Error consultando RUC.");
+  }
+
   /**
    * ============================================
    * BÚSQUEDA DE AVAL (ASOCIADO ACTIVO)
