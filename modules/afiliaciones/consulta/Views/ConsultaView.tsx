@@ -74,7 +74,7 @@ export function ConsultaView({ initialPaymentCallback }: ConsultaViewProps) {
 
   // ESTADO 1: INGRESO DE DATOS (Pantalla dividida)
   if (restoreState === "RESTORING_PAYMENT") {
-    return <PaymentLoadingOverlay title="Verificando tu pago" description="Estamos recuperando el resultado de la operación." secondaryText="Por favor, espera unos segundos." />;
+    return <PaymentLoadingOverlay title="Confirmando tu pago..." description="Estamos verificando la información de tu afiliación." secondaryText="Por favor, espera unos segundos." />;
   }
 
   if (restoreState === "RESTORE_FAILED") {
@@ -103,7 +103,7 @@ export function ConsultaView({ initialPaymentCallback }: ConsultaViewProps) {
     return <main className="min-h-screen grid place-items-center bg-slate-50 p-6"><ApplicationStateNotice status={currentStatus || "UNKNOWN"} context="CONSULTA" onPrimary={statusData.recoveryUrl ? () => { window.location.href = statusData.recoveryUrl!; } : undefined} onClose={() => setStatusData(null)} /></main>;
   }
   if (notice.action === "COMPLETED") {
-    return statusData.completedPayment || statusData.affiliateType === "STUDENT" ? <StatusCompleted data={statusData} onFinish={() => setStatusData(null)} /> : <main className="min-h-screen grid place-items-center bg-slate-50 p-6"><ApplicationStateNotice status="COMPLETED" context="CONSULTA" onClose={() => setStatusData(null)} /></main>;
+    return <StatusCompleted data={statusData} onFinish={() => setStatusData(null)} />;
   }
   if (notice.action === "CONTINUE_PAYMENT" || Boolean(restored)) {
     return <StatusPaymentReady data={statusData} onCancel={() => setStatusData(null)} initialBillingData={restored?.billingData} restoredPayment={restored?.payment} failureMessage={restored?.failure?.message} failureCode={restored?.failure?.code} />;

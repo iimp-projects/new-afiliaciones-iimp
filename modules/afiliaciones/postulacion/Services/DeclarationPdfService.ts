@@ -1,6 +1,7 @@
 import puppeteer from "puppeteer";
 import QRCode from "qrcode";
 import type { ApplicationDraft } from "../Models/ApplicationDraft";
+import { resolveEmploymentStatus } from "../Models/EmploymentInformation";
 import { prisma } from "@/lib/prisma";
 import { S3StorageService } from "@/modules/shared/Services/S3StorageService";
 
@@ -31,6 +32,7 @@ export class DeclarationPdfService {
     const personal = draft.personalInformation || ({} as any);
     const academic = draft.academicStudies?.[0] || ({} as any);
     const employment = draft.employmentInformation || ({} as any);
+    const employmentStatus = resolveEmploymentStatus(employment);
 
     // Extracción correcta de los avales
     const endorsements = draft.endorsements || ({} as any);
@@ -145,7 +147,8 @@ export class DeclarationPdfService {
       aval1,
       aval2,
       fechaActual,
-      categoria
+      categoria,
+      employmentStatus
     );
 
     // ==========================================
@@ -241,7 +244,8 @@ export class DeclarationPdfService {
     aval1: any,
     aval2: any,
     fechaActual: string,
-    categoria: string
+    categoria: string,
+    employmentStatus: ReturnType<typeof resolveEmploymentStatus>
   ): string {
     const nombres = personal.names || "";
     const apellidos = `${personal.fatherLastName || ""} ${personal.motherLastName || ""}`.trim();
@@ -537,21 +541,21 @@ export class DeclarationPdfService {
 
     <!-- SECCIÓN 3: INFORMACIÓN LABORAL -->
     <div class="section">
-      <div class="section-title">3. Información Laboral</div>
+      <div class="section-title">3. ${employmentStatus === "NOT_WORKING" ? "Situación Laboral" : employmentStatus === "SELF_EMPLOYED" ? "Actividad Profesional Independiente" : "Información Laboral"}</div>
       <div class="data-container">
         
         <div class="row">
           <div class="col w-50">
-            <div class="label">Empresa o Institución</div>
-            <div class="value">${employment.companyName || "----------------"}</div>
+            <div class="label">${employmentStatus === "NOT_WORKING" ? "Situación actual" : employmentStatus === "SELF_EMPLOYED" ? "Nombre comercial" : "Empresa o Institución"}</div>
+            <div class="value">${employmentStatus === "NOT_WORKING" ? "Actualmente no se encuentra laborando." : employment.companyName || "----------------"}</div>
           </div>
           <div class="col w-25">
-            <div class="label">RUC</div>
-            <div class="value">${employment.companyTaxId || "----------------"}</div>
+            <div class="label">${employmentStatus === "SELF_EMPLOYED" ? "RUC (opcional)" : "RUC"}</div>
+            <div class="value">${employmentStatus === "NOT_WORKING" ? "No aplica" : employment.companyTaxId || "----------------"}</div>
           </div>
           <div class="col w-25">
-            <div class="label">Cargo Actual</div>
-            <div class="value">${employment.positionName || "----------------"}</div>
+            <div class="label">${employmentStatus === "SELF_EMPLOYED" ? "Actividad principal / profesión" : "Cargo Actual"}</div>
+            <div class="value">${employmentStatus === "NOT_WORKING" ? "No aplica" : employment.positionName || "----------------"}</div>
           </div>
         </div>
 
