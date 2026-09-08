@@ -149,69 +149,58 @@ export class ReviewEndorsementService {
         <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <style>
+            body { margin: 0; padding: 30px 10px; background-color: #F4F5F7; font-family: 'Helvetica Neue', Arial, sans-serif; }
+            .card { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; border: 1px solid #E2E8F0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); overflow: hidden; }
+            .content { padding: 30px; color: #3E3E3D; font-size: 14px; line-height: 1.7; }
+          </style>
         </head>
-        <body style="margin: 0; padding: 40px 0; background-color: #f4f6f8; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
-          <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; border-collapse: separate; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
-            <!-- Encabezado con Logo e Identidad -->
-            <tr>
-              <td align="center" style="padding: 40px 40px 20px 40px;">
-                <img src="https://s3-iimp-gestor-de-archivos-v3.s3.sa-east-1.amazonaws.com/boletines/images/IMG20260817_120138.png" alt="Instituto de Ingenieros de Minas del Perú" width="160" style="display: block; margin-bottom: 20px; border: 0;">
-                <p style="margin: 0; font-size: 11px; font-weight: 700; color: #5c768d; letter-spacing: 1.5px; text-transform: uppercase;">
-                  ECOSISTEMA DIGITAL DE AFILIACIONES
-                </p>
-                <h1 style="margin: 8px 0 0 0; font-size: 22px; font-weight: 700; color: #c59b27; text-align: center;">
-                  Actualización de Aval
-                </h1>
-              </td>
-            </tr>
+        <body>
+          <div class="card">
+            <!-- CABECERA -->
+            <div style="text-align: center; padding: 35px 30px 25px; border-bottom: 1px solid #EDF2F7;">
+              <img src="https://s3-iimp-gestor-de-archivos-v3.s3.sa-east-1.amazonaws.com/boletines/images/IMG20260817_120138.png" alt="IIMP Logo" style="max-width: 160px; height: auto; display: block; margin: 0 auto 14px;" />
+              <p style="margin: 0 0 6px; font-size: 11px; font-weight: 700; color: #C39254; letter-spacing: 1.5px; text-transform: uppercase;">Ecosistema Digital de Afiliaciones</p>
+              <h1 style="margin: 0; font-size: 20px; font-weight: 700; color: #C39254;">IIMP | Status de aprobación de aval_ ${applicantName}</h1>
+            </div>
 
-            <!-- Línea Divisora -->
-            <tr>
-              <td style="padding: 0 40px;">
-                <div style="border-bottom: 1px solid #edf2f7; width: 100%;"></div>
-              </td>
-            </tr>
+            <div class="content">
+              <p>Estimado(a) <strong>${applicantName.toUpperCase()}</strong>,</p>
+              <p>Te informamos que tu aval <strong>${sponsorName}</strong> ha evaluado tu solicitud de incorporación como asociado al <strong>Instituto de Ingenieros de Minas del Perú (IIMP)</strong>.</p>
 
-            <!-- Cuerpo del Mensaje -->
-            <tr>
-              <td style="padding: 30px 40px; color: #2d3748; font-size: 15px; line-height: 1.6;">
-                <p style="margin-top: 0;">Estimado(a) <strong>${applicantName.toUpperCase()}</strong>,</p>
-                
-                <p>Te informamos que tu aval <strong>${sponsorName}</strong> ha evaluado tu solicitud de incorporación como asociado al <strong>Instituto de Ingenieros de Minas del Perú (IIMP)</strong>.</p>
-                
-                <!-- Caja de Estado / Resultado -->
-                <div style="background-color: ${statusBg}; border-radius: 8px; border: 1px solid ${statusColor}30; padding: 20px; margin: 25px 0; text-align: center;">
-                  <span style="display: block; font-size: 11px; font-weight: 700; color: #5c768d; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 6px;">
-                    RESULTADO DEL RESPALDO
-                  </span>
-                  <span style="font-size: 18px; font-weight: 800; color: ${statusColor}; letter-spacing: 0.5px;">
-                    ${statusText}
-                  </span>
-                </div>
+              <!-- Caja de Estado / Resultado -->
+              <div style="background-color: ${statusBg}; border-radius: 8px; border: 1px solid ${statusColor}30; padding: 20px; margin: 25px 0; text-align: center;">
+                <span style="display: block; font-size: 11px; font-weight: 700; color: #5c768d; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 6px;">
+                  RESULTADO DEL RESPALDO
+                </span>
+                <span style="font-size: 18px; font-weight: 800; color: ${statusColor}; letter-spacing: 0.5px;">
+                  ${statusText}
+                </span>
+              </div>
 
-                <p style="margin-bottom: 0;">${statusMessage}</p>
+              <p>${statusMessage}</p>
 
-                <!-- Botón de Acción (solo en RECHAZADO) -->
-                ${ctaButtonHtml}
-              </td>
-            </tr>
+              <!-- Botón de Acción (solo en RECHAZADO) -->
+              ${ctaButtonHtml}
+            </div>
 
-            <!-- Pie de página -->
-            <tr>
-              <td style="background-color: #fafbfc; padding: 20px 40px; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; border-top: 1px solid #edf2f7; text-align: center;">
-                <p style="margin: 0; font-size: 12px; color: #a0aec0;">
-                  © ${new Date().getFullYear()} Instituto de Ingenieros de Minas del Perú. Todos los derechos reservados.
-                </p>
-              </td>
-            </tr>
-          </table>
+            <!-- PIE DE PÁGINA -->
+            <div style="border-top: 1px solid #EDF2F7; padding: 20px 30px; text-align: center; font-size: 11px; color: #94A3B8; line-height: 1.8;">
+              © ${new Date().getFullYear()} Instituto de Ingenieros de Minas del Perú<br>
+              Calle Los Canarios 155-157, Urb. San César II Etapa, La Molina, Lima 12, Perú<br>
+              <a href="mailto:asociados@iimp.org.pe" style="color: #C39254; text-decoration: none;">asociados@iimp.org.pe</a>
+              &nbsp;|&nbsp;
+              <a href="mailto:liset.otoya@iimp.org.pe" style="color: #C39254; text-decoration: none;">liset.otoya@iimp.org.pe</a><br>
+              Lunes a viernes de 09:00 a 18:00 hrs.
+            </div>
+          </div>
         </body>
         </html>
       `;
 
       await this.mailService.sendMail({
         to: applicantEmail,
-        subject: "Actualización de Aval - Solicitud de Afiliación",
+        subject: `IIMP | Status de aprobación de aval_ ${applicantName}`,
         html: htmlContent,
       });
     }
