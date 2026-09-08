@@ -18,8 +18,14 @@ export interface ApplicationStatusData {
   recoveryUrl?: string | null;
   id?: number | string;
   applicationId?: number;
+  personId?: number | null;
   status: GlobalStatusType;
   applicationCode: string;
+  trackingCode?: string;
+  documentType?: string;
+  documentNumber?: string;
+  email?: string;
+  phone?: string;
   applicantName?: string;
   affiliateType?: string;
   completedPayment?: {
@@ -35,8 +41,9 @@ export interface ApplicationStatusData {
     cardBrand?: string | null;
     maskedCard?: string | null;
     cardType?: string | null;
+    paymentChannel?: string | null;
     traceNumber?: string | null;
-    billing?: { taxId: string; businessName: string; billingAddress?: string | null; invoice?: { type: string; serie: string; number: string; issueDate: string | Date; pdfUrl?: string | null } | null } | null;
+    billing?: { taxId: string; businessName: string; billingAddress?: string | null; billingEmail?: string | null; invoice?: { type: string; serie: string; number: string; issueDate: string | Date; pdfUrl?: string | null; xmlUrl?: string | null; sunatCdrUrl?: string | null } | null } | null;
   } | null;
   submissionDate?: string;
   updatedAt?: string;

@@ -85,6 +85,16 @@ export class PaymentRepository implements IPaymentRepository, IPaymentSandboxRes
             businessName: data.billingData.razonSocial,
             billingAddress: data.billingData.direccionFiscal,
             billingEmail: data.billingData.emailFacturacion,
+            documentType: data.billingTraceability.documentType,
+            receiptType: data.billingTraceability.receiptType,
+            billingContact: data.billingTraceability.billingContact,
+            verificationSource: data.billingTraceability.verificationSource,
+            verificationStatus: data.billingTraceability.verificationStatus,
+            verifiedBusinessName: data.billingTraceability.verifiedBusinessName,
+            verifiedBillingAddress: data.billingTraceability.verifiedBillingAddress,
+            verifiedTaxStatus: data.billingTraceability.verifiedTaxStatus,
+            verifiedTaxCondition: data.billingTraceability.verifiedTaxCondition,
+            verifiedAt: data.billingTraceability.verifiedAt,
           },
         },
       },
@@ -126,10 +136,10 @@ export class PaymentRepository implements IPaymentRepository, IPaymentSandboxRes
     const payment = await this.db.payment.findUnique({
       where: { id: paymentId },
       include: {
-        billing: { select: { taxId: true, businessName: true, billingAddress: true, billingEmail: true } },
+        billing: { select: { taxId: true, businessName: true, billingAddress: true, billingEmail: true, documentType: true, receiptType: true, billingContact: true, verificationSource: true, verificationStatus: true, verifiedBusinessName: true, verifiedBillingAddress: true, verifiedTaxStatus: true, verifiedTaxCondition: true, verifiedAt: true, invoice: { select: { type: true, serie: true, number: true, issueDate: true, pdfUrl: true, xmlUrl: true, sunatCdrUrl: true } } } },
         application: {
           select: {
-            status: true, applicationCode: true, draftData: true, email: true, phone: true, documentType: true, documentNumber: true, affiliateType: true,
+            status: true, applicationCode: true, trackingCode: true, draftData: true, email: true, phone: true, documentType: true, documentNumber: true, affiliateType: true, submittedAt: true, createdAt: true,
             person: { select: { firstName: true, paternalLastName: true, maternalLastName: true } },
           },
         },

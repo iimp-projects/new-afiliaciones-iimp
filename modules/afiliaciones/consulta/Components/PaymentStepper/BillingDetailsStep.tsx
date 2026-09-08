@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Search, FileText, Info, Building2, Fingerprint, User, AlertCircle, CheckCircle2, XCircle } from "lucide-react";
 import { ApplicationStatusData } from "@/modules/afiliaciones/consulta/Models/ApplicationStatus";
 import { applicationApi } from "@/modules/afiliaciones/postulacion/Services/ApplicationApi";
+import { isLegalEntityRuc, isValidBillingDocument } from "@/modules/afiliaciones/payments/Rules/BillingDocumentRules";
 
 interface Props {
   data: ApplicationStatusData;
@@ -22,6 +23,7 @@ export default function BillingDetailsStep({ data, billingData, setBillingData }
   const [isSearching, setIsSearching] = useState(false);
   const [isFormEnabled, setIsFormEnabled] = useState(false);
   const [searchFeedback, setSearchFeedback] = useState<{ type: 'success' | 'warning' | 'error', message: string } | null>(null);
+  const [isOfficialRuc20, setIsOfficialRuc20] = useState(false);
 
   const isRuc = billingData.tipoDocumento === "RUC";
 
@@ -40,17 +42,25 @@ export default function BillingDetailsStep({ data, billingData, setBillingData }
 
     try {
       if (isRuc) {
-        const response = await applicationApi.validateRuc(billingData.numeroDocumento);
-        if (response && response.razonSocial) {
+        const lookup = await applicationApi.lookupRuc(billingData.numeroDocumento);
+        if (lookup.status === "VERIFIED" && lookup.data?.razonSocial) {
+          const response = lookup.data;
           setBillingData({
             ...billingData,
             razonSocial: response.razonSocial,
             direccionFiscal: response.direccion || "",
           });
           setSearchFeedback({ type: 'success', message: 'Empresa validada correctamente en SUNAT.' });
+          setIsOfficialRuc20(isLegalEntityRuc(billingData.numeroDocumento));
+          setIsFormEnabled(true);
+        } else if (lookup.status === "NOT_FOUND") {
+          setSearchFeedback({ type: 'warning', message: 'RUC no encontrado. Puede ingresar datos manuales no verificados.' });
+          setBillingData({ ...billingData, razonSocial: "", direccionFiscal: "" });
+          setIsOfficialRuc20(false);
           setIsFormEnabled(true);
         } else {
-          throw new Error("No se encontraron resultados");
+          setSearchFeedback({ type: 'error', message: 'SUNAT no está disponible temporalmente. Intente nuevamente.' });
+          setIsOfficialRuc20(false);
         }
       } else {
           const docNumberPostulante = data.draftData?.personalInformation?.documentNumber;
@@ -69,7 +79,7 @@ export default function BillingDetailsStep({ data, billingData, setBillingData }
     } catch (error: any) {
       setSearchFeedback({ type: 'warning', message: 'No se encontró el documento. Por favor, ingrese los datos manualmente.' });
       setBillingData({ ...billingData, razonSocial: "", direccionFiscal: "" });
-      setIsFormEnabled(true); 
+      setIsFormEnabled(false);
     } finally {
       setIsSearching(false);
     }
@@ -138,17 +148,20 @@ export default function BillingDetailsStep({ data, billingData, setBillingData }
           </div>
         </div>
 
+        {isRuc && <div className="mb-7 rounded-xl border border-sky-200 bg-sky-50 p-4 text-sm text-slate-700"><div className="flex items-center gap-2 font-black text-slate-800"><Info size={18} className="text-sky-700" />Antes de emitir tu factura</div><p className="mt-2">Ingresa el RUC que utilizarás para la facturación y presiona “Consultar”. Validaremos los datos registrados en SUNAT antes de continuar con el pago.</p><p className="mt-2 text-sm font-semibold text-slate-600">RUC de 11 dígitos. La razón social y dirección fiscal verificadas por SUNAT no podrán modificarse.</p><ol className="mt-3 list-decimal space-y-1 pl-5 text-sm"><li>Ingresa los 11 dígitos del RUC.</li><li>Presiona “Consultar”.</li><li>Verifica los datos fiscales.</li><li>Completa el contacto y correo de facturación.</li></ol></div>}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-2xl mx-auto">
           <div>
-            <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block">
+            <label className="mb-2 block text-sm font-bold uppercase tracking-wide text-slate-700">
               Tipo de Documento <span className="text-red-500">*</span>
             </label>
             <select 
               value={billingData.tipoDocumento} 
               onChange={(e) => {
-                setBillingData({...billingData, tipoDocumento: e.target.value, razonSocial: "", direccionFiscal: "", numeroDocumento: ""});
+                setBillingData({ tipoDocumento: e.target.value, numeroDocumento: "", razonSocial: "", direccionFiscal: "", responsable: "", emailFacturacion: "" });
                 setIsFormEnabled(false);
                 setSearchFeedback(null);
+                setIsOfficialRuc20(false);
               }} 
               className="w-full h-12 px-4 rounded-xl border border-slate-300 bg-white text-slate-700 font-bold text-sm focus:ring-2 focus:ring-[#C5A059]/20 focus:border-[#C5A059] outline-none cursor-pointer"
             >
@@ -159,7 +172,7 @@ export default function BillingDetailsStep({ data, billingData, setBillingData }
           </div>
           <div>
             <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block">
-              Número de Documento <span className="text-red-500">*</span>
+              Número de Documento <button type="button" title="El RUC es el número de 11 dígitos que identifica a una persona o empresa ante SUNAT." aria-label="Ayuda sobre RUC" className="ml-1 inline-flex text-[#A67C00]"><Info size={14} /></button><span className="text-red-500">*</span>
             </label>
             <div className="flex shadow-sm">
               <input 
@@ -168,12 +181,12 @@ export default function BillingDetailsStep({ data, billingData, setBillingData }
                 value={billingData.numeroDocumento} 
                 onChange={(e) => setBillingData({...billingData, numeroDocumento: e.target.value.replace(/\D/g, '')})} 
                 placeholder="Ingrese número" 
-                className="w-full h-12 px-4 rounded-l-xl border border-r-0 border-slate-300 bg-white text-slate-700 font-bold text-sm focus:border-[#C5A059] outline-none" 
+                className="h-12 w-full rounded-l-xl border border-r-0 border-slate-300 bg-white px-4 text-base font-bold text-slate-700 outline-none focus:border-[#C5A059]" 
               />
               <button 
                 onClick={handleSearchDocument} 
-                disabled={isSearching || !billingData.numeroDocumento} 
-                className="h-12 px-5 bg-[#4a8f7c] hover:bg-[#3d7a69] disabled:bg-slate-300 text-white rounded-r-xl transition-colors flex items-center justify-center"
+                disabled={isSearching || !isValidBillingDocument(billingData.tipoDocumento as "DNI" | "CE" | "RUC", billingData.numeroDocumento)} 
+                className="flex h-12 items-center justify-center rounded-r-xl bg-[#C5A059] px-5 text-sm font-bold text-white transition-colors hover:bg-[#A67C00] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
               >
                 {isSearching ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : <Search size={20} />}
               </button>
@@ -191,11 +204,11 @@ export default function BillingDetailsStep({ data, billingData, setBillingData }
           <div className="grid grid-cols-1 md:grid-cols-12 gap-5 sm:gap-6">
             <div className="md:col-span-6">
               <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block">Nombre o Razón Social <span className="text-red-500">*</span></label>
-              <input type="text" value={billingData.razonSocial} onChange={(e) => setBillingData({...billingData, razonSocial: e.target.value})} className="w-full h-11 px-4 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#C5A059]/20 focus:border-[#C5A059] outline-none font-bold text-sm text-slate-700" />
+              <input type="text" readOnly={isOfficialRuc20} value={billingData.razonSocial} onChange={(e) => setBillingData({...billingData, razonSocial: e.target.value})} className="w-full h-11 px-4 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#C5A059]/20 focus:border-[#C5A059] outline-none font-bold text-sm text-slate-700 read-only:bg-slate-50" />
             </div>
             <div className="md:col-span-6">
               <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block">Dirección Fiscal <span className="text-red-500">*</span></label>
-              <input type="text" value={billingData.direccionFiscal} onChange={(e) => setBillingData({...billingData, direccionFiscal: e.target.value})} className="w-full h-11 px-4 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#C5A059]/20 focus:border-[#C5A059] outline-none font-bold text-sm text-slate-700" />
+              <input type="text" readOnly={isOfficialRuc20} value={billingData.direccionFiscal} onChange={(e) => setBillingData({...billingData, direccionFiscal: e.target.value})} className="w-full h-11 px-4 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#C5A059]/20 focus:border-[#C5A059] outline-none font-bold text-sm text-slate-700 read-only:bg-slate-50" />
             </div>
             <div className="md:col-span-6">
               <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block">Responsable de Facturación <span className="text-red-500">*</span></label>

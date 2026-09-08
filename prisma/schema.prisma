@@ -616,15 +616,25 @@ model Payment {
 }
 
 model Billing {
-  id             Int      @id @default(autoincrement())
-  paymentId      Int      @unique @map("payment_id")
-  taxId          String   @map("tax_id") @db.VarChar(20)
-  businessName   String   @map("business_name") @db.VarChar(250)
-  billingAddress String?  @map("billing_address") @db.VarChar(250)
-  countryId      Int?     @map("country_id")
-  billingEmail   String?  @map("billing_email") @db.VarChar(150)
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  id                     Int                       @id @default(autoincrement())
+  paymentId              Int                       @unique @map("payment_id")
+  taxId                  String                    @map("tax_id") @db.VarChar(20)
+  businessName           String                    @map("business_name") @db.VarChar(250)
+  billingAddress         String?                   @map("billing_address") @db.VarChar(250)
+  countryId              Int?                      @map("country_id")
+  billingEmail           String?                   @map("billing_email") @db.VarChar(150)
+  documentType           BillingDocumentType?      @map("document_type")
+  receiptType            BillingReceiptType?       @map("receipt_type")
+  billingContact         String?                   @map("billing_contact") @db.VarChar(150)
+  verificationSource     BillingVerificationSource? @map("verification_source")
+  verificationStatus     BillingVerificationStatus? @map("verification_status")
+  verifiedBusinessName   String?                   @map("verified_business_name") @db.VarChar(250)
+  verifiedBillingAddress String?                   @map("verified_billing_address") @db.VarChar(250)
+  verifiedTaxStatus      String?                   @map("verified_tax_status") @db.VarChar(80)
+  verifiedTaxCondition   String?                   @map("verified_tax_condition") @db.VarChar(80)
+  verifiedAt             DateTime?                 @map("verified_at")
+  createdAt              DateTime                  @default(now()) @map("created_at")
+  updatedAt              DateTime                  @updatedAt @map("updated_at")
   country        Country? @relation(fields: [countryId], references: [id], onDelete: Restrict)
   payment        Payment  @relation(fields: [paymentId], references: [id])
   invoice        Invoice?
@@ -1085,6 +1095,28 @@ enum InvoiceType {
   FACTURA
   CREDIT_NOTE
   DEBIT_NOTE
+}
+
+enum BillingDocumentType {
+  DNI
+  CE
+  RUC
+}
+
+enum BillingReceiptType {
+  BOLETA
+  FACTURA
+}
+
+enum BillingVerificationSource {
+  PERSON_DATA
+  SUNAT
+  MANUAL
+}
+
+enum BillingVerificationStatus {
+  VERIFIED
+  NOT_VERIFIED
 }
 
 enum PhoneType {

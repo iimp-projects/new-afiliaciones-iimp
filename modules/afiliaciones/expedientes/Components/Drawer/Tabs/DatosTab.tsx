@@ -58,6 +58,7 @@ export function DatosTab({ payload }: DatosTabProps) {
   const personalInfo = draft.personalInformation || {};
   const academicStudy = draft.academicStudies?.[0] || {};
   const employmentInfo = draft.employmentInformation || {};
+  const employmentStatus = employmentInfo.employmentStatus || (employmentInfo.isUnemployed ? "NOT_WORKING" : employmentInfo.isIndependent ? "SELF_EMPLOYED" : employmentInfo.companyName || employmentInfo.companyTaxId ? "EMPLOYED" : undefined);
   const endorsements = draft.endorsements || {};
   const approvals = payload.approvals || [];
   const isStudent = payload.affiliateType === "STUDENT";
@@ -234,7 +235,8 @@ export function DatosTab({ payload }: DatosTabProps) {
           </div>
 
           <div className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <DataField label="Empresa / Institución" value={employmentInfo.companyName} fullWidth />
+            {employmentStatus === "NOT_WORKING" ? <DataField label="Situación laboral actual" value="Actualmente no se encuentra laborando." fullWidth /> : <>
+            <DataField label={employmentStatus === "SELF_EMPLOYED" ? "Nombre comercial" : "Empresa / Institución"} value={employmentInfo.companyName} fullWidth />
 
             <DataField
               label="RUC Empresa"
@@ -244,8 +246,8 @@ export function DatosTab({ payload }: DatosTabProps) {
               })}
             />
 
-            <DataField label="Cargo" value={employmentInfo.positionName} />
-            <DataField label="Área / Departamento" value={employmentInfo.area} />
+            <DataField label={employmentStatus === "SELF_EMPLOYED" ? "Actividad principal / profesión" : "Cargo"} value={employmentInfo.positionName} />
+            <DataField label={employmentStatus === "SELF_EMPLOYED" ? "Especialidad / área profesional" : "Área / Departamento"} value={employmentInfo.area} />
             
             <DataField 
               label="Correo Corporativo" 
@@ -263,7 +265,8 @@ export function DatosTab({ payload }: DatosTabProps) {
               }
             />
 
-            <DataField label="Dirección Laboral" value={employmentInfo.workingAddress} fullWidth />
+            <DataField label={employmentStatus === "SELF_EMPLOYED" ? "Dirección profesional" : "Dirección Laboral"} value={employmentInfo.workingAddress} fullWidth />
+            </>}
           </div>
         </div>
       )}

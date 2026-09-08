@@ -1,5 +1,19 @@
 import type { ApplicationStatus, PaymentGateway, PaymentStatus, Prisma } from "@prisma/client";
 import type { BillingDataInput } from "../../DTOs/billing.schema";
+import type { BillingDocumentType, BillingReceiptType, BillingVerificationSource, BillingVerificationStatus } from "@prisma/client";
+
+export interface BillingTraceability {
+  documentType: BillingDocumentType;
+  receiptType: BillingReceiptType;
+  billingContact: string;
+  verificationSource: BillingVerificationSource;
+  verificationStatus: BillingVerificationStatus;
+  verifiedBusinessName?: string;
+  verifiedBillingAddress?: string;
+  verifiedTaxStatus?: string;
+  verifiedTaxCondition?: string;
+  verifiedAt?: Date;
+}
 import type { NiubizCheckoutConfig } from "../../DTOs/Niubiz/NiubizCheckout.dto";
 
 export type PaymentTransaction = Prisma.TransactionClient;
@@ -21,6 +35,7 @@ export interface PendingPaymentData {
   currency: "PEN";
   gateway: PaymentGateway;
   billingData: BillingDataInput;
+  billingTraceability: BillingTraceability;
 }
 
 export interface PaymentGatewayResult {
@@ -70,15 +85,34 @@ export interface PaymentConfirmationDetails extends PersistedPayment {
   application: {
     status: ApplicationStatus;
     applicationCode: string;
+    trackingCode: string;
     draftData: Prisma.JsonValue | null;
     email: string;
     phone: string;
     documentType: string;
     documentNumber: string;
     affiliateType: string;
+    submittedAt: Date | null;
+    createdAt: Date;
     person: { firstName: string; paternalLastName: string; maternalLastName: string | null } | null;
   };
-  billing: { taxId: string; businessName: string; billingAddress: string | null; billingEmail: string | null } | null;
+  billing: {
+    taxId: string;
+    businessName: string;
+    billingAddress: string | null;
+    billingEmail: string | null;
+    documentType: BillingDocumentType | null;
+    receiptType: BillingReceiptType | null;
+    billingContact: string | null;
+    verificationSource: BillingVerificationSource | null;
+    verificationStatus: BillingVerificationStatus | null;
+    verifiedBusinessName: string | null;
+    verifiedBillingAddress: string | null;
+    verifiedTaxStatus: string | null;
+    verifiedTaxCondition: string | null;
+    verifiedAt: Date | null;
+    invoice: { type: string; serie: string; number: string; issueDate: Date; pdfUrl: string | null; xmlUrl: string | null; sunatCdrUrl: string | null } | null;
+  } | null;
 }
 
 export interface IPaymentRepository {
