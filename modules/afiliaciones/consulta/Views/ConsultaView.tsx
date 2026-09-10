@@ -19,6 +19,7 @@ import { StatusCompleted } from "../Components/StatusCompleted";
 import { PaymentLoadingOverlay } from "@/modules/afiliaciones/payments/Components/PaymentLoadingOverlay";
 import type { ApplicationStatusData } from "../Models/ApplicationStatus";
 import type { BillingDataInput } from "@/modules/afiliaciones/payments/DTOs/billing.schema";
+import { PublicFooter } from "@/modules/shared/Components/PublicFooter";
 
 type RestoreState = "IDLE" | "RESTORING_PAYMENT" | "RESTORED" | "RESTORE_FAILED";
 type RestorePayload = {
@@ -155,6 +156,7 @@ export function ConsultaView({ initialPaymentCallback }: ConsultaViewProps) {
             </div>
           </div>
         </main>
+        <PublicFooter />
       </div>
     </div>
   );

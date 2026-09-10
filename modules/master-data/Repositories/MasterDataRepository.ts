@@ -19,7 +19,12 @@ export class MasterDataRepository {
     }
     if (entity === "DEGREE") {
       const degreeFilters: Prisma.AcademicDegreeWhereInput[] = [];
-      if (params.canonicalOnly) degreeFilters.push({ OR: [{ id: { in: [...APPROVED_ACADEMIC_DEGREE_IDS] } }, { code: { in: [...APPROVED_ACADEMIC_DEGREE_CODES] } }] });
+      if (params.canonicalOnly) {
+        const idFilter = APPROVED_ACADEMIC_DEGREE_IDS.length > 0 ? [{ id: { in: [...APPROVED_ACADEMIC_DEGREE_IDS] } }] : [];
+        const codeFilter = APPROVED_ACADEMIC_DEGREE_CODES.length > 0 ? [{ code: { in: [...APPROVED_ACADEMIC_DEGREE_CODES] } }] : [];
+        const orTerms = [...idFilter, ...codeFilter];
+        if (orTerms.length > 0) degreeFilters.push({ OR: orTerms });
+      }
       if (params.search) degreeFilters.push({ OR: [{ name: { contains: params.search, mode: "insensitive" } }, { code: { contains: params.search, mode: "insensitive" } }, { abbreviation: { contains: params.search, mode: "insensitive" } }] });
       const where: Prisma.AcademicDegreeWhereInput = { ...(isActive === undefined ? {} : { isActive }), ...(params.studyLevel ? { studyLevel: params.studyLevel } : {}), ...(degreeFilters.length ? { AND: degreeFilters } : {}) };
       const orderBy = params.sortBy === "id" ? { id: params.sortOrder } : params.sortBy === "createdAt" ? { createdAt: params.sortOrder } : params.sortBy === "references" ? { academicInfos: { _count: params.sortOrder } } : { name: params.sortOrder };

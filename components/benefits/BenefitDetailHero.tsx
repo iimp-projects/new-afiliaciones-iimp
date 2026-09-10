@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Play, MapPin, Calendar, Sparkles, ExternalLink, CheckCircle2, GraduationCap, Briefcase, ArrowRight } from "lucide-react";
+import { PublicFooter } from "@/modules/shared/Components/PublicFooter";
 
 interface BenefitData {
   id: string;
@@ -546,8 +547,7 @@ export default function BenefitDetailHero({ benefit }: { benefit: BenefitData })
         </div>
       </section>
 
-
-
+      <PublicFooter />
     </div>
   );
 }

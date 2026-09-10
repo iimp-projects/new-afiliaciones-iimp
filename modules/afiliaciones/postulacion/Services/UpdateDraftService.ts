@@ -94,28 +94,131 @@ export class UpdateDraftService {
             where: { applicationId: Number(application.id), status: "PENDING" },
             select: { fieldPaths: true },
         });
-        const allowed = new Set(
-            observations.flatMap((item) =>
-                Array.isArray(item.fieldPaths)
-                    ? item.fieldPaths.filter((path): path is string => typeof path === "string")
-                    : []
-            )
+        const rawObservedPaths = observations.flatMap((item) =>
+            Array.isArray(item.fieldPaths)
+                ? item.fieldPaths.filter((path): path is string => typeof path === "string")
+                : []
         );
+        const strictlyObserved = new Set(rawObservedPaths);
+
+        // Campos en cascada: si el padre fue observado, sus campos dependientes
+        // también se permiten modificar en el draft.
+        const DEPENDENT_CASCADE: Record<string, string[]> = {
+            "personalInformation.countryId": [
+                "personalInformation.departmentId",
+                "personalInformation.provinceId",
+                "personalInformation.districtId",
+            ],
+            "personalInformation.departmentId": [
+                "personalInformation.provinceId",
+                "personalInformation.districtId",
+            ],
+            "personalInformation.provinceId": [
+                "personalInformation.districtId",
+            ],
+            // Al observar el RUC, se permite actualizar también la empresa, dirección laboral y situación
+            "employmentInformation.companyTaxId": [
+                "employmentInformation.companyName",
+                "employmentInformation.isIndependent",
+                "employmentInformation.isUnemployed",
+                "employmentInformation.employmentStatus",
+                "employmentInformation.workingAddress",
+            ],
+        };
+
+        const allowedToModify = new Set(strictlyObserved);
+        for (const [parent, children] of Object.entries(DEPENDENT_CASCADE)) {
+            if (strictlyObserved.has(parent)) {
+                children.forEach((child) => allowedToModify.add(child));
+            }
+        }
+
         const current = (application.draftData ?? {}) as Record<string, any>;
         const proposed = dto.draftData as Record<string, any>;
 
         const compare = (before: any, after: any, path = ""): void => {
             if (JSON.stringify(before) === JSON.stringify(after)) return;
             // Si la ruta exacta está en las permitidas, se acepta cualquier cambio en esa rama
-            if (path && allowed.has(path)) return;
+            if (path && allowedToModify.has(path)) return;
             if (before && after && typeof before === "object" && typeof after === "object") {
                 const keys = new Set([...Object.keys(before), ...Object.keys(after)]);
                 keys.forEach((key) => compare(before[key], after[key], path ? `${path}.${key}` : key));
                 return;
             }
-            if (!allowed.has(path)) throw new ApplicationFlowError("APPLICATION_NOT_EDITABLE", "Solo puede modificar los campos solicitados en la observación.");
+            if (!allowedToModify.has(path)) {
+                throw new ApplicationFlowError("APPLICATION_NOT_EDITABLE", "Solo puede modificar los campos solicitados en la observación.");
+            }
         };
         Object.keys(proposed).forEach((section) => compare(current[section], proposed[section], section));
+
+        // ── VALIDACIÓN DE CAMPOS OBSERVADOS ATENDIDOS ─────────────────────────────
+        // Verificar que TODOS los campos observados fueron efectivamente modificados.
+        // Un campo se considera "atendido" cuando su valor en el draft propuesto
+        // difiere del valor en el draft actual (comparación profunda por JSON).
+        const getNestedValue = (obj: any, path: string): any =>
+            path.split(".").reduce((acc, key) => acc?.[key], obj);
+
+        const hasChanged = (path: string): boolean => {
+            const before = getNestedValue(current, path);
+            const after  = getNestedValue(proposed, path);
+            return JSON.stringify(before) !== JSON.stringify(after);
+        };
+
+        const implicitlyAddressed = new Set<string>();
+        for (const [parent, children] of Object.entries(DEPENDENT_CASCADE)) {
+            if (strictlyObserved.has(parent) && hasChanged(parent)) {
+                children.forEach((child) => implicitlyAddressed.add(child));
+            }
+        }
+
+        const unattended = [...strictlyObserved].filter(
+            (path) => !hasChanged(path) && !implicitlyAddressed.has(path)
+        );
+
+        const FIELD_LABELS: Record<string, string> = {
+            names: "Nombres",
+            fatherLastName: "Apellido paterno",
+            motherLastName: "Apellido materno",
+            birthDate: "Fecha de nacimiento",
+            gender: "Género",
+            phone: "Celular",
+            primaryEmail: "Correo principal",
+            secondaryEmail: "Correo secundario",
+            address: "Dirección",
+            countryId: "País",
+            departmentId: "Departamento",
+            provinceId: "Provincia",
+            districtId: "Distrito",
+            companyTaxId: "RUC / Situación laboral",
+            companyName: "Empresa",
+            area: "Área",
+            positionName: "Cargo",
+            workPhone: "Teléfono laboral",
+            workEmail: "Correo laboral",
+            workingAddress: "Dirección laboral",
+            degreeId: "Grado Académico",
+            degreeTitle: "Título obtenido",
+            specialty: "Especialidad",
+            professionalAssociation: "Colegio profesional",
+            registrationNumber: "Número de colegiatura",
+            declarationDocumentId: "Declaración jurada",
+            identityDocument: "Documento de identidad",
+            photo: "Fotografía",
+            universityLetter: "Constancia universitaria",
+        };
+
+        if (unattended.length > 0) {
+            const friendlyUnattended = unattended.map((path) => {
+                const key = path.split(".").at(-1) ?? path;
+                return FIELD_LABELS[key] ?? path;
+            });
+
+            throw new ApplicationFlowError(
+                "CORRECTION_INCOMPLETE",
+                `Debe corregir todos los campos observados antes de enviar la subsanación. Campos pendientes: ${friendlyUnattended.join(", ")}.`
+            );
+        }
+        // ─────────────────────────────────────────────────────────────────────────
 
     }
 
