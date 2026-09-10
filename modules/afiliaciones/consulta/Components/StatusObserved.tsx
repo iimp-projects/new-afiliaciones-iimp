@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { Search, CheckCircle2, AlertTriangle, CloudUpload, ExternalLink } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Search, CheckCircle2, AlertTriangle, CloudUpload, ExternalLink, BriefcaseBusiness, Building2, UserMinus, Info } from "lucide-react";
 import { ApplicationStatusData } from "../Models/ApplicationStatus";
 
 interface ExtendedApplicationStatusData extends Partial<ApplicationStatusData> {
@@ -75,21 +75,26 @@ const isFilePath = (path: string) =>
 const fieldLabels: Record<string, string> = {
   names: "Nombres",
   fatherLastName: "Apellido paterno",
-  motherLastName: "Apellido materno",
+  motherLastName: "Apellido mamterno",
   birthDate: "Fecha de nacimiento",
   gender: "Género",
   phone: "Celular",
   primaryEmail: "Correo principal",
   secondaryEmail: "Correo secundario",
   address: "Dirección",
-  companyTaxId: "RUC",
+  countryId: "País",
+  departmentId: "Departamento / Región",
+  provinceId: "Provincia",
+  districtId: "Distrito",
+  companyTaxId: "RUC / Situación laboral",
   companyName: "Empresa",
   area: "Área",
   positionName: "Cargo",
   workPhone: "Teléfono laboral",
   workEmail: "Correo laboral",
   workingAddress: "Dirección laboral",
-  degreeTitle: "Título o grado",
+  degreeId: "Grado Académico",
+  degreeTitle: "Título obtenido",
   specialty: "Especialidad",
   professionalAssociation: "Colegio profesional",
   registrationNumber: "Número de colegiatura",
@@ -99,6 +104,13 @@ const fieldLabels: Record<string, string> = {
   photo: "Fotografía",
   universityLetter: "Carta / Certificado universitario",
 };
+
+/** Campos geográficos que deben renderizarse como selects en cascada */
+const GEO_FIELDS = ["countryId", "departmentId", "provinceId", "districtId"] as const;
+type GeoField = typeof GEO_FIELDS[number];
+const isGeoField = (key: string): key is GeoField => (GEO_FIELDS as readonly string[]).includes(key);
+
+interface CatalogItem { id: number; name: string; }
 
 export const StatusObserved: React.FC<Props> = ({ data, onUploadSuccess }) => {
   // Estado del draft que el usuario puede editar
@@ -122,6 +134,97 @@ export const StatusObserved: React.FC<Props> = ({ data, onUploadSuccess }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // ── Catálogos geográficos en cascada ──────────────────────────────────
+  const [countries, setCountries] = useState<CatalogItem[]>([]);
+  const [departments, setDepartments] = useState<CatalogItem[]>([]);
+  const [provinces, setProvinces] = useState<CatalogItem[]>([]);
+  const [districts, setDistricts] = useState<CatalogItem[]>([]);
+
+  const geoCountryId: number | undefined = correctionDraft?.personalInformation?.countryId;
+  const geoDepartmentId: number | undefined = correctionDraft?.personalInformation?.departmentId;
+  const geoProvinceId: number | undefined = correctionDraft?.personalInformation?.provinceId;
+
+  useEffect(() => {
+    fetch("/api/catalogs/countries")
+      .then((r) => r.json())
+      .then(setCountries)
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (geoCountryId) {
+      fetch(`/api/catalogs/${geoCountryId}/departments`)
+        .then((r) => r.json())
+        .then((d: CatalogItem[]) => { setDepartments(d); if (!d.length) { setProvinces([]); setDistricts([]); } })
+        .catch(() => {});
+    } else { setDepartments([]); setProvinces([]); setDistricts([]); }
+  }, [geoCountryId]);
+
+  useEffect(() => {
+    if (geoDepartmentId) {
+      fetch(`/api/catalogs/${geoDepartmentId}/provinces`)
+        .then((r) => r.json())
+        .then((d: CatalogItem[]) => { setProvinces(d); if (!d.length) setDistricts([]); })
+        .catch(() => {});
+    } else { setProvinces([]); setDistricts([]); }
+  }, [geoDepartmentId]);
+
+  useEffect(() => {
+    if (geoProvinceId) {
+      fetch(`/api/catalogs/${geoProvinceId}/districts`)
+        .then((r) => r.json())
+        .then(setDistricts)
+        .catch(() => {});
+    } else { setDistricts([]); }
+  }, [geoProvinceId]);
+  // ─────────────────────────────────────────────────────────────────────────
+
+  // ── Catálogo de grados académicos ─────────────────────────────────────
+  const [degrees, setDegrees] = useState<CatalogItem[]>([]);
+  useEffect(() => {
+    fetch("/api/catalogs/degrees")
+      .then((r) => r.json())
+      .then((d) => setDegrees(d.data ?? d))
+      .catch(() => {});
+  }, []);
+  // ─────────────────────────────────────────────────────────────────────────
+
+  // ── RUC / Situación laboral ───────────────────────────────────────────
+  type RucState = "IDLE" | "LOADING" | "VERIFIED" | "NOT_FOUND" | "SERVICE_ERROR";
+  const [rucState, setRucState] = useState<RucState>("IDLE");
+  const [rucFeedback, setRucFeedback] = useState<string | null>(null);
+  const [isSearchingRuc, setIsSearchingRuc] = useState(false);
+
+  const searchRucInCorrection = async () => {
+    const ruc = correctionDraft?.employmentInformation?.companyTaxId ?? "";
+    if (ruc.length !== 11) return;
+    setIsSearchingRuc(true); setRucState("LOADING"); setRucFeedback(null);
+    try {
+      const res = await fetch("/api/afiliaciones/postulacion/validate-ruc", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ruc }),
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setRucState("VERIFIED");
+        setRucFeedback("RUC verificado correctamente por SUNAT.");
+        setCorrectionDraft((prev) => writePath(writePath(prev,
+          "employmentInformation.companyName", json.data?.razonSocial ?? ""),
+          "employmentInformation.workingAddress", json.data?.direccion ?? ""
+        ));
+      } else if (res.status === 404) {
+        setRucState("NOT_FOUND");
+        setRucFeedback("No encontramos info para este RUC. Puedes completar los datos manualmente.");
+      } else {
+        setRucState("SERVICE_ERROR");
+        setRucFeedback("El servicio SUNAT no está disponible. Puedes continuar manualmente.");
+      }
+    } catch { setRucState("SERVICE_ERROR"); setRucFeedback("Error al consultar SUNAT."); }
+    finally { setIsSearchingRuc(false); }
+  };
+  // ─────────────────────────────────────────────────────────────────────────
 
   // ─────────────────────────────────────────────────────────────────────
   // Campos observados que debe corregir el postulante
@@ -332,6 +435,19 @@ export const StatusObserved: React.FC<Props> = ({ data, onUploadSuccess }) => {
   });
   const hasTextChanges = observedFields.some((path) => {
     if (isFilePath(path)) return false;
+    if (path.endsWith("companyTaxId")) {
+      const origEmp = originalDraft?.employmentInformation ?? {};
+      const currEmp = correctionDraft?.employmentInformation ?? {};
+      if (
+        currEmp.companyTaxId !== origEmp.companyTaxId ||
+        currEmp.companyName !== origEmp.companyName ||
+        currEmp.employmentStatus !== origEmp.employmentStatus ||
+        currEmp.isIndependent !== origEmp.isIndependent ||
+        currEmp.isUnemployed !== origEmp.isUnemployed
+      ) {
+        return true;
+      }
+    }
     return readPath(correctionDraft, path) !== readPath(originalDraft, path);
   });
   const hasPendingChanges = hasFileChanges || hasTextChanges;
@@ -486,7 +602,319 @@ export const StatusObserved: React.FC<Props> = ({ data, onUploadSuccess }) => {
                   );
                 }
 
-                // ── Campo de texto ──
+                // ── Campo geográfico (select en cascada) ──
+                if (isGeoField(fieldKey)) {
+                  const geoOptions: Record<GeoField, CatalogItem[]> = {
+                    countryId: countries,
+                    departmentId: departments,
+                    provinceId: provinces,
+                    districtId: districts,
+                  };
+
+                  // El campo padre aún no fue seleccionado
+                  const parentNotSelected =
+                    (fieldKey === "departmentId" && !geoCountryId) ||
+                    (fieldKey === "provinceId" && !geoDepartmentId) ||
+                    (fieldKey === "districtId" && !geoProvinceId);
+
+                  // El padre fue seleccionado pero su catálogo está vacío
+                  const parentSelectedButEmpty =
+                    (fieldKey === "departmentId" && geoCountryId && departments.length === 0) ||
+                    (fieldKey === "provinceId" && geoDepartmentId && provinces.length === 0) ||
+                    (fieldKey === "districtId" && geoProvinceId && districts.length === 0);
+
+                  const noApplyLabels: Record<GeoField, string> = {
+                    countryId: "",
+                    departmentId: "El país seleccionado no requiere seleccionar departamento.",
+                    provinceId: "El departamento seleccionado no requiere seleccionar provincia.",
+                    districtId: "La provincia seleccionada no requiere seleccionar distrito.",
+                  };
+
+                  const options = geoOptions[fieldKey];
+                  const currentVal = readPath(correctionDraft, path);
+
+                  // Si el catálogo está vacío y el padre sí fue seleccionado,
+                  // mostrar un mensaje y asegurar que el valor sea null
+                  if (parentSelectedButEmpty) {
+                    return (
+                      <div key={path} className="text-xs text-slate-700 col-span-1">
+                        <span className="block font-semibold mb-1">{label}</span>
+                        <div className="flex items-center gap-2 px-3 py-2.5 bg-blue-50 border border-blue-100 rounded-xl text-blue-600 text-[11px]">
+                          <span>ℹ️</span>
+                          <span>{noApplyLabels[fieldKey]}</span>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  if (parentNotSelected) {
+                    return (
+                      <div key={path} className="text-xs text-slate-700 col-span-1">
+                        <span className="block font-semibold mb-1">{label}</span>
+                        <div className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-gray-50 flex items-center text-slate-400 text-sm">
+                          Seleccione...
+                        </div>
+                        <p className="text-[10px] text-slate-400 mt-1">Seleccione primero el campo anterior.</p>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <label key={path} className="text-xs font-semibold text-slate-700 col-span-1">
+                      <span className="block mb-1.5">{label}</span>
+                      <select
+                        value={currentVal ?? ""}
+                        onChange={(e) => {
+                          const newVal = e.target.value ? Number(e.target.value) : null;
+                          if (fieldKey === "countryId") {
+                            setCorrectionDraft((prev) => {
+                              let next = writePath(prev, path, newVal);
+                              next = writePath(next, "personalInformation.departmentId", null);
+                              next = writePath(next, "personalInformation.provinceId", null);
+                              next = writePath(next, "personalInformation.districtId", null);
+                              return next;
+                            });
+                          } else if (fieldKey === "departmentId") {
+                            setCorrectionDraft((prev) => {
+                              let next = writePath(prev, path, newVal);
+                              next = writePath(next, "personalInformation.provinceId", null);
+                              next = writePath(next, "personalInformation.districtId", null);
+                              return next;
+                            });
+                          } else if (fieldKey === "provinceId") {
+                            setCorrectionDraft((prev) => {
+                              let next = writePath(prev, path, newVal);
+                              next = writePath(next, "personalInformation.districtId", null);
+                              return next;
+                            });
+                          } else {
+                            setCorrectionDraft((prev) => writePath(prev, path, newVal));
+                          }
+                        }}
+                        className="w-full h-10 px-3 rounded-xl border border-slate-300 bg-white text-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-[#C5A059]"
+                      >
+                        <option value="">Seleccione...</option>
+                        {options.map((opt) => (
+                          <option key={opt.id} value={opt.id}>{opt.name}</option>
+                        ))}
+                      </select>
+                    </label>
+                  );
+                }
+
+                // ── Campo de grado académico (select con catálogo) ──
+                if (fieldKey === "degreeId") {
+                  const currentVal = readPath(correctionDraft, path);
+                  return (
+                    <label key={path} className="text-xs font-semibold text-slate-700 col-span-1">
+                      <span className="block mb-1.5">{label}</span>
+                      <select
+                        value={currentVal ?? ""}
+                        onChange={(e) => {
+                          const val = e.target.value ? Number(e.target.value) : null;
+                          setCorrectionDraft((prev) => writePath(prev, path, val));
+                        }}
+                        className="w-full h-10 px-3 rounded-xl border border-slate-300 bg-white text-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-[#C5A059]"
+                      >
+                        <option value="">Seleccione grado académico...</option>
+                        {degrees.map((deg) => (
+                          <option key={deg.id} value={deg.id}>
+                            {deg.name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  );
+                }
+
+                // ── Campo de RUC / Situación laboral ──
+                if (fieldKey === "companyTaxId") {
+                  const empInfo = correctionDraft?.employmentInformation ?? {};
+                  const currentStatus =
+                    empInfo.employmentStatus ||
+                    (empInfo.isUnemployed
+                      ? "NOT_WORKING"
+                      : empInfo.isIndependent
+                      ? "SELF_EMPLOYED"
+                      : "EMPLOYED");
+                  const rucVal = empInfo.companyTaxId ?? "";
+                  const companyNameVal = empInfo.companyName ?? "";
+
+                  const setEmploymentMode = (mode: "EMPLOYED" | "SELF_EMPLOYED" | "NOT_WORKING") => {
+                    setCorrectionDraft((prev) => {
+                      let next = writePath(prev, "employmentInformation.employmentStatus", mode);
+                      if (mode === "EMPLOYED") {
+                        next = writePath(next, "employmentInformation.isIndependent", false);
+                        next = writePath(next, "employmentInformation.isUnemployed", false);
+                      } else if (mode === "SELF_EMPLOYED") {
+                        next = writePath(next, "employmentInformation.isIndependent", true);
+                        next = writePath(next, "employmentInformation.isUnemployed", false);
+                      } else {
+                        next = writePath(next, "employmentInformation.isIndependent", false);
+                        next = writePath(next, "employmentInformation.isUnemployed", true);
+                        next = writePath(next, "employmentInformation.companyTaxId", "");
+                        next = writePath(next, "employmentInformation.companyName", "");
+                        next = writePath(next, "employmentInformation.workingAddress", "");
+                      }
+                      return next;
+                    });
+                    setRucFeedback(null);
+                    setRucState("IDLE");
+                  };
+
+                  return (
+                    <div
+                      key={path}
+                      className="col-span-1 sm:col-span-2 space-y-4 rounded-2xl border border-slate-200 bg-slate-50/50 p-4"
+                    >
+                      <div>
+                        <span className="text-xs font-bold uppercase tracking-wider text-[#A67C00] block mb-1">
+                          Situación Laboral
+                        </span>
+                        <p className="text-xs text-slate-500">
+                          Seleccione su condición laboral y actualice la información requerida.
+                        </p>
+                      </div>
+
+                      {/* Selector de situación laboral */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setEmploymentMode("EMPLOYED")}
+                          className={`flex items-center gap-2 p-3 rounded-xl border text-left text-xs font-semibold transition ${
+                            currentStatus === "EMPLOYED"
+                              ? "border-[#C5A059] bg-[#FFF9EC] text-slate-900 shadow-sm"
+                              : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                          }`}
+                        >
+                          <Building2
+                            className={`w-4 h-4 shrink-0 ${
+                              currentStatus === "EMPLOYED" ? "text-[#C5A059]" : "text-slate-400"
+                            }`}
+                          />
+                          <span>En una empresa</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEmploymentMode("SELF_EMPLOYED")}
+                          className={`flex items-center gap-2 p-3 rounded-xl border text-left text-xs font-semibold transition ${
+                            currentStatus === "SELF_EMPLOYED"
+                              ? "border-[#C5A059] bg-[#FFF9EC] text-slate-900 shadow-sm"
+                              : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                          }`}
+                        >
+                          <BriefcaseBusiness
+                            className={`w-4 h-4 shrink-0 ${
+                              currentStatus === "SELF_EMPLOYED" ? "text-[#C5A059]" : "text-slate-400"
+                            }`}
+                          />
+                          <span>Independiente</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEmploymentMode("NOT_WORKING")}
+                          className={`flex items-center gap-2 p-3 rounded-xl border text-left text-xs font-semibold transition ${
+                            currentStatus === "NOT_WORKING"
+                              ? "border-emerald-500 bg-emerald-50 text-emerald-900 shadow-sm"
+                              : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                          }`}
+                        >
+                          <UserMinus
+                            className={`w-4 h-4 shrink-0 ${
+                              currentStatus === "NOT_WORKING" ? "text-emerald-600" : "text-slate-400"
+                            }`}
+                          />
+                          <span>No laborando</span>
+                        </button>
+                      </div>
+
+                      {currentStatus === "NOT_WORKING" ? (
+                        <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 font-medium">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                          <span>
+                            Ha indicado que actualmente no se encuentra laborando. No requiere registrar RUC ni empresa.
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="space-y-3 pt-1">
+                          {/* Input RUC con botón Consultar */}
+                          <div>
+                            <label className="text-xs font-semibold text-slate-700 block mb-1">
+                              {currentStatus === "EMPLOYED" ? "RUC de la Empresa" : "RUC (Opcional)"}
+                            </label>
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                maxLength={11}
+                                value={rucVal}
+                                placeholder="Ingrese RUC de 11 dígitos"
+                                onChange={(e) => {
+                                  const val = e.target.value.replace(/\D/g, "").slice(0, 11);
+                                  setCorrectionDraft((prev) =>
+                                    writePath(prev, "employmentInformation.companyTaxId", val)
+                                  );
+                                  setRucState("IDLE");
+                                  setRucFeedback(null);
+                                }}
+                                className="flex-1 h-10 px-3 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#C5A059] bg-white"
+                              />
+                              <button
+                                type="button"
+                                onClick={searchRucInCorrection}
+                                disabled={isSearchingRuc || rucVal.length !== 11}
+                                className="h-10 px-4 rounded-xl bg-[#C5A059] hover:bg-[#A67C00] text-white text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
+                              >
+                                <Search className="w-3.5 h-3.5" />
+                                {isSearchingRuc ? "Buscando..." : "Consultar SUNAT"}
+                              </button>
+                            </div>
+                            {rucFeedback && (
+                              <p
+                                className={`mt-1.5 text-xs font-medium ${
+                                  rucState === "VERIFIED" ? "text-emerald-700" : "text-amber-700"
+                                }`}
+                              >
+                                {rucFeedback}
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Nombre de la empresa vinculado */}
+                          <div>
+                            <label className="text-xs font-semibold text-slate-700 block mb-1">
+                              {currentStatus === "EMPLOYED"
+                                ? "Nombre / Razón Social de la Empresa"
+                                : "Nombre Comercial / Razón Social"}
+                            </label>
+                            <input
+                              type="text"
+                              value={companyNameVal}
+                              onChange={(e) =>
+                                setCorrectionDraft((prev) =>
+                                  writePath(prev, "employmentInformation.companyName", e.target.value)
+                                )
+                              }
+                              placeholder="Nombre de la empresa"
+                              className="w-full h-10 px-3 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#C5A059] bg-white"
+                            />
+                            {rucState === "VERIFIED" && (
+                              <p className="mt-1 text-[11px] text-emerald-600 font-medium">
+                                ✓ Obtenido desde SUNAT
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                // Si se observó companyName pero ya está integrado en companyTaxId, lo omitimos para no duplicar
+                if (fieldKey === "companyName" && observedFields.some((p) => p.endsWith("companyTaxId"))) {
+                  return null;
+                }
+
+                // ── Campo de texto general ──
                 const fieldType = fieldKey.includes("Email")
                   ? "email"
                   : fieldKey.includes("Date")

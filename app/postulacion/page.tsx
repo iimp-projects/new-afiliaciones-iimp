@@ -585,6 +585,7 @@ import {
   ChevronDown,
   FileText,
 } from "lucide-react";
+import { PublicFooter } from "@/modules/shared/Components/PublicFooter";
 
 
 export default function PostulacionLandingPage() {
@@ -1117,7 +1118,7 @@ export default function PostulacionLandingPage() {
           </div>
 
           {/* Botón de dudas */}
-          <div className="text-center mt-12">
+          <div className="text-center mt-12 mb-12">
             <p className="text-sm text-secondary">
               ¿Tienes dudas sobre los requisitos?{" "}
               <a
@@ -1130,6 +1131,7 @@ export default function PostulacionLandingPage() {
           </div>
         </div>
       </section>
+      <PublicFooter />
     </main>
   );
 }

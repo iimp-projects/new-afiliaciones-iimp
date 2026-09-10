@@ -5,6 +5,7 @@ import { CheckCircle2, CreditCard, FileText, Home, ReceiptText, UserRound } from
 import Image from "next/image";
 import { useEffect, useRef } from "react";
 import type { ApplicationStatusData } from "../Models/ApplicationStatus";
+import { PublicFooter } from "@/modules/shared/Components/PublicFooter";
 
 interface Props { data: ApplicationStatusData; onFinish?: () => void; }
 
@@ -98,6 +99,7 @@ export function StatusCompleted({ data, onFinish }: Props) {
           </div>
         </div>
       </section>
+      <PublicFooter />
     </main>
   );
 }
