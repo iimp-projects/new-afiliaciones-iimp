@@ -3,6 +3,7 @@ import { prisma } from "../../../../lib/prisma";
 import type {
   IPaymentRepository,
   PaymentApplicationSnapshot,
+  ActivePaymentIntegrationSource,
   PaymentGatewayResult,
   PaymentTransaction,
   PendingPaymentData,
@@ -42,7 +43,7 @@ export class PaymentRepository implements IPaymentRepository, IPaymentSandboxRes
         status: { in: [PaymentStatus.PENDING, PaymentStatus.PROCESSING] },
       },
       orderBy: { createdAt: "desc" },
-      select: { id: true, applicationId: true, totalAmount: true, currency: true, gateway: true, status: true },
+      select: { id: true, applicationId: true, totalAmount: true, registrationAmount: true, membershipFeeAmount: true, currency: true, gateway: true, status: true },
     });
 
     return payment ? this.toPersistedPayment(payment) : null;
@@ -51,7 +52,7 @@ export class PaymentRepository implements IPaymentRepository, IPaymentSandboxRes
   async findPaymentByIdForApplication(paymentId: number, applicationId: number, tx?: PaymentTransaction): Promise<PersistedPayment | null> {
     const payment = await this.client(tx).payment.findFirst({
       where: { id: paymentId, applicationId },
-      select: { id: true, applicationId: true, totalAmount: true, currency: true, gateway: true, status: true },
+      select: { id: true, applicationId: true, totalAmount: true, registrationAmount: true, membershipFeeAmount: true, currency: true, gateway: true, status: true },
     });
 
     return payment ? this.toPersistedPayment(payment) : null;
@@ -66,7 +67,7 @@ export class PaymentRepository implements IPaymentRepository, IPaymentSandboxRes
 
     const payment = await this.db.payment.findUnique({
       where: { id: paymentId },
-      select: { id: true, applicationId: true, totalAmount: true, currency: true, gateway: true, status: true },
+      select: { id: true, applicationId: true, totalAmount: true, registrationAmount: true, membershipFeeAmount: true, currency: true, gateway: true, status: true },
     });
     return payment ? this.toPersistedPayment(payment) : null;
   }
@@ -76,7 +77,9 @@ export class PaymentRepository implements IPaymentRepository, IPaymentSandboxRes
       data: {
         applicationId: data.applicationId,
         gateway: data.gateway,
-        totalAmount: new Prisma.Decimal(data.amount),
+        totalAmount: new Prisma.Decimal(data.totalAmount),
+        registrationAmount: new Prisma.Decimal(data.registrationAmount),
+        membershipFeeAmount: new Prisma.Decimal(data.membershipFeeAmount),
         currency: Currency.PEN,
         status: PaymentStatus.PENDING,
         billing: {
@@ -98,7 +101,7 @@ export class PaymentRepository implements IPaymentRepository, IPaymentSandboxRes
           },
         },
       },
-      select: { id: true, applicationId: true, totalAmount: true, currency: true, gateway: true, status: true },
+      select: { id: true, applicationId: true, totalAmount: true, registrationAmount: true, membershipFeeAmount: true, currency: true, gateway: true, status: true },
     });
 
     return this.toPersistedPayment(payment);
@@ -126,10 +129,20 @@ export class PaymentRepository implements IPaymentRepository, IPaymentSandboxRes
         gatewayPayload: result.gatewayPayload,
         paymentDate: result.status === PaymentStatus.PAID ? new Date() : null,
       },
-      select: { id: true, applicationId: true, totalAmount: true, currency: true, gateway: true, status: true },
+      select: { id: true, applicationId: true, totalAmount: true, registrationAmount: true, membershipFeeAmount: true, currency: true, gateway: true, status: true },
     });
 
     return this.toPersistedPayment(payment);
+  }
+
+  async findActivePaymentIntegrationSource(paymentId: number, tx: PaymentTransaction): Promise<ActivePaymentIntegrationSource | null> {
+    const payment = await this.client(tx).payment.findUnique({ where: { id: paymentId }, select: {
+      id: true, applicationId: true, status: true, registrationAmount: true, membershipFeeAmount: true, totalAmount: true, currency: true, paymentDate: true,
+      billing: { select: { taxId: true, businessName: true, billingAddress: true, billingEmail: true, documentType: true, receiptType: true, billingContact: true } },
+      application: { select: { affiliateType: true, documentType: true, documentNumber: true, email: true, phone: true, person: { select: { firstName: true, paternalLastName: true, maternalLastName: true, gender: true, addresses: { select: { street: true, isPrimary: true } } } } } },
+    } });
+    if (!payment || payment.application.affiliateType !== "ACTIVE") return null;
+    return { applicationId: payment.applicationId, documentType: payment.application.documentType, documentNumber: payment.application.documentNumber, email: payment.application.email, phone: payment.application.phone, person: payment.application.person, billing: payment.billing, payment: { id: payment.id, status: payment.status, registrationAmount: payment.registrationAmount?.toNumber() ?? null, membershipFeeAmount: payment.membershipFeeAmount?.toNumber() ?? null, totalAmount: payment.totalAmount.toNumber(), currency: payment.currency as "PEN", paymentDate: payment.paymentDate } };
   }
 
   async findPaymentConfirmationDetails(paymentId: number): Promise<import("./Interfaces/IPaymentRepository").PaymentConfirmationDetails | null> {
@@ -246,6 +259,8 @@ export class PaymentRepository implements IPaymentRepository, IPaymentSandboxRes
     id: number;
     applicationId: number;
     totalAmount: Prisma.Decimal;
+    registrationAmount: Prisma.Decimal | null;
+    membershipFeeAmount: Prisma.Decimal | null;
     currency: Currency;
     gateway: import("@prisma/client").PaymentGateway;
     status: PaymentStatus;
@@ -254,6 +269,8 @@ export class PaymentRepository implements IPaymentRepository, IPaymentSandboxRes
       id: payment.id,
       applicationId: payment.applicationId,
       totalAmount: payment.totalAmount.toNumber(),
+      registrationAmount: payment.registrationAmount?.toNumber() ?? null,
+      membershipFeeAmount: payment.membershipFeeAmount?.toNumber() ?? null,
       currency: payment.currency as "PEN",
       gateway: payment.gateway,
       status: payment.status,

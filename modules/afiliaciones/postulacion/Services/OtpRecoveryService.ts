@@ -104,7 +104,7 @@ export class OtpRecoveryService {
       } else if (channel === "SMS") {
         await this.smsService.sendSms(destination, `IIMP: Tu codigo de verificacion es ${code}. Valido por 15 minutos. No lo compartas con nadie.`);
       } else {
-        await this.whatsappService.sendWhatsApp(destination, code);
+        await this.whatsappService.sendOtp({ phone: destination, code });
       }
     } catch {
       await this.repository.invalidate(otp.id);

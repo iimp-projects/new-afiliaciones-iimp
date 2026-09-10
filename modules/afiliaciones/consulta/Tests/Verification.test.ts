@@ -36,7 +36,7 @@ describe("registered destinations and shared OTP delivery", () => {
     expect(destinationChannels("", "999111812").map((item) => item.channel)).toEqual(["WHATSAPP", "SMS"]);
   });
   it.each(["EMAIL", "SMS", "WHATSAPP"] as const)("sends %s using the existing provider and server destination", async (channel) => {
-    const mail = { sendMail: vi.fn() }, sms = { sendSms: vi.fn() }, whatsapp = { sendWhatsApp: vi.fn() };
+    const mail = { sendMail: vi.fn() }, sms = { sendSms: vi.fn() }, whatsapp = { sendOtp: vi.fn() };
     const service = new OtpRecoveryService(repository, mail as never, sms as never, whatsapp as never);
     await service.generateAndSendOtp(7, channel, "APPLICATION_QUERY");
     const created = db.verificationCode.create.mock.calls[0][0].data;
@@ -44,7 +44,7 @@ describe("registered destinations and shared OTP delivery", () => {
     expect(created.expiresAt.getTime() - Date.now()).toBeGreaterThan(14 * 60 * 1000);
     if (channel === "EMAIL") expect(mail.sendMail).toHaveBeenCalledWith(expect.objectContaining({ to: "maria@example.com", html: expect.stringContaining(created.code.split(":")[1]) }));
     if (channel === "SMS") expect(sms.sendSms).toHaveBeenCalledWith("999111812", expect.stringContaining(created.code.split(":")[1]));
-    if (channel === "WHATSAPP") expect(whatsapp.sendWhatsApp).toHaveBeenCalledWith("999111812", created.code.split(":")[1]);
+    if (channel === "WHATSAPP") expect(whatsapp.sendOtp).toHaveBeenCalledWith({ phone: "999111812", code: created.code.split(":")[1] });
   });
   it("blocks a missing channel before persisting or sending", async () => {
     db.membershipApplication.findFirst.mockResolvedValue({ id: 7, email: "m@example.com", phone: "" });
@@ -57,8 +57,8 @@ describe("registered destinations and shared OTP delivery", () => {
     expect(db.verificationCode.update).toHaveBeenCalledWith({ where: { id: 12 }, data: { verifiedAt: expect.any(Date) } });
   });
   it("does not simulate a successful WhatsApp delivery when unconfigured", async () => {
-    vi.stubEnv("WHATSAPP_API_TOKEN", "");
-    await expect(new WhatsAppService().sendWhatsApp("999111812", "123456")).rejects.toThrow("No pudimos enviar");
+    vi.stubEnv("WHATSAPP_ACCESS_TOKEN", "");
+    await expect(new WhatsAppService().sendOtp({ phone: "999111812", code: "123456" })).rejects.toMatchObject({ code: "CONFIGURATION_ERROR" });
   });
 });
 

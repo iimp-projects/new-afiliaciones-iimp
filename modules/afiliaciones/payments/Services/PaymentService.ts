@@ -17,6 +17,7 @@ import { PaymentSettingsResolver } from "../../../security/system-settings/Servi
 import { billingDataSchema, type BillingDataInput } from "../DTOs/billing.schema";
 import { isLegalEntityRuc } from "../Rules/BillingDocumentRules";
 import { ApisNetPeService, type RucLookupResult } from "../../../shared/Services/ApisNetPeService";
+import { AssociatesIntegrationService } from "../../associates-integration/Services/AssociatesIntegrationService";
 
 export class PaymentServiceError extends Error {
   constructor(message: string, readonly status: number) { super(message); }
@@ -33,6 +34,7 @@ export class PaymentService {
     private readonly confirmationEmailService: Pick<PaymentConfirmationEmailService, "sendIfNeeded"> = new PaymentConfirmationEmailService(repository),
     private readonly paymentSettingsResolver: Pick<PaymentSettingsResolver, "assertPaymentInitiationAvailable" | "getNiubizCheckoutSettings"> = new PaymentSettingsResolver(),
     private readonly rucLookup: Pick<ApisNetPeService, "getRuc"> = new ApisNetPeService(),
+    private readonly associatesIntegrationService: Pick<AssociatesIntegrationService, "prepareActivePayment" | "processAfterCommit"> = new AssociatesIntegrationService(),
   ) {}
 
   async initiate(input: CreatePaymentInput, authorization: string | undefined, clientIp?: string): Promise<CreatePaymentResponse> {
@@ -146,11 +148,17 @@ export class PaymentService {
   }
 
   private async persistPaymentResult(payment: PersistedPayment, result: PaymentGatewayResult): Promise<PersistedPayment> {
-    return this.repository.withTransaction(async (tx) => {
+    const persisted = await this.repository.withTransaction(async (tx) => {
       const updated = await this.repository.updatePaymentResult(payment.id, result, tx);
-      if (updated.status === PaymentStatus.PAID) await this.statusCalculator.recalculate(updated.applicationId, tx);
-      return updated;
+      if (updated.status !== PaymentStatus.PAID) return { updated };
+      let recalculatedIntegrationId: number | undefined;
+      await this.statusCalculator.recalculate(updated.applicationId, tx, (integrationId) => { recalculatedIntegrationId = integrationId; });
+      const source = await this.repository.findActivePaymentIntegrationSource(updated.id, tx);
+      const integration = source ? await this.associatesIntegrationService.prepareActivePayment(source, tx) : null;
+      return { updated, integrationId: recalculatedIntegrationId ?? integration?.id };
     });
+    if (persisted.integrationId) await this.associatesIntegrationService.processAfterCommit(persisted.integrationId);
+    return persisted.updated;
   }
 
   private withCallbackReference(callbackUrl: string, payment: PersistedPayment): string {
@@ -197,7 +205,7 @@ export class PaymentService {
       FAILED: "Pago rechazado por el simulador. El intento quedó registrado.",
       PENDING: providerResult.checkout ? "Sesión Niubiz creada. Complete el Checkout para continuar." : "Pago pendiente en el simulador. El intento quedó registrado.",
     } as const;
-    return { success: payment.status !== PaymentStatus.FAILED, paymentId: payment.id, status: payment.status as CreatePaymentResponse["status"], transactionId: providerResult.transactionId, authorizationCode: providerResult.authorizationCode, responseCode: providerResult.responseCode, amount: payment.totalAmount, currency: payment.currency, checkout: providerResult.checkout, message: messages[payment.status as keyof typeof messages] };
+    return { success: payment.status !== PaymentStatus.FAILED, paymentId: payment.id, status: payment.status as CreatePaymentResponse["status"], transactionId: providerResult.transactionId, authorizationCode: providerResult.authorizationCode, responseCode: providerResult.responseCode, amount: payment.totalAmount, registrationAmount: payment.registrationAmount, membershipFeeAmount: payment.membershipFeeAmount, currency: payment.currency, checkout: providerResult.checkout, message: messages[payment.status as keyof typeof messages] };
   }
 }
 

@@ -327,6 +327,8 @@ model MembershipApplication {
 
   validations MembershipValidation[]
 
+  associateIntegration AssociateIntegration?
+
   @@index([documentNumber])
   @@index([documentNumber, status])
   @@index([email])
@@ -588,6 +590,8 @@ model Payment {
   authorizationCode String?               @map("authorization_code") @db.VarChar(50)
   responseCode      String?               @map("response_code") @db.VarChar(50)
   totalAmount       Decimal               @map("total_amount") @db.Decimal(10, 2)
+  registrationAmount Decimal?             @map("registration_amount") @db.Decimal(10, 2)
+  membershipFeeAmount Decimal?            @map("membership_fee_amount") @db.Decimal(10, 2)
   currency          Currency              @default(PEN)
   status            PaymentStatus         @default(PENDING)
   paymentDate       DateTime?             @map("payment_date")
@@ -664,6 +668,58 @@ model Invoice {
   @@unique([serie, number])
   @@index([billingId])
   @@map("invoices")
+}
+
+model AssociateIntegration {
+  id                          Int                        @id @default(autoincrement())
+  applicationId               Int                        @unique @map("application_id")
+  trigger                     AssociateIntegrationTrigger
+  status                      AssociateIntegrationStatus @default(PENDING)
+  requestPayloadSnapshot      Json                       @map("request_payload_snapshot")
+  externalAssociateCode       Int?                       @map("external_associate_code")
+  externalMessage             String?                    @map("external_message") @db.VarChar(500)
+  attempts                    Int                        @default(0)
+  lastAttemptAt               DateTime?                  @map("last_attempt_at")
+  syncedAt                    DateTime?                  @map("synced_at")
+  lastErrorHttpStatus         Int?                       @map("last_error_http_status")
+  lastErrorCode               String?                    @map("last_error_code") @db.VarChar(100)
+  lastErrorMessage            String?                    @map("last_error_message") @db.Text
+  lastErrorIdentifier         String?                    @map("last_error_identifier") @db.VarChar(255)
+  lastErrorDetails            Json?                      @map("last_error_details")
+  externalReceiptType         String?                    @map("external_receipt_type") @db.VarChar(10)
+  externalReceiptSerie        String?                    @map("external_receipt_serie") @db.VarChar(20)
+  externalReceiptNumber       String?                    @map("external_receipt_number") @db.VarChar(30)
+  externalReceiptPdfReference String?                    @map("external_receipt_pdf_reference") @db.VarChar(500)
+  createdAt                   DateTime                   @default(now()) @map("created_at")
+  updatedAt                   DateTime                   @updatedAt @map("updated_at")
+  application                 MembershipApplication      @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  attemptHistory              AssociateIntegrationAttempt[]
+
+  @@index([status])
+  @@index([trigger])
+  @@map("associate_integrations")
+}
+
+model AssociateIntegrationAttempt {
+  id                    Int                               @id @default(autoincrement())
+  integrationId         Int                               @map("integration_id")
+  attemptNumber         Int                               @map("attempt_number")
+  startedAt             DateTime                          @map("started_at")
+  finishedAt            DateTime?                         @map("finished_at")
+  result                AssociateIntegrationAttemptResult?
+  httpStatus            Int?                              @map("http_status")
+  errorCode             String?                           @map("error_code") @db.VarChar(100)
+  message               String?                           @db.Text
+  errorIdentifier       String?                           @map("error_identifier") @db.VarChar(255)
+  errorDetails          Json?                             @map("error_details")
+  externalAssociateCode Int?                              @map("external_associate_code")
+  externalMessage       String?                           @map("external_message") @db.Text
+  durationMs            Int?                              @map("duration_ms")
+  integration           AssociateIntegration              @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
+  @@unique([integrationId, attemptNumber])
+  @@index([integrationId, startedAt])
+  @@map("associate_integration_attempts")
 }
 
 model Country {
@@ -1023,6 +1079,25 @@ enum ApplicationStatus {
   READY_FOR_PAYMENT
   COMPLETED
   REJECTED
+}
+
+enum AssociateIntegrationTrigger {
+  ACTIVE_PAYMENT
+  STUDENT_COMPLETION
+}
+
+enum AssociateIntegrationStatus {
+  PENDING
+  PROCESSING
+  SYNCED
+  RETRYABLE
+  FAILED
+}
+
+enum AssociateIntegrationAttemptResult {
+  SYNCED
+  RETRYABLE
+  FAILED
 }
 
 // Estados a nivel de Área (Validación individual)

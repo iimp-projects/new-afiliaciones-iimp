@@ -85,26 +85,50 @@ class PaymentRepositoryFake implements IPaymentRepository {
     this.created = data;
     this.paymentCreateCalls += 1;
     this.billingCreateCalls += 1;
-    return { id: 99, applicationId: data.applicationId, totalAmount: data.amount, currency: "PEN" as const, gateway: data.gateway, status: PaymentStatus.PENDING };
+    return { id: 99, applicationId: data.applicationId, totalAmount: data.totalAmount, registrationAmount: data.registrationAmount, membershipFeeAmount: data.membershipFeeAmount, currency: "PEN" as const, gateway: data.gateway, status: PaymentStatus.PENDING };
   }
 
   async updatePaymentResult(paymentId: number, result: PaymentGatewayResult) {
     this.result = result;
-    const payment = { id: paymentId, applicationId: input.applicationId, totalAmount: this.created?.amount ?? 0, currency: "PEN" as const, gateway: "MOCK" as const, status: result.status };
+    const payment = { id: paymentId, applicationId: input.applicationId, totalAmount: this.created?.totalAmount ?? 0, registrationAmount: this.created?.registrationAmount ?? null, membershipFeeAmount: this.created?.membershipFeeAmount ?? null, currency: "PEN" as const, gateway: "MOCK" as const, status: result.status };
     if (result.status === PaymentStatus.PENDING) this.activePayment = payment;
     return payment;
   }
+
+  async findActivePaymentIntegrationSource() { return null; }
 
   async findPaymentConfirmationDetails() { return null; }
   async markConfirmationEmailSent() { return false; }
 }
 
 describe("PaymentService", () => {
+  it("processes a STUDENT_COMPLETION integration captured from recalculation only after the payment transaction", async () => {
+    const repository = new PaymentRepositoryFake();
+    const transactionEvents: string[] = [];
+    repository.withTransaction = async (callback) => {
+      transactionEvents.push("begin");
+      const result = await callback({} as Prisma.TransactionClient);
+      transactionEvents.push("commit");
+      return result;
+    };
+    const statusCalculator = { recalculate: vi.fn(async (_applicationId: number, _tx: Prisma.TransactionClient, onIntegrationPrepared?: (id: number) => void) => { onIntegrationPrepared?.(701); return ApplicationStatus.COMPLETED; }) };
+    const associates = { prepareActivePayment: vi.fn(), processAfterCommit: vi.fn(async () => { transactionEvents.push("http"); }) };
+    const settings = { getRegistrationPrice: vi.fn().mockResolvedValue({ amount: new Prisma.Decimal("150") }), getMonthlyFee: vi.fn().mockResolvedValue({ value: new Prisma.Decimal("150") }) };
+    const service = new PaymentService(new PaymentAmountResolver(settings as never), new MockPaymentProvider("PAID"), repository, statusCalculator as never, authorizedPayment, false, undefined, undefined, undefined, associates as never);
+
+    await service.initiate(input, "authorized");
+
+    expect(associates.prepareActivePayment).not.toHaveBeenCalled();
+    expect(associates.processAfterCommit).toHaveBeenCalledOnce();
+    expect(associates.processAfterCommit).toHaveBeenCalledWith(701);
+    expect(transactionEvents).toEqual(["begin", "commit", "begin", "commit", "http"]);
+  });
+
   it.each(["PAID", "FAILED", "PENDING"] as const)("persiste y devuelve el resultado MOCK %s", async (scenario) => {
     const repository = new PaymentRepositoryFake();
     const recalculate = vi.fn().mockResolvedValue(ApplicationStatus.COMPLETED);
     const registrationPrice = new Prisma.Decimal("150.00");
-    const settings = { getRegistrationPrice: vi.fn().mockResolvedValue({ amount: registrationPrice }) };
+    const settings = { getRegistrationPrice: vi.fn().mockResolvedValue({ amount: registrationPrice }), getMonthlyFee: vi.fn().mockResolvedValue({ value: new Prisma.Decimal("150.00") }) };
     const amountResolver = new PaymentAmountResolver(settings as never);
     const service = new PaymentService(
       amountResolver,
@@ -117,9 +141,9 @@ describe("PaymentService", () => {
     const result = await service.initiate(input, "authorized");
 
     expect(settings.getRegistrationPrice).toHaveBeenCalledOnce();
-    expect(repository.created).toMatchObject({ applicationId: 42, amount: registrationPrice.toNumber(), currency: "PEN" });
+    expect(repository.created).toMatchObject({ applicationId: 42, registrationAmount: 150, membershipFeeAmount: 150, totalAmount: 300, currency: "PEN" });
     expect(repository.created?.billingData.numeroDocumento).toBe("10123456789");
-    expect(result).toMatchObject({ paymentId: 99, status: scenario, amount: registrationPrice.toNumber(), currency: "PEN" });
+    expect(result).toMatchObject({ paymentId: 99, status: scenario, amount: 300, registrationAmount: 150, membershipFeeAmount: 150, currency: "PEN" });
     expect(repository.result?.status).toBe(scenario);
     expect(recalculate).toHaveBeenCalledTimes(scenario === "PAID" ? 1 : 0);
   });
@@ -250,12 +274,12 @@ describe("PaymentService", () => {
 
   it("usa el monto dinámico únicamente al crear un Payment nuevo", async () => {
     const repository = new PaymentRepositoryFake();
-    const amountResolver = { resolve: vi.fn().mockResolvedValue({ amount: 425.5, currency: "PEN" }) };
+    const amountResolver = { resolve: vi.fn().mockResolvedValue({ registrationAmount: 425.5, membershipFeeAmount: 150, totalAmount: 575.5, currency: "PEN" }) };
     const availability = { assertPaymentInitiationAvailable: vi.fn().mockResolvedValue(undefined), getNiubizCheckoutSettings: vi.fn() };
     const service = new PaymentService(amountResolver as never, new MockPaymentProvider("PENDING"), repository, { recalculate: vi.fn() }, authorizedPayment, false, undefined, availability as never);
     await service.initiate(input, "authorized");
     expect(amountResolver.resolve).toHaveBeenCalledOnce();
-    expect(repository.created).toMatchObject({ amount: 425.5 });
+    expect(repository.created).toMatchObject({ registrationAmount: 425.5, membershipFeeAmount: 150, totalAmount: 575.5 });
     expect(availability.assertPaymentInitiationAvailable).toHaveBeenCalledOnce();
   });
 

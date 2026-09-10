@@ -32,6 +32,8 @@ export interface ApplicationStatusData {
     id: number;
     status: "PAID";
     amount: number;
+    registrationAmount?: number | null;
+    membershipFeeAmount?: number | null;
     currency: string;
     gateway: string;
     transactionId?: string | null;

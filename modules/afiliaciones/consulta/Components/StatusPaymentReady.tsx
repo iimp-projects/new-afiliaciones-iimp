@@ -12,7 +12,7 @@ import BillingDetailsStep from "./PaymentStepper/BillingDetailsStep";
 import PaymentProcessStep, { type PaymentUiState } from "./PaymentStepper/PaymentProcessStep";
 import PaymentFooter from "./PaymentStepper/PaymentFooter";
 
-interface RestoredPayment { id: number; status: "PAID" | "FAILED" | "PENDING"; amount: number; currency: "PEN"; paymentDate?: string; transactionId?: string; authorizationCode?: string; cardBrand?: string; cardType?: string; maskedCard?: string; traceNumber?: string; }
+interface RestoredPayment { id: number; status: "PAID" | "FAILED" | "PENDING"; amount: number; registrationAmount?: number | null; membershipFeeAmount?: number | null; currency: "PEN"; paymentDate?: string; transactionId?: string; authorizationCode?: string; cardBrand?: string; cardType?: string; maskedCard?: string; traceNumber?: string; }
 interface Props { data: ApplicationStatusData; onCancel: () => void; initialBillingData?: BillingDataInput | null; restoredPayment?: RestoredPayment | null; failureMessage?: string | null; failureCode?: string | null; }
 const initialBilling: BillingDataInput = { tipoDocumento: "DNI", numeroDocumento: "", razonSocial: "", direccionFiscal: "", responsable: "", emailFacturacion: "" };
 
@@ -22,7 +22,7 @@ export const StatusPaymentReady: React.FC<Props> = ({ data, onCancel, initialBil
   const [billingData, setBillingData] = useState<BillingDataInput>(initialBillingData ?? initialBilling);
   const [confirmed, setConfirmed] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<CreatePaymentResponse | null>(restoredPayment ? { success: true, paymentId: restoredPayment.id, status: restoredPayment.status, amount: restoredPayment.amount, currency: restoredPayment.currency, message: restoredPayment.status === "FAILED" ? "Pago no aprobado." : restoredPayment.status === "PAID" ? "Pago realizado correctamente." : "Estamos verificando tu pago." } : null);
+  const [result, setResult] = useState<CreatePaymentResponse | null>(restoredPayment ? { success: true, paymentId: restoredPayment.id, status: restoredPayment.status, amount: restoredPayment.amount, registrationAmount: restoredPayment.registrationAmount, membershipFeeAmount: restoredPayment.membershipFeeAmount, currency: restoredPayment.currency, message: restoredPayment.status === "FAILED" ? "Pago no aprobado." : restoredPayment.status === "PAID" ? "Pago realizado correctamente." : "Estamos verificando tu pago." } : null);
   const [error, setError] = useState<string | null>(null);
   const [paymentUiState, setPaymentUiState] = useState<PaymentUiState>(restoredPayment?.status === "FAILED" ? "PAYMENT_FAILED" : restoredPayment?.status === "PAID" ? "PAYMENT_SUCCESS" : restoredPayment?.status === "PENDING" ? "PAYMENT_UNCERTAIN" : "IDLE");
   const checkoutRequestInFlightRef = useRef(false);

@@ -15,6 +15,7 @@ export interface BillingTraceability {
   verifiedAt?: Date;
 }
 import type { NiubizCheckoutConfig } from "../../DTOs/Niubiz/NiubizCheckout.dto";
+import type { AssociateSnapshotSource } from "../../../associates-integration/Services/AssociateIntegrationSnapshotBuilder";
 
 export type PaymentTransaction = Prisma.TransactionClient;
 
@@ -31,7 +32,9 @@ export interface PaymentApplicationSnapshot {
 
 export interface PendingPaymentData {
   applicationId: number;
-  amount: number;
+  registrationAmount: number;
+  membershipFeeAmount: number;
+  totalAmount: number;
   currency: "PEN";
   gateway: PaymentGateway;
   billingData: BillingDataInput;
@@ -61,10 +64,14 @@ export interface PersistedPayment {
   id: number;
   applicationId: number;
   totalAmount: number;
+  registrationAmount?: number | null;
+  membershipFeeAmount?: number | null;
   currency: "PEN";
   gateway: PaymentGateway;
   status: PaymentStatus;
 }
+
+export type ActivePaymentIntegrationSource = AssociateSnapshotSource & { applicationId: number; payment: { id: number; status: PaymentStatus; registrationAmount: number | null; membershipFeeAmount: number | null; totalAmount: number; currency: "PEN"; paymentDate: Date | null } };
 
 export interface PaymentConfirmationDetails extends PersistedPayment {
   transactionId?: string;
@@ -123,6 +130,7 @@ export interface IPaymentRepository {
   claimPendingNiubizPayment(paymentId: number): Promise<PersistedPayment | null>;
   createPendingPayment(data: PendingPaymentData, tx?: PaymentTransaction): Promise<PersistedPayment>;
   updatePaymentResult(paymentId: number, result: PaymentGatewayResult, tx?: PaymentTransaction): Promise<PersistedPayment>;
+  findActivePaymentIntegrationSource(paymentId: number, tx: PaymentTransaction): Promise<ActivePaymentIntegrationSource | null>;
   findPaymentConfirmationDetails(paymentId: number): Promise<PaymentConfirmationDetails | null>;
   markConfirmationEmailSent(paymentId: number): Promise<boolean>;
 }

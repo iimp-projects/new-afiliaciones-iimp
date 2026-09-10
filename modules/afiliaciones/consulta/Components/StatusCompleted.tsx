@@ -83,7 +83,7 @@ export function StatusCompleted({ data, onFinish }: Props) {
                   {payment.maskedCard && <Field label="Tarjeta enmascarada" value={payment.maskedCard} />}<Field label="Moneda" value={payment.currency} />
                   {payment.authorizationCode && <Field label="Código de autorización" value={payment.authorizationCode} />}{payment.traceNumber && <Field label="Trace number" value={payment.traceNumber} />}
                 </dl>
-                <div className="rounded-2xl border border-[#F0DFB6] bg-[#FFF7E6] px-7 py-6 text-center lg:min-w-56"><p className="text-[11px] font-black uppercase tracking-widest text-[#8A671D]">Total pagado</p><p className="mt-2 text-3xl font-black text-[#6E4B12]">{formatMoney(payment.amount, payment.currency)}</p><span className="mt-3 inline-flex rounded-full bg-emerald-100 px-3 py-1 text-[10px] font-black tracking-wide text-emerald-700">PAGADO</span></div>
+                <div className="rounded-2xl border border-[#F0DFB6] bg-[#FFF7E6] px-7 py-6 text-center lg:min-w-56">{payment.registrationAmount != null && <p className="text-sm font-bold text-[#6E4B12]">Inscripción: {formatMoney(payment.registrationAmount, payment.currency)}</p>}{payment.membershipFeeAmount != null && <p className="mt-1 text-sm font-bold text-[#6E4B12]">Cuota de afiliación: {formatMoney(payment.membershipFeeAmount, payment.currency)}</p>}<p className="mt-3 text-[11px] font-black uppercase tracking-widest text-[#8A671D]">Total pagado</p><p className="mt-2 text-3xl font-black text-[#6E4B12]">{formatMoney(payment.amount, payment.currency)}</p><span className="mt-3 inline-flex rounded-full bg-emerald-100 px-3 py-1 text-[10px] font-black tracking-wide text-emerald-700">PAGADO</span></div>
               </div>
             </Panel>}
 
