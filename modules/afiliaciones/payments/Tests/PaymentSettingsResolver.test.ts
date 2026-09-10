@@ -43,7 +43,7 @@ describe("PaymentSettingsResolver", () => {
   });
 
   it("resuelve el monto asincrónico sin aceptar datos del navegador", async () => {
-    const resolver = new PaymentAmountResolver({ getRegistrationPrice: vi.fn().mockResolvedValue({ amount: new Prisma.Decimal("425.50"), source: "SYSTEM_SETTING" }) } as never);
-    await expect(resolver.resolve()).resolves.toEqual({ amount: 425.5, currency: "PEN" });
+    const resolver = new PaymentAmountResolver({ getRegistrationPrice: vi.fn().mockResolvedValue({ amount: new Prisma.Decimal("425.50"), source: "SYSTEM_SETTING" }), getMonthlyFee: vi.fn().mockResolvedValue({ value: new Prisma.Decimal("150.00") }) } as never);
+    await expect(resolver.resolve()).resolves.toEqual({ registrationAmount: 425.5, membershipFeeAmount: 150, totalAmount: 575.5, currency: "PEN" });
   });
 });

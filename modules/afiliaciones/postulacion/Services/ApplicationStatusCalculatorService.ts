@@ -1,13 +1,22 @@
 import { ApplicationStatus, ValidationStatus, EndorsementStatus, PaymentStatus, ValidationAction } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { AssociatesIntegrationService } from "../../associates-integration/Services/AssociatesIntegrationService";
 
 export class ApplicationStatusCalculatorService {
+  constructor(private readonly associatesIntegrationService: Pick<AssociatesIntegrationService, "prepareStudentCompletion" | "processAfterCommit"> = new AssociatesIntegrationService()) {}
+
+  async recalculate(applicationId: number, tx?: any, onIntegrationPrepared?: (integrationId: number) => void): Promise<ApplicationStatus> {
+    if (tx) return (await this.recalculateInTransaction(applicationId, tx, onIntegrationPrepared)).status;
+    const result = await prisma.$transaction((transaction) => this.recalculateInTransaction(applicationId, transaction));
+    if (result.integrationId) await this.associatesIntegrationService.processAfterCommit(result.integrationId);
+    return result.status;
+  }
+
   /**
    * Recalcula el Estado General del Expediente basándose estrictamente 
    * en las reglas de negocio y dependencias de cada área.
    */
-  async recalculate(applicationId: number, tx?: any): Promise<ApplicationStatus> {
-    const db = tx || prisma;
+  private async recalculateInTransaction(applicationId: number, db: any, onIntegrationPrepared?: (integrationId: number) => void): Promise<{ status: ApplicationStatus; integrationId?: number }> {
 
     // 1. Obtener la foto completa del Expediente actual
     const app = await db.membershipApplication.findUnique({
@@ -15,13 +24,14 @@ export class ApplicationStatusCalculatorService {
       include: {
         validations: { include: { department: true } },
         approvals: true,
-        payments: { orderBy: { createdAt: "desc" }, take: 1 }
+        payments: { orderBy: { createdAt: "desc" }, take: 1 },
+        person: { select: { firstName: true, paternalLastName: true, maternalLastName: true, gender: true, addresses: { select: { street: true, isPrimary: true } } } }
       }
     });
 
     if (!app) throw new Error("Expediente no encontrado para recalcular estado.");
 
-    if (app.status === ApplicationStatus.DRAFT) return ApplicationStatus.DRAFT;
+    if (app.status === ApplicationStatus.DRAFT) return { status: ApplicationStatus.DRAFT };
 
     const isStudent = app.affiliateType === "STUDENT";
 
@@ -108,6 +118,7 @@ export class ApplicationStatusCalculatorService {
     // ==========================================
     // 4. GUARDAR CAMBIOS DE ESTADO GENERAL
     // ==========================================
+    let integrationId: number | undefined;
     if (app.status !== newGeneralStatus) {
         await db.membershipApplication.update({
             where: { id: applicationId },
@@ -123,8 +134,14 @@ export class ApplicationStatusCalculatorService {
                 changedById: null 
             }
         });
+
+        if (isStudent && app.status !== ApplicationStatus.COMPLETED && newGeneralStatus === ApplicationStatus.COMPLETED) {
+          const integration = await this.associatesIntegrationService.prepareStudentCompletion({ applicationId, effectiveAt: new Date(), source: { documentType: app.documentType, documentNumber: app.documentNumber, email: app.email, phone: app.phone, person: app.person } }, db);
+          integrationId = integration.id;
+          onIntegrationPrepared?.(integration.id);
+        }
     }
 
-    return newGeneralStatus;
+    return { status: newGeneralStatus, integrationId };
   }
 }

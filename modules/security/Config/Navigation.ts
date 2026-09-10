@@ -87,6 +87,14 @@ export const securityModuleDefinition: ModuleDefinition = {
                     icon: "Settings",
                     order: 4,
                     permission: { action: "manage", subject: "all" }
+                },
+                {
+                    id: "nav-security-associate-integrations",
+                    title: "Integraciones de Asociados",
+                    href: "/intranet/security/associate-integrations",
+                    icon: "RefreshCw",
+                    order: 5,
+                    permission: { action: "manage", subject: "all" }
                 }
             ]
         },

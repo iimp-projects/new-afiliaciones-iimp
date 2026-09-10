@@ -21,6 +21,8 @@ export async function GET(request: Request) {
     id: payment.id,
     status: "PAID",
     amount: Number(payment.totalAmount),
+    registrationAmount: payment.registrationAmount,
+    membershipFeeAmount: payment.membershipFeeAmount,
     currency: payment.currency,
     gateway: payment.gateway,
     transactionId: payment.transactionId,
@@ -68,7 +70,7 @@ export async function GET(request: Request) {
       completedPayment,
     },
     billingData: payment.billing ? { tipoDocumento: payment.billing.taxId.length === 11 ? "RUC" : "DNI", numeroDocumento: payment.billing.taxId, razonSocial: payment.billing.businessName, direccionFiscal: payment.billing.billingAddress ?? "", responsable: fullName, emailFacturacion: payment.billing.billingEmail ?? application.email } : null,
-    payment: { id: payment.id, status: payment.status, amount: Number(payment.totalAmount), currency: payment.currency, paymentDate: payment.paymentDate, transactionId: payment.transactionId, authorizationCode: payment.authorizationCode, cardBrand: payment.cardBrand, cardType: payment.cardType, maskedCard: payment.maskedCard, traceNumber: payment.traceNumber },
+    payment: { id: payment.id, status: payment.status, amount: Number(payment.totalAmount), registrationAmount: payment.registrationAmount, membershipFeeAmount: payment.membershipFeeAmount, currency: payment.currency, paymentDate: payment.paymentDate, transactionId: payment.transactionId, authorizationCode: payment.authorizationCode, cardBrand: payment.cardBrand, cardType: payment.cardType, maskedCard: payment.maskedCard, traceNumber: payment.traceNumber },
     failure: payment.status === "FAILED" ? { code: payment.actionCode ?? payment.failureCode, message: action?.userMessage ?? payment.failureReason ?? "La operación fue rechazada por Niubiz." } : null,
   });
 }

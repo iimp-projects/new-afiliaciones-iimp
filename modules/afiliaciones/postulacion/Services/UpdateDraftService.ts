@@ -7,6 +7,7 @@ import { ApplicationStatusCalculatorService } from "./ApplicationStatusCalculato
 import { NotifyApplicantService } from "./NotifyApplicantService";
 import { ApplicationAccessService } from "./ApplicationAccessService";
 import { ApplicationFlowError } from "./Exceptions/ApplicationFlowError";
+import { AssociatesIntegrationService } from "../../associates-integration/Services/AssociatesIntegrationService";
 
 export class UpdateDraftService {
 
@@ -224,6 +225,8 @@ export class UpdateDraftService {
 
     /** Bloquea una subsanación enviada y la deja disponible para reevaluación. */
     private async markCorrectionSubmitted(applicationId: number): Promise<void> {
+        const integrationService = new AssociatesIntegrationService();
+        let integrationId: number | undefined;
         await prisma.$transaction(async (tx) => {
             const observations = await tx.membershipObservation.findMany({
                 where: { applicationId, status: ObservationStatus.PENDING },
@@ -255,8 +258,9 @@ export class UpdateDraftService {
                 });
             }
 
-            await new ApplicationStatusCalculatorService().recalculate(applicationId, tx);
+            await new ApplicationStatusCalculatorService(integrationService).recalculate(applicationId, tx, (preparedId) => { integrationId = preparedId; });
         });
+        if (integrationId) await integrationService.processAfterCommit(integrationId);
     }
 
     /**

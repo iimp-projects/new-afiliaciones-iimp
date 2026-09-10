@@ -9,6 +9,8 @@ export interface CreatePaymentResponse {
   authorizationCode?: string;
   responseCode?: string;
   amount: number;
+  registrationAmount?: number | null;
+  membershipFeeAmount?: number | null;
   currency: "PEN";
   checkout?: NiubizCheckoutConfig;
   message: string;
