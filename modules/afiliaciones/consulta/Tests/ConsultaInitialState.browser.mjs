@@ -41,7 +41,11 @@ const bundle = await build({
   }],
 });
 
-const browser = await puppeteer.launch({ headless: true, timeout: 120000 });
+const browser = await puppeteer.launch({
+  headless: true,
+  timeout: 120000,
+  args: process.env.CI === "true" ? ["--no-sandbox", "--disable-setuid-sandbox"] : [],
+});
 try {
   const page = await browser.newPage();
   const errors = [];
