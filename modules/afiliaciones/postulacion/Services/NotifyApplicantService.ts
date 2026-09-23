@@ -27,7 +27,6 @@ export class NotifyApplicantService {
       ? `${personal.names || ""} ${personal.fatherLastName || ""} ${personal.motherLastName || ""}`.trim()
       : "Postulante";
 
-    const trackingCode = application.trackingCode || application.applicationCode;
     const baseUrl = getAppBaseUrl();
     const trackingUrl = `${baseUrl}/consulta`;
 
@@ -47,9 +46,6 @@ export class NotifyApplicantService {
           .subtitle { color: #718096; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700; margin-bottom: 4px; }
           .title { color: #C39254; font-size: 20px; font-weight: 700; margin: 0; }
           .content { color: #3E3E3D; font-size: 14px; line-height: 1.6; }
-          .code-box { background-color: #F4F5F7; border: 1px solid rgba(195, 146, 84, 0.3); padding: 18px; border-radius: 8px; text-align: center; margin: 22px 0; }
-          .code-title { font-size: 11px; color: #718096; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
-          .code-value { font-family: monospace; font-size: 16px; font-weight: 700; color: #C39254; margin-top: 6px; word-break: break-all; }
           .btn-container { text-align: center; margin: 30px 0 20px 0; }
           .btn { display: inline-block; background-color: #C39254; color: #ffffff !important; text-decoration: none; padding: 13px 32px; border-radius: 8px; font-weight: 700; font-size: 14px; }
           .footer { text-align: center; font-size: 11px; color: #94A3B8; margin-top: 25px; line-height: 1.5; }
@@ -68,12 +64,8 @@ export class NotifyApplicantService {
             
             <p>Confirmamos que su solicitud de incorporación como asociado al <strong>Instituto de Ingenieros de Minas del Perú (IIMP)</strong> ha sido registrada exitosamente.</p>
             
-            <div class="code-box">
-              <div class="code-title">Código de Seguimiento / Verificación</div>
-              <div class="code-value">${trackingCode}</div>
-            </div>
 
-            <p>Puede hacer seguimiento al estado de su trámite ingresando a nuestro portal con su número de documento y este código asignado.</p>
+            <p>Puede hacer seguimiento al estado de su trámite ingresando a nuestro portal con su tipo de documento, número de documento y correo registrado.</p>
 
             <div class="btn-container">
               <a href="${trackingUrl}" class="btn">Consultar Estado de Solicitud →</a>
@@ -136,7 +128,6 @@ export class NotifyApplicantService {
       ? `${personal.names || ""} ${personal.fatherLastName || ""} ${personal.motherLastName || ""}`.trim()
       : "Postulante";
 
-    const trackingCode = application.trackingCode || application.applicationCode;
     const baseUrl = getAppBaseUrl();
     const trackingUrl = `${baseUrl}/consulta`;
 
@@ -156,9 +147,6 @@ export class NotifyApplicantService {
           .subtitle { color: #718096; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700; margin-bottom: 4px; }
           .title { color: #C39254; font-size: 20px; font-weight: 700; margin: 0; }
           .content { color: #3E3E3D; font-size: 14px; line-height: 1.6; }
-          .code-box { background-color: #F4F5F7; border: 1px solid rgba(195, 146, 84, 0.3); padding: 18px; border-radius: 8px; text-align: center; margin: 22px 0; }
-          .code-title { font-size: 11px; color: #718096; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
-          .code-value { font-family: monospace; font-size: 16px; font-weight: 700; color: #C39254; margin-top: 6px; word-break: break-all; }
           .btn-container { text-align: center; margin: 30px 0 20px 0; }
           .btn { display: inline-block; background-color: #C39254; color: #ffffff !important; text-decoration: none; padding: 13px 32px; border-radius: 8px; font-weight: 700; font-size: 14px; }
           .footer { text-align: center; font-size: 11px; color: #94A3B8; margin-top: 25px; line-height: 1.5; }
@@ -176,11 +164,6 @@ export class NotifyApplicantService {
             <p>Estimado(a) <strong>${applicantName}</strong>,</p>
             
             <p>Le confirmamos que la información y documentación corregida para su solicitud de incorporación al <strong>Instituto de Ingenieros de Minas del Perú (IIMP)</strong> ha sido registrada exitosamente.</p>
-            
-            <div class="code-box">
-              <div class="code-title">Código de Seguimiento</div>
-              <div class="code-value">${trackingCode}</div>
-            </div>
 
             <p>Su expediente ha pasado nuevamente a estado de <strong>evaluación</strong> por el área correspondiente. Por favor, permanezca atento(a) a la respuesta institucional.</p>
 
@@ -251,7 +234,6 @@ export class NotifyApplicantService {
         : null) ||
       "Postulante";
 
-    const trackingCode = application.trackingCode || application.applicationCode;
     const baseUrl = getAppBaseUrl();
     const trackingUrl = `${baseUrl}/consulta`;
     const logoUrl =
@@ -278,9 +260,6 @@ export class NotifyApplicantService {
           .obs-box { background-color: #FEF3C7; border-left: 4px solid #F59E0B; padding: 16px; border-radius: 6px; margin: 18px 0; color: #92400E; }
           .field-list { background-color: #F8FAFC; border: 1px solid #E2E8F0; padding: 15px 20px; border-radius: 8px; margin: 18px 0; }
           .field-item { padding: 4px 0; color: #334155; font-weight: 600; font-size: 13px; }
-          .code-box { background-color: #F4F5F7; border: 1px solid rgba(195, 146, 84, 0.3); padding: 14px; border-radius: 8px; text-align: center; margin: 18px 0; }
-          .code-title { font-size: 11px; color: #718096; text-transform: uppercase; font-weight: 700; }
-          .code-value { font-family: monospace; font-size: 16px; font-weight: 700; color: #C39254; margin-top: 4px; }
           .btn-container { text-align: center; margin: 26px 0 16px 0; }
           .btn { display: inline-block; background-color: #D97706; color: #ffffff !important; text-decoration: none; padding: 13px 32px; border-radius: 8px; font-weight: 700; font-size: 14px; }
           .footer { text-align: center; font-size: 11px; color: #94A3B8; margin-top: 25px; line-height: 1.5; }
@@ -298,11 +277,6 @@ export class NotifyApplicantService {
             <p>Estimado(a) <strong>${applicantName}</strong>,</p>
             
             <p>Le informamos que el equipo evaluador del <strong>Instituto de Ingenieros de Minas del Perú (IIMP)</strong> ha revisado su expediente y ha registrado observaciones que requieren su subsanación.</p>
-            
-            <div class="code-box">
-              <div class="code-title">Código de Seguimiento</div>
-              <div class="code-value">${trackingCode}</div>
-            </div>
 
             ${observationComment
         ? `

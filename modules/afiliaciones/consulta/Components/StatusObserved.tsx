@@ -263,7 +263,7 @@ export const StatusObserved: React.FC<Props> = ({ data, onUploadSuccess }) => {
     if (!file) return;
     const trackingCode = (data as any).trackingCode;
     if (!trackingCode) {
-      setErrorMessage("No se encontró el código de seguimiento del expediente.");
+      setErrorMessage("No se encontró la información del expediente.");
       return;
     }
     setErrorMessage(null);
@@ -313,7 +313,7 @@ export const StatusObserved: React.FC<Props> = ({ data, onUploadSuccess }) => {
   const saveCorrection = async () => {
     const trackingCode = (data as any).trackingCode;
     if (!trackingCode) {
-      setErrorMessage("No se encontró el código de seguimiento del expediente.");
+      setErrorMessage("No se encontró la información del expediente.");
       return;
     }
     setSavingCorrection(true);

@@ -77,8 +77,6 @@ export function StatusCompleted({ data, onFinish }: Props) {
               </dl>
             </Panel>
 
-            <section className="rounded-2xl border border-[#E6C982] bg-[#FFFCF6] p-5 shadow-sm"><p className="text-[11px] font-black uppercase tracking-widest text-[#8A671D]">Código de seguimiento</p><p className="mt-2 break-all font-mono text-lg font-black tracking-wide text-[#1E293B] sm:text-xl">{valueOrUnavailable(data.trackingCode)}</p></section>
-
             {payment && <Panel icon={<CreditCard size={18} />} title="Resumen del pago" accent>
               <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
                 <dl className="grid gap-x-7 gap-y-5 sm:grid-cols-2">

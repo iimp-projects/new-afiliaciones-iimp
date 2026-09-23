@@ -509,17 +509,6 @@ export default function ApplicationView({
                   </div>
                 </div>
 
-                {application && (
-                  <div className="inline-flex items-center gap-2 bg-gray-50 border border-gray-200 px-4 py-2 rounded-xl mb-8">
-                    <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">
-                      Código de Seguimiento:
-                    </span>
-                    <span className="text-sm font-black text-[#C5A059] tracking-wider">
-                      {application}
-                    </span>
-                  </div>
-                )}
-
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                   <button
                     onClick={() => router.push("/")}

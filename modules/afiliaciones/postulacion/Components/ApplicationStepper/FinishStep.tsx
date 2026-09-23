@@ -11,7 +11,6 @@ export interface StepRef {
 
 interface FinishStepProps {
   membershipType: MembershipType;
-  trackingCode: string | null;
   saving?: boolean;
   onSubmitApplication(): Promise<void>;
   onNext(): void;
@@ -19,7 +18,7 @@ interface FinishStepProps {
 }
 
 const FinishStep = forwardRef<StepRef, FinishStepProps>(
-  ({ membershipType, trackingCode, saving = false, onSubmitApplication, onNext, onBack }, ref) => {
+  ({ membershipType, saving = false, onSubmitApplication, onNext, onBack }, ref) => {
     
     const [submitted, setSubmitted] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -119,12 +118,6 @@ const FinishStep = forwardRef<StepRef, FinishStepProps>(
               </li>
             </ul>
           </div>
-
-          {trackingCode && (
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">
-              Código de Seguimiento: <span className="text-[#C5A059]">{trackingCode}</span>
-            </p>
-          )}
 
         </div>
       </div>

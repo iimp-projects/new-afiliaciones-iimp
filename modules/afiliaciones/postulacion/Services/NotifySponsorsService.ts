@@ -143,13 +143,12 @@ export class NotifySponsorsService {
     const htmlTemplate = this.buildApplicantNotificationTemplate(
       params.applicantName,
       params.newSponsorFullName,
-      params.trackingCode,
       logoUrl
     );
 
     await this.mailService.sendMail({
       to: params.applicantEmail,
-      subject: `Actualización de Solicitud de Aval - Código ${params.trackingCode}`,
+      subject: `Actualización de Solicitud de Aval`,
       html: htmlTemplate,
     });
   }
@@ -243,7 +242,6 @@ export class NotifySponsorsService {
   private buildApplicantNotificationTemplate(
     applicantName: string,
     newSponsorFullName: string,
-    trackingCode: string,
     logoUrl: string
   ): string {
     return `
@@ -259,9 +257,6 @@ export class NotifySponsorsService {
           .info-box { background-color: #F4F5F7; border-left: 4px solid #C39254; padding: 15px 18px; border-radius: 0 6px 6px 0; margin: 20px 0; }
           .info-label { font-size: 11px; text-transform: uppercase; color: #718096; font-weight: 700; letter-spacing: 0.5px; }
           .info-value { font-size: 15px; font-weight: 700; color: #C39254; margin-top: 3px; }
-          .code-box { background-color: #F4F5F7; border: 1px solid rgba(195, 146, 84, 0.3); padding: 14px; border-radius: 8px; text-align: center; margin: 18px 0; }
-          .code-title { font-size: 11px; color: #718096; text-transform: uppercase; font-weight: 700; }
-          .code-value { font-family: monospace; font-size: 16px; font-weight: 700; color: #C39254; margin-top: 4px; }
           .banner-header { background-color: #C39254; padding: 25px 20px; text-align: center; }
           .logo { max-width: 170px; height: auto; filter: brightness(0) invert(1); }
           .header-title { color: #ffffff; font-size: 16px; font-weight: 700; margin-top: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -288,11 +283,6 @@ export class NotifySponsorsService {
             <div class="info-box">
               <div class="info-label">Nuevo Aval Asignado</div>
               <div class="info-value">${newSponsorFullName}</div>
-            </div>
-
-            <div class="code-box">
-              <div class="code-title">Código de Seguimiento</div>
-              <div class="code-value">${trackingCode}</div>
             </div>
 
             <p>Hemos enviado una solicitud por correo electrónico a su nuevo aval para que proceda con la revisión y respaldo de su expediente.</p>

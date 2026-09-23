@@ -15,8 +15,18 @@ describe("PaymentConfirmationEmailService", () => {
     const repository = { findPaymentConfirmationDetails: vi.fn().mockResolvedValue(details), markConfirmationEmailSent: vi.fn().mockResolvedValue(true) };
     const mailService = { sendMail: vi.fn().mockResolvedValue(undefined) };
     await new PaymentConfirmationEmailService(repository, mailService as never, enabledSettings as never).sendIfNeeded(details.id);
-    expect(mailService.sendMail).toHaveBeenCalledWith(expect.objectContaining({ to: details.application.email, subject: "Asunto de prueba", html: expect.stringContaining("TRACK-77") }));
+    expect(mailService.sendMail).toHaveBeenCalledWith(expect.objectContaining({ to: details.application.email, subject: "Asunto de prueba", html: expect.stringContaining("EXP-77") }));
     expect(repository.markConfirmationEmailSent).toHaveBeenCalledWith(details.id);
+  });
+
+  it("no expone el código de seguimiento al postulante", async () => {
+    const repository = { findPaymentConfirmationDetails: vi.fn().mockResolvedValue(details), markConfirmationEmailSent: vi.fn().mockResolvedValue(true) };
+    const mailService = { sendMail: vi.fn().mockResolvedValue(undefined) };
+    await new PaymentConfirmationEmailService(repository, mailService as never, enabledSettings as never).sendIfNeeded(details.id);
+    const html = mailService.sendMail.mock.calls[0][0].html as string;
+    expect(html).not.toContain("TRACK-77");
+    expect(html).not.toContain("CÓDIGO DE SEGUIMIENTO");
+    expect(html).not.toContain("código de seguimiento");
   });
 
   it("mantiene confirmationEmailSentAt sin marcar cuando MailService falla", async () => {
