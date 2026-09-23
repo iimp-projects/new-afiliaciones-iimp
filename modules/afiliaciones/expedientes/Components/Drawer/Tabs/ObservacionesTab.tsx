@@ -310,17 +310,6 @@ function ObservationCard({
     }).format(new Date(dateString));
   };
 
-  const createSafeMarkup = (htmlString: string) => {
-    if (!htmlString) return { __html: "" };
-
-    const decoded = htmlString
-      .replace(/&lt;/g, "<")
-      .replace(/&gt;/g, ">")
-      .replace(/&amp;/g, "&");
-
-    return { __html: decoded };
-  };
-
   const handleOpenDocument = (url: string) => {
     window.open(url, "_blank");
   };
@@ -391,12 +380,9 @@ function ObservationCard({
               <div className="mb-1 text-[9px] font-bold uppercase tracking-wider text-slate-400">
                 Observación original
               </div>
-              <div
-                className="text-[12px] font-medium leading-relaxed text-slate-600 [&>p]:m-0 [&>ul]:m-0 [&>ul]:pl-4"
-                dangerouslySetInnerHTML={createSafeMarkup(
-                  data.errorDescription
-                )}
-              />
+              <div className="whitespace-pre-wrap text-[12px] font-medium leading-relaxed text-slate-600">
+                {data.errorDescription}
+              </div>
             </div>
 
             <div className="border-l-2 border-emerald-300 pl-3">
@@ -423,10 +409,9 @@ function ObservationCard({
               Detalle de la observación
             </div>
 
-            <div
-              className="rounded-xl bg-slate-50 px-3.5 py-3 text-[12px] font-medium leading-relaxed text-slate-700 [&>p]:m-0 [&>p]:mb-1 [&>ul]:m-0 [&>ul]:pl-4"
-              dangerouslySetInnerHTML={createSafeMarkup(data.errorDescription)}
-            />
+            <div className="whitespace-pre-wrap rounded-xl bg-slate-50 px-3.5 py-3 text-[12px] font-medium leading-relaxed text-slate-700">
+              {data.errorDescription}
+            </div>
           </div>
         )}
 

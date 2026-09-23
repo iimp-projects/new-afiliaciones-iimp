@@ -176,17 +176,6 @@ export function AfiliacionDrawerAdapter() {
     router.replace(`${pathname}?${newParams.toString()}`, { scroll: false });
   };
 
-  const jumpToOffset = (offset: number) => {
-    const currentIndex = fakeExpedientesList.findIndex((e: any) => e.applicationCode === activeCaseCode);
-    if (currentIndex === -1) return;
-    const target = fakeExpedientesList[currentIndex + offset];
-    if (target) {
-      const newParams = new URLSearchParams(searchParams.toString());
-      newParams.set("case", target.applicationCode);
-      router.replace(`${pathname}?${newParams.toString()}`, { scroll: false });
-    }
-  };
-
   // FUNCIONES DE CONEXIÓN A TU API
   const handleUpdateStatus = async (newStatus: string, reason?: string) => {
     console.log("Actualizando área a:", newStatus, "Motivo:", reason);
@@ -224,8 +213,6 @@ export function AfiliacionDrawerAdapter() {
     <InspectionDrawer 
       isOpen={!!activeCaseCode} 
       onClose={closeDrawer} 
-      onNext={() => jumpToOffset(1)} 
-      onPrev={() => jumpToOffset(-1)} 
       data={dataToInject} 
       renderContent={renderTabContent} 
     />

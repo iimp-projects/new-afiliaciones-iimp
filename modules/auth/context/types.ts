@@ -22,3 +22,10 @@ export interface CurrentUserDTO {
    */
   permissions: Set<string>;
 }
+
+const associateRoleSlugs = new Set(["ASOCIADO_ACTIVO", "ASOCIADO_ESTUDIANTE"]);
+
+/** Identidad de asociado basada en los datos formales de cuenta y rol. */
+export function isAffiliateUser(user: Pick<CurrentUserDTO, "type" | "role">): boolean {
+  return user.type === "AFFILIATE" || associateRoleSlugs.has(user.role.slug);
+}

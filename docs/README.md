@@ -1,218 +1,37 @@
-# Plataforma de Afiliaciones - Instituto de Ingenieros de Minas del Perú (IIMP)
-
-> **README del Proyecto**  
-> Versión: 1.0
-
-## Bienvenido
-
-Este repositorio contiene el desarrollo de la Plataforma de Afiliaciones del Instituto de Ingenieros de Minas del Perú (IIMP).
-
-El propósito de este documento es ayudar a cualquier desarrollador a comprender el proyecto antes de escribir una sola línea de código.
-
----
-
-## ¿Qué es este proyecto?
-
-La plataforma permite administrar digitalmente el proceso completo de afiliación de nuevos miembros al IIMP.
-
-Principales funcionalidades:
-
-- Registro y autenticación.
-- Gestión de postulaciones.
-- Información personal.
-- Información académica.
-- Información laboral.
-- Experiencia profesional.
-- Carga de documentos.
-- Panel administrativo.
-- Seguimiento del estado de la postulación.
-
----
-
-## Objetivos
-
-- Arquitectura limpia.
-- Escalabilidad.
-- Separación de responsabilidades.
-- Código reutilizable.
-- Fácil mantenimiento.
-
----
-
-## Stack Tecnológico
-
-### Frontend
-
-- Next.js 16
-- React 19
-- TypeScript
-- Tailwind CSS
-- React Hook Form
-- Zod
-
-### Backend
-
-- Server Actions
-- Auth.js
-- Prisma ORM
-
-### Base de Datos
-
-- PostgreSQL
-
----
-
-## Arquitectura
-
-Patrones implementados:
-
-- Clean Architecture
-- Modular Architecture
-- Feature First
-- Repository Pattern
-- Service Layer
-
----
-
-## Flujo General
-
-```text
-Usuario
-   │
-   ▼
-Página (App Router)
-   │
-   ▼
-View
-   │
-   ▼
-Server Action
-   │
-   ▼
-Service
-   │
-   ▼
-Repository
-   │
-   ▼
-Prisma ORM
-   │
-   ▼
-PostgreSQL
-```
-
----
-
-## Estructura General
-
-```text
-app/
-components/
-modules/
-lib/
-hooks/
-types/
-public/
-prisma/
-docs/
-```
-
-### app/
-
-Contiene únicamente las rutas de la aplicación.
-
-### modules/
-
-Contiene toda la lógica del negocio organizada por funcionalidades.
-
-Ejemplo:
-
-```text
-modules/
- ├── auth/
- ├── authorization/
- ├── afiliaciones/
- │      └── postulacion/
- └── dashboard/
-```
-
----
-
-## Responsabilidades
-
-### Views
-
-Renderizan la interfaz.
-
-### Server Actions
-
-Reciben las solicitudes del frontend.
-
-### Services
-
-Implementan las reglas de negocio.
-
-### Repository
-
-Gestionan el acceso a la base de datos.
-
-### Prisma
-
-ORM encargado de la persistencia.
-
----
-
-## Convenciones
-
-- No acceder directamente a Prisma desde componentes.
-- Toda la lógica vive en Services.
-- Toda persistencia pasa por Repository.
-- Validaciones mediante Zod.
-- Evitar `any`.
-
----
-
-## Instalación
-
-```bash
-npm install
-npx prisma generate
-npx prisma migrate dev
-npm run dev
-```
-
----
-
-## Variables de Entorno
-
-```env
-DATABASE_URL=
-AUTH_SECRET=
-AUTH_URL=
-NEXT_PUBLIC_APP_URL=
-```
-
----
-
-## Documentación
-
-Este README es una introducción.
-
-La documentación detallada estará en:
-
-```text
-docs/
- ├── ARCHITECTURE.md
- ├── AUTH.md
- ├── DATABASE.md
- ├── POSTULACION.md
- ├── BACKEND.md
- ├── FRONTEND.md
- └── CONTRIBUTING.md
-```
-
----
-
-## Estado
-
-Proyecto en desarrollo siguiendo una arquitectura modular, mantenible y escalable.
+# Índice de documentación
+
+Este directorio contiene documentación técnica y funcional. El [README principal](../README.md), la [Bible](../BIBLE.md) y las [reglas](../RULES.md) son las puertas de entrada.
+
+## Fuentes vigentes
+
+| Documento | Alcance |
+| --- | --- |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Arquitectura observada, capas y excepciones. |
+| [AWS_ARCHITECTURE.md](AWS_ARCHITECTURE.md) | Tres propuestas AWS, seguridad, recuperación, costos y preparación Terraform. |
+| [BUSINESS_RULES.md](BUSINESS_RULES.md) | Reglas de negocio respaldadas por código y pendientes. |
+| [APPLICATION_MATRIX.md](APPLICATION_MATRIX.md) | Estados y acciones de postulación/consulta. |
+| [AUTHENTICACION.md](AUTHENTICACION.md) | Login, sesiones, contexto y RBAC. |
+| [DATABASE.md](DATABASE.md) | Entidades, relaciones, identificadores y enums Prisma. |
+| [PAYMENTS.md](PAYMENTS.md) | Estado y restricciones del dominio de pagos. |
+| [DEVELOPMENT.md](DEVELOPMENT.md) | Preparación local y flujo de desarrollo. |
+| [QUALITY_GATES.md](QUALITY_GATES.md) | Tipado estricto, ESLint, build y línea base. |
+| [TESTING.md](TESTING.md) | Estrategia y convenciones Vitest. |
+| [ENVIRONMENT.md](ENVIRONMENT.md) | Variables de entorno por capacidad. |
+| [SECURITY.md](SECURITY.md) | Reglas de seguridad y tratamiento de hallazgos. |
+| [DEPLOYMENT.md](DEPLOYMENT.md) | Preflight y despliegue sin asumir plataforma. |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Flujo de contribución y revisión. |
+| [AI_WORKFLOW.md](AI_WORKFLOW.md) | Uso coherente con Codex, Claude y Gemini. |
+| [DECISIONS.md](DECISIONS.md) | Registro de decisiones técnicas relevantes. |
+
+## Documentos históricos o puntuales
+
+- [CONSULTA_VERIFICATION.md](CONSULTA_VERIFICATION.md): historia de la extracción OTP; la matriz vigente está en `APPLICATION_MATRIX.md`.
+- [../auditoria_seguridad.md](../auditoria_seguridad.md): auditoría source-only de un momento concreto. Sus hallazgos deben revalidarse contra el código actual antes de cerrarlos o citarlos como vigentes.
+
+## Política de mantenimiento
+
+- Código, pruebas y `prisma/schema.prisma` ganan ante una discrepancia.
+- Actualiza el documento del dominio junto con el cambio de contrato.
+- No dupliques reglas: enlaza la fuente canónica.
+- Marca propuestas, evidencia histórica y pendientes de confirmación.
+- Nunca escribas secretos, credenciales, tokens o PII real.

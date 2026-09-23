@@ -7,7 +7,7 @@ const subscribe = () => () => {};
 const clientSnapshot = () => true;
 const serverSnapshot = () => false;
 
-export function GlobalModalRoot({ title, children }: { title: string; children: ReactNode }) {
+export function GlobalModalRoot({ title, children, onClose }: { title: string; children: ReactNode; onClose?: () => void }) {
   const mounted = useSyncExternalStore(subscribe, clientSnapshot, serverSnapshot);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -53,22 +53,31 @@ export function GlobalModalRoot({ title, children }: { title: string; children: 
     observer.observe(document.body, { childList: true });
     document.addEventListener("focusin", containFocus);
     root.addEventListener("keydown", containTab);
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && onClose) {
+        event.preventDefault();
+        event.stopPropagation();
+        onClose();
+      }
+    };
+    document.addEventListener("keydown", closeOnEscape);
 
     return () => {
       observer.disconnect();
       document.removeEventListener("focusin", containFocus);
       root.removeEventListener("keydown", containTab);
+      document.removeEventListener("keydown", closeOnEscape);
       for (const [element, wasInert] of background) element.inert = wasInert;
       document.body.style.overflow = bodyOverflow;
       document.documentElement.style.overflow = pageOverflow;
       if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
     };
-  }, [mounted]);
+  }, [mounted, onClose]);
 
   if (!mounted) return null;
 
   // The whole backdrop is global; 9998 keeps the existing 9999 loader on top.
-  return createPortal(<div ref={rootRef} tabIndex={-1} className="fixed inset-0 w-screen h-dvh z-[9998] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={title}>
+  return createPortal(<div ref={rootRef} data-global-modal-root tabIndex={-1} className="fixed inset-0 w-screen h-dvh z-[100000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={title}>
     {children}
   </div>, document.body);
 }

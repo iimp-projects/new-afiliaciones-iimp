@@ -21,12 +21,12 @@ describe("query HTTP access", () => {
     expect(mocks.findFirst).not.toHaveBeenCalled();
   });
   it("issues the access cookie only after OTP validation and loads only that application", async () => {
-    mocks.verify.mockResolvedValue({channel: "EMAIL", destination: "m@example.com"});
+    mocks.verify.mockResolvedValue({ applicationId: 7, channel: "EMAIL", destination: "m@example.com" });
     const application = { id: 7, documentType: "DNI", documentNumber: "12345678", affiliateType: "ACTIVE", email: "m@example.com", phone: "999111812", createdAt: new Date(), applicationCode: "EXP-7", trackingCode: "APP-7", status: "PENDING", person: null, approvals: [], validations: [], observations: [], payments: [] };
     mocks.findFirst.mockResolvedValue(application);
     mocks.findMany.mockResolvedValue([application]);
     const verified = await POST(new NextRequest("http://localhost/api/afiliaciones/postulacion/verify-otp", { method: "POST", body: JSON.stringify({ purpose: "APPLICATION_QUERY", context: queryAuthorization.create(7, "QUERY_CHALLENGE"), code: "123456" }) }));
-    expect(mocks.verify).toHaveBeenCalledWith(7, "123456", "APPLICATION_QUERY");
+    expect(mocks.verify).toHaveBeenCalledWith(expect.objectContaining({ kind: "application", applicationId: 7 }), "123456", "APPLICATION_QUERY");
     const cookie = verified.cookies.get(QUERY_COOKIE);
     expect(cookie?.httpOnly).toBe(true);
     expect(cookie?.sameSite).toBe("strict");
@@ -47,7 +47,7 @@ describe("query HTTP access", () => {
     expect((await response.json()).message).toBe(message);
   });
   it("keeps recovery validation from issuing query authorization", async () => {
-    mocks.verify.mockResolvedValue(true);
+    mocks.verify.mockResolvedValue({ applicationId: 7, channel: "EMAIL", destination: "m@example.com" });
     const response = await POST(new NextRequest("http://localhost/api/afiliaciones/postulacion/verify-otp", { method: "POST", body: JSON.stringify({ trackingCode: "APP-7", code: "123456" }) }));
     expect(response.status).toBe(200);
     expect(response.cookies.get(QUERY_COOKIE)).toBeUndefined();

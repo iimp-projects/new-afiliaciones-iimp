@@ -1,0 +1,16 @@
+/*
+ * AssociateProfileView
+ * El layout principal del perfil se controla con Tailwind desde el TSX.
+ * Este CSS solo conserva estilos complementarios.
+ */
+
+main > header + section blockquote {
+  padding-top: 0.9rem;
+  padding-bottom: 0.9rem;
+}
+
+main > header + section blockquote::first-letter {
+  color: #c9a467;
+  font-size: 1.45rem;
+  font-weight: 700;
+}

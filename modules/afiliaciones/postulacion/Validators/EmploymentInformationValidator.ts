@@ -123,7 +123,7 @@ export class EmploymentInformationValidator extends BaseValidator {
                 "WORK_PHONE_INVALID",
                 "El teléfono no es válido."
             );
-            const phoneDigits = data.workPhone.replace(/\D/g, "");
+            const phoneDigits = (data.workPhone ?? "").replace(/\D/g, "");
             if (phoneDigits.length < 7 || phoneDigits.length > 15 || /^0+$/.test(phoneDigits)) this.addError("workPhone", "WORK_PHONE_CONTENT", "Ingrese un teléfono válido.");
 
         }
@@ -145,7 +145,7 @@ export class EmploymentInformationValidator extends BaseValidator {
                 "WORK_EMAIL_INVALID",
                 "El correo corporativo no es válido."
             );
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(data.workEmail.trim())) this.addError("workEmail", "WORK_EMAIL_CONTENT", "Ingrese un correo corporativo válido.");
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test((data.workEmail ?? "").trim())) this.addError("workEmail", "WORK_EMAIL_CONTENT", "Ingrese un correo corporativo válido.");
 
         }
 

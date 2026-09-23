@@ -1,4 +1,4 @@
-import type { SmartCaseCardData } from "@/modules/shared/Components/SmartCaseCard/types";
+import type { AtomicValidation, AtomicValidationStatus, SmartCaseCardData } from "@/modules/shared/Components/SmartCaseCard/types";
 import type { ExpedientesWorkspaceMetric } from "../Contracts/WorkspaceContracts";
 import type { DrawerData } from "@/modules/shared/Components/InspectionDrawer/types";
 
@@ -7,6 +7,18 @@ export const mockWorkspaceMetrics: ExpedientesWorkspaceMetric[] = [
   // AQUÍ ESTABA EL ERROR: Cambiamos "true" por true (sin comillas)
   { id: "metric-2", label: "Pendientes", count: 12, icon: "Clock", color: "warning", filterPayload: { requiresAttention: true } },
 ];
+
+function mockValidation(label: string, status: AtomicValidationStatus): AtomicValidation {
+  const approved = status === "check";
+  const failed = status === "error";
+  return {
+    icon: approved ? "CheckCircle2" : failed ? "XCircle" : "Clock",
+    label,
+    status,
+    statusLabel: approved ? "Aprobado" : failed ? "Observado" : "Pendiente",
+    statusColorClass: approved ? "bg-emerald-50 text-emerald-700" : failed ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-700",
+  };
+}
 
 export const mockSmartCaseCards: SmartCaseCardData[] = [
   {
@@ -22,10 +34,10 @@ export const mockSmartCaseCards: SmartCaseCardData[] = [
     primaryBadge: { label: "PAGADO", icon: "check", colorClass: "text-emerald-700 bg-emerald-50 border-emerald-200" },
     workflow: { currentStepIndex: 2, steps: [] },
     atomicValidations: [
-      { label: "LOG", status: "check" },
-      { label: "ASI", status: "pending" },
-      { label: "COM", status: "check" },
-      { label: "TES", status: "check" },
+      mockValidation("LOG", "check"),
+      mockValidation("ASI", "pending"),
+      mockValidation("COM", "check"),
+      mockValidation("TES", "check"),
     ],
     metadata: {
       priority: "low",
@@ -47,10 +59,10 @@ export const mockSmartCaseCards: SmartCaseCardData[] = [
     primaryBadge: { label: "PENDIENTE", icon: "clock", colorClass: "text-amber-700 bg-amber-50 border-amber-200" },
     workflow: { currentStepIndex: 2, steps: [] },
     atomicValidations: [
-      { label: "LOG", status: "check" },
-      { label: "ASI", status: "check" },
-      { label: "COM", status: "check" },
-      { label: "TES", status: "pending" },
+      mockValidation("LOG", "check"),
+      mockValidation("ASI", "check"),
+      mockValidation("COM", "check"),
+      mockValidation("TES", "pending"),
     ],
     metadata: {
       priority: "low",
@@ -72,10 +84,10 @@ export const mockSmartCaseCards: SmartCaseCardData[] = [
     primaryBadge: { label: "OBSERVADO", icon: "error", colorClass: "text-red-700 bg-red-50 border-red-200" },
     workflow: { currentStepIndex: 2, steps: [] },
     atomicValidations: [
-      { label: "LOG", status: "check" },
-      { label: "ASI", status: "error" },
-      { label: "COM", status: "check" },
-      { label: "TES", status: "check" },
+      mockValidation("LOG", "check"),
+      mockValidation("ASI", "error"),
+      mockValidation("COM", "check"),
+      mockValidation("TES", "check"),
     ],
     metadata: {
       priority: "low",

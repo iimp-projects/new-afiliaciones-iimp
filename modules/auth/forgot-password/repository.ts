@@ -1,77 +1,20 @@
-// import { prisma } from "@/lib/prisma";
-
-// export const ForgotPasswordRepository = {
-//   async findUserByEmail(email: string) {
-//     return await prisma.user.findUnique({
-//       where: { email },
-//       select: { id: true, email: true, isActive: true },
-//     });
-//   },
-
-//   async deleteExistingTokens(email: string) {
-//     await prisma.passwordResetToken.deleteMany({
-//       where: { email },
-//     });
-//   },
-
-//   async saveTokenHash(email: string, tokenHash: string, expiresAt: Date) {
-//     await prisma.passwordResetToken.create({
-//       data: { email, tokenHash, expiresAt },
-//     });
-//   },
-
-//   async checkRateLimit(key: string, limit: number, windowMinutes: number): Promise<boolean> {
-//     const now = new Date();
-//     await prisma.authRateLimit.deleteMany({ where: { expiresAt: { lt: now } } });
-
-//     const record = await prisma.authRateLimit.findUnique({ where: { key } });
-
-//     if (!record) {
-//       await prisma.authRateLimit.create({
-//         data: {
-//           key,
-//           points: 1,
-//           expiresAt: new Date(now.getTime() + windowMinutes * 60 * 1000),
-//         },
-//       });
-//       return true;
-//     }
-
-//     if (record.points >= limit) return false;
-
-//     await prisma.authRateLimit.update({
-//       where: { key },
-//       data: { points: record.points + 1 },
-//     });
-
-//     return true;
-//   },
-// };
-
-
 import { prisma } from "@/lib/prisma";
 
 export const ForgotPasswordRepository = {
   async findUserByEmail(email: string) {
-    return await prisma.user.findUnique({
+    return prisma.user.findUnique({
       where: { email },
       select: { id: true, email: true, status: true },
     });
   },
 
-  async deleteExistingTokens(email: string) {
-    await prisma.verificationToken.deleteMany({
-      where: { identifier: email },
+  async replaceTokenHash(email: string, tokenHash: string, expiresAt: Date) {
+    await prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`password-reset:${email}`}))`;
+      await tx.verificationToken.deleteMany({ where: { identifier: email } });
+      await tx.verificationToken.create({
+        data: { identifier: email, token: tokenHash, expires: expiresAt },
+      });
     });
   },
-
-  async saveTokenHash(email: string, tokenHash: string, expiresAt: Date) {
-    await prisma.verificationToken.create({
-      data: { 
-        identifier: email, 
-        token: tokenHash, 
-        expires: expiresAt 
-      },
-    });
-  }
 };

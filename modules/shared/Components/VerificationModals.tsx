@@ -33,7 +33,7 @@ export function VerificationChannelModal({ channels, channel, onChannel, onSend,
       {channels.map((option) => {
         const Icon = option.channel === "EMAIL" ? Mail : option.channel === "SMS" ? Smartphone : WhatsAppIcon;
         return <button key={option.channel} type="button" disabled={loading} aria-pressed={channel === option.channel} onClick={() => onChannel(option.channel)} className={`flex flex-col items-center justify-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all ${channel === option.channel ? option.channel === "WHATSAPP" ? "border-[#25D366] bg-[#25D366]/5 text-[#1da851] shadow-sm" : "border-[#C5A059] bg-[#C5A059]/5 text-[#a3722a] shadow-sm" : "border-slate-200 bg-white text-slate-600"}`}>
-          <Icon size={28} /><span className="text-[13px] font-bold">{labels[option.channel]}</span><span className="text-xs break-all">{option.destination}</span>
+          <Icon size={28} /><span className="text-[13px] font-bold">{labels[option.channel]}</span>{option.destination && <span className="text-xs break-all">{option.destination}</span>}
         </button>;
       })}
     </div>

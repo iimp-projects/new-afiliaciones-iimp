@@ -8,35 +8,38 @@ datasource db {
 }
 
 model User {
-  id                       Int                           @id @default(autoincrement())
-  name                     String?                       @db.VarChar(150)
-  email                    String                        @unique @db.VarChar(150)
-  emailVerified            DateTime?                     @map("email_verified")
-  image                    String?                       @db.VarChar(500)
-  status                   UserStatus                    @default(PENDING)
-  type                     UserType                      @default(APPLICANT)
-  lastLoginAt              DateTime?                     @map("last_login_at")
-  failedLoginAttempts      Int                           @default(0) @map("failed_login_attempts")
-  lockedUntil              DateTime?                     @map("locked_until")
-  roleId                   Int?                          @map("role_id")
-  personId                 Int?                          @unique @map("person_id")
-  createdAt                DateTime                      @default(now()) @map("created_at")
-  updatedAt                DateTime                      @updatedAt @map("updated_at")
-  deletedAt                DateTime?                     @map("deleted_at")
-  accounts                 Account[]
-  credentials              Credential[]
-  securityEvents           SecurityEvent[]
-  sessions                 Session[]
-  userSessions             UserSession[]
-  person                   Person?                       @relation(fields: [personId], references: [id], onDelete: Cascade)
-  role                     Role?                         @relation(fields: [roleId], references: [id], onDelete: Restrict)
-  documentApprovals        ApplicationDocument[]         @relation("DocumentApprover")
-  auditLogs                AuditLog[]
-  notifications            Notification[]
-  areaValidations          MembershipAreaValidation[]
-  validations              MembershipValidation[]
-    validationHistoryEntries MembershipValidationHistory[]
-    systemSettingValuesUpdated SystemSettingValue[] @relation("SystemSettingValueUpdatedBy")
+  id                         Int                           @id @default(autoincrement())
+  name                       String?                       @db.VarChar(150)
+  email                      String                        @unique @db.VarChar(150)
+  emailVerified              DateTime?                     @map("email_verified")
+  image                      String?                       @db.VarChar(500)
+  status                     UserStatus                    @default(PENDING)
+  type                       UserType                      @default(APPLICANT)
+  lastLoginAt                DateTime?                     @map("last_login_at")
+  failedLoginAttempts        Int                           @default(0) @map("failed_login_attempts")
+  lockedUntil                DateTime?                     @map("locked_until")
+  roleId                     Int?                          @map("role_id")
+  personId                   Int?                          @unique @map("person_id")
+  createdAt                  DateTime                      @default(now()) @map("created_at")
+  updatedAt                  DateTime                      @updatedAt @map("updated_at")
+  deletedAt                  DateTime?                     @map("deleted_at")
+  accounts                   Account[]
+  credentials                Credential[]
+  securityEvents             SecurityEvent[]
+  sessions                   Session[]
+  userSessions               UserSession[]
+  person                     Person?                       @relation(fields: [personId], references: [id], onDelete: Cascade)
+  role                       Role?                         @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  documentApprovals          ApplicationDocument[]         @relation("DocumentApprover")
+  auditLogs                  AuditLog[]
+  notifications              Notification[]
+  areaValidations            MembershipAreaValidation[]
+  validations                MembershipValidation[]
+  validationHistoryEntries   MembershipValidationHistory[]
+  systemSettingValuesUpdated SystemSettingValue[]          @relation("SystemSettingValueUpdatedBy")
+  operationalAlertsAssigned  OperationalAlertTracking[]    @relation("OperationalAlertAssignedUser")
+  operationalAlertsResolved  OperationalAlertTracking[]    @relation("OperationalAlertResolvedByUser")
+  operationalAlertNotes      OperationalAlertNote[]        @relation("OperationalAlertNoteAuthor")
 
   @@index([email])
   @@index([status])
@@ -244,19 +247,24 @@ model PersonContact {
 model Address {
   id            Int         @id @default(autoincrement())
   personId      Int         @map("person_id")
-  districtId    Int         @map("district_id")
+  countryId     Int?        @map("country_id")
+  districtId    Int?        @map("district_id")
   addressTypeId Int         @map("address_type_id")
   street        String      @db.VarChar(255)
   reference     String?     @db.VarChar(255)
   zipCode       String?     @map("zip_code") @db.VarChar(20)
+  foreignRegion String?     @map("foreign_region") @db.VarChar(150)
+  foreignCity   String?     @map("foreign_city") @db.VarChar(150)
   isPrimary     Boolean     @default(false) @map("is_primary")
   createdAt     DateTime    @default(now()) @map("created_at")
   updatedAt     DateTime    @updatedAt @map("updated_at")
   addressType   AddressType @relation(fields: [addressTypeId], references: [id])
-  district      District    @relation(fields: [districtId], references: [id])
+  country       Country?    @relation(fields: [countryId], references: [id], onDelete: Restrict)
+  district      District?   @relation(fields: [districtId], references: [id])
   person        Person      @relation(fields: [personId], references: [id], onDelete: Cascade)
 
   @@index([personId])
+  @@index([countryId])
   @@index([districtId])
   @@index([addressTypeId])
   @@map("person_addresses")
@@ -328,6 +336,8 @@ model MembershipApplication {
   validations MembershipValidation[]
 
   associateIntegration AssociateIntegration?
+
+  operationalAlertTrackings OperationalAlertTracking[]
 
   @@index([documentNumber])
   @@index([documentNumber, status])
@@ -482,7 +492,7 @@ model MembershipApproval {
   status          EndorsementStatus     @default(PENDING)
   rejectionReason String?               @map("rejection_reason") @db.Text
   resendHistory   Json?                 @map("resend_history")
-  chatMessages    Json?                 @map("chat_messages") 
+  chatMessages    Json?                 @map("chat_messages")
   transactionDate DateTime?             @map("transaction_date")
   createdAt       DateTime              @default(now()) @map("created_at")
   updatedAt       DateTime              @updatedAt @map("updated_at")
@@ -495,18 +505,18 @@ model MembershipApproval {
 }
 
 model MembershipObservation {
-  id               Int                   @id @default(autoincrement())
-  applicationId    Int                   @map("application_id")
-  reviewDepartment String                @map("review_department") @db.VarChar(100)
-  errorDescription String                @map("error_description")
-  fieldPaths       Json?                 @map("field_paths")
-  attachmentUrl    String?               @map("attachment_url")
-  resolutionComment String?              @map("resolution_comment") @db.Text
-  status           ObservationStatus     @default(PENDING)
-  resolvedAt       DateTime?             @map("resolved_at")
-  createdAt        DateTime              @default(now()) @map("created_at")
-  updatedAt        DateTime              @updatedAt @map("updated_at")
-  application      MembershipApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  id                Int                   @id @default(autoincrement())
+  applicationId     Int                   @map("application_id")
+  reviewDepartment  String                @map("review_department") @db.VarChar(100)
+  errorDescription  String                @map("error_description")
+  fieldPaths        Json?                 @map("field_paths")
+  attachmentUrl     String?               @map("attachment_url")
+  resolutionComment String?               @map("resolution_comment") @db.Text
+  status            ObservationStatus     @default(PENDING)
+  resolvedAt        DateTime?             @map("resolved_at")
+  createdAt         DateTime              @default(now()) @map("created_at")
+  updatedAt         DateTime              @updatedAt @map("updated_at")
+  application       MembershipApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
   @@index([applicationId])
   @@index([status])
@@ -583,35 +593,35 @@ model ProfessionalExperience {
 }
 
 model Payment {
-  id                Int                   @id @default(autoincrement())
-  applicationId     Int                   @map("application_id")
-  gateway           PaymentGateway        @default(NIUBIZ)
-  transactionId     String?               @map("transaction_id") @db.VarChar(100)
-  authorizationCode String?               @map("authorization_code") @db.VarChar(50)
-  responseCode      String?               @map("response_code") @db.VarChar(50)
-  totalAmount       Decimal               @map("total_amount") @db.Decimal(10, 2)
-  registrationAmount Decimal?             @map("registration_amount") @db.Decimal(10, 2)
-  membershipFeeAmount Decimal?            @map("membership_fee_amount") @db.Decimal(10, 2)
-  currency          Currency              @default(PEN)
-  status            PaymentStatus         @default(PENDING)
-  paymentDate       DateTime?             @map("payment_date")
-  gatewayTransactionDate DateTime?        @map("gateway_transaction_date")
-  cardBrand         String?               @map("card_brand")
-  maskedCard        String?               @map("masked_card")
-  paymentChannel    String?               @map("payment_channel")
-  failureCode       String?               @map("failure_code")
-  failureReason     String?               @map("failure_reason")
-  gatewayErrorCode  String?               @map("gateway_error_code")
-  failureAt         DateTime?             @map("failure_at")
-  actionCode        String?               @map("action_code")
-  cardType          String?               @map("card_type")
-  traceNumber       String?               @map("trace_number")
-  confirmationEmailSentAt DateTime?       @map("confirmation_email_sent_at")
-  gatewayPayload    Json?                 @map("gateway_payload")
-  createdAt         DateTime              @default(now()) @map("created_at")
-  updatedAt         DateTime              @updatedAt @map("updated_at")
-  billing           Billing?
-  application       MembershipApplication @relation(fields: [applicationId], references: [id])
+  id                      Int                   @id @default(autoincrement())
+  applicationId           Int                   @map("application_id")
+  gateway                 PaymentGateway        @default(NIUBIZ)
+  transactionId           String?               @map("transaction_id") @db.VarChar(100)
+  authorizationCode       String?               @map("authorization_code") @db.VarChar(50)
+  responseCode            String?               @map("response_code") @db.VarChar(50)
+  totalAmount             Decimal               @map("total_amount") @db.Decimal(10, 2)
+  registrationAmount      Decimal?              @map("registration_amount") @db.Decimal(10, 2)
+  membershipFeeAmount     Decimal?              @map("membership_fee_amount") @db.Decimal(10, 2)
+  currency                Currency              @default(PEN)
+  status                  PaymentStatus         @default(PENDING)
+  paymentDate             DateTime?             @map("payment_date")
+  gatewayTransactionDate  DateTime?             @map("gateway_transaction_date")
+  cardBrand               String?               @map("card_brand")
+  maskedCard              String?               @map("masked_card")
+  paymentChannel          String?               @map("payment_channel")
+  failureCode             String?               @map("failure_code")
+  failureReason           String?               @map("failure_reason")
+  gatewayErrorCode        String?               @map("gateway_error_code")
+  failureAt               DateTime?             @map("failure_at")
+  actionCode              String?               @map("action_code")
+  cardType                String?               @map("card_type")
+  traceNumber             String?               @map("trace_number")
+  confirmationEmailSentAt DateTime?             @map("confirmation_email_sent_at")
+  gatewayPayload          Json?                 @map("gateway_payload")
+  createdAt               DateTime              @default(now()) @map("created_at")
+  updatedAt               DateTime              @updatedAt @map("updated_at")
+  billing                 Billing?
+  application             MembershipApplication @relation(fields: [applicationId], references: [id])
 
   @@index([applicationId])
   @@index([status])
@@ -620,28 +630,28 @@ model Payment {
 }
 
 model Billing {
-  id                     Int                       @id @default(autoincrement())
-  paymentId              Int                       @unique @map("payment_id")
-  taxId                  String                    @map("tax_id") @db.VarChar(20)
-  businessName           String                    @map("business_name") @db.VarChar(250)
-  billingAddress         String?                   @map("billing_address") @db.VarChar(250)
-  countryId              Int?                      @map("country_id")
-  billingEmail           String?                   @map("billing_email") @db.VarChar(150)
-  documentType           BillingDocumentType?      @map("document_type")
-  receiptType            BillingReceiptType?       @map("receipt_type")
-  billingContact         String?                   @map("billing_contact") @db.VarChar(150)
+  id                     Int                        @id @default(autoincrement())
+  paymentId              Int                        @unique @map("payment_id")
+  taxId                  String                     @map("tax_id") @db.VarChar(20)
+  businessName           String                     @map("business_name") @db.VarChar(250)
+  billingAddress         String?                    @map("billing_address") @db.VarChar(250)
+  countryId              Int?                       @map("country_id")
+  billingEmail           String?                    @map("billing_email") @db.VarChar(150)
+  documentType           BillingDocumentType?       @map("document_type")
+  receiptType            BillingReceiptType?        @map("receipt_type")
+  billingContact         String?                    @map("billing_contact") @db.VarChar(150)
   verificationSource     BillingVerificationSource? @map("verification_source")
   verificationStatus     BillingVerificationStatus? @map("verification_status")
-  verifiedBusinessName   String?                   @map("verified_business_name") @db.VarChar(250)
-  verifiedBillingAddress String?                   @map("verified_billing_address") @db.VarChar(250)
-  verifiedTaxStatus      String?                   @map("verified_tax_status") @db.VarChar(80)
-  verifiedTaxCondition   String?                   @map("verified_tax_condition") @db.VarChar(80)
-  verifiedAt             DateTime?                 @map("verified_at")
-  createdAt              DateTime                  @default(now()) @map("created_at")
-  updatedAt              DateTime                  @updatedAt @map("updated_at")
-  country        Country? @relation(fields: [countryId], references: [id], onDelete: Restrict)
-  payment        Payment  @relation(fields: [paymentId], references: [id])
-  invoice        Invoice?
+  verifiedBusinessName   String?                    @map("verified_business_name") @db.VarChar(250)
+  verifiedBillingAddress String?                    @map("verified_billing_address") @db.VarChar(250)
+  verifiedTaxStatus      String?                    @map("verified_tax_status") @db.VarChar(80)
+  verifiedTaxCondition   String?                    @map("verified_tax_condition") @db.VarChar(80)
+  verifiedAt             DateTime?                  @map("verified_at")
+  createdAt              DateTime                   @default(now()) @map("created_at")
+  updatedAt              DateTime                   @updatedAt @map("updated_at")
+  country                Country?                   @relation(fields: [countryId], references: [id], onDelete: Restrict)
+  payment                Payment                    @relation(fields: [paymentId], references: [id])
+  invoice                Invoice?
 
   @@index([paymentId])
   @@index([taxId])
@@ -671,28 +681,28 @@ model Invoice {
 }
 
 model AssociateIntegration {
-  id                          Int                        @id @default(autoincrement())
-  applicationId               Int                        @unique @map("application_id")
+  id                          Int                           @id @default(autoincrement())
+  applicationId               Int                           @unique @map("application_id")
   trigger                     AssociateIntegrationTrigger
-  status                      AssociateIntegrationStatus @default(PENDING)
-  requestPayloadSnapshot      Json                       @map("request_payload_snapshot")
-  externalAssociateCode       Int?                       @map("external_associate_code")
-  externalMessage             String?                    @map("external_message") @db.VarChar(500)
-  attempts                    Int                        @default(0)
-  lastAttemptAt               DateTime?                  @map("last_attempt_at")
-  syncedAt                    DateTime?                  @map("synced_at")
-  lastErrorHttpStatus         Int?                       @map("last_error_http_status")
-  lastErrorCode               String?                    @map("last_error_code") @db.VarChar(100)
-  lastErrorMessage            String?                    @map("last_error_message") @db.Text
-  lastErrorIdentifier         String?                    @map("last_error_identifier") @db.VarChar(255)
-  lastErrorDetails            Json?                      @map("last_error_details")
-  externalReceiptType         String?                    @map("external_receipt_type") @db.VarChar(10)
-  externalReceiptSerie        String?                    @map("external_receipt_serie") @db.VarChar(20)
-  externalReceiptNumber       String?                    @map("external_receipt_number") @db.VarChar(30)
-  externalReceiptPdfReference String?                    @map("external_receipt_pdf_reference") @db.VarChar(500)
-  createdAt                   DateTime                   @default(now()) @map("created_at")
-  updatedAt                   DateTime                   @updatedAt @map("updated_at")
-  application                 MembershipApplication      @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  status                      AssociateIntegrationStatus    @default(PENDING)
+  requestPayloadSnapshot      Json                          @map("request_payload_snapshot")
+  externalAssociateCode       Int?                          @map("external_associate_code")
+  externalMessage             String?                       @map("external_message") @db.VarChar(500)
+  attempts                    Int                           @default(0)
+  lastAttemptAt               DateTime?                     @map("last_attempt_at")
+  syncedAt                    DateTime?                     @map("synced_at")
+  lastErrorHttpStatus         Int?                          @map("last_error_http_status")
+  lastErrorCode               String?                       @map("last_error_code") @db.VarChar(100)
+  lastErrorMessage            String?                       @map("last_error_message") @db.Text
+  lastErrorIdentifier         String?                       @map("last_error_identifier") @db.VarChar(255)
+  lastErrorDetails            Json?                         @map("last_error_details")
+  externalReceiptType         String?                       @map("external_receipt_type") @db.VarChar(10)
+  externalReceiptSerie        String?                       @map("external_receipt_serie") @db.VarChar(20)
+  externalReceiptNumber       String?                       @map("external_receipt_number") @db.VarChar(30)
+  externalReceiptPdfReference String?                       @map("external_receipt_pdf_reference") @db.VarChar(500)
+  createdAt                   DateTime                      @default(now()) @map("created_at")
+  updatedAt                   DateTime                      @updatedAt @map("updated_at")
+  application                 MembershipApplication         @relation(fields: [applicationId], references: [id], onDelete: Cascade)
   attemptHistory              AssociateIntegrationAttempt[]
 
   @@index([status])
@@ -701,21 +711,21 @@ model AssociateIntegration {
 }
 
 model AssociateIntegrationAttempt {
-  id                    Int                               @id @default(autoincrement())
-  integrationId         Int                               @map("integration_id")
-  attemptNumber         Int                               @map("attempt_number")
-  startedAt             DateTime                          @map("started_at")
-  finishedAt            DateTime?                         @map("finished_at")
+  id                    Int                                @id @default(autoincrement())
+  integrationId         Int                                @map("integration_id")
+  attemptNumber         Int                                @map("attempt_number")
+  startedAt             DateTime                           @map("started_at")
+  finishedAt            DateTime?                          @map("finished_at")
   result                AssociateIntegrationAttemptResult?
-  httpStatus            Int?                              @map("http_status")
-  errorCode             String?                           @map("error_code") @db.VarChar(100)
-  message               String?                           @db.Text
-  errorIdentifier       String?                           @map("error_identifier") @db.VarChar(255)
-  errorDetails          Json?                             @map("error_details")
-  externalAssociateCode Int?                              @map("external_associate_code")
-  externalMessage       String?                           @map("external_message") @db.Text
-  durationMs            Int?                              @map("duration_ms")
-  integration           AssociateIntegration              @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  httpStatus            Int?                               @map("http_status")
+  errorCode             String?                            @map("error_code") @db.VarChar(100)
+  message               String?                            @db.Text
+  errorIdentifier       String?                            @map("error_identifier") @db.VarChar(255)
+  errorDetails          Json?                              @map("error_details")
+  externalAssociateCode Int?                               @map("external_associate_code")
+  externalMessage       String?                            @map("external_message") @db.Text
+  durationMs            Int?                               @map("duration_ms")
+  integration           AssociateIntegration               @relation(fields: [integrationId], references: [id], onDelete: Cascade)
 
   @@unique([integrationId, attemptNumber])
   @@index([integrationId, startedAt])
@@ -732,6 +742,7 @@ model Country {
   createdAt       DateTime     @default(now()) @map("created_at")
   updatedAt       DateTime     @updatedAt @map("updated_at")
   billings        Billing[]
+  addresses       Address[]
   companies       Company[]
   departments     Department[]
   universities    University[]
@@ -941,6 +952,50 @@ model Notification {
   @@index([userId])
   @@index([status])
   @@map("sys_notifications")
+}
+
+model OperationalAlertTracking {
+  id               Int                    @id @default(autoincrement())
+  alertKey         String                 @unique @map("alert_key") @db.VarChar(255)
+  applicationId    Int                    @map("application_id")
+  type             String                 @db.VarChar(100)
+  severity         String                 @db.VarChar(20)
+  status           OperationalAlertStatus @default(ACTIVE)
+  assignedUserId   Int?                   @map("assigned_user_id")
+  assignedAt       DateTime?              @map("assigned_at")
+  firstDetectedAt  DateTime               @default(now()) @map("first_detected_at")
+  lastDetectedAt   DateTime               @default(now()) @map("last_detected_at")
+  resolvedAt       DateTime?              @map("resolved_at")
+  resolvedByUserId Int?                   @map("resolved_by_user_id")
+  createdAt        DateTime               @default(now()) @map("created_at")
+  updatedAt        DateTime               @updatedAt @map("updated_at")
+
+  application    MembershipApplication  @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+  assignedUser   User?                  @relation("OperationalAlertAssignedUser", fields: [assignedUserId], references: [id], onDelete: Restrict)
+  resolvedByUser User?                  @relation("OperationalAlertResolvedByUser", fields: [resolvedByUserId], references: [id], onDelete: Restrict)
+  notes          OperationalAlertNote[]
+
+  @@index([applicationId])
+  @@index([assignedUserId])
+  @@index([lastDetectedAt])
+  @@index([status, lastDetectedAt])
+  @@map("operational_alert_trackings")
+}
+
+model OperationalAlertNote {
+  id              Int      @id @default(autoincrement())
+  alertTrackingId Int      @map("alert_tracking_id")
+  authorUserId    Int      @map("author_user_id")
+  content         String   @db.Text
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  tracking OperationalAlertTracking @relation(fields: [alertTrackingId], references: [id], onDelete: Cascade)
+  author   User                     @relation("OperationalAlertNoteAuthor", fields: [authorUserId], references: [id], onDelete: Restrict)
+
+  @@index([alertTrackingId])
+  @@index([authorUserId])
+  @@map("operational_alert_notes")
 }
 
 model AuditLog {
@@ -1231,6 +1286,12 @@ enum NotificationStatus {
   UNREAD
   READ
   ARCHIVED
+}
+
+enum OperationalAlertStatus {
+  ACTIVE
+  IN_PROGRESS
+  RESOLVED
 }
 
 enum StudyLevel {

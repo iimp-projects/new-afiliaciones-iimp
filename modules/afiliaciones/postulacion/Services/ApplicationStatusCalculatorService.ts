@@ -1,6 +1,7 @@
 import { ApplicationStatus, ValidationStatus, EndorsementStatus, PaymentStatus, ValidationAction } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { AssociatesIntegrationService } from "../../associates-integration/Services/AssociatesIntegrationService";
+import { AssociateProvisioningService } from "../../asociados/Services/AssociateProvisioningService";
 
 export class ApplicationStatusCalculatorService {
   constructor(private readonly associatesIntegrationService: Pick<AssociatesIntegrationService, "prepareStudentCompletion" | "processAfterCommit"> = new AssociatesIntegrationService()) {}
@@ -8,7 +9,10 @@ export class ApplicationStatusCalculatorService {
   async recalculate(applicationId: number, tx?: any, onIntegrationPrepared?: (integrationId: number) => void): Promise<ApplicationStatus> {
     if (tx) return (await this.recalculateInTransaction(applicationId, tx, onIntegrationPrepared)).status;
     const result = await prisma.$transaction((transaction) => this.recalculateInTransaction(applicationId, transaction));
-    if (result.integrationId) await this.associatesIntegrationService.processAfterCommit(result.integrationId);
+    if (result.integrationId) {
+      await this.associatesIntegrationService.processAfterCommit(result.integrationId);
+      await new AssociateProvisioningService().provisionCompletedApplication(applicationId);
+    }
     return result.status;
   }
 

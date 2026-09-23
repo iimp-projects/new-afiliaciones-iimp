@@ -1,16 +1,21 @@
 import { PrismaClient, DocumentType, UserType, UserStatus } from '@prisma/client';
 import { Client } from 'pg';
+import bcrypt from 'bcryptjs';
 
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: "postgresql://postgres:admin@localhost:5432/bd_afiliaciones_dev?schema=public"
-    }
-  }
-});
+// HERRAMIENTA HISTÓRICA DE MIGRACIÓN — NO FORMA PARTE DEL FLUJO PRODUCTIVO.
+// Requiere ejecución manual explícita contra una base aislada.
+if (process.env.ALLOW_LEGACY_MIGRATION !== 'true') {
+  console.error('[LEGACY] Migración histórica deshabilitada. Define ALLOW_LEGACY_MIGRATION=true para ejecutarla manualmente.');
+  process.exit(1);
+}
+
+const prisma = new PrismaClient();
+
+const legacyDatabaseUrl = process.env.LEGACY_DATABASE_URL;
+if (!legacyDatabaseUrl) throw new Error('LEGACY_DATABASE_URL es obligatorio.');
 
 const oldDb = new Client({
-  connectionString: "postgresql://postgres:admin@localhost:5432/bdafiliacion"
+  connectionString: legacyDatabaseUrl
 });
 
 function mapDocumentType(oldType: string | null): DocumentType {
@@ -68,7 +73,7 @@ async function migrarUsuarios() {
         let finalUserId = null;
 
         if (existingUserByPerson) {
-          console.log(`⚠️  El DNI ${docNumber} ya tiene un usuario vinculado (${existingUserByPerson.email}). Omitiendo duplicado (${email}).`);
+          console.log(`⚠️  Documento ya vinculado a un usuario existente. Omitiendo duplicado legacy.`);
           finalUserId = existingUserByPerson.id;
         } else {
           const existingUserByEmail = await tx.user.findUnique({ where: { email } });
@@ -91,11 +96,13 @@ async function migrarUsuarios() {
         if (finalUserId && oldUser.vusu_cla) {
           const credExists = await tx.credential.findFirst({ where: { userId: finalUserId } });
           if (!credExists) {
+            const legacySecret = String(oldUser.vusu_cla);
             await tx.credential.create({
               data: {
                 userId: finalUserId,
                 type: 'PASSWORD',
-                secret: oldUser.vusu_cla,
+                // Nunca persistir el valor legacy en claro; si ya es bcrypt se conserva.
+                secret: /^\$2[aby]\$/.test(legacySecret) ? legacySecret : await bcrypt.hash(legacySecret, 12),
                 isActive: true
               }
             });
@@ -104,7 +111,7 @@ async function migrarUsuarios() {
       });
       countUsers++;
     } catch (e) {
-      console.log(`❌ Error al migrar avst_user ID ${oldUser.iusu_id} (${email}):`, e);
+      console.log(`❌ Error al migrar avst_user ID ${oldUser.iusu_id}:`, e);
     }
   }
   console.log(`✅ Migrados/Procesados ${countUsers} registros de 'avst_user'.\n`);
@@ -146,7 +153,7 @@ async function migrarUsuarios() {
         let finalUserId = null;
 
         if (existingUserByPerson) {
-          console.log(`⚠️  El DNI ${docNumber} ya tiene un usuario vinculado (${existingUserByPerson.email}). Omitiendo duplicado (${email}).`);
+          console.log(`⚠️  Documento ya vinculado a un usuario existente. Omitiendo duplicado legacy.`);
           finalUserId = existingUserByPerson.id;
         } else {
           const existingUserByEmail = await tx.user.findUnique({ where: { email } });
@@ -169,11 +176,13 @@ async function migrarUsuarios() {
         if (finalUserId && oldAgent.vage_cla) {
           const credExists = await tx.credential.findFirst({ where: { userId: finalUserId } });
           if (!credExists) {
+            const legacySecret = String(oldAgent.vage_cla);
             await tx.credential.create({
               data: {
                 userId: finalUserId,
                 type: 'PASSWORD',
-                secret: oldAgent.vage_cla,
+                // Nunca persistir el valor legacy en claro; si ya es bcrypt se conserva.
+                secret: /^\$2[aby]\$/.test(legacySecret) ? legacySecret : await bcrypt.hash(legacySecret, 12),
                 isActive: true
               }
             });
@@ -182,7 +191,7 @@ async function migrarUsuarios() {
       });
       countAgents++;
     } catch (e) {
-      console.log(`❌ Error al migrar avst_agent ID ${oldAgent.iage_id} (${email}):`, e);
+      console.log(`❌ Error al migrar avst_agent ID ${oldAgent.iage_id}:`, e);
     }
   }
   console.log(`✅ Migrados/Procesados ${countAgents} registros de 'avst_agent'.\n`);

@@ -3,9 +3,14 @@ import { PaymentRepository } from "@/modules/afiliaciones/payments/Repositories/
 import { paymentAuthorizationService } from "@/modules/afiliaciones/payments/Services/PaymentAuthorizationService";
 import { getNiubizActionCode } from "@/modules/afiliaciones/payments/Services/Niubiz/NiubizActionCodes";
 import type { ApplicationStatusData } from "@/modules/afiliaciones/consulta/Models/ApplicationStatus";
+import { cookies } from "next/headers";
 
 export async function GET(request: Request) {
-  const reference = paymentAuthorizationService.verifyCallbackReference(new URL(request.url).searchParams.get("payment_callback") ?? undefined);
+  const cookieStore = await cookies();
+  const reference = paymentAuthorizationService.verifyRestoreReference(
+    new URL(request.url).searchParams.get("payment_restore") ?? undefined,
+    cookieStore.get(paymentAuthorizationService.restoreCookieName)?.value,
+  );
   if (!reference) return NextResponse.json({ message: "La referencia de pago no es válida o expiró." }, { status: 403 });
 
   const payment = await new PaymentRepository().findPaymentConfirmationDetails(reference.paymentId);
@@ -72,5 +77,5 @@ export async function GET(request: Request) {
     billingData: payment.billing ? { tipoDocumento: payment.billing.taxId.length === 11 ? "RUC" : "DNI", numeroDocumento: payment.billing.taxId, razonSocial: payment.billing.businessName, direccionFiscal: payment.billing.billingAddress ?? "", responsable: fullName, emailFacturacion: payment.billing.billingEmail ?? application.email } : null,
     payment: { id: payment.id, status: payment.status, amount: Number(payment.totalAmount), registrationAmount: payment.registrationAmount, membershipFeeAmount: payment.membershipFeeAmount, currency: payment.currency, paymentDate: payment.paymentDate, transactionId: payment.transactionId, authorizationCode: payment.authorizationCode, cardBrand: payment.cardBrand, cardType: payment.cardType, maskedCard: payment.maskedCard, traceNumber: payment.traceNumber },
     failure: payment.status === "FAILED" ? { code: payment.actionCode ?? payment.failureCode, message: action?.userMessage ?? payment.failureReason ?? "La operación fue rechazada por Niubiz." } : null,
-  });
+  }, { headers: { "Cache-Control": "no-store" } });
 }

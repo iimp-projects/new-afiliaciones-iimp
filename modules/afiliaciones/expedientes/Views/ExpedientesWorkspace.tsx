@@ -20,6 +20,7 @@ import { ComiteTab } from "../Components/Drawer/Tabs/ComiteTab"; // <-- IMPORTAM
 import { WorkflowGuideModal } from "../Components/WorkflowGuideModal";
 import { UpdateStatusModal } from "../Components/Modals/UpdateStatusModal"; 
 import { ReplaceAvalModal } from "../Components/Modals/ReplaceAvalModal";
+import { NavigationHeaderIcon } from "@/modules/layout/Components/NavigationHeaderIcon";
 
 export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
   const [expedientes, setExpedientes] = useState<SmartCaseCardData[]>([]);
@@ -359,9 +360,12 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
       
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm mb-5 flex flex-col relative z-20">
         <div className="px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight leading-none">Expedientes de Afiliación</h1>
-            <p className="text-xs sm:text-sm font-medium text-slate-500 mt-1.5">Gestiona, evalúa y resuelve las solicitudes pendientes.</p>
+          <div className="flex items-start gap-3">
+            <NavigationHeaderIcon href="/intranet/expedientes" />
+            <div>
+              <h1 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight leading-none">Expedientes de Afiliación</h1>
+              <p className="text-xs sm:text-sm font-medium text-slate-500 mt-1.5">Gestiona, evalúa y resuelve las solicitudes pendientes.</p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <button className="flex items-center justify-center gap-1.5 px-4 h-9 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-lg text-xs font-bold transition-all shadow-sm focus:outline-none"><Download size={14} strokeWidth={2.5} /> Exportar Excel</button>

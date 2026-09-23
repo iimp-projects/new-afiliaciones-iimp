@@ -1,13 +1,18 @@
 import { prisma } from '@/lib/prisma';
-import { seedLogger, hashSeedPassword, SEED_CONSTANTS } from '@/lib/seed';
+import { seedLogger, hashSeedPassword } from '@/lib/seed';
 import { usersData } from './data/users.data';
 import { CredentialType, UserStatus } from '@prisma/client';
 
 export const seedUsers = async (): Promise<void> => {
   seedLogger.info('  -> Ejecutando upsert de Usuarios (desde users.data.ts)...');
 
-  // 1. Hashear contraseña por defecto (O(1))
-  const defaultPasswordHash = await hashSeedPassword(SEED_CONSTANTS.SYSTEM.DEFAULT_PASSWORD);
+  const seedPassword = process.env.SEED_USER_PASSWORD;
+  if (!seedPassword || seedPassword.length < 16) {
+    throw new Error('SEED_USER_PASSWORD es obligatorio y debe tener al menos 16 caracteres.');
+  }
+
+  // 1. Hashear la contraseña suministrada para este entorno (O(1))
+  const defaultPasswordHash = await hashSeedPassword(seedPassword);
 
   // 2. Extraer catálogo de roles para evitar consultas repetitivas (N+1)
   const existingRoles = await prisma.role.findMany({

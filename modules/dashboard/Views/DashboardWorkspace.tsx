@@ -13,9 +13,9 @@ import Link from "next/link";
 import { ComposedChart, Bar, Line, LineChart, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
 import * as d3 from 'd3';
 import * as topojson from 'topojson-client';
+import type { GeometryCollection } from 'topojson-specification';
+import { loadDashboardGeoData } from "@/modules/dashboard/Services/GeoDataLoader";
 
-const PERU_GEOJSON_URL = "https://raw.githubusercontent.com/juaneladio/peru-geojson/master/peru_departamental_simple.geojson";
-const WORLD_TOPOJSON_URL = "https://unpkg.com/world-atlas@2.0.2/countries-50m.json";
 const lineColors = ['#c39254', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ec4899', '#3b82f6'];
 
 // ==========================================
@@ -106,24 +106,35 @@ export function DashboardWorkspace({ currentUser }: { currentUser: any }) {
   const [geoMode, setGeoMode] = useState<"PERU" | "INTL">("PERU");
   const [peruGeoData, setPeruGeoData] = useState<any>(null);
   const [worldGeoData, setWorldGeoData] = useState<any>(null);
+  const [geoLoadFailed, setGeoLoadFailed] = useState(false);
   const [currentTime, setCurrentTime] = useState("");
   const [tooltip, setTooltip] = useState<{ x: number, y: number, name: string, count: number, percentage: number } | null>(null);
   const [isMapExpanded, setIsMapExpanded] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-    fetch(PERU_GEOJSON_URL).then(res => res.json()).then(setPeruGeoData);
-    fetch(WORLD_TOPOJSON_URL).then(res => res.json()).then(topo => { setWorldGeoData(topojson.feature(topo as any, (topo as any).objects.countries)); });
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  async function loadData() {
     setIsLoading(true);
     const res = await fetchDashboardStats();
     if (res.success) setData(res.data);
     setIsLoading(false);
     setCurrentTime(new Date().toLocaleDateString("es-PE", { day: '2-digit', month: 'short', year: 'numeric' }));
-  };
+  }
+
+  useEffect(() => {
+    setMounted(true);
+    const controller = new AbortController();
+    let cancelled = false;
+
+    void (async () => {
+      const { peru, world } = await loadDashboardGeoData(controller.signal);
+      if (cancelled) return;
+      if (peru) setPeruGeoData(peru);
+      if (world) setWorldGeoData(topojson.feature(world, world.objects.countries as GeometryCollection));
+      setGeoLoadFailed(!peru && !world);
+    })();
+
+    void loadData();
+    return () => { cancelled = true; controller.abort(); };
+  }, []);
 
   useEffect(() => {
     const loadAreaActivity = async () => {
@@ -349,7 +360,7 @@ export function DashboardWorkspace({ currentUser }: { currentUser: any }) {
                   <button onClick={() => setGeoMode("INTL")} className={`text-sm font-black px-8 py-2 rounded-lg transition-all ${geoMode === "INTL" ? "bg-[#c39254] text-white shadow-md" : "text-slate-500 hover:text-slate-800"}`}>INTL</button>
                 </div>
                 <div className="flex-1 p-8 flex items-center justify-center overflow-hidden">
-                   {!activeGeoData ? <div className="animate-spin w-12 h-12 border-4 border-[#c39254] border-t-transparent rounded-full"></div> : renderMapSVG(true)}
+                   {!activeGeoData ? (geoLoadFailed ? <div className="text-slate-400 text-sm font-medium">Mapa no disponible.</div> : <div className="animate-spin w-12 h-12 border-4 border-[#c39254] border-t-transparent rounded-full"></div>) : renderMapSVG(true)}
                 </div>
                 <div className="w-full lg:w-96 bg-white border-l border-slate-200 p-6 flex flex-col shrink-0">
                    <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-6">Top Regiones</h3>
@@ -614,7 +625,7 @@ export function DashboardWorkspace({ currentUser }: { currentUser: any }) {
           </div>
           <div className="p-6 flex flex-col md:flex-row gap-6">
             <div className="flex-1 h-[250px] bg-[#f8f9fa] rounded-xl overflow-hidden border border-slate-100 relative">
-               {!activeGeoData ? <div className="w-full h-full flex items-center justify-center text-slate-400 text-sm">Cargando mapa...</div> : renderMapSVG(false)}
+               {!activeGeoData ? (geoLoadFailed ? <div className="w-full h-full flex items-center justify-center text-slate-400 text-sm font-medium">Mapa no disponible.</div> : <div className="w-full h-full flex items-center justify-center text-slate-400 text-sm">Cargando mapa...</div>) : renderMapSVG(false)}
             </div>
             <div className="w-full md:w-64 flex flex-col justify-between">
               <div className="flex bg-slate-100 rounded-lg p-1 shadow-inner mb-4 w-max mx-auto md:mx-0">

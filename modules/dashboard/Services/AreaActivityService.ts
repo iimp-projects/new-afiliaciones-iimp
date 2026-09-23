@@ -50,7 +50,7 @@ export class AreaActivityService {
 
     // 4. CONSTRUCCIÓN DE LOS "BINS" (Eje X dinámico)
     const dailyMap = new Map<string, any>();
-    let currDate = new Date(startDate);
+    const currDate = new Date(startDate);
 
     while (currDate <= endDate) {
       let key = "";
@@ -112,11 +112,9 @@ export class AreaActivityService {
       }
 
       if (!usersMap.has(userId)) {
-        let finalAvatarUrl = null;
-        if (h.user.image) {
-          try { finalAvatarUrl = await s3Service.getPresignedUrl(h.user.image); } 
-          catch (e) { finalAvatarUrl = h.user.image; }
-        }
+        // Avatar opcional: si no está autorizado o falla la firma, se usa el
+        // fallback de iniciales en la UI en lugar de reintentar/romper.
+        const finalAvatarUrl = h.user.image ? await s3Service.getPresignedAvatarUrl(h.user.image) : null;
 
         const firstName = h.user.person?.firstName || "";
         const lastName = h.user.person?.paternalLastName || "";

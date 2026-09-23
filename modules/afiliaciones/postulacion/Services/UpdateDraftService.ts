@@ -2,12 +2,14 @@ import { Application } from "../Entities/Application";
 import { UpdateDraftDTO } from "../DTOs/update-draft.dto";
 import { IApplicationRepository } from "../Repositories/Interfaces/IApplicationRepository";
 import { prisma } from "@/lib/prisma";
-import { ObservationStatus, ValidationAction, ValidationStatus } from "@prisma/client";
+import { ObservationStatus, Prisma, ValidationAction, ValidationStatus } from "@prisma/client";
 import { ApplicationStatusCalculatorService } from "./ApplicationStatusCalculatorService";
 import { NotifyApplicantService } from "./NotifyApplicantService";
+import { AssociateProvisioningService } from "../../asociados/Services/AssociateProvisioningService";
 import { ApplicationAccessService } from "./ApplicationAccessService";
 import { ApplicationFlowError } from "./Exceptions/ApplicationFlowError";
 import { AssociatesIntegrationService } from "../../associates-integration/Services/AssociatesIntegrationService";
+import { PersonalInformation } from "../Models/PersonalInformation";
 
 export class UpdateDraftService {
 
@@ -322,8 +324,87 @@ export class UpdateDraftService {
                         gender: personal.gender || undefined,
                     },
                 });
+                await this.persistPrimaryAddress(tx, app.personId, personal);
             }
         });
+    }
+
+    private async persistPrimaryAddress(tx: Prisma.TransactionClient, personId: number, personal: PersonalInformation): Promise<void> {
+        const street = personal.address?.trim();
+        const countryId = Number(personal.countryId);
+
+        if (!street || !Number.isInteger(countryId) || countryId <= 0) {
+            throw new ApplicationFlowError("INVALID_INPUT", "La dirección principal y el país son obligatorios.", 422);
+        }
+
+        const country = await tx.country.findUnique({
+            where: { id: countryId },
+            select: { id: true, isActive: true },
+        });
+        if (!country?.isActive) {
+            throw new ApplicationFlowError("INVALID_INPUT", "El país seleccionado no está disponible.", 422);
+        }
+
+        const countryHasDistrictHierarchy = await tx.district.findFirst({
+            where: {
+                isActive: true,
+                province: { isActive: true, department: { isActive: true, countryId } },
+            },
+            select: { id: true },
+        });
+
+        let districtId: number | null = null;
+        if (countryHasDistrictHierarchy) {
+            const departmentId = Number(personal.departmentId);
+            const provinceId = Number(personal.provinceId);
+            const requestedDistrictId = Number(personal.districtId);
+            if (!Number.isInteger(departmentId) || departmentId <= 0 || !Number.isInteger(provinceId) || provinceId <= 0 || !Number.isInteger(requestedDistrictId) || requestedDistrictId <= 0) {
+                throw new ApplicationFlowError("INVALID_INPUT", "Seleccione departamento, provincia y distrito para el país elegido.", 422);
+            }
+
+            const district = await tx.district.findFirst({
+                where: {
+                    id: requestedDistrictId,
+                    isActive: true,
+                    province: { id: provinceId, isActive: true, department: { id: departmentId, countryId, isActive: true } },
+                },
+                select: { id: true },
+            });
+            if (!district) {
+                throw new ApplicationFlowError("INVALID_INPUT", "El distrito no corresponde a la ubicación seleccionada.", 422);
+            }
+            districtId = district.id;
+        }
+
+        const addressType = await tx.addressType.findUnique({
+            where: { code: "HOME" },
+            select: { id: true, isActive: true },
+        });
+        if (!addressType?.isActive) {
+            throw new Error("No existe un tipo de direccion principal activo.");
+        }
+
+        const primaryAddress = await tx.address.findFirst({
+            where: { personId, isPrimary: true },
+            orderBy: { id: "asc" },
+            select: { id: true },
+        });
+        const data = {
+            countryId,
+            districtId,
+            addressTypeId: addressType.id,
+            street,
+            foreignRegion: districtId ? null : personal.foreignRegion?.trim() || null,
+            foreignCity: districtId ? null : personal.foreignCity?.trim() || null,
+            isPrimary: true,
+        };
+
+        if (primaryAddress) {
+            await tx.address.update({ where: { id: primaryAddress.id }, data });
+            return;
+        }
+
+        await tx.address.create({ data: { personId, ...data } });
     }
 
     /** Bloquea una subsanación enviada y la deja disponible para reevaluación. */
@@ -364,6 +445,7 @@ export class UpdateDraftService {
             await new ApplicationStatusCalculatorService(integrationService).recalculate(applicationId, tx, (preparedId) => { integrationId = preparedId; });
         });
         if (integrationId) await integrationService.processAfterCommit(integrationId);
+        if (integrationId) await new AssociateProvisioningService().provisionCompletedApplication(applicationId);
     }
 
     /**

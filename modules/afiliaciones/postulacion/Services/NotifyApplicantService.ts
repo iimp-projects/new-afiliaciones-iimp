@@ -1,4 +1,5 @@
 import { MailService } from "@/modules/shared/Services/MailService";
+import { getAppBaseUrl } from "@/lib/config/env";
 import type { ApplicationDraft } from "../Models/ApplicationDraft";
 import type { Application } from "../Entities/Application";
 
@@ -27,7 +28,7 @@ export class NotifyApplicantService {
       : "Postulante";
 
     const trackingCode = application.trackingCode || application.applicationCode;
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const baseUrl = getAppBaseUrl();
     const trackingUrl = `${baseUrl}/consulta`;
 
     const logoUrl =
@@ -136,7 +137,7 @@ export class NotifyApplicantService {
       : "Postulante";
 
     const trackingCode = application.trackingCode || application.applicationCode;
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const baseUrl = getAppBaseUrl();
     const trackingUrl = `${baseUrl}/consulta`;
 
     const logoUrl =
@@ -251,7 +252,7 @@ export class NotifyApplicantService {
       "Postulante";
 
     const trackingCode = application.trackingCode || application.applicationCode;
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const baseUrl = getAppBaseUrl();
     const trackingUrl = `${baseUrl}/consulta`;
     const logoUrl =
       "https://s3-iimp-gestor-de-archivos-v3.s3.sa-east-1.amazonaws.com/boletines/images/IMG20260817_120138.png";

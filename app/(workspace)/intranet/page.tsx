@@ -6,7 +6,7 @@ export const metadata = {
 };
 
 export default async function IntranetDashboardPage() {
-    const user = await contextService.requireAuth();
+    const user = await contextService.requireAdministrativeUser();
 
     return (
         <div className="h-full">

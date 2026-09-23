@@ -1,25 +1,30 @@
 import { SNSClient, PublishCommand } from "@aws-sdk/client-sns";
+import { getAwsRegion } from "@/lib/config/env";
 
 export class SmsService {
-  private client: SNSClient;
+  private client?: SNSClient;
 
-  constructor() {
-    // Reutilizamos las mismas credenciales de AWS que ya tienes para tu S3
-    this.client = new SNSClient({
-      region: process.env.AWS_DEFAULT_REGION!,
-      credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-      },
-    });
+  /**
+   * El cliente se construye bajo demanda usando la cadena de credenciales por
+   * defecto del AWS SDK (variables de entorno, shared config, ECS Task Role,
+   * EC2 IMDS). No requiere AWS_ACCESS_KEY_ID ni AWS_SECRET_ACCESS_KEY.
+   */
+  private getClient(): SNSClient {
+    if (!this.client) {
+      this.client = new SNSClient({ region: getAwsRegion() });
+    }
+    return this.client;
   }
 
   public async sendSms(phoneNumber: string, message: string): Promise<void> {
+    // La configuración se valida antes de la llamada de red; el error de
+    // configuración se propaga explícitamente y no se enmascara.
+    const client = this.getClient();
     try {
       // AWS SNS requiere que el número tenga el código de país (Ej: +51 para Perú)
       let formattedPhone = phoneNumber.trim();
       if (!formattedPhone.startsWith("+")) {
-        formattedPhone = `+51${formattedPhone}`; 
+        formattedPhone = `+51${formattedPhone}`;
       }
 
       const command = new PublishCommand({
@@ -37,7 +42,7 @@ export class SmsService {
         }
       });
 
-      await this.client.send(command);
+      await client.send(command);
       console.log(`[SmsService] SMS enviado exitosamente a: ${formattedPhone}`);
     } catch (error) {
       console.error("[SmsService] Error enviando SMS:", error);

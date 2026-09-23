@@ -20,7 +20,7 @@ export async function fetchUsersAction(page: number, pageSize: number, search?: 
     const s3Service = new S3StorageService();
     for (const user of result.data) {
       if (user.image) {
-        user.image = await s3Service.getPresignedUrl(user.image);
+        user.image = await s3Service.getPresignedAvatarUrl(user.image);
       }
     }
 
@@ -80,11 +80,12 @@ export async function updateUserAction(prevState: any, formData: FormData) {
   }
 }
 
-export async function toggleUserStatusAction(userId: number, currentStatus: any) {
+export async function toggleUserStatusAction(userId: number, _currentStatus: unknown) {
+  void _currentStatus;
   try {
     await contextService.requirePermission("update", "users");
     const service = new UserService();
-    await service.toggleStatus(userId, currentStatus);
+    await service.toggleStatus(userId);
     
     revalidatePath("/intranet/security/users");
     return { success: true, message: "Estado actualizado." };

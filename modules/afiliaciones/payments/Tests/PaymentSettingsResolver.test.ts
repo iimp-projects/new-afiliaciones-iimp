@@ -1,7 +1,23 @@
 import { Prisma } from "@prisma/client";
-import { describe, expect, it, vi } from "vitest";
-import { PaymentAmountResolver } from "../Services/PaymentAmountResolver";
-import { PaymentSettingsResolver } from "../../../security/system-settings/Services/PaymentSettingsResolver";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+let PaymentAmountResolver: typeof import("../Services/PaymentAmountResolver").PaymentAmountResolver;
+let PaymentSettingsResolver: typeof import("../../../security/system-settings/Services/PaymentSettingsResolver").PaymentSettingsResolver;
+
+beforeEach(async () => {
+  vi.stubEnv("PAYMENT_ENVIRONMENT", "TEST");
+  vi.stubEnv("NIUBIZ_TEST_MERCHANT_NAME", "IIMP Test");
+  vi.stubEnv("NIUBIZ_TEST_FORM_BUTTON_COLOR", "#C5A059");
+  vi.stubEnv("NIUBIZ_TEST_SESSION_EXPIRATION_MINUTES", "5");
+  vi.resetModules();
+  ({ PaymentAmountResolver } = await import("../Services/PaymentAmountResolver"));
+  ({ PaymentSettingsResolver } = await import("../../../security/system-settings/Services/PaymentSettingsResolver"));
+});
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.resetModules();
+});
 
 const current = (value: unknown) => ({ value, rawValue: String(value), valueId: 1 });
 const settings = (values: Record<string, unknown> = {}) => ({

@@ -19,6 +19,16 @@ const repository = new VerificationRepository();
 beforeEach(() => {
   vi.resetAllMocks();
   vi.stubEnv("AUTH_SECRET", "test-only-query-secret");
+  vi.stubEnv("WHATSAPP_PHONE_NUMBER_ID", "phone-id");
+  vi.stubEnv("WHATSAPP_ACCESS_TOKEN", "token");
+  vi.stubEnv("WHATSAPP_GRAPH_API_VERSION", "v26.0");
+  vi.stubEnv("SMTP_HOST", "smtp.example.com");
+  vi.stubEnv("SMTP_USER", "user");
+  vi.stubEnv("SMTP_PASS", "pass");
+  vi.stubEnv("SMTP_PORT", "587");
+  vi.stubEnv("OTP_WHATSAPP_ENABLED", "true");
+  vi.stubEnv("OTP_SMS_ENABLED", "true");
+  vi.stubEnv("OTP_EMAIL_ENABLED", "true");
   db.$transaction.mockImplementation(async (action) => action(db));
   db.verificationCode.findMany.mockResolvedValue([]);
   db.membershipApplication.findMany.mockResolvedValue([{ id: 7, email: "maria@example.com", phone: "999111812" }]);
@@ -55,6 +65,30 @@ describe("registered destinations and shared OTP delivery", () => {
     const service = new OtpRecoveryService(repository, { sendMail: vi.fn().mockRejectedValue(new Error("provider details")) } as never);
     await expect(service.generateAndSendOtp(7, "EMAIL", "APPLICATION_QUERY")).rejects.toThrow("No pudimos enviar");
     expect(db.verificationCode.update).toHaveBeenCalledWith({ where: { id: 12 }, data: { verifiedAt: expect.any(Date) } });
+  });
+  it("logs a sanitized provider category without leaking the provider error", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const service = new OtpRecoveryService(repository, { sendMail: vi.fn().mockRejectedValue(new Error("provider details")) } as never);
+    await expect(service.generateAndSendOtp(7, "EMAIL", "APPLICATION_QUERY")).rejects.toThrow("No pudimos enviar");
+    expect(errorSpy).toHaveBeenCalledWith(expect.objectContaining({ operation: "OTP_PROVIDER_FAILURE", channel: "EMAIL", provider: "smtp", category: "OTP_PROVIDER_FAILURE" }));
+    expect(JSON.stringify(errorSpy.mock.calls)).not.toContain("provider details");
+    errorSpy.mockRestore();
+  });
+  it("classifies a configuration failure as OTP_CONFIGURATION_ERROR", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const configError = Object.assign(new Error("config"), { name: "WhatsAppServiceError", code: "CONFIGURATION_ERROR" });
+    const service = new OtpRecoveryService(repository, undefined as never, undefined as never, { sendOtp: vi.fn().mockRejectedValue(configError) } as never);
+    await expect(service.generateAndSendOtp(7, "WHATSAPP", "APPLICATION_QUERY")).rejects.toThrow("No pudimos enviar");
+    expect(errorSpy).toHaveBeenCalledWith(expect.objectContaining({ operation: "OTP_PROVIDER_FAILURE", channel: "WHATSAPP", provider: "meta", category: "OTP_CONFIGURATION_ERROR" }));
+    errorSpy.mockRestore();
+  });
+  it("logs OTP_RESERVATION_ERROR when the database rejects the reservation", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    db.verificationCode.create.mockRejectedValueOnce(Object.assign(new Error("enum"), { name: "PrismaClientUnknownRequestError" }));
+    const service = new OtpRecoveryService(repository, { sendMail: vi.fn() } as never);
+    await expect(service.generateAndSendOtp(7, "EMAIL", "APPLICATION_QUERY")).rejects.toThrow("No pudimos enviar");
+    expect(errorSpy).toHaveBeenCalledWith(expect.objectContaining({ operation: "OTP_RESERVATION_ERROR", channel: "EMAIL", category: "OTP_DATABASE_ERROR" }));
+    errorSpy.mockRestore();
   });
   it("does not simulate a successful WhatsApp delivery when unconfigured", async () => {
     vi.stubEnv("WHATSAPP_ACCESS_TOKEN", "");
@@ -114,14 +148,18 @@ describe("query authorization boundary", () => {
   it("rejects client-supplied destinations and unsigned IDs", () => {
     expect(() => parseOtpRequest({ purpose: "APPLICATION_QUERY", applicationId: 7, channel: "EMAIL" }, "send")).toThrow();
     expect(() => parseOtpRequest({ purpose: "APPLICATION_QUERY", context: queryAuthorization.create(7, "QUERY_CHALLENGE"), channel: "EMAIL", email: "attacker@example.com" }, "send")).toThrow();
+    expect(() => parseOtpRequest({ purpose: "APPLICATION_QUERY", context: queryAuthorization.create(7, "QUERY_CHALLENGE"), channel: "EMAIL", phone: "999111812" }, "send")).toThrow();
+    expect(() => parseOtpRequest({ purpose: "APPLICATION_QUERY", context: queryAuthorization.create(7, "QUERY_CHALLENGE"), channel: "EMAIL", destination: "x@y.z" }, "send")).toThrow();
   });
-  it("resolves the application only from the signed challenge", () => {
-    expect(parseOtpRequest({ purpose: "APPLICATION_QUERY", context: queryAuthorization.create(7, "QUERY_CHALLENGE"), channel: "SMS" }, "send")).toMatchObject({ identifier: 7, purpose: "APPLICATION_QUERY" });
+  it("resolves identity only from the signed challenge", () => {
+    expect(parseOtpRequest({ purpose: "APPLICATION_QUERY", context: queryAuthorization.create(7, "QUERY_CHALLENGE"), channel: "SMS" }, "send")).toMatchObject({ identifier: { kind: "application", applicationId: 7 }, purpose: "APPLICATION_QUERY" });
+    expect(parseOtpRequest({ purpose: "APPLICATION_QUERY", context: queryAuthorization.createDocumentChallenge("DNI", "12345678"), channel: "SMS" }, "send")).toMatchObject({ identifier: { kind: "document", documentType: "DNI", documentNumber: "12345678" }, purpose: "APPLICATION_QUERY" });
     expect(parseOtpRequest({ trackingCode: "APP-123", channel: "EMAIL" }, "send")).toMatchObject({ identifier: "APP-123", purpose: "RESUME_APPLICATION" });
   });
   it("does not grant access with trackingCode, a challenge, or an altered token", () => {
     expect(queryAuthorization.verify("APP-123", "QUERY_ACCESS")).toBeNull();
     expect(queryAuthorization.verify(queryAuthorization.create(7, "QUERY_CHALLENGE"), "QUERY_ACCESS")).toBeNull();
+    expect(queryAuthorization.verify(queryAuthorization.createDocumentChallenge("DNI", "12345678"), "QUERY_ACCESS")).toBeNull();
     const access = queryAuthorization.create(7, "QUERY_ACCESS");
     expect(queryAuthorization.verify(access, "QUERY_ACCESS")).toBe(7);
     expect(queryAuthorization.verify(`${access}x`, "QUERY_ACCESS")).toBeNull();
@@ -133,23 +171,57 @@ describe("query authorization boundary", () => {
     expect(queryAuthorization.verify(access, "QUERY_ACCESS")).toBeNull();
     vi.useRealTimers();
   });
-  it("looks up by document type and number without exposing full contact details", async () => {
-    const result = await new QueryVerificationService().lookup({ documentType: "CE", documentNumber: "12345678" });
-    expect(db.membershipApplication.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { documentType: "CE", documentNumber: "12345678", deletedAt: null } }));
-    expect(JSON.stringify(result)).not.toContain("maria@example.com");
-    expect(JSON.stringify(result)).not.toContain("999111812");
-  });
-  it("looks up all applications without requiring a tracking code", async () => {
-    db.membershipApplication.findMany.mockResolvedValue([{ id: 7, email: "m@example.com", phone: "" }]);
+});
+
+describe("public consultation lookup (constant response)", () => {
+  it("returns a document-bound challenge without existence flag or contact data", async () => {
     const result = await new QueryVerificationService().lookup({ documentType: "DNI", documentNumber: "12345678" });
-    expect(queryAuthorization.verify(result.context, "QUERY_CHALLENGE")).toBe(7);
-    expect(db.membershipApplication.findMany).toHaveBeenLastCalledWith(expect.objectContaining({
-      where: { documentType: "DNI", documentNumber: "12345678", deletedAt: null },
-      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-    }));
+    expect(result).toEqual({
+      requiresVerification: true,
+      context: expect.any(String),
+      channels: [{ channel: "WHATSAPP" }, { channel: "SMS" }, { channel: "EMAIL" }],
+    });
+    expect(result).not.toHaveProperty("hasApplication");
+    expect(result).not.toHaveProperty("options");
+    const serialized = JSON.stringify(result);
+    expect(serialized).not.toContain("maria@example.com");
+    expect(serialized).not.toContain("999111812");
+    expect(queryAuthorization.resolveChallenge(result.context)).toMatchObject({ kind: "document", documentType: "DNI", documentNumber: "12345678" });
+    expect(JSON.stringify(queryAuthorization.resolveChallenge(result.context))).not.toContain("applicationId");
   });
-  it("rejects trackingCode as a query lookup parameter", async () => {
-    await expect(new QueryVerificationService().lookup({ documentType: "DNI", documentNumber: "12345678", trackingCode: "APP-7" })).rejects.toThrow("Revisa el tipo y número de documento");
+  it("never queries the database and returns the same shape for any document", async () => {
+    const existing = await new QueryVerificationService().lookup({ documentType: "DNI", documentNumber: "12345678" });
+    const nonexistent = await new QueryVerificationService().lookup({ documentType: "CE", documentNumber: "00000000" });
+    expect(Object.keys(existing).sort()).toEqual(Object.keys(nonexistent).sort());
+    expect(existing.channels).toEqual(nonexistent.channels);
     expect(db.membershipApplication.findMany).not.toHaveBeenCalled();
+    expect(db.membershipApplication.findFirst).not.toHaveBeenCalled();
+  });
+  it("reflects only global provider availability", async () => {
+    vi.stubEnv("OTP_EMAIL_ENABLED", "false");
+    vi.stubEnv("OTP_WHATSAPP_ENABLED", "false");
+    const result = await new QueryVerificationService().lookup({ documentType: "DNI", documentNumber: "12345678" });
+    expect(result.channels).toEqual([{ channel: "SMS" }]);
+  });
+  it("rejects email, trackingCode and extra fields", async () => {
+    await expect(new QueryVerificationService().lookup({ documentType: "DNI", documentNumber: "12345678", email: "m@example.com" })).rejects.toThrow("Revisa el tipo y número de documento");
+    await expect(new QueryVerificationService().lookup({ documentType: "DNI", documentNumber: "12345678", trackingCode: "APP-7" })).rejects.toThrow("Revisa el tipo y número de documento");
+    await expect(new QueryVerificationService().lookup({ documentType: "DNI" })).rejects.toThrow("Revisa el tipo y número de documento");
+  });
+  it("silently no-ops for a decoy document without sending or persisting", async () => {
+    db.membershipApplication.findMany.mockResolvedValue([]);
+    const mail = { sendMail: vi.fn() };
+    const service = new OtpRecoveryService(repository, mail as never);
+    await expect(service.generateAndSendOtp({ kind: "document", documentType: "DNI", documentNumber: "00000000" }, "EMAIL", "APPLICATION_QUERY")).resolves.toBeUndefined();
+    expect(mail.sendMail).not.toHaveBeenCalled();
+    expect(db.verificationCode.create).not.toHaveBeenCalled();
+  });
+  it("sends only to the registered destination resolved server-side for a document challenge", async () => {
+    db.membershipApplication.findMany.mockResolvedValue([{ id: 7, email: "maria@example.com", phone: "999111812" }]);
+    db.membershipApplication.findFirst.mockResolvedValue({ id: 7, email: "maria@example.com", phone: "999111812" });
+    const mail = { sendMail: vi.fn() };
+    const service = new OtpRecoveryService(repository, mail as never);
+    await service.generateAndSendOtp({ kind: "document", documentType: "DNI", documentNumber: "12345678" }, "EMAIL", "APPLICATION_QUERY");
+    expect(mail.sendMail).toHaveBeenCalledWith(expect.objectContaining({ to: "maria@example.com" }));
   });
 });

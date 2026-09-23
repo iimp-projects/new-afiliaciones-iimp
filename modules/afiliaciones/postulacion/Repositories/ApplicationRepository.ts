@@ -18,6 +18,7 @@ export class ApplicationRepository implements IApplicationRepository {
       const existing = await tx.membershipApplication.findMany({ where: { documentType: application.documentType as never, documentNumber: application.documentNumber, affiliateType: application.affiliateType as never, deletedAt: null }, select: { id: true, status: true } });
       if (existing.some(item => blocksNewApplication(item.status))) throw new ApplicationFlowError("APPLICATION_EXISTS", "Encontramos una solicitud asociada a este documento. Verifica tu identidad para continuar.");
       if (existing.length && !existing.some(item => authorizedIds.includes(item.id))) throw new ApplicationFlowError("VERIFICATION_REQUIRED", "Verifica tu identidad antes de iniciar una nueva postulación.", 401);
+      await this.assertEmailIdentityAvailable(tx, application.email!, application.documentNumber!);
       const person = await tx.person.findUnique({ where: { documentType_documentNumber: { documentType: application.documentType as never, documentNumber: application.documentNumber! } }, include: { user: true } });
       if (person?.user?.type === "AFFILIATE") throw new ApplicationFlowError("APPLICATION_EXISTS", "No es posible iniciar otra postulación. Consulta tu solicitud o contacta al IIMP.");
       const created = await tx.membershipApplication.create({ data: { applicationCode: application.applicationCode!, trackingCode: application.trackingCode!, documentType: application.documentType as never, documentNumber: application.documentNumber!, affiliateType: application.affiliateType as never, email: application.email!, phone: application.phone!, status: "DRAFT", currentStep: 1, draftData: {} } });
@@ -183,6 +184,7 @@ export class ApplicationRepository implements IApplicationRepository {
       await this.validateBusinessRules(tx, application);
 
       const personId = await this.upsertPerson(tx, application);
+      await this.persistPrimaryAddress(tx, personId, application);
 
       await this.persistAcademicInfos(tx, personId, application);
       await this.persistEmploymentInfos(tx, personId, application);
@@ -244,6 +246,8 @@ export class ApplicationRepository implements IApplicationRepository {
 
     const personal = draft.personalInformation;
 
+    await this.assertEmailIdentityAvailable(tx, application.email, personal.documentNumber);
+
     if (!personal.documentNumber) {
       throw new Error("El número de documento es obligatorio.");
     }
@@ -269,6 +273,17 @@ export class ApplicationRepository implements IApplicationRepository {
 
     if (duplicatedApplication) {
       throw new ApplicationFlowError("APPLICATION_EXISTS", "Ya existe otra postulación vigente para este documento y tipo de afiliación.");
+    }
+  }
+
+  private async assertEmailIdentityAvailable(tx: Prisma.TransactionClient, rawEmail: string, documentNumber: string): Promise<void> {
+    const email = rawEmail.trim().toLowerCase();
+    const owner = await tx.user.findFirst({
+      where: { email: { equals: email, mode: "insensitive" } },
+      select: { person: { select: { documentNumber: true } } },
+    });
+    if (owner?.person && owner.person.documentNumber !== documentNumber) {
+      throw new ApplicationFlowError("EMAIL_CONFLICT", "Este correo ya se encuentra asociado a una cuenta existente. Verifica el correo ingresado o utiliza otro correo para continuar.", 409);
     }
   }
 
@@ -330,6 +345,89 @@ export class ApplicationRepository implements IApplicationRepository {
     });
 
     return created.id;
+  }
+
+  private async persistPrimaryAddress(
+    tx: Prisma.TransactionClient,
+    personId: number,
+    application: Prisma.MembershipApplicationGetPayload<Record<string, never>>,
+  ): Promise<void> {
+    const personal = (application.draftData as unknown as ApplicationDraft | null)?.personalInformation;
+    const street = personal?.address?.trim();
+    const countryId = Number(personal?.countryId);
+
+    if (!street || !Number.isInteger(countryId) || countryId <= 0) {
+      throw new ApplicationFlowError("INVALID_INPUT", "La dirección principal y el país son obligatorios.", 422);
+    }
+
+    const country = await tx.country.findUnique({
+      where: { id: countryId },
+      select: { id: true, isActive: true },
+    });
+    if (!country?.isActive) {
+      throw new ApplicationFlowError("INVALID_INPUT", "El país seleccionado no está disponible.", 422);
+    }
+
+    const countryHasDistrictHierarchy = await tx.district.findFirst({
+      where: {
+        isActive: true,
+        province: { isActive: true, department: { isActive: true, countryId } },
+      },
+      select: { id: true },
+    });
+
+    let districtId: number | null = null;
+    if (countryHasDistrictHierarchy) {
+      const departmentId = Number(personal?.departmentId);
+      const provinceId = Number(personal?.provinceId);
+      const requestedDistrictId = Number(personal?.districtId);
+      if (!Number.isInteger(departmentId) || departmentId <= 0 || !Number.isInteger(provinceId) || provinceId <= 0 || !Number.isInteger(requestedDistrictId) || requestedDistrictId <= 0) {
+        throw new ApplicationFlowError("INVALID_INPUT", "Seleccione departamento, provincia y distrito para el país elegido.", 422);
+      }
+
+      const district = await tx.district.findFirst({
+        where: {
+          id: requestedDistrictId,
+          isActive: true,
+          province: { id: provinceId, isActive: true, department: { id: departmentId, countryId, isActive: true } },
+        },
+        select: { id: true },
+      });
+      if (!district) {
+        throw new ApplicationFlowError("INVALID_INPUT", "El distrito no corresponde a la ubicación seleccionada.", 422);
+      }
+      districtId = district.id;
+    }
+
+    const addressType = await tx.addressType.findUnique({
+      where: { code: "HOME" },
+      select: { id: true, isActive: true },
+    });
+    if (!addressType?.isActive) {
+      throw new Error("No existe un tipo de direccion principal activo.");
+    }
+
+    const primaryAddress = await tx.address.findFirst({
+      where: { personId, isPrimary: true },
+      orderBy: { id: "asc" },
+      select: { id: true },
+    });
+    const data = {
+      countryId,
+      districtId,
+      addressTypeId: addressType.id,
+      street,
+      foreignRegion: districtId ? null : personal?.foreignRegion?.trim() || null,
+      foreignCity: districtId ? null : personal?.foreignCity?.trim() || null,
+      isPrimary: true,
+    };
+
+    if (primaryAddress) {
+      await tx.address.update({ where: { id: primaryAddress.id }, data });
+      return;
+    }
+
+    await tx.address.create({ data: { personId, ...data } });
   }
 
   private async persistAcademicInfos(
@@ -450,15 +548,24 @@ export class ApplicationRepository implements IApplicationRepository {
     );
 
     for (const endorsement of approvals) {
-      if (!endorsement.sponsorPersonId) {
+      if (!endorsement.sponsorDocumentNumber) {
         continue;
       }
+
+      const sponsor = await tx.person.findFirst({
+        where: {
+          documentNumber: endorsement.sponsorDocumentNumber,
+          user: { type: "AFFILIATE", status: "ACTIVE", role: { slug: "ASOCIADO_ACTIVO" } },
+        },
+        select: { id: true },
+      });
+      if (!sponsor) throw new ApplicationFlowError("INVALID_INPUT", "Uno de los avales ya no se encuentra hábil.", 422);
 
       await tx.membershipApproval.create({
         data: {
           applicationId: application.id,
-          sponsorPersonId: endorsement.sponsorPersonId,
-          sponsorCode: endorsement.sponsorCode ?? null,
+          sponsorPersonId: sponsor.id,
+          sponsorCode: `A-${sponsor.id.toString().padStart(4, "0")}`,
         },
       });
     }

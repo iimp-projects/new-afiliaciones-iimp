@@ -2,7 +2,6 @@ import { ConfigDataType } from "@prisma/client";
 import { describe, expect, it, vi, type Mock } from "vitest";
 import { SYSTEM_SETTING_KEYS } from "../Models/SystemSettingKeys";
 import type { ISystemSettingsRepository } from "../Repositories/Interfaces/ISystemSettingsRepository";
-import { PaymentSettingsResolver } from "../Services/PaymentSettingsResolver";
 import { SystemSettingsError, SystemSettingsService } from "../Services/SystemSettingsService";
 
 const now = new Date("2026-09-04T12:00:00.000Z");
@@ -66,8 +65,16 @@ describe("SystemSettingsService", () => {
     expect(repo.createAuditLog).toHaveBeenNthCalledWith(2, expect.objectContaining({ action: "DISABLE_SETTING_VALUE" }), expect.anything());
   });
   it("prepara precio con fallback TEST solo ante ausencia", async () => {
-    const resolver = new PaymentSettingsResolver({ getCurrentValue: vi.fn().mockResolvedValue(null) } as never);
-    const price = await resolver.getRegistrationPrice(now);
-    expect(price.amount.toString()).toBe("300");
+    vi.stubEnv("PAYMENT_ENVIRONMENT", "TEST");
+    vi.resetModules();
+    try {
+      const { PaymentSettingsResolver } = await import("../Services/PaymentSettingsResolver");
+      const resolver = new PaymentSettingsResolver({ getCurrentValue: vi.fn().mockResolvedValue(null) } as never);
+      const price = await resolver.getRegistrationPrice(now);
+      expect(price.amount.toString()).toBe("300");
+    } finally {
+      vi.unstubAllEnvs();
+      vi.resetModules();
+    }
   });
 });

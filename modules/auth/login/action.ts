@@ -1,11 +1,13 @@
 "use server";
 
+import { headers } from "next/headers";
 import { signIn } from "@/lib/auth";
 import { AuthError } from "next-auth";
 import { loginSchema } from "./schema";
 import type { LoginState } from "./types";
 import { loginRepository } from "./repository";
 import { securityService } from "../security/service";
+import { verificationTokenRateLimiter } from "../rate-limit/VerificationTokenRateLimiter";
 
 export async function loginAction(
   prevState: LoginState,
@@ -47,7 +49,13 @@ export async function loginAction(
 
 export async function checkLockStatus(email: string) {
   try {
-    const user = await loginRepository.findUserWithPassword(email);
+    const requestHeaders = await headers();
+    const ip = requestHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() || requestHeaders.get("x-real-ip") || "unknown";
+    const allowed = await verificationTokenRateLimiter.consume("check-lock:ip", ip, 30, 15);
+    // Al superar el límite se responde como "no bloqueado" para no amplificar la enumeración.
+    if (!allowed) return { locked: false };
+
+    const user = await loginRepository.findUserWithPassword(email.trim().toLowerCase());
     if (user && securityService.isAccountLocked(user.lockedUntil)) {
       return { 
         locked: true, 
@@ -55,7 +63,7 @@ export async function checkLockStatus(email: string) {
       };
     }
     return { locked: false };
-  } catch (error) {
+  } catch {
     return { locked: false };
   }
 }

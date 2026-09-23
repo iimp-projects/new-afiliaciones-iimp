@@ -1,6 +1,7 @@
 "use client";
 
 import { Activity, Download, Search, Clock, ShieldAlert, MonitorDot, MapPin } from "lucide-react";
+import { NavigationHeaderIcon } from "@/modules/layout/Components/NavigationHeaderIcon";
 
 export function AuditView({ logs, total }: { logs: any[], total: number }) {
   
@@ -17,9 +18,12 @@ export function AuditView({ logs, total }: { logs: any[], total: number }) {
     <div className="space-y-6 animate-in fade-in duration-500 pb-12">
       {/* HEADER */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
+        <div className="flex items-start gap-3">
+          <NavigationHeaderIcon href="/intranet/security/audit" />
+          <div>
           <h1 className="text-3xl font-black text-slate-800 tracking-tight">Auditoría del Sistema</h1>
           <p className="text-sm font-medium text-slate-500 mt-1.5">Registro inmutable de actividades y trazabilidad de los usuarios.</p>
+          </div>
         </div>
         <button className="flex items-center gap-2 bg-white border border-[#C5A059] text-[#C5A059] px-5 h-11 rounded-xl font-bold shadow-sm hover:bg-[#FFFDF8] transition-all text-sm">
           <Download size={16} strokeWidth={2.5} /> Exportar Log Completo

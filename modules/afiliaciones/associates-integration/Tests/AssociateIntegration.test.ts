@@ -89,11 +89,11 @@ describe("Associate integration Phase A", () => {
 
   it("procesa una vez y conserva SYNCED ante una segunda ejecución", async () => {
     const repository = new MemoryRepository();
-    const client = { createAssociate: async () => ({ externalAssociateCode: 12563, externalMessage: "Success", receipt: { type: "03", serie: "B009", number: "3298", pdfReference: "B009.pdf" } }) };
+    const client = { createAssociate: async () => ({ externalAssociateCode: 12563, externalMessage: "Success", httpStatus: 200, receipt: { type: "03", serie: "B009", number: "3298", pdfReference: "B009.pdf" } }) };
     const service = new AssociatesIntegrationService(repository, undefined, client as never);
     const created = await service.prepare({ applicationId: 11, trigger: AssociateIntegrationTrigger.ACTIVE_PAYMENT, requestPayloadSnapshot: builder.active(identity, effectiveAt, { registration: 150, monthlyFee: 150 }) });
     expect((await service.processIntegration(created.id))?.status).toBe(AssociateIntegrationStatus.SYNCED);
-    expect(repository.attemptHistory).toMatchObject([{ attemptNumber: 1, result: "SYNCED", externalAssociateCode: 12563 }]);
+    expect(repository.attemptHistory).toMatchObject([{ attemptNumber: 1, result: "SYNCED", httpStatus: 200, externalAssociateCode: 12563 }]);
     expect((await service.processIntegration(created.id))?.externalAssociateCode).toBe(12563);
     expect(repository.attemptHistory).toHaveLength(1);
   });

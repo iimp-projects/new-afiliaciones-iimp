@@ -35,7 +35,7 @@ export class SubmitApplicationService {
     // 2. Generar el PDF en memoria en un scope global a la función
     let pdfBuffer: Buffer | undefined;
     try {
-      const pdfUint8Array = await this.declarationPdfService.generate(draft);
+      const pdfUint8Array = await this.declarationPdfService.generate(draft, { allowedApplicationIds: [Number(application.id)] });
       pdfBuffer = Buffer.from(pdfUint8Array);
     } catch (pdfError) {
       console.error("[SubmitApplicationService] Error generando PDF:", pdfError);

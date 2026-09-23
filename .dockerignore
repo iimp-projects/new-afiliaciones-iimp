@@ -1,0 +1,53 @@
+# Version control
+.git
+.gitignore
+
+# CI and agent/editor tooling
+.github
+.agents
+.vscode
+opencode.json
+skills-lock.json
+
+# Dependencies and build output (rebuilt inside the image)
+node_modules
+.next
+out
+build
+coverage
+
+# Local environment and secrets (never copied into the image)
+.env
+.env.*
+*.pem
+
+# Logs and temporary files
+*.log
+logs
+tmp
+.tmp
+
+# TypeScript incremental artifacts
+*.tsbuildinfo
+
+# Documentation, audits and reports not required at build or runtime
+docs
+reports
+auditoria_seguridad.md
+auditoria_seguridad_consolidada.md
+BIBLE.md
+RULES.md
+README.md
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+
+# Historical data-migration tooling (never executed in the image)
+migracion-fase1.ts
+migracion-fase2.ts
+migracion-fase3.ts
+migracion-parche.ts
+
+# Docker metadata itself
+Dockerfile
+.dockerignore

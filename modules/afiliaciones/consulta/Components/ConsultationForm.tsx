@@ -66,6 +66,9 @@ export const ConsultationForm: React.FC<Props> = ({ onSubmit, loading = false })
             onChange={(e) => setForm({ ...form, documentNumber: e.target.value })}
             className="w-full h-12 pl-11 pr-4 bg-surface border border-outline-variant rounded-xl text-sm text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-medium placeholder-secondary/50"
             required
+            minLength={4}
+            maxLength={20}
+            pattern="[A-Za-z0-9]+"
             disabled={loading}
           />
         </div>
@@ -96,7 +99,7 @@ export const ConsultationForm: React.FC<Props> = ({ onSubmit, loading = false })
           )}
         </button>
       </div>
-      
+
       <div className="mt-6 text-center">
          <Link href="/postulacion" className="text-sm font-bold text-secondary hover:text-primary transition-colors">
             Volver al inicio de postulación

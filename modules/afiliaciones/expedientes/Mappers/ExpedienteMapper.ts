@@ -36,7 +36,7 @@ export class ExpedienteMapper {
     if (photoDoc && photoDoc.fileUrl) {
       try {
         const s3Service = new S3StorageService();
-        avatarUrl = await s3Service.getPresignedUrl(photoDoc.fileUrl);
+        avatarUrl = await s3Service.getPresignedApplicationDocumentUrl(photoDoc.fileUrl, [`afiliaciones/applications/${app.id}`]);
       } catch (error) {
         console.error("Error al firmar URL de S3");
       }
@@ -319,6 +319,7 @@ export class ExpedienteMapper {
     return {
       id: app.trackingCode,
       rawId: app.id,
+      operationalAlerts: app.operationalAlerts,
       trackingCode: app.trackingCode,
       topBorderColorClass,
       subStatus,

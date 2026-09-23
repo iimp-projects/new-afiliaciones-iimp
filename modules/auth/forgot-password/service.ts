@@ -1,5 +1,8 @@
 import crypto from "crypto";
 import { MailService } from "@/modules/shared/Services/MailService";
+import { getAppBaseUrl } from "@/lib/config/env";
+import { verificationTokenRateLimiter } from "@/modules/auth/rate-limit/VerificationTokenRateLimiter";
+import { hashVerificationCode } from "@/modules/auth/verification/codeHash";
 import { ForgotPasswordRepository } from "./repository";
 
 export const ForgotPasswordService = {
@@ -7,32 +10,37 @@ export const ForgotPasswordService = {
     email: string,
     ipAddress: string,
   ): Promise<void> {
-    const user = await ForgotPasswordRepository.findUserByEmail(email);
+    const normalizedEmail = email.trim().toLowerCase();
+    const [ipAllowed, emailAllowed] = await Promise.all([
+      verificationTokenRateLimiter.consume("forgot-password:ip", ipAddress, 5, 15),
+      verificationTokenRateLimiter.consume("forgot-password:email", normalizedEmail, 5, 15),
+    ]);
+    if (!ipAllowed || !emailAllowed) throw new Error("RATE_LIMIT_EXCEEDED");
+
+    const user = await ForgotPasswordRepository.findUserByEmail(normalizedEmail);
 
     // Si el usuario no existe o no está activo, detenemos silenciosamente por seguridad
     if (!user || user.status !== "ACTIVE") {
       await new Promise((resolve) =>
-        setTimeout(resolve, Math.random() * 500 + 500),
+        setTimeout(resolve, crypto.randomInt(500, 1001)),
       );
       return;
     }
 
-    await ForgotPasswordRepository.deleteExistingTokens(email);
-
     // Generamos un código de 6 dígitos para que el usuario lo escriba
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const code = crypto.randomInt(100000, 1_000_000).toString();
 
     // Lo hasheamos por seguridad antes de guardarlo en BD
-    const tokenHash = crypto.createHash("sha256").update(code).digest("hex");
+    const tokenHash = hashVerificationCode(code);
     const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutos
 
-    await ForgotPasswordRepository.saveTokenHash(email, tokenHash, expiresAt);
-    await this.sendRecoveryEmail(email, code);
+    await ForgotPasswordRepository.replaceTokenHash(normalizedEmail, tokenHash, expiresAt);
+    await this.sendRecoveryEmail(normalizedEmail, code);
   },
 
   async sendRecoveryEmail(to: string, code: string): Promise<void> {
     const mailService = new MailService();
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const appUrl = getAppBaseUrl();
     // Creamos el enlace mágico que lleva a la pantalla de reset con el email en la URL
     const resetUrl = `${appUrl}/reset-password?email=${encodeURIComponent(to)}`;
 

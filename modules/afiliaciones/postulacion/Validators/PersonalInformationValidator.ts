@@ -85,14 +85,14 @@ export class PersonalInformationValidator extends BaseValidator {
       return;
     }
 
-    // Validación para Perú
+    if (!data.address?.trim()) {
+      this.addError("address", "REQ", "Ingrese una dirección.");
+    }
+
     if (countryId === 1) {
       if (!data.departmentId) this.addError("departmentId", "REQ", "Seleccione un departamento.");
       if (!data.provinceId) this.addError("provinceId", "REQ", "Seleccione una provincia.");
-      
-      // Solo exigir distrito si districtId es undefined o <= 0.
-      // Si viene explícitamente como null, el validador LO APRUEBA.
-      if (data.districtId === undefined) {
+      if (!Number.isInteger(Number(data.districtId)) || Number(data.districtId) <= 0) {
         this.addError("districtId", "REQ", "Seleccione un distrito.");
       }
     }

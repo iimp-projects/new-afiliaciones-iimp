@@ -13,11 +13,11 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    const { application_id, approval_id, sponsor_person_id, sponsor_code } = body;
+    const { application_id, approval_id, dni } = body;
 
-    if (!application_id || !sponsor_person_id) {
+    if (!application_id || typeof dni !== "string" || !/^\d{8}$/.test(dni.trim())) {
       return NextResponse.json(
-        { success: false, error: "Faltan parámetros obligatorios (application_id o sponsor_person_id)." },
+        { success: false, error: "Solicitud o DNI de aval inválido." },
         { status: 400 }
       );
     }
@@ -26,11 +26,11 @@ export async function POST(req: NextRequest) {
     if (!Number.isSafeInteger(appId) || appId <= 0) return NextResponse.json({ error: "Solicitud inválida." }, { status: 400 });
     // Public corrections require the applicant's OTP authorization. The intranet
     // institutional replacement is performed by a SUPER_ADMIN session instead.
-    const isInstitutionalReplacement = await contextService.hasRole(["SUPER_ADMIN"]);
+    const currentUser = await contextService.getCurrentUser().catch(() => null);
+    const isInstitutionalReplacement = Boolean(currentUser?.status === "ACTIVE" && await contextService.hasPermission("update", "memberships"));
     if (!isInstitutionalReplacement) {
       new ApplicationAccessService().require(appId, req.cookies.get(QUERY_COOKIE)?.value);
     }
-    const sponsorId = Number(sponsor_person_id);
     const approvalIdNum = approval_id ? Number(approval_id) : null;
 
     // 🔍 1. Validar Solicitud
@@ -56,6 +56,7 @@ export async function POST(req: NextRequest) {
     let targetApprovalRecord = null;
     if (approvalIdNum) {
       targetApprovalRecord = application.approvals.find(a => a.id === approvalIdNum);
+      if (!targetApprovalRecord) return NextResponse.json({ success: false, error: "El aval a reemplazar no pertenece a esta solicitud." }, { status: 400 });
     }
     if (!targetApprovalRecord) {
       targetApprovalRecord = application.approvals.find(a => a.status === EndorsementStatus.REJECTED || a.status === "PENDING");
@@ -67,8 +68,11 @@ export async function POST(req: NextRequest) {
       : (application as any).draftData as ApplicationDraft;
 
     // 🔍 2. Validar Persona (Nuevo Aval) e incluir su Usuario o Contactos para obtener el Email
-    const sponsorPerson = await prisma.person.findUnique({
-      where: { id: sponsorId },
+    const sponsorPerson = await prisma.person.findFirst({
+      where: {
+        documentNumber: dni.trim(),
+        user: { type: "AFFILIATE", status: "ACTIVE", role: { slug: "ASOCIADO_ACTIVO" } },
+      },
       include: {
         user: true,
         contacts: {
@@ -80,10 +84,12 @@ export async function POST(req: NextRequest) {
 
     if (!sponsorPerson) {
       return NextResponse.json(
-        { success: false, error: `El asociado/aval con ID ${sponsorId} no existe en la base de datos.` },
+        { success: false, error: "El DNI no pertenece a un asociado hábil." },
         { status: 404 }
       );
     }
+    const sponsorId = sponsorPerson.id;
+    const sponsorCode = `A-${sponsorId.toString().padStart(4, "0")}`;
 
     // 🔍 3. Validar que el nuevo aval no esté registrado activamente
     const existingActiveApproval = await prisma.membershipApproval.findFirst({
@@ -132,7 +138,7 @@ export async function POST(req: NextRequest) {
         data: {
           applicationId: appId,
           sponsorPersonId: sponsorId,
-          sponsorCode: sponsor_code || null,
+          sponsorCode,
           status: EndorsementStatus.PENDING,
         },
       });
@@ -189,7 +195,7 @@ export async function POST(req: NextRequest) {
         sponsorPersonId: sponsorId,
         sponsorFullName: sponsorFullName,
         sponsorEmail: sponsorEmail,
-        sponsorCode: sponsor_code || updatedDraft.endorsements[targetEndorsementKey]?.sponsorCode,
+        sponsorCode,
         documentNumber: sponsorDni,
         sponsorDocumentNumber: sponsorDni,
         status: 'PENDING',

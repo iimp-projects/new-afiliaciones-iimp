@@ -843,7 +843,7 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
       rawValue: PersonalInformation[K],
     ) {
       let sanitizedValue = rawValue;
-      let instantWarning = "";
+      const instantWarning = "";
 
       if (typeof rawValue === "string") {
         if (["names", "fatherLastName", "motherLastName"].includes(field)) {
@@ -941,36 +941,9 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
         try {
           setIsUploadingFiles(true);
 
-          let photoPayload: any = form.photo;
-          let identityDocPayload: any = form.identityDocument;
-
-          if (
-            typeof window !== "undefined" &&
-            form.photo instanceof window.File
-          ) {
-            photoPayload = await applicationApi.uploadFile(
-              form.photo as File,
-              "afiliaciones/fotos",
-            );
-          }
-
-          if (
-            typeof window !== "undefined" &&
-            form.identityDocument instanceof window.File
-          ) {
-            identityDocPayload = await applicationApi.uploadFile(
-              form.identityDocument as File,
-              "afiliaciones/documentos",
-            );
-          }
-
-          const formWithS3Urls: any = {
-            ...form,
-            photo: photoPayload,
-            identityDocument: identityDocPayload,
-          };
-
-          await onSave(formWithS3Urls);
+          // La subida y el guardado se orquestan en la vista: primero se crea el
+          // borrador (que emite la cookie de acceso) y luego se suben los archivos.
+          await onSave(form);
           onNext();
         } catch (error: any) {
           setGlobalError(
@@ -1372,22 +1345,10 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
             </div>
 
             <div className="mt-8 pt-8 border-t border-gray-100">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-5 gap-3">
+              <div className="mb-5">
                 <h3 className="font-bold text-sm text-[#2F3136] uppercase tracking-wide">
                   Ubicación Geográfica
                 </h3>
-                {isFormEnabled && (
-                  <div className="bg-blue-50 text-blue-700 border border-blue-100 text-[11px] px-3 py-1.5 rounded-full font-bold flex items-center gap-1.5 shadow-sm">
-                    <Info size={14} className="shrink-0" />
-                    <span>
-                      {!form.countryId
-                        ? "Seleccione un país para desglosar sus subdivisiones."
-                        : departments.length === 0
-                          ? "El país seleccionado no requiere subdivisiones adicionales."
-                          : "Las opciones se habilitan según la disponibilidad del país seleccionado."}
-                    </span>
-                  </div>
-                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">

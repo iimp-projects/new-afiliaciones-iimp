@@ -1,10 +1,28 @@
 import { ApplicationStatus, PaymentGateway, PaymentStatus, Prisma } from "@prisma/client";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("../../postulacion/Services/ApplicationStatusCalculatorService", () => ({
   ApplicationStatusCalculatorService: class {
     recalculate = vi.fn();
   },
+}));
+
+vi.mock("../../../security/system-settings/Services/PaymentSettingsResolver", () => ({
+  PaymentSettingsResolver: class {
+    getRegistrationPrice = vi.fn().mockResolvedValue({ amount: new Prisma.Decimal("150") });
+    getMonthlyFee = vi.fn().mockResolvedValue({ value: new Prisma.Decimal("150") });
+    assertPaymentInitiationAvailable = vi.fn().mockResolvedValue(undefined);
+    getNiubizCheckoutSettings = vi.fn().mockResolvedValue({
+      merchantName: "IIMP Test",
+      formButtonColor: "#C5A059",
+      expirationMinutes: 5,
+    });
+  },
+}));
+
+const provisionCompletedApplication = vi.hoisted(() => vi.fn().mockResolvedValue(null));
+vi.mock("../../asociados/Services/AssociateProvisioningService", () => ({
+  AssociateProvisioningService: class { provisionCompletedApplication = provisionCompletedApplication; },
 }));
 
 import type { CreatePaymentInput } from "../DTOs/create-payment.schema";
@@ -28,11 +46,23 @@ const input: CreatePaymentInput = {
   },
 };
 
+const callbackPayload = { paymentId: 99, applicationId: input.applicationId, expiresAt: Date.now() + 60_000, purpose: "payment_callback" as const, jti: "test-jti" };
+
 const authorizedPayment = {
   verify: () => true,
-  createCallbackReference: () => "callback-reference",
-  verifyCallbackReference: () => ({ paymentId: 99, applicationId: input.applicationId, expiresAt: Date.now() + 60_000 }),
+  createCallbackReference: async () => "callback-reference",
+  verifyCallbackReference: async () => callbackPayload,
+  consumeCallbackReference: async () => callbackPayload,
 };
+
+function makeAuthorizationMock() {
+  return {
+    verify: () => true,
+    createCallbackReference: vi.fn(async () => "callback-reference"),
+    verifyCallbackReference: vi.fn(async (): Promise<typeof callbackPayload | null> => callbackPayload),
+    consumeCallbackReference: vi.fn(async () => callbackPayload),
+  };
+}
 
 const niubizAuthorizationConfig = {
   merchantId: "merchant-test", username: "username-test", password: "password-test",
@@ -102,6 +132,38 @@ class PaymentRepositoryFake implements IPaymentRepository {
 }
 
 describe("PaymentService", () => {
+  beforeEach(() => {
+    provisionCompletedApplication.mockClear();
+    provisionCompletedApplication.mockResolvedValue(null);
+  });
+
+  it("provisiona la cuenta del asociado tras un pago PAID", async () => {
+    const repository = new PaymentRepositoryFake();
+    const statusCalculator = { recalculate: vi.fn(async (_applicationId: number, _tx: Prisma.TransactionClient, onIntegrationPrepared?: (id: number) => void) => { onIntegrationPrepared?.(701); return ApplicationStatus.COMPLETED; }) };
+    const associates = { prepareActivePayment: vi.fn(), processAfterCommit: vi.fn(async () => {}) };
+    const service = new PaymentService(undefined, new MockPaymentProvider("PAID"), repository, statusCalculator as never, authorizedPayment, false, undefined, undefined, undefined, associates as never);
+
+    const result = await service.initiate(input, "authorized");
+
+    expect(result.status).toBe(PaymentStatus.PAID);
+    expect(repository.result?.status).toBe(PaymentStatus.PAID);
+    expect(provisionCompletedApplication).toHaveBeenCalledWith(input.applicationId);
+  });
+
+  it("no revierte un pago PAID cuando el provisioning/activación falla", async () => {
+    provisionCompletedApplication.mockRejectedValueOnce(new Error("SMTP unavailable"));
+    const repository = new PaymentRepositoryFake();
+    const statusCalculator = { recalculate: vi.fn(async (_applicationId: number, _tx: Prisma.TransactionClient, onIntegrationPrepared?: (id: number) => void) => { onIntegrationPrepared?.(701); return ApplicationStatus.COMPLETED; }) };
+    const associates = { prepareActivePayment: vi.fn(), processAfterCommit: vi.fn(async () => {}) };
+    const service = new PaymentService(undefined, new MockPaymentProvider("PAID"), repository, statusCalculator as never, authorizedPayment, false, undefined, undefined, undefined, associates as never);
+
+    const result = await service.initiate(input, "authorized");
+
+    expect(result.status).toBe(PaymentStatus.PAID);
+    expect(repository.result?.status).toBe(PaymentStatus.PAID);
+    expect(provisionCompletedApplication).toHaveBeenCalledWith(input.applicationId);
+  });
+
   it("processes a STUDENT_COMPLETION integration captured from recalculation only after the payment transaction", async () => {
     const repository = new PaymentRepositoryFake();
     const transactionEvents: string[] = [];
@@ -122,6 +184,18 @@ describe("PaymentService", () => {
     expect(associates.processAfterCommit).toHaveBeenCalledOnce();
     expect(associates.processAfterCommit).toHaveBeenCalledWith(701);
     expect(transactionEvents).toEqual(["begin", "commit", "begin", "commit", "http"]);
+  });
+
+  it("does not revert an approved payment when a post-commit integration fails", async () => {
+    const repository = new PaymentRepositoryFake();
+    const statusCalculator = { recalculate: vi.fn(async (_applicationId: number, _tx: Prisma.TransactionClient, onIntegrationPrepared?: (id: number) => void) => { onIntegrationPrepared?.(701); return ApplicationStatus.COMPLETED; }) };
+    const associates = { prepareActivePayment: vi.fn(), processAfterCommit: vi.fn().mockRejectedValue(new Error("integration unavailable")) };
+    const service = new PaymentService(undefined, new MockPaymentProvider("PAID"), repository, statusCalculator as never, authorizedPayment, false, undefined, undefined, undefined, associates as never);
+
+    const result = await service.initiate(input, "authorized");
+
+    expect(result.status).toBe(PaymentStatus.PAID);
+    expect(repository.result?.status).toBe(PaymentStatus.PAID);
   });
 
   it.each(["PAID", "FAILED", "PENDING"] as const)("persiste y devuelve el resultado MOCK %s", async (scenario) => {
@@ -215,6 +289,21 @@ describe("PaymentService", () => {
       .rejects.toMatchObject({ status: 502 } satisfies Partial<PaymentServiceError>);
     expect(repository.result).toMatchObject({ status: PaymentStatus.PENDING });
     expect(repository.result?.failureCode).toBeUndefined();
+  });
+
+  it("no marca PAID cuando monto, moneda u orden no coinciden con el pago", async () => {
+    const repository = new PaymentRepositoryFake();
+    repository.paymentForAuthorization = { id: 99, applicationId: 42, totalAmount: 300, currency: "PEN", gateway: PaymentGateway.NIUBIZ, status: PaymentStatus.PENDING };
+    const provider = new NiubizPaymentProvider(niubizAuthorizationConfig, "TEST");
+    vi.spyOn(provider, "authorize").mockResolvedValue({
+      status: 200,
+      result: { status: PaymentStatus.PAID, gatewayAmount: 299, gatewayCurrency: "PEN", gatewayPurchaseNumber: "99" },
+    });
+    const service = new PaymentService(undefined, provider, repository, { recalculate: vi.fn() }, authorizedPayment);
+
+    await expect(service.authorize({ applicationId: 42, paymentId: 99, transactionToken: "checkout-token" }, "authorized"))
+      .rejects.toMatchObject({ status: 502 } satisfies Partial<PaymentServiceError>);
+    expect(repository.result).toMatchObject({ status: PaymentStatus.PENDING });
   });
   it("reutiliza un Payment PENDING de Niubiz TEST sin crear Payment ni Billing", async () => {
     const repository = new PaymentRepositoryFake();
@@ -313,5 +402,50 @@ describe("PaymentService", () => {
     await expect(service.initiate(request, "authorized")).rejects.toMatchObject({ status: 422 });
     lookup.getRuc.mockResolvedValueOnce({ status: "SERVICE_ERROR" });
     await expect(service.initiate({ ...request, billingData: { ...request.billingData, razonSocial: "Empresa oficial SAC", direccionFiscal: "Av. Oficial 123" } }, "authorized")).rejects.toMatchObject({ status: 502 });
+  });
+
+  it("no consume la referencia de callback cuando el proveedor queda incierto", async () => {
+    const repository = new PaymentRepositoryFake();
+    repository.paymentForAuthorization = { id: 99, applicationId: 42, totalAmount: 300, currency: "PEN", gateway: PaymentGateway.NIUBIZ, status: PaymentStatus.PENDING };
+    const provider = new NiubizPaymentProvider(niubizAuthorizationConfig, "TEST");
+    vi.spyOn(provider, "authorize").mockRejectedValue(new NiubizAuthorizationNetworkError("timeout"));
+    const authorization = makeAuthorizationMock();
+    const service = new PaymentService(undefined, provider, repository, { recalculate: vi.fn() }, authorization);
+
+    await expect(service.authorizeFromCallback("callback-reference", "checkout-token"))
+      .rejects.toMatchObject({ status: 502 } satisfies Partial<PaymentServiceError>);
+    expect(repository.result).toMatchObject({ status: PaymentStatus.PENDING });
+    expect(authorization.consumeCallbackReference).not.toHaveBeenCalled();
+  });
+
+  it("consume la referencia de callback tras un resultado terminal", async () => {
+    const repository = new PaymentRepositoryFake();
+    repository.paymentForAuthorization = { id: 99, applicationId: 42, totalAmount: 300, currency: "PEN", gateway: PaymentGateway.NIUBIZ, status: PaymentStatus.PENDING };
+    const provider = new NiubizPaymentProvider(niubizAuthorizationConfig, "TEST");
+    vi.spyOn(provider, "authorize").mockResolvedValue({
+      status: 200,
+      result: { status: PaymentStatus.PAID, gatewayAmount: 300, gatewayCurrency: "PEN", gatewayPurchaseNumber: "99" },
+    });
+    const authorization = makeAuthorizationMock();
+    const service = new PaymentService(undefined, provider, repository, { recalculate: vi.fn() }, authorization);
+
+    const result = await service.authorizeFromCallback("callback-reference", "checkout-token");
+
+    expect(result.status).toBe(PaymentStatus.PAID);
+    expect(authorization.consumeCallbackReference).toHaveBeenCalledOnce();
+  });
+
+  it("rechaza una referencia de callback inválida sin llamar al proveedor", async () => {
+    const repository = new PaymentRepositoryFake();
+    const provider = new NiubizPaymentProvider(niubizAuthorizationConfig, "TEST");
+    const authorize = vi.spyOn(provider, "authorize");
+    const authorization = makeAuthorizationMock();
+    authorization.verifyCallbackReference.mockResolvedValueOnce(null);
+    const service = new PaymentService(undefined, provider, repository, { recalculate: vi.fn() }, authorization);
+
+    await expect(service.authorizeFromCallback("callback-reference", "checkout-token"))
+      .rejects.toMatchObject({ status: 403 } satisfies Partial<PaymentServiceError>);
+    expect(authorize).not.toHaveBeenCalled();
+    expect(authorization.consumeCallbackReference).not.toHaveBeenCalled();
   });
 });

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Search, Plus, Filter, KeyRound, MoreVertical, Edit, ShieldCheck, Users } from "lucide-react";
+import { NavigationHeaderIcon } from "@/modules/layout/Components/NavigationHeaderIcon";
 
 export function RolesView({ initialRoles, total }: { initialRoles: any[], total: number }) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -10,9 +11,12 @@ export function RolesView({ initialRoles, total }: { initialRoles: any[], total:
     <div className="space-y-6 animate-in fade-in duration-500 pb-12">
       {/* HEADER */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
+        <div className="flex items-start gap-3">
+          <NavigationHeaderIcon href="/intranet/security/roles" />
+          <div>
           <h1 className="text-3xl font-black text-slate-800 tracking-tight">Roles y Permisos</h1>
           <p className="text-sm font-medium text-slate-500 mt-1.5">Define los niveles de acceso y privilegios del sistema.</p>
+          </div>
         </div>
         <button className="flex items-center justify-center gap-2 bg-gradient-to-r from-[#C5A059] to-[#9E7832] text-white px-5 h-11 rounded-xl font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all text-sm">
           <Plus size={18} strokeWidth={2.5} /> Nuevo Rol

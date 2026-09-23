@@ -1,12 +1,12 @@
 # Verificación de consulta pública
 
-> Documento histórico de la extracción OTP. La matriz, búsqueda, privacidad, autorización y validación vigentes están en [APPLICATION_MATRIX.md](APPLICATION_MATRIX.md). Sustituye las referencias siguientes a última solicitud, trackingCode accesible antes del OTP, cookie limitada a `/api/consulta` y estados inexistentes conservados.
+> Documento histórico de la extracción OTP. La matriz, búsqueda, privacidad, autorización y validación vigentes están en [APPLICATION_MATRIX.md](APPLICATION_MATRIX.md). Los conteos de pruebas y errores incluidos abajo reflejan aquella ejecución, no la línea base actual; consulta [QUALITY_GATES.md](QUALITY_GATES.md).
 
 ## Flujo implementado
 
-1. Buscar únicamente por tipo y número de documento. Se selecciona la postulación no eliminada más reciente (`createdAt DESC`, con `id DESC` para desempatar), siguiendo el criterio de búsqueda de Postulación. No se solicita ni acepta código de seguimiento en la búsqueda de consulta.
-2. El servidor recupera los contactos registrados y devuelve únicamente destinos enmascarados y un contexto firmado de 15 minutos.
-3. `VerificationChannelModal` y `OtpVerificationModal`, extraídos de `PersonalDataStep`, se utilizan en Postulación y Consultar. Solo aparecen canales con destino registrado. Sin contactos, el envío queda deshabilitado.
+1. La interfaz solicita primero tipo y número de documento. Ese primer paso es exclusivamente local y no consulta APIs, base de datos, existencia de solicitudes ni canales. En un segundo paso solicita el correo registrado; recién entonces envía tipo, documento y correo a `/api/consulta/verification`.
+2. El servidor exige estrictamente los tres campos, aplica rate limiting por IP y por identidad, y busca una coincidencia no eliminada por tipo, documento y correo. Solo después de esa coincidencia recupera los contactos registrados y devuelve destinos enmascarados y un contexto firmado de 15 minutos.
+3. `VerificationChannelModal` y `OtpVerificationModal`, extraídos de `PersonalDataStep`, se utilizan en Postulación y Consultar. Solo aparecen canales con destino registrado y proveedor habilitado/configurado. Antes de validar tipo, documento y correo no se revela existencia, teléfono, destinos enmascarados, canales, cantidad ni estado de solicitudes. Sin canales disponibles, el envío queda deshabilitado.
 4. Las rutas existentes `send-otp` y `verify-otp` delegan en `OtpRecoveryService`. Para consulta aceptan `purpose: APPLICATION_QUERY` y el contexto firmado; rechazan destinos, IDs o propiedades arbitrarias.
 5. Una validación correcta consume el OTP y emite una cookie HttpOnly, SameSite Strict, Secure en producción, limitada a `/api/consulta` y a 15 minutos. `GET /api/consulta` recupera exclusivamente la aplicación identificada por esa cookie y responde sin caché.
 
@@ -42,7 +42,7 @@ node node_modules/typescript/bin/tsc --noEmit --incremental false
 - 41 pruebas automatizadas: portal del loader a `document.body`, comportamiento SSR/cerrado, formulario sin seguimiento, selección de la última solicitud por documento, paridad de canales entre Postulación y Consultar, enmascaramiento, ausencia de contactos, entrega mediante proveedores existentes, fallo de envío, WhatsApp sin configuración, OTP correcto/incorrecto/expirado, consumo, intentos, cooldown, reenvío, límites, separación de contextos, entradas arbitrarias, cookie, expiración y autorización HTTP.
 - Las pruebas usan dobles de base de datos y proveedores; no envían mensajes ni validan entrega real de WhatsApp, SMS o correo. No se ejecutó una prueba en navegador ni una prueba concurrente contra PostgreSQL.
 - ESLint sin errores en los archivos de verificación revisados. `git diff --check` sin errores de espacios.
-- TypeScript global: 54 errores preexistentes. Entre ellos: usuarios, expedientes, páginas de resultado de pago, `ValidateDocumentService`, seeds y scripts. El servicio de validación, modificado para devolver canales, conserva sus dos referencias preexistentes a estados ausentes del enum (`APPROVED` y `CANCELLED`), fuera de la corrección de canales. No se declara compilación global satisfactoria.
+- En aquella ejecución existían diagnósticos globales de TypeScript fuera del alcance de la extracción OTP. Ese dato quedó obsoleto: la línea base vigente y reproducible está en [QUALITY_GATES.md](QUALITY_GATES.md).
 - Alerts nativos: 0 en el flujo de búsqueda/verificación; permanecen 4 en `StatusInReview.tsx`, correspondientes al reemplazo de avales, fuera de este cambio.
 
 ## Archivos modificados o creados

@@ -1,13 +1,15 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { 
     MoreVertical, CheckCircle2, Clock, XCircle, 
-    MinusCircle, AlertCircle, Eye, Users, Send, Mail, Phone, User, GraduationCap 
+    MinusCircle, AlertCircle, AlertTriangle, Eye, Users, Send, Mail, Phone, User, GraduationCap, KeyRound
 } from "lucide-react";
 import type { SmartCaseCardProps } from "./types";
 import { FallbackAvatar } from "./FallbackAvatar";
 import { DynamicIcon } from "@/modules/layout/Utils/DynamicIcon";
+import { PortalAccessManager } from "@/modules/afiliaciones/expedientes/Components/Drawer/Tabs/PortalAccessManager";
 
 const StatusIcon = ({ status, className = "" }: { status: string; className?: string }) => {
   if (status === "person") return <User size={14} className={className} strokeWidth={2.5} />;
@@ -36,12 +38,14 @@ export function SmartCaseCard({
   onNotifyCommittee, 
   onResendApplicant 
 }: SmartCaseCardProps) {
-  const { identity, primaryBadge, atomicValidations, metadata, topBorderColorClass, subStatus } = data;
+  const { identity, primaryBadge, atomicValidations, metadata, topBorderColorClass, subStatus, operationalAlerts } = data;
   const isExpedienteLayout = data.rowLayout === "expediente";
   
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [avatarFailed, setAvatarFailed] = useState(false);
+  const [accessManagerOpen, setAccessManagerOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -122,6 +126,10 @@ export function SmartCaseCard({
                 </div>
               </button>
 
+              {isExpedienteLayout && data.rawId && <button onClick={(e) => { e.stopPropagation(); setIsMenuOpen(false); setAccessManagerOpen(true); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-[#C5A059] transition-colors outline-none">
+                <KeyRound size={15} strokeWidth={2.5} /> Gestionar acceso al portal
+              </button>}
+
               <div className="h-px bg-slate-100 my-1 mx-2"></div>
 
               {/* 3. Notificar al Comité (Deshabilitable condicional) */}
@@ -159,6 +167,8 @@ export function SmartCaseCard({
           )}
         </div>
       </div>
+
+      {operationalAlerts && operationalAlerts.total > 0 && <button type="button" onClick={(event) => { event.stopPropagation(); window.location.assign(`/intranet/alertas?applicationId=${data.rawId}`); }} className={`-mt-3 mb-4 inline-flex w-max items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[10px] font-bold ${operationalAlerts.highestSeverity === "CRITICAL" ? "border-red-200 bg-red-50 text-red-700" : "border-amber-200 bg-amber-50 text-amber-800"}`} title="Ver alertas operativas"><AlertTriangle size={13} />{operationalAlerts.highestSeverity === "CRITICAL" ? `${operationalAlerts.critical} alerta${operationalAlerts.critical === 1 ? "" : "s"} crítica${operationalAlerts.critical === 1 ? "" : "s"}` : `${operationalAlerts.total} alerta${operationalAlerts.total === 1 ? "" : "s"}`}</button>}
 
       {/* IDENTIDAD DEL POSTULANTE */}
       <div className="flex items-center gap-4 mb-6">
@@ -240,6 +250,8 @@ export function SmartCaseCard({
       <div className="flex items-center gap-1.5 pt-4 border-t border-slate-100 text-[11px] font-medium text-slate-500 mt-auto">
         <Clock size={14} className="text-slate-400" /> {metadata.lastUpdatedRelative}
       </div>
+
+      {isExpedienteLayout && data.rawId && <PortalAccessManager applicationId={data.rawId} open={accessManagerOpen} onClose={() => setAccessManagerOpen(false)} onAccessChanged={() => router.refresh()} />}
 
     </article>
   );

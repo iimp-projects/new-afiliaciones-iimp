@@ -5,6 +5,8 @@ import { MainLayout } from "@/modules/layout/Components/MainLayout/MainLayout";
 // ✅ Importamos ÚNICAMENTE nuestro Toaster personalizado
 import { AppToaster } from "@/modules/shared/Components/AppToaster/AppToaster"; 
 
+export const dynamic = "force-dynamic";
+
 export default async function intranetLayout({ children }: { children: ReactNode }) {
     const user = await contextService.requireAuth();
     const navigationTree = await getAuthorizedNavigation();

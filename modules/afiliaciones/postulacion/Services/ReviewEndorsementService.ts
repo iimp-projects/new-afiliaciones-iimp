@@ -1,8 +1,9 @@
-import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
 import { EndorsementStatus, SecurityEventType } from "@prisma/client";
 import { ApplicationStatusCalculatorService } from "./ApplicationStatusCalculatorService";
 import { MailService } from "@/modules/shared/Services/MailService";
+import { getAppBaseUrl } from "@/lib/config/env";
+import { verifyEndorsementToken } from "./EndorsementToken";
 
 interface ReviewEndorsementPayload {
   applicationId: number;
@@ -24,14 +25,11 @@ export class ReviewEndorsementService {
   ): Promise<void> {
     let decoded: ReviewEndorsementPayload;
 
-    // 1. Verificar y decodificar el token JWT
+    // 1. Verificar y decodificar el token JWT (issuer/audience/purpose)
     try {
-      decoded = jwt.verify(
-        token,
-        process.env.JWT_SECRET!
-      ) as ReviewEndorsementPayload;
-    } catch (error: any) {
-      if (error.name === "TokenExpiredError") {
+      decoded = verifyEndorsementToken(token);
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === "TokenExpiredError") {
         throw new Error("El enlace ha expirado.");
       }
       throw new Error("El enlace es inválido o no posee un formato correcto.");
@@ -125,7 +123,7 @@ export class ReviewEndorsementService {
       const statusText = isApproved ? "APROBADO" : "RECHAZADO";
 
       // URL del portal para consultar estado (utiliza la variable de entorno base)
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "http://localhost:3000";
+      const baseUrl = getAppBaseUrl();
       const trackingUrl = `${baseUrl}/postulacion/estado`;  //CAMBIAR CUANDO TENGAMOS ENLACE DE CONSULTA DE ESTADO
 
       // Mensaje y botón dinámicos según el resultado

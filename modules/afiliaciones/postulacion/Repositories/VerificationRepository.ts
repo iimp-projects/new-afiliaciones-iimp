@@ -1,6 +1,6 @@
 import { VerificationError } from "@/modules/shared/Models/VerificationError";
 import { prisma } from "@/lib/prisma";
-import type { Prisma } from "@prisma/client";
+import type { DocumentType, Prisma } from "@prisma/client";
 import { OTP_COOLDOWN_SECONDS, OTP_MAX_ATTEMPTS, OTP_TTL_MS, type VerificationChannel, type VerificationContext } from "@/modules/shared/Models/Verification";
 
 // Namespace query codes because the existing enum has no APPLICATION_QUERY.
@@ -13,6 +13,24 @@ const storedCode = (code: string, context: VerificationContext) => context === "
 export class VerificationRepository {
   findApplication(identifier: string | number) {
     return prisma.membershipApplication.findFirst({ where: { ...(typeof identifier === "number" ? { id: identifier } : { trackingCode: identifier }), deletedAt: null } });
+  }
+
+  /** Candidate applications for a document, without revealing them to the client. */
+  findCandidates(documentType: DocumentType, documentNumber: string) {
+    return prisma.membershipApplication.findMany({
+      where: { documentType, documentNumber, deletedAt: null },
+      select: { id: true, email: true, phone: true },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    });
+  }
+
+  /** Application that currently holds a pending OTP for the document and context. */
+  findPendingApplication(documentType: DocumentType, documentNumber: string, context: VerificationContext) {
+    return prisma.verificationCode.findFirst({
+      where: { application: { documentType, documentNumber, deletedAt: null }, purpose: "RESUME_APPLICATION", verifiedAt: null, ...scope(context) },
+      orderBy: { createdAt: "desc" },
+      select: { applicationId: true },
+    });
   }
 
   async reserve(applicationId: number, channel: VerificationChannel, destination: string, code: string, context: VerificationContext) {

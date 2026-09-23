@@ -4,8 +4,7 @@ import { sessionService, type SessionDTO } from "../session";
 import { AuthenticationError, AuthorizationError } from "../errors";
 import { contextRepository } from "./repository";
 import { authAdapter } from "./adapter";
-import type { CurrentUserDTO } from "./types";
-import { cookies } from "next/headers";
+import { isAffiliateUser, type CurrentUserDTO } from "./types";
 
 class ContextService {
   /**
@@ -71,7 +70,7 @@ class ContextService {
    */
   public hasRole = async (roleSlugs: string[]): Promise<boolean> => {
     const user = await this.getCurrentUser();
-    if (!user) return false;
+    if (!user || user.status !== "ACTIVE") return false;
     return roleSlugs.includes(user.role.slug);
   };
 
@@ -79,7 +78,9 @@ class ContextService {
    * Detiene la ejecución si el usuario no posee el rol requerido.
    */
   public requireRole = async (roleSlugs: string[]): Promise<void> => {
-    const has = await this.hasRole(roleSlugs);
+    const user = await this.requireAuth();
+    if (user && isAffiliateUser(user)) redirect("/intranet/mi-cuenta");
+    const has = roleSlugs.includes(user.role.slug);
     if (!has) {
       throw new AuthorizationError(
         "No tienes el nivel de acceso necesario para realizar esta acción.",
@@ -95,7 +96,7 @@ class ContextService {
     subject: string,
   ): Promise<boolean> => {
     const user = await this.getCurrentUser();
-    if (!user) return false;
+    if (!user || user.status !== "ACTIVE") return false;
 
     // Privilegio absoluto de administración
     if (user.permissions.has("manage:all")) return true;
@@ -109,13 +110,28 @@ class ContextService {
   public requirePermission = async (
     action: string,
     subject: string,
-  ): Promise<void> => {
-    const has = await this.hasPermission(action, subject);
+  ): Promise<CurrentUserDTO> => {
+    const user = await this.requireAuth();
+    if (user && isAffiliateUser(user)) redirect("/intranet/mi-cuenta");
+    const has = user.permissions.has("manage:all") || user.permissions.has(`${action}:${subject}`);
     if (!has) {
       throw new AuthorizationError(
         `Permiso denegado: se requiere el privilegio [${action}] sobre [${subject}].`,
       );
     }
+    return user;
+  };
+
+  public requireAdministrativeUser = async (): Promise<CurrentUserDTO> => {
+    const user = await this.requireAuth();
+    if (isAffiliateUser(user)) redirect("/intranet/mi-cuenta");
+    return user;
+  };
+
+  public requireAffiliate = async (): Promise<CurrentUserDTO> => {
+    const user = await this.requireAuth();
+    if (!isAffiliateUser(user)) redirect("/intranet");
+    return user;
   };
 }
 

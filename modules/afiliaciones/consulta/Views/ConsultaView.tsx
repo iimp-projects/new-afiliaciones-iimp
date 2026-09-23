@@ -35,7 +35,7 @@ function restorePayment(reference: string): Promise<RestorePayload | null> {
   const existingRequest = restoreRequests.get(reference);
   if (existingRequest) return existingRequest;
 
-  const request = fetch(`/api/payments/restore?payment_callback=${encodeURIComponent(reference)}`, { credentials: "include" })
+  const request = fetch(`/api/payments/restore?payment_restore=${encodeURIComponent(reference)}`, { credentials: "include" })
     .then(async (response) => response.ok ? response.json() as Promise<RestorePayload> : null);
 
   restoreRequests.set(reference, request);
@@ -104,7 +104,9 @@ export function ConsultaView({ initialPaymentCallback }: ConsultaViewProps) {
     return <main className="min-h-screen grid place-items-center bg-slate-50 p-6"><ApplicationStateNotice status={currentStatus || "UNKNOWN"} context="CONSULTA" onPrimary={statusData.recoveryUrl ? () => { window.location.href = statusData.recoveryUrl!; } : undefined} onClose={() => setStatusData(null)} /></main>;
   }
   if (notice.action === "COMPLETED") {
-    return <StatusCompleted data={statusData} onFinish={() => setStatusData(null)} />;
+    return statusData.completedPayment || statusData.affiliateType === "STUDENT"
+      ? <StatusCompleted data={statusData} onFinish={() => setStatusData(null)} />
+      : <main className="min-h-screen grid place-items-center bg-slate-50 p-6"><ApplicationStateNotice status="COMPLETED" context="CONSULTA" onClose={() => setStatusData(null)} /></main>;
   }
   if (notice.action === "CONTINUE_PAYMENT" || Boolean(restored)) {
     return <StatusPaymentReady data={statusData} onCancel={() => setStatusData(null)} initialBillingData={restored?.billingData} restoredPayment={restored?.payment} failureMessage={restored?.failure?.message} failureCode={restored?.failure?.code} />;

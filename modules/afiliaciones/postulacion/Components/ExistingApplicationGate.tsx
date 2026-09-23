@@ -14,7 +14,12 @@ export function ExistingApplicationGate({ challenge, authorized = false, context
   onQuery?: (application: AuthorizedApplicationSummary) => Promise<void>; onStartNew?: () => void;
   affiliateType?: "ACTIVE" | "STUDENT";
 }) {
-  const [choice, setChoice] = useState<VerificationChoice | null>(() => challenge?.options.length === 1 ? challenge.options[0] : null);
+  const [choice, setChoice] = useState<VerificationChoice | null>(() => {
+    if (challenge?.options?.length === 1) return challenge.options[0];
+    // Public consultation sends no contact options, only a document-bound context.
+    if (!challenge?.options?.length && challenge?.context) return { context: challenge.context, channels: challenge.channels };
+    return null;
+  });
   const [channel, setChannel] = useState<VerificationChannel>(challenge?.channels[0]?.channel || "EMAIL");
   const [phase, setPhase] = useState(authorized ? "APPLICATION" : challenge?.hasApplication === false ? "NONE" : "CHANNEL");
   const [apps, setApps] = useState<AuthorizedApplicationSummary[]>([]);
@@ -67,7 +72,7 @@ export function ExistingApplicationGate({ challenge, authorized = false, context
     <ProcessLoadingOverlay open={busy} title={loadingTitle} description="Estamos preparando tu solicitud." />
     {phase === "NOTICE" && selected ? <ApplicationStateNotice status={selected.status} context={context} canStartNew={selected.canStartNew} onPrimary={navigate} onClose={onClose} /> : phase === "NONE" ? <ApplicationStateNotice status={null} context={context} onPrimary={() => { window.location.href = "/postulacion"; }} onClose={onClose} /> : <div className="bg-white rounded-3xl p-8 w-full max-w-lg max-h-[90dvh] overflow-y-auto">
       <h2 className="text-xl font-bold text-slate-800 mb-5">{phase === "CHANNEL" ? "Selecciona un medio registrado" : "Selecciona la solicitud"}</h2>
-      {phase === "CHANNEL" ? challenge?.options.map((option, index) => <button type="button" key={option.context} className="block w-full rounded-xl border p-4 mb-3 text-left" onClick={() => { setChoice(option); setChannel(option.channels[0]?.channel || "EMAIL"); }}>Medio registrado {index + 1}<span className="block text-sm text-slate-500">{Array.from(new Set(option.channels.map(item => item.destination))).join(" · ") || "Sin contactos disponibles"}</span></button>) : apps.map(application => <button type="button" key={application.id} disabled={busy} onClick={() => void run("Preparando consulta...", () => choose(application))} className="block w-full rounded-xl border p-4 mb-3 text-left"><strong>{application.affiliateType === "STUDENT" ? "Estudiante" : "Asociado activo"}</strong><span className="block text-sm">{new Date(application.createdAt).toLocaleDateString("es-PE")} · {resolveApplicationAction(application.status, context).badge}</span></button>)}
+      {phase === "CHANNEL" ? challenge?.options?.map((option, index) => <button type="button" key={option.context} className="block w-full rounded-xl border p-4 mb-3 text-left" onClick={() => { setChoice(option); setChannel(option.channels[0]?.channel || "EMAIL"); }}>Medio registrado {index + 1}<span className="block text-sm text-slate-500">{Array.from(new Set(option.channels.map(item => item.destination))).filter(Boolean).join(" · ") || "Sin contactos disponibles"}</span></button>) : apps.map(application => <button type="button" key={application.id} disabled={busy} onClick={() => void run("Preparando consulta...", () => choose(application))} className="block w-full rounded-xl border p-4 mb-3 text-left"><strong>{application.affiliateType === "STUDENT" ? "Estudiante" : "Asociado activo"}</strong><span className="block text-sm">{new Date(application.createdAt).toLocaleDateString("es-PE")} · {resolveApplicationAction(application.status, context).badge}</span></button>)}
       {error && <p role="alert" className="text-sm text-slate-600 my-4">{error}</p>}
       <button type="button" disabled={busy} onClick={onClose} className="w-full h-12 rounded-xl border font-bold text-slate-600">Cerrar</button>
     </div>}

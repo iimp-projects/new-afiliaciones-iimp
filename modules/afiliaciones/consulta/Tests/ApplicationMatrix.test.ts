@@ -4,7 +4,7 @@ import { MembershipType } from "../../postulacion/Types/MembershipType";
 
 const db = vi.hoisted(() => ({
   membershipApplication: { findFirst: vi.fn(), findUnique: vi.fn(), findMany: vi.fn(), create: vi.fn(), update: vi.fn() },
-  membershipObservation: { findMany: vi.fn() }, person: { findUnique: vi.fn() }, $queryRaw: vi.fn(), $executeRaw: vi.fn(), $transaction: vi.fn(),
+  membershipObservation: { findMany: vi.fn() }, person: { findUnique: vi.fn() }, user: { findFirst: vi.fn() }, $queryRaw: vi.fn(), $executeRaw: vi.fn(), $transaction: vi.fn(),
 }));
 vi.mock("@/lib/prisma", () => ({ prisma: db }));
 vi.mock("../../postulacion/Services/NotifySponsorsService", () => ({ NotifySponsorsService: class { execute = vi.fn(); } }));
@@ -28,6 +28,7 @@ beforeEach(() => {
   db.membershipApplication.findUnique.mockResolvedValue(app());
   db.membershipApplication.findMany.mockResolvedValue([]);
   db.person.findUnique.mockResolvedValue(null);
+  db.user.findFirst.mockResolvedValue(null);
   db.membershipApplication.create.mockImplementation(async ({ data }) => ({ ...app(), ...data, id: 9 }));
 });
 

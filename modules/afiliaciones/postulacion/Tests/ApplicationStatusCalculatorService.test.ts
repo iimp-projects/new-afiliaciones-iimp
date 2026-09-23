@@ -1,12 +1,20 @@
 import { ApplicationStatus, PaymentStatus, ValidationStatus } from "@prisma/client";
 import { describe, expect, it, vi } from "vitest";
+
+const prismaMock = vi.hoisted(() => ({ $transaction: vi.fn() }));
+const provisionCompletedApplication = vi.hoisted(() => vi.fn().mockResolvedValue(null));
+vi.mock("@/lib/prisma", () => ({ prisma: prismaMock }));
+vi.mock("../../asociados/Services/AssociateProvisioningService", () => ({
+  AssociateProvisioningService: class { provisionCompletedApplication = provisionCompletedApplication; },
+}));
+
 import { ApplicationStatusCalculatorService } from "../Services/ApplicationStatusCalculatorService";
 
 const student = (status: ApplicationStatus) => ({
   id: 70, status, affiliateType: "STUDENT", documentType: "PASSPORT", documentNumber: "P123", email: "student@example.com", phone: "999999999",
   person: { firstName: "Ana", paternalLastName: "Perez", maternalLastName: "Diaz", gender: "FEMALE", addresses: [{ street: "Av. Uno", isPrimary: true }] },
   approvals: [], payments: [] as { status: PaymentStatus }[],
-  validations: ["LOGISTICA", "ASOCIADOS", "COMITE"].map((code) => ({ status: ValidationStatus.APPROVED, department: { code } })),
+  validations: ["LOGISTICA", "ASOCIADOS", "COMITE"].map((code) => ({ status: ValidationStatus.APPROVED as ValidationStatus, department: { code } })),
 });
 
 function transaction(app: ReturnType<typeof student>) {
@@ -44,5 +52,21 @@ describe("ApplicationStatusCalculatorService associate trigger", () => {
     const associates = { prepareStudentCompletion: vi.fn(), processAfterCommit: vi.fn() };
     await new ApplicationStatusCalculatorService(associates as never).recalculate(70, tx);
     expect(associates.prepareStudentCompletion).not.toHaveBeenCalled();
+  });
+
+  it("provisiona la cuenta del estudiante al completar la transición fuera de la transacción provista", async () => {
+    const app = student(ApplicationStatus.OBSERVED);
+    const tx = transaction(app);
+    prismaMock.$transaction.mockImplementation((callback: (client: typeof tx) => unknown) => callback(tx));
+    const associates = {
+      prepareStudentCompletion: vi.fn().mockResolvedValue({ id: 801 }),
+      processAfterCommit: vi.fn().mockResolvedValue(undefined),
+    };
+
+    const result = await new ApplicationStatusCalculatorService(associates as never).recalculate(70);
+
+    expect(result).toBe(ApplicationStatus.COMPLETED);
+    expect(associates.processAfterCommit).toHaveBeenCalledWith(801);
+    expect(provisionCompletedApplication).toHaveBeenCalledWith(70);
   });
 });

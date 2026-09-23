@@ -520,7 +520,7 @@ export function InspectionDrawer(props: InspectionDrawerProps) {
   useEffect(() => {
     setIsMounted(true);
     const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") props.onClose();
+      if (e.key === "Escape" && !document.querySelector("[data-global-modal-root]")) props.onClose();
     };
     window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);

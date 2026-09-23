@@ -84,6 +84,7 @@ export interface SmartCaseCardData {
   };
   allowedActions: string[];
   rawId?: number;
+  operationalAlerts?: { total: number; critical: number; warning: number; highestSeverity: "CRITICAL" | "WARNING" | null };
 }
 
 export interface SmartCaseCardProps {

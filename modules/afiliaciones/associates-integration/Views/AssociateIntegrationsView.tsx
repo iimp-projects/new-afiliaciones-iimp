@@ -1,38 +1,93 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Eye, RefreshCw, X } from "lucide-react";
-
-type Status = "PENDING" | "PROCESSING" | "SYNCED" | "RETRYABLE" | "FAILED";
-type Row = { integrationId: number; applicationId: number; applicationCode: string; trackingCode: string; affiliateType: "ACTIVE" | "STUDENT"; trigger: "ACTIVE_PAYMENT" | "STUDENT_COMPLETION"; status: Status; attempts: number; externalAssociateCode?: number | null; lastAttemptAt?: string | null; syncedAt?: string | null };
-type Attempt = { attemptNumber: number; startedAt: string; finishedAt?: string | null; result?: "SYNCED" | "RETRYABLE" | "FAILED" | null; httpStatus?: number | null; errorCode?: string | null; message?: string | null; errorIdentifier?: string | null; externalAssociateCode?: number | null; externalMessage?: string | null; durationMs?: number | null };
-type Detail = Row & { externalMessage?: string | null; externalReceiptType?: string | null; externalReceiptSerie?: string | null; externalReceiptNumber?: string | null; externalReceiptPdfReference?: string | null; lastErrorHttpStatus?: number | null; lastErrorCode?: string | null; lastErrorMessage?: string | null; lastErrorIdentifier?: string | null; lastErrorDetails?: unknown; attemptHistory?: Attempt[]; requestPayloadSnapshot?: { Tipo?: string; documento?: string; TipoFacturacion?: string; servicios?: Array<{ concepto?: string; anno?: number; monto?: number; cortesia?: boolean }> }; application?: { applicationCode?: string; trackingCode?: string; affiliateType?: "ACTIVE" | "STUDENT" } };
-const PAGE_SIZE = 20;
-const statusLabels: Record<Status, string> = { PENDING: "Pendiente", PROCESSING: "Procesando", SYNCED: "Sincronizado", RETRYABLE: "Requiere reintento", FAILED: "Requiere revisión" };
-const statusColors: Record<Status, string> = { PENDING: "bg-amber-100 text-amber-800", PROCESSING: "bg-sky-100 text-sky-800", SYNCED: "bg-emerald-100 text-emerald-800", RETRYABLE: "bg-amber-100 text-amber-800", FAILED: "bg-rose-100 text-rose-800" };
-const affiliateLabels = { ACTIVE: "Activo", STUDENT: "Estudiante" };
-const triggerLabels = { ACTIVE_PAYMENT: "Pago confirmado", STUDENT_COMPLETION: "Finalización estudiante" };
+import { useCallback, useEffect, useState } from "react";
+import { AlertCircle, Download, RefreshCcw } from "lucide-react";
+import { DataEmptyState, DataLoadingState, DataManagementShell, type DataManagementHeaderAction } from "@/modules/shared/Components/DataManagement";
+import { AssociateIntegrationDrawer } from "../Components/AssociateIntegrationDrawer";
+import { AssociateIntegrationFilters } from "../Components/AssociateIntegrationFilters";
+import { AssociateIntegrationPagination } from "../Components/AssociateIntegrationPagination";
+import { AssociateIntegrationTable } from "../Components/AssociateIntegrationTable";
+import { AssociateIntegrationDetail, AssociateIntegrationRow, emptyAssociateIntegrationFilters } from "../Components/associateIntegration.types";
 
 export const canRetry = (status: string) => status === "RETRYABLE";
 export function buildAssociateIntegrationsQuery(filters: Record<string, string | number | undefined>) { const params = new URLSearchParams(); Object.entries(filters).forEach(([key, value]) => { if (value !== undefined && value !== "") params.set(key, String(value)); }); return params.toString(); }
-const formatDate = (value?: string | null) => value ? new Intl.DateTimeFormat("es-PE", { dateStyle: "short", timeStyle: "short", timeZone: "America/Lima" }).format(new Date(value)) : "—";
 
 export function AssociateIntegrationsView() {
-    const empty = { status: "", trigger: "", affiliateType: "", search: "", dateFrom: "", dateTo: "" };
-    const [rows, setRows] = useState<Row[]>([]), [total, setTotal] = useState(0), [page, setPage] = useState(1);
-    const [filters, setFilters] = useState(empty), [applied, setApplied] = useState(empty), [detail, setDetail] = useState<Detail | null>(null);
-    const [confirmRetryId, setConfirmRetryId] = useState<number | null>(null), [retrying, setRetrying] = useState<number | null>(null), [error, setError] = useState(""), [message, setMessage] = useState("");
-    const load = useCallback(async () => { setError(""); try { const query = buildAssociateIntegrationsQuery({ page, pageSize: PAGE_SIZE, ...applied }); const response = await fetch(`/api/security/associate-integrations?${query}`); const body = await response.json(); if (!response.ok) throw new Error(body.message); setRows(body.data ?? []); setTotal(body.pagination?.total ?? 0); } catch { setError("No pudimos cargar las integraciones. Inténtalo nuevamente."); } }, [page, applied]);
-    useEffect(() => { void load(); }, [load]);
-    const metrics = useMemo(() => ({ synced: rows.filter((x) => x.status === "SYNCED").length, attention: rows.filter((x) => x.status === "PENDING" || x.status === "RETRYABLE").length, failed: rows.filter((x) => x.status === "FAILED").length }), [rows]);
-    const openDetail = async (id: number) => { const response = await fetch(`/api/security/associate-integrations/${id}`); const body = await response.json(); if (response.ok) setDetail(body.data); else setMessage("No fue posible cargar el detalle de la integración."); };
-    async function retry(id: number) { setRetrying(id); setConfirmRetryId(null); try { const response = await fetch(`/api/security/associate-integrations/${id}/retry`, { method: "POST" }); const body = await response.json(); if (response.status === 409) setMessage("La integración ya está siendo procesada o su estado cambió. Actualizamos la información."); else if (!response.ok) setMessage(body.message ?? "No fue posible realizar el reintento."); else if (body.data?.status === "SYNCED") setMessage("Integración sincronizada correctamente."); else if (body.data?.status === "FAILED") setMessage("La integración requiere revisión antes de volver a intentarse."); else setMessage("El envío no se completó. El estado quedó actualizado para su seguimiento."); await load(); if (detail?.integrationId === id) await openDetail(id); } finally { setRetrying(null); } }
-    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-    return <div className="space-y-6 pb-12"><header><h1 className="text-3xl font-black text-slate-800">Integraciones de Asociados</h1><p className="mt-1 text-sm text-slate-500">Seguimiento de sincronizaciones con el sistema externo de asociados.</p></header>
-        <section className="grid grid-cols-2 gap-3 md:grid-cols-4" aria-label="Resumen de integraciones">{[["Total", total, "Según filtros"], ["Sincronizados", metrics.synced, "En esta página"], ["Pendientes / reintento", metrics.attention, "En esta página"], ["Fallidos", metrics.failed, "En esta página"]].map(([label, value, hint]) => <div key={String(label)} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><p className="text-xs font-bold text-slate-500">{label}</p><p className="mt-1 text-2xl font-black text-slate-800">{value}</p><p className="text-xs text-slate-400">{hint}</p></div>)}</section>
-        <section className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 lg:grid-cols-6"><input value={filters.search} onChange={(e) => setFilters({ ...filters, search: e.target.value })} placeholder="Expediente, tracking o código externo" className="h-10 rounded-xl border border-slate-200 px-3 text-sm lg:col-span-2" /><select aria-label="Estado" value={filters.status} onChange={(e) => setFilters({ ...filters, status: e.target.value })} className="h-10 rounded-xl border border-slate-200 px-3 text-sm"><option value="">Todos los estados</option>{Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select><select aria-label="Origen" value={filters.trigger} onChange={(e) => setFilters({ ...filters, trigger: e.target.value })} className="h-10 rounded-xl border border-slate-200 px-3 text-sm"><option value="">Todos los orígenes</option>{Object.entries(triggerLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select><select aria-label="Tipo de asociado" value={filters.affiliateType} onChange={(e) => setFilters({ ...filters, affiliateType: e.target.value })} className="h-10 rounded-xl border border-slate-200 px-3 text-sm"><option value="">Todos los tipos</option>{Object.entries(affiliateLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select><div className="flex gap-2"><button onClick={() => { setFilters(empty); setApplied(empty); setPage(1); }} className="h-10 px-3 text-sm font-bold text-slate-600">Limpiar</button><button onClick={() => { setPage(1); setApplied(filters); }} className="h-10 rounded-xl bg-[#C5A059] px-4 text-sm font-bold text-white">Filtrar</button></div><label className="text-xs text-slate-500">Desde<input aria-label="Desde" type="date" value={filters.dateFrom} onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })} className="mt-1 block h-10 w-full rounded-xl border border-slate-200 px-3 text-sm" /></label><label className="text-xs text-slate-500">Hasta<input aria-label="Hasta" type="date" value={filters.dateTo} onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })} className="mt-1 block h-10 w-full rounded-xl border border-slate-200 px-3 text-sm" /></label></section>
-        {message && <p role="status" className="rounded-xl bg-blue-50 p-3 text-sm font-bold text-blue-800">{message}</p>}{error ? <section className="rounded-2xl bg-rose-50 p-6 text-sm text-rose-800">{error}<button onClick={() => void load()} className="ml-3 font-bold underline">Reintentar carga</button></section> : <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><div className="overflow-x-auto"><table className="w-full min-w-[900px] text-left text-sm"><thead className="bg-slate-50 text-xs text-slate-500"><tr>{["Expediente", "Tipo", "Origen", "Estado", "Intentos", "Código externo", "Último intento", "Sincronizado", "Acciones"].map((title) => <th key={title} className="px-4 py-3 font-bold">{title}</th>)}</tr></thead><tbody>{rows.map((item) => <tr key={item.integrationId} className="border-t border-slate-100"><td className="px-4 py-3 font-bold text-slate-800">{item.applicationCode}</td><td className="px-4 py-3">{affiliateLabels[item.affiliateType]}</td><td className="px-4 py-3">{triggerLabels[item.trigger]}</td><td className="px-4 py-3"><span className={`rounded-full px-2 py-1 text-xs font-bold ${statusColors[item.status]}`}>{statusLabels[item.status]}</span></td><td className="px-4 py-3">{item.attempts}</td><td className="px-4 py-3">{item.externalAssociateCode ?? "—"}</td><td className="px-4 py-3 whitespace-nowrap">{formatDate(item.lastAttemptAt)}</td><td className="px-4 py-3 whitespace-nowrap">{formatDate(item.syncedAt)}</td><td className="px-4 py-3 whitespace-nowrap"><button onClick={() => void openDetail(item.integrationId)} className="mr-3 inline-flex items-center gap-1 text-xs font-bold text-slate-700"><Eye size={14} />Detalle</button>{canRetry(item.status) && <button disabled={retrying === item.integrationId} onClick={() => setConfirmRetryId(item.integrationId)} className="inline-flex items-center gap-1 text-xs font-bold text-[#8b681f] disabled:opacity-60"><RefreshCw size={14} className={retrying === item.integrationId ? "animate-spin" : ""} />{retrying === item.integrationId ? "Reintentando..." : "Reintentar"}</button>}</td></tr>)}{!rows.length && <tr><td colSpan={9} className="p-12 text-center text-slate-500">No se encontraron integraciones con los filtros seleccionados.</td></tr>}</tbody></table></div><footer className="flex items-center justify-between p-4 text-sm text-slate-600"><button disabled={page === 1} onClick={() => setPage(page - 1)} className="font-bold disabled:opacity-40">Anterior</button><span>Página {page} de {totalPages}</span><button disabled={page >= totalPages} onClick={() => setPage(page + 1)} className="font-bold disabled:opacity-40">Siguiente</button></footer></section>}
-        {detail && <aside role="dialog" aria-modal="true" aria-label="Detalle de integración" className="fixed inset-y-0 right-0 z-50 w-full max-w-xl overflow-auto bg-white p-6 shadow-2xl"><button aria-label="Cerrar detalle" onClick={() => setDetail(null)} className="float-right text-slate-500"><X /></button><h2 className="text-xl font-black text-slate-800">Detalle de integración</h2><p className="mt-4 font-bold">{detail.application?.applicationCode ?? detail.applicationCode} · {statusLabels[detail.status]}</p><dl className="mt-5 grid gap-3 text-sm sm:grid-cols-2">{[["Tracking", detail.application?.trackingCode ?? detail.trackingCode], ["Tipo", affiliateLabels[detail.application?.affiliateType ?? detail.affiliateType]], ["Origen", triggerLabels[detail.trigger]], ["Intentos", detail.attempts], ["Último intento", formatDate(detail.lastAttemptAt)], ["Sincronizado", formatDate(detail.syncedAt)]].map(([label, value]) => <div key={String(label)}><dt className="text-xs font-bold text-slate-500">{label}</dt><dd className="break-words text-slate-800">{String(value)}</dd></div>)}</dl><h3 className="mt-7 font-black text-slate-800">Resultado externo</h3><dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2">{[["Código asociado", detail.externalAssociateCode], ["Mensaje", detail.externalMessage], ["Tipo comprobante", detail.externalReceiptType], ["Serie", detail.externalReceiptSerie], ["Número", detail.externalReceiptNumber], ["Referencia PDF", detail.externalReceiptPdfReference]].filter(([, value]) => value !== null && value !== undefined && value !== "").map(([label, value]) => <div key={String(label)}><dt className="text-xs font-bold text-slate-500">{label}</dt><dd className="break-words text-slate-800">{String(value)}</dd></div>)}</dl>{detail.lastErrorMessage && <><h3 className="mt-7 font-black text-slate-800">Error</h3><dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2">{[["HTTP status", detail.lastErrorHttpStatus], ["Código", detail.lastErrorCode], ["Mensaje", detail.lastErrorMessage], ["Identificador", detail.lastErrorIdentifier], ["Detalles", detail.lastErrorDetails ? "Disponible para revisión administrativa" : null]].filter(([, value]) => value !== null && value !== undefined && value !== "").map(([label, value]) => <div key={String(label)}><dt className="text-xs font-bold text-slate-500">{label}</dt><dd className="break-words text-slate-800">{String(value)}</dd></div>)}</dl></>}<h3 className="mt-7 font-black text-slate-800">Historial de intentos</h3><div className="mt-3 space-y-3">{detail.attemptHistory?.length ? detail.attemptHistory.map((attempt) => <div key={attempt.attemptNumber} className="rounded-xl border border-slate-200 p-3 text-sm"><div className="flex items-center justify-between gap-3"><b>Intento #{attempt.attemptNumber}</b><span className={`rounded-full px-2 py-1 text-xs font-bold ${attempt.result ? statusColors[attempt.result] : "bg-slate-100 text-slate-700"}`}>{attempt.result ? statusLabels[attempt.result] : "En curso"}</span></div><p className="mt-2 text-slate-600">{formatDate(attempt.startedAt)} · {attempt.durationMs ?? "—"} ms{attempt.httpStatus ? ` · HTTP ${attempt.httpStatus}` : ""}</p>{attempt.errorCode && <p className="mt-1 text-rose-800">{attempt.errorCode}: {attempt.message ?? "Sin mensaje"}</p>}{attempt.externalAssociateCode && <p className="mt-1 text-emerald-800">Código asociado: {attempt.externalAssociateCode}{attempt.externalMessage ? ` · ${attempt.externalMessage}` : ""}</p>}</div>) : <p className="text-sm text-slate-500">Aún no existen envíos lógicos registrados.</p>}</div><h3 className="mt-7 font-black text-slate-800">Resumen del envío</h3><p className="mt-2 text-sm text-slate-600">Tipo: {detail.requestPayloadSnapshot?.Tipo ?? "—"} · Documento: {detail.requestPayloadSnapshot?.documento ?? "—"} · Facturación: {detail.requestPayloadSnapshot?.TipoFacturacion ?? "—"}</p><div className="mt-3 space-y-2">{detail.requestPayloadSnapshot?.servicios?.map((service, index) => <div key={`${service.concepto}-${index}`} className="rounded-xl bg-slate-50 p-3 text-sm text-slate-700"><b>{service.concepto ?? "Servicio"}</b> · Año: {service.anno ?? "—"} · Monto: S/ {service.monto ?? "—"} · Cortesía: {service.cortesia ? "Sí" : "No"}</div>)}</div></aside>}
-        {confirmRetryId !== null && <div role="dialog" aria-modal="true" aria-label="Confirmar reintento" className="fixed inset-0 z-[60] grid place-items-center bg-slate-950/40 p-4"><div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"><h2 className="text-lg font-black text-slate-800">¿Reintentar integración?</h2><p className="mt-2 text-sm text-slate-600">Se volverá a enviar esta afiliación al sistema externo. El pago o la aprobación interna no se modificarán.</p><div className="mt-6 flex justify-end gap-3"><button onClick={() => setConfirmRetryId(null)} className="h-10 px-4 text-sm font-bold text-slate-600">Cancelar</button><button onClick={() => void retry(confirmRetryId)} className="h-10 rounded-xl bg-[#C5A059] px-4 text-sm font-bold text-white">Confirmar reintento</button></div></div></div>}
-    </div>;
+  const [rows, setRows] = useState<AssociateIntegrationRow[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const [filters, setFilters] = useState(emptyAssociateIntegrationFilters);
+  const [applied, setApplied] = useState(emptyAssociateIntegrationFilters);
+  const [detail, setDetail] = useState<AssociateIntegrationDetail | null>(null);
+  const [drawerTab, setDrawerTab] = useState<"Resumen" | "Payload SIE">("Resumen");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDetailLoading, setIsDetailLoading] = useState(false);
+  const [confirmRetryId, setConfirmRetryId] = useState<number | null>(null);
+  const [retrying, setRetrying] = useState<number | null>(null);
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+
+  const load = useCallback(async () => {
+    setError("");
+    setIsLoading(true);
+    try {
+      const query = buildAssociateIntegrationsQuery({ page, pageSize, ...applied });
+      const response = await fetch(`/api/security/associate-integrations?${query}`);
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.message);
+      setRows(body.data ?? []);
+      setTotal(body.pagination?.total ?? 0);
+    } catch {
+      setError("No pudimos cargar las integraciones. Inténtalo nuevamente.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [page, pageSize, applied]);
+
+  useEffect(() => { const loadTimer = window.setTimeout(() => { void load(); }, 0); return () => window.clearTimeout(loadTimer); }, [load]);
+
+  const hasFilters = Object.values(filters).some(Boolean);
+
+  const openDetail = async (id: number, tab: "Resumen" | "Payload SIE" = "Resumen") => {
+    setDrawerTab(tab);
+    setIsDetailLoading(true);
+    setDetail(null);
+    try {
+      const response = await fetch(`/api/security/associate-integrations/${id}`);
+      const body = await response.json();
+      if (response.ok) setDetail(body.data);
+      else setMessage("No fue posible cargar el detalle de la integración.");
+    } finally {
+      setIsDetailLoading(false);
+    }
+  };
+
+  const retry = async (id: number) => {
+    setRetrying(id);
+    setConfirmRetryId(null);
+    try {
+      const response = await fetch(`/api/security/associate-integrations/${id}/retry`, { method: "POST" });
+      const body = await response.json();
+      if (response.status === 409) setMessage("La integración ya está siendo procesada o su estado cambió. Actualizamos la información.");
+      else if (!response.ok) setMessage(body.message ?? "No fue posible realizar el reintento.");
+      else if (body.data?.status === "SYNCED") setMessage("Integración sincronizada correctamente.");
+      else if (body.data?.status === "FAILED") setMessage("La integración requiere revisión antes de volver a intentarse.");
+      else setMessage("El envío no se completó. El estado quedó actualizado para su seguimiento.");
+      await load();
+      if (detail?.integrationId === id) await openDetail(id);
+    } finally {
+      setRetrying(null);
+    }
+  };
+
+  const clearFilters = () => { setFilters(emptyAssociateIntegrationFilters); setApplied(emptyAssociateIntegrationFilters); setPage(1); };
+  const headerActions: DataManagementHeaderAction[] = [{ key: "export", label: "Exportar Excel", icon: Download, tooltip: "Requiere una exportación completa del listado filtrado.", onClick: () => setMessage("La exportación completa requiere un endpoint que entregue todos los registros filtrados.") }];
+
+  return <DataManagementShell title="Inscripciones SIE" description="Seguimiento y control de las inscripciones enviadas al sistema SIE." resultCount={total} compactSpacing headerActions={headerActions} filters={<AssociateIntegrationFilters values={filters} loading={isLoading} onChange={setFilters} onApply={() => { setPage(1); setApplied(filters); }} onClear={clearFilters} />}>
+    {message && <p role="status" className="rounded-xl border border-blue-100 bg-blue-50 p-3 text-sm font-bold text-blue-800">{message}</p>}
+    {error ? <section className="flex min-h-64 flex-col items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm"><AlertCircle size={34} className="text-rose-400" /><div><h2 className="font-black text-slate-800">No pudimos cargar las integraciones</h2><p className="mt-1 text-sm text-slate-500">Verifica tu conexión e inténtalo nuevamente.</p></div><button onClick={() => void load()} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm hover:bg-slate-50"><RefreshCcw size={15} /> Reintentar carga</button></section> : isLoading ? <section className="rounded-2xl border border-slate-200 bg-white shadow-sm"><DataLoadingState /></section> : rows.length === 0 ? <DataEmptyState title="No se encontraron inscripciones SIE" description="Ajusta los filtros o espera nuevas inscripciones generadas por el flujo de afiliación." action={hasFilters ? <button onClick={clearFilters} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50"><RefreshCcw size={15} /> Limpiar filtros</button> : undefined} /> : <><AssociateIntegrationTable rows={rows} onOpenDetail={(id, tab) => void openDetail(id, tab)} onRetry={setConfirmRetryId} /><AssociateIntegrationPagination total={total} page={page} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={(nextSize) => { setPageSize(nextSize); setPage(1); }} /></>}
+    <AssociateIntegrationDrawer key={`${detail?.integrationId ?? "loading"}-${drawerTab}`} detail={detail} loading={isDetailLoading} retrying={retrying !== null} initialTab={drawerTab} onClose={() => { setDetail(null); setIsDetailLoading(false); }} onRetry={setConfirmRetryId} />
+    {confirmRetryId !== null && <div role="dialog" aria-modal="true" aria-label="Confirmar reintento" className="fixed inset-0 z-50 grid place-items-center bg-slate-950/45 p-4"><div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl"><header className="border-b border-slate-100 px-5 py-4"><h2 className="font-black text-slate-800">¿Reintentar sincronización?</h2></header><div className="p-5"><p className="text-sm leading-6 text-slate-600">Se volverá a enviar esta afiliación a SIE. El pago y la aprobación interna no se modificarán.</p><div className="mt-6 flex justify-end gap-2"><button onClick={() => setConfirmRetryId(null)} className="rounded-lg px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50">Cancelar</button><button onClick={() => void retry(confirmRetryId)} className="rounded-lg bg-[#C5A059] px-4 py-2 text-sm font-bold text-white hover:bg-[#a67c00]">Confirmar reintento</button></div></div></div></div>}
+  </DataManagementShell>;
 }

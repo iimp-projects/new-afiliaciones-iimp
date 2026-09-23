@@ -37,7 +37,7 @@ export class NotifyComiteService {
 
     const draft = typeof app.draftData === 'string' ? JSON.parse(app.draftData) : app.draftData;
     const pdfService = new DeclarationPdfService();
-    const pdfBuffer = await pdfService.generate(draft);
+    const pdfBuffer = await pdfService.generate(draft, { allowedApplicationIds: [applicationId] });
 
     // Filtramos si se eligió a un usuario específico o a todos
     const userWhereClause = targetUserId 

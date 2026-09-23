@@ -11,7 +11,7 @@ describe("AssociatesApiClient", () => {
   it("loguea, reutiliza token y mapea éxito", async () => {
     const fetcher = vi.fn().mockResolvedValueOnce(response({ token: "token-1", expiraEnSegundos: 1800 })).mockResolvedValueOnce(response({ estado: true, codigo: 12563, msg: "Success", contable: { tipoDocumento: "03", serie: "B009", numero: "3298", pdfUrl: "B009.pdf" } })).mockResolvedValueOnce(response({ estado: true, codigo: 12564, msg: "Success" }));
     const client = new AssociatesApiClient(config, fetcher as typeof fetch);
-    await expect(client.createAssociate(payload)).resolves.toMatchObject({ externalAssociateCode: 12563, receipt: { pdfReference: "B009.pdf" } });
+    await expect(client.createAssociate(payload)).resolves.toMatchObject({ externalAssociateCode: 12563, httpStatus: 200, receipt: { pdfReference: "B009.pdf" } });
     await client.createAssociate(payload);
     expect(fetcher).toHaveBeenCalledTimes(3);
   });

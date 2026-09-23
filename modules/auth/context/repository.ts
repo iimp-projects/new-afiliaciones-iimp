@@ -1,11 +1,12 @@
 import { prisma } from '@/lib/prisma';
 import type { CurrentUserDTO } from './types';
 import { S3StorageService } from '@/modules/shared/Services/S3StorageService'; // ✅ IMPORTAMOS EL SERVICIO DE S3
+import { UserStatus } from '@prisma/client';
 
 export class ContextRepository {
   async getHydratedUser(userId: number): Promise<CurrentUserDTO | null> {
     const user = await prisma.user.findUnique({
-      where: { id: userId },
+      where: { id: userId, status: UserStatus.ACTIVE, deletedAt: null },
       include: {
         person: true,
         role: {
@@ -18,21 +19,23 @@ export class ContextRepository {
       },
     });
 
-    if (!user || !user.person || !user.role) return null;
+    if (!user || user.status !== UserStatus.ACTIVE || user.deletedAt || !user.person || !user.role || !user.role.isActive) return null;
 
-    // ✅ FIRMAMOS LA URL DE LA IMAGEN SI EXISTE
+    // ✅ FIRMAMOS LA URL DE LA IMAGEN SI EXISTE.
+    // El avatar es opcional: si no está autorizado o la firma falla, se
+    // devuelve null y la UI usa sus iniciales. No debe romper la autenticación.
     let finalImageUrl = user.image;
     if (finalImageUrl) {
       try {
-        const s3Service = new S3StorageService();
-        finalImageUrl = await s3Service.getPresignedUrl(finalImageUrl);
-      } catch (e) {
-        console.error("Error al firmar URL del avatar principal", e);
+        finalImageUrl = await new S3StorageService().getPresignedAvatarUrl(finalImageUrl);
+      } catch {
+        finalImageUrl = null;
       }
     }
 
     const permissionsSet = new Set<string>();
     for (const rp of user.role.rolePermissions) {
+      if (!rp.permission.isActive) continue;
       permissionsSet.add(`${rp.permission.action}:${rp.permission.subject}`);
     }
 

@@ -10,9 +10,13 @@ const response = await fetch("http://localhost:3000/api/catalogs/degrees");
 assert.equal(response.status, 200);
 const { data: degrees } = await response.json();
 const expected = { Bachiller: "BACHELOR", Técnico: "TECHNICAL", "Título profesional": "OTHER", Maestría: "MASTER", Doctorado: "DOCTORATE", Otro: "OTHER" };
+const expectedIds = { Bachiller: 425, Técnico: 517, "Título profesional": 518, Maestría: 32, Doctorado: 519, Otro: 520 };
 assert.equal(degrees.length, 6);
 assert.deepEqual(degrees.map(item => item.name).sort(), Object.keys(expected).sort());
-for (const degree of degrees) assert.equal(degree.studyLevel, expected[degree.name]);
+for (const degree of degrees) {
+  assert.equal(degree.studyLevel, expected[degree.name]);
+  assert.equal(degree.id, expectedIds[degree.name]);
+}
 console.log("PASS endpoint: six active canonical degrees, expected studyLevel, no legacy values");
 
 const cwd = process.cwd();
@@ -55,9 +59,9 @@ try {
 } finally { await browser.close(); }
 
 const server = await build({stdin: {resolveDir: cwd, loader: "ts", contents: 'export {ApplicationRepository} from "./modules/afiliaciones/postulacion/Repositories/ApplicationRepository"; export {prisma} from "./lib/prisma";'}, bundle: true, write: false, platform: "node", format: "cjs", packages: "external"});
-const module = {exports: {}};
-new Function("require", "module", "exports", server.outputFiles[0].text)(require, module, module.exports);
-const {ApplicationRepository, prisma} = module.exports;
+const moduleContainer = {exports: {}};
+new Function("require", "module", "exports", server.outputFiles[0].text)(require, moduleContainer, moduleContainer.exports);
+const {ApplicationRepository, prisma} = moduleContainer.exports;
 try {
   const persisted = [];
   const tx = {

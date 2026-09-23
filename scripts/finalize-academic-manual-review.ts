@@ -2,11 +2,14 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 type Group = { canonicalCandidate: { id: number; name: string } | null; members: Array<{ id: number; name: string; acronym: string | null; country: string | null; academicInfoReferences: number; draftOccurrences: number }>; classification: string; reason: string };
+type ApprovedPlanItem = { canonicalId: number; canonicalName: string; duplicateIds: number[]; aliases: string[]; academicInfoAffected: number };
+type ApprovedPlan = { universities: ApprovedPlanItem[]; specialties: ApprovedPlanItem[] };
+type InvalidSpecialty = { id: number; name: string; academicInfo: Array<{ academicInfoId: number; personId: number; personName: string; applications: Array<{ id: number; applicationCode: string; status: string }> }>; academicInfoReferences: number };
 
 async function main(): Promise<void> {
   const root = process.cwd();
   const universityReport = JSON.parse(await readFile(path.join(root, "reports", "university-consolidation-dry-run.json"), "utf8"));
-  const invalidReport = JSON.parse(await readFile(path.join(root, "reports", "legacy-invalid-values.json"), "utf8"));
+  const invalidReport = JSON.parse(await readFile(path.join(root, "reports", "legacy-invalid-values.json"), "utf8")) as { specialties: InvalidSpecialty[] };
   const reviewGroups = (universityReport.groups as Group[]).filter((group) => group.classification === "REVIEW_REQUIRED");
   const universityDecisions = reviewGroups.map((group) => {
     const ids = group.members.map((member) => member.id);
@@ -21,7 +24,7 @@ async function main(): Promise<void> {
       evidence: group.members.map((member) => ({ id: member.id, name: member.name, acronym: member.acronym, country: member.country, academicInfoReferences: member.academicInfoReferences, draftOccurrences: member.draftOccurrences })),
     };
   });
-  const specialtyDecisions = invalidReport.specialties.map((item: { id: number; name: string; academicInfo: Array<{ academicInfoId: number; personId: number; personName: string; applications: Array<{ id: number; applicationCode: string; status: string }> }>; academicInfoReferences: number }) => ({
+  const specialtyDecisions = invalidReport.specialties.map((item) => ({
     type: "SPECIALTY_INVALID",
     specialtyId: item.id,
     value: item.name,
@@ -31,7 +34,7 @@ async function main(): Promise<void> {
     academicInfo: item.academicInfo,
   }));
   const decisions = { generatedAt: new Date().toISOString(), readOnly: true, universities: universityDecisions, invalidSpecialties: specialtyDecisions, pending: universityDecisions.filter((item) => item.decision === "MANUAL_REVIEW").length + specialtyDecisions.length };
-  const previousPlan = JSON.parse(await readFile(path.join(root, "config", "academic-consolidation.approved-plan.json"), "utf8"));
+  const previousPlan = JSON.parse(await readFile(path.join(root, "config", "academic-consolidation.approved-plan.json"), "utf8")) as ApprovedPlan;
   const santa = universityDecisions.find((item) => item.canonicalId === 25);
   const planV2 = {
     generatedAt: decisions.generatedAt,

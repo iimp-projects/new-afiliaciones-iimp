@@ -22,8 +22,8 @@ async function main(): Promise<void> {
   const safeUniversities = invalidReport.universities.filter((item: { recommendedAction: string }) => item.recommendedAction === "SAFE_TO_DEACTIVATE");
   const safeSpecialties = invalidReport.specialties.filter((item: { recommendedAction: string }) => item.recommendedAction === "SAFE_TO_DEACTIVATE");
   if (safeUniversities.length !== 32 || safeSpecialties.length !== 1 || safeSpecialties[0]?.id !== 412) throw new Error("Los candidatos SAFE no coinciden con 32 universidades y specialty 412");
-  const universityIds = safeUniversities.map((item: { id: number }) => item.id);
-  const specialtyIds = safeSpecialties.map((item: { id: number }) => item.id);
+  const universityIds: number[] = safeUniversities.map((item: { id: number }) => item.id);
+  const specialtyIds: number[] = safeSpecialties.map((item: { id: number }) => item.id);
   const canonicalIds = new Set<number>([...plan.universities.map((item: { canonicalId: number }) => item.canonicalId), ...plan.specialties.map((item: { canonicalId: number }) => item.canonicalId)]);
   if (universityIds.some((id) => canonicalIds.has(id)) || specialtyIds.some((id) => canonicalIds.has(id))) throw new Error("Un inválido SAFE coincide con canonical aprobado");
   const [universities, specialties, universityRefs, specialtyRefs, excludedUniversity, excludedSpecialties] = await Promise.all([

@@ -97,7 +97,6 @@ export class UserRepository {
 
   async createUserWithPerson(
     data: CreateUserInput,
-    hashedPassword: string,
     imageUrl?: string,
   ) {
     return prisma.$transaction(async (tx) => {
@@ -127,19 +126,9 @@ export class UserRepository {
           email: data.email,
           roleId: data.roleId,
           personId: person.id,
-          status: UserStatus.ACTIVE,
+          status: UserStatus.PENDING,
           type: data.userType,
           image: imageUrl,
-          emailVerified: new Date(),
-        },
-      });
-
-      await tx.credential.create({
-        data: {
-          userId: user.id,
-          type: CredentialType.PASSWORD,
-          secret: hashedPassword,
-          isActive: true,
         },
       });
 
@@ -182,24 +171,36 @@ export class UserRepository {
     });
   }
 
-  async toggleUserStatus(userId: number, currentStatus: UserStatus) {
-    const newStatus =
-      currentStatus === UserStatus.ACTIVE
-        ? UserStatus.INACTIVE
-        : UserStatus.ACTIVE;
-    return prisma.user.update({
-      where: { id: userId },
-      data: { status: newStatus },
+  async toggleUserStatus(userId: number) {
+    return prisma.$transaction(async (tx) => {
+      const current = await tx.user.findUnique({ where: { id: userId }, select: { status: true } });
+      if (!current) throw new Error("Usuario no encontrado.");
+
+      const newStatus = current.status === UserStatus.ACTIVE ? UserStatus.INACTIVE : UserStatus.ACTIVE;
+      const user = await tx.user.update({ where: { id: userId }, data: { status: newStatus } });
+      if (newStatus === UserStatus.INACTIVE) {
+        const revokedAt = new Date();
+        await tx.userSession.updateMany({
+          where: { userId, isRevoked: false },
+          data: { isRevoked: true, revokedAt, revokeReason: "Usuario desactivado por un administrador." },
+        });
+      }
+      return user;
     });
   }
 
   async softDeleteUser(userId: number) {
-    return prisma.user.update({
-      where: { id: userId },
-      data: {
-        deletedAt: new Date(),
-        status: UserStatus.INACTIVE,
-      },
+    return prisma.$transaction(async (tx) => {
+      const deletedAt = new Date();
+      const user = await tx.user.update({
+        where: { id: userId },
+        data: { deletedAt, status: UserStatus.INACTIVE },
+      });
+      await tx.userSession.updateMany({
+        where: { userId, isRevoked: false },
+        data: { isRevoked: true, revokedAt: deletedAt, revokeReason: "Usuario eliminado por un administrador." },
+      });
+      return user;
     });
   }
 

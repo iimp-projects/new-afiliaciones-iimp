@@ -1,6 +1,8 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps -- the alert refresh is explicitly triggered on mount and popover opening. */
 
 import { useState, useRef, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import {
   Bell,
   Mail,
@@ -12,6 +14,7 @@ import {
   LogOut,
 } from "lucide-react";
 import type { CurrentUserDTO } from "@/modules/auth/context/types";
+import { getOperationalAlertPresentation, getOperationalAlertSeverityLabel } from "@/modules/afiliaciones/alerts/Config/OperationalAlertCatalog";
 import { logoutAction } from "@/modules/auth/logout/logoutAction"; // Importamos la acción para cerrar sesión
 
 interface NavbarProps {
@@ -20,11 +23,18 @@ interface NavbarProps {
 }
 
 export function Navbar({ user, onToggleSidebar }: NavbarProps) {
+  const pathname = usePathname();
   const [activeLang, setActiveLang] = useState<"ES" | "EN" | "QU">("ES");
+  const portalBreadcrumbs: Record<string, string> = { "/intranet/mi-cuenta": "Inicio", "/intranet/mi-cuenta/perfil": "Mi perfil", "/intranet/mi-cuenta/membresia": "Mi membresía", "/intranet/mi-cuenta/pagos": "Pagos y comprobantes", "/intranet/mi-cuenta/beneficios": "Beneficios", "/intranet/mi-cuenta/eventos": "Eventos", "/intranet/mi-cuenta/documentos": "Documentos", "/intranet/mi-cuenta/soporte": "Soporte" };
+  const portalPage = portalBreadcrumbs[pathname];
 
   // Estados para los popovers
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [operationalTotal, setOperationalTotal] = useState(0);
+  const [operationalAlerts, setOperationalAlerts] = useState<Array<{ id: string; type: string; severity: "WARNING" | "CRITICAL"; title: string; message: string; applicationCode: string; personName?: string; reviewer?: string; action: { label: string; href: string } }>>([]);
+  const [alertsLoading, setAlertsLoading] = useState(false);
+  const [alertsError, setAlertsError] = useState(false);
 
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -56,6 +66,10 @@ export function Navbar({ user, onToggleSidebar }: NavbarProps) {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  const loadOperationalAlerts = async () => { if (user.type === "AFFILIATE") return; setAlertsLoading(true); setAlertsError(false); try { const response = await fetch("/api/afiliaciones/alerts"); if (!response.ok) { if (process.env.NODE_ENV === "development") console.error("[OPERATIONAL_ALERTS_FETCH_ERROR]", { status: response.status, statusText: response.statusText }); throw new Error(); } const body = await response.json(); setOperationalTotal(body.total); setOperationalAlerts(body.alerts); } catch { setAlertsError(true); } finally { setAlertsLoading(false); } };
+  useEffect(() => { void loadOperationalAlerts(); }, [user.type]);
+  useEffect(() => { const refresh = () => { void loadOperationalAlerts(); }; window.addEventListener("operational-alerts-changed", refresh); return () => window.removeEventListener("operational-alerts-changed", refresh); }, []);
 
   // Mock de Notificaciones
   const mockNotifications = [
@@ -91,7 +105,7 @@ export function Navbar({ user, onToggleSidebar }: NavbarProps) {
         </button>
         <div className="hidden md:flex items-center text-sm font-medium">
           <span className="text-slate-400 hover:text-slate-600 cursor-pointer transition-colors">
-            Dashboard
+            {portalPage ? "Mi cuenta" : "Dashboard"}
           </span>
           <ChevronRight
             size={16}
@@ -99,7 +113,7 @@ export function Navbar({ user, onToggleSidebar }: NavbarProps) {
             strokeWidth={2.5}
           />
           <span className="font-extrabold text-slate-800 tracking-wide">
-            Resumen
+            {portalPage ?? "Resumen"}
           </span>
         </div>
       </div>
@@ -142,7 +156,7 @@ export function Navbar({ user, onToggleSidebar }: NavbarProps) {
           {/* CAMPANITA CON DROPDOWN PREMIUM */}
           <div className="relative" ref={notifRef}>
             <button
-              onClick={() => setIsNotifOpen(!isNotifOpen)}
+              onClick={() => { const next = !isNotifOpen; setIsNotifOpen(next); if (next) void loadOperationalAlerts(); }}
               className={`relative p-2.5 rounded-full transition-colors ${
                 isNotifOpen
                   ? "text-[#c39254] bg-orange-50"
@@ -150,7 +164,7 @@ export function Navbar({ user, onToggleSidebar }: NavbarProps) {
               }`}
             >
               <Bell size={20} strokeWidth={2.2} />
-              <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 border border-white rounded-full animate-pulse"></span>
+              {operationalTotal > 0 && <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 bg-red-500 border border-white rounded-full text-[9px] font-bold text-white flex items-center justify-center">{operationalTotal}</span>}
             </button>
 
             {/* POPOVER DE OBSERVACIONES */}
@@ -159,19 +173,24 @@ export function Navbar({ user, onToggleSidebar }: NavbarProps) {
                 <div className="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/80 rounded-t-2xl">
                   <div>
                     <h3 className="text-[14px] font-black text-slate-800">
-                      Observaciones Pendientes
+                      Alertas operativas
                     </h3>
                     <p className="text-[11px] font-semibold text-slate-500 mt-0.5">
-                      Tienes {mockNotifications.length} por revisar
+                      Tienes {operationalTotal} por revisar
                     </p>
                   </div>
-                  <button className="text-[11px] font-bold text-[#c39254] hover:text-[#a3722a] transition-colors">
-                    Marcar leídas
+                  <button onClick={() => void loadOperationalAlerts()} className="text-[11px] font-bold text-[#c39254] hover:text-[#a3722a] transition-colors">
+                    Actualizar
                   </button>
                 </div>
 
                 <div className="max-h-[340px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200">
-                  {mockNotifications.map((notif) => (
+                  {alertsLoading && <p className="p-5 text-center text-xs font-medium text-slate-500">Cargando alertas...</p>}
+                  {alertsError && <button onClick={() => void loadOperationalAlerts()} className="m-5 text-xs font-bold text-[#7f561e]">No fue posible consultar las alertas. Reintentar</button>}
+                  {!alertsLoading && !alertsError && operationalTotal === 0 && <p className="p-5 text-center text-xs font-medium text-emerald-700">Sin alertas pendientes</p>}
+                  {!alertsLoading && !alertsError && operationalAlerts.map((notif) => {
+                    const presentation = getOperationalAlertPresentation(notif.type);
+                    return (
                     <div
                       key={notif.id}
                       className="p-4 border-b border-slate-50 hover:bg-[#fffdf8] transition-colors cursor-pointer group flex gap-4 items-start"
@@ -186,29 +205,31 @@ export function Navbar({ user, onToggleSidebar }: NavbarProps) {
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-start mb-1.5">
                           <h4 className="text-[12px] font-extrabold text-slate-800 group-hover:text-[#c39254] transition-colors truncate">
-                            Exp. {notif.expediente}
+                            {presentation.label}
                           </h4>
                           <span className="text-[10px] font-bold text-slate-400 whitespace-nowrap ml-2">
-                            {notif.time}
+                            {getOperationalAlertSeverityLabel(notif.severity)}
                           </span>
                         </div>
                         <p className="text-[12px] font-medium text-slate-600 leading-snug line-clamp-2 mb-2">
-                          {notif.message}
+                          {presentation.description}
                         </p>
                         <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold text-slate-400">
                           <span className="px-2 py-0.5 bg-slate-100 rounded-md text-slate-600">
-                            {notif.area}
+                            {notif.personName || notif.applicationCode}
                           </span>
-                          <span>• Rev. por {notif.reviewer}</span>
+                          <span>Exp. {notif.applicationCode}</span>
+                          <button onClick={() => { window.location.href = notif.action.href; setIsNotifOpen(false); }} className="text-[#7f561e] hover:text-[#c39254]">{notif.action.label}</button>
                         </div>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 <div className="p-3 border-t border-slate-100 text-center bg-slate-50/80 rounded-b-2xl">
-                  <button className="text-[12px] font-bold text-slate-500 hover:text-[#c39254] transition-colors">
-                    Ver todas las notificaciones
+                  <button onClick={() => { window.location.href = "/intranet/alertas"; setIsNotifOpen(false); }} className="text-[12px] font-bold text-slate-500 hover:text-[#c39254] transition-colors">
+                    Ir al Centro de Alertas
                   </button>
                 </div>
               </div>

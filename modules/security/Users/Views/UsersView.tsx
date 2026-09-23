@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { Plus, Download } from "lucide-react";
+import { NavigationHeaderIcon } from "@/modules/layout/Components/NavigationHeaderIcon";
 // ❌ ¡Asegúrate de NO importar { Toaster } de sonner aquí!
 import { UsersGrid } from "../Components/UsersGrid";
 import { CreateUserModal } from "../Components/CreateUserModal";
@@ -72,13 +73,16 @@ export function UsersView({ roles }: UsersViewProps) {
       
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm mb-5 flex flex-col relative z-20">
         <div className="px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100">
-          <div>
+          <div className="flex items-start gap-3">
+            <NavigationHeaderIcon href="/intranet/security/users" />
+            <div>
             <h1 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight leading-none">
               Usuarios del Sistema
             </h1>
             <p className="text-xs sm:text-sm font-medium text-slate-500 mt-1.5">
               Gestiona, evalúa y resuelve los accesos al sistema.
             </p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <button className="flex items-center justify-center gap-1.5 px-4 h-9 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-lg text-xs font-bold transition-all shadow-sm focus:outline-none">

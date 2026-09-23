@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ExpedienteRepository } from "@/modules/afiliaciones/expedientes/Repositories/ExpedienteRepository";
 import { ExpedienteMapper } from "@/modules/afiliaciones/expedientes/Mappers/ExpedienteMapper";
-import { contextService } from "@/modules/auth/context/service";
+import { prisma } from "@/lib/prisma";
+import { OperationalAlertStatus } from "@prisma/client";
+import { apiAuthorizationStatus, requireApiPermission } from "@/modules/auth/context/api-authorization";
 
 export async function GET(request: NextRequest) {
   try {
+    const currentUser = await requireApiPermission("read", "memberships");
     const searchParams = request.nextUrl.searchParams;
     const page = parseInt(searchParams.get("page") || "1");
     const pageSize = parseInt(searchParams.get("pageSize") || "8");
@@ -26,7 +29,6 @@ export async function GET(request: NextRequest) {
     const dateTo = searchParams.get("dateTo") || undefined;
 
     // 1. Identificamos el rol
-    const currentUser = await contextService.getCurrentUser().catch(() => null);
     const isComite = currentUser?.role?.slug === "COMITE_EVALUADOR";
 
     // SOLUCIÓN PAGINACIÓN: Si es el comité, traemos 1000 registros de la BD 
@@ -79,9 +81,15 @@ export async function GET(request: NextRequest) {
       expedientesFiltrados = expedientesFiltrados.slice(startIndex, startIndex + pageSize);
     }
 
+    const applicationIds = expedientesFiltrados.map((application) => application.id);
+    const alertGroups = applicationIds.length ? await prisma.operationalAlertTracking.groupBy({ by: ["applicationId", "severity"], where: { applicationId: { in: applicationIds }, status: { in: [OperationalAlertStatus.ACTIVE, OperationalAlertStatus.IN_PROGRESS] } }, _count: { _all: true } }) : [];
+    const alertsByApplication = new Map<number, { total: number; critical: number; warning: number; highestSeverity: "CRITICAL" | "WARNING" | null }>();
+    for (const id of applicationIds) alertsByApplication.set(id, { total: 0, critical: 0, warning: 0, highestSeverity: null });
+    for (const group of alertGroups) { const summary = alertsByApplication.get(group.applicationId)!; const count = group._count._all; summary.total += count; if (group.severity === "CRITICAL") { summary.critical += count; summary.highestSeverity = "CRITICAL"; } else if (group.severity === "WARNING") { summary.warning += count; if (!summary.highestSeverity) summary.highestSeverity = "WARNING"; } }
+
     // 3. Mapeamos la data resultante
     const mappedData = await Promise.all(
-      expedientesFiltrados.map((app) => ExpedienteMapper.toCardData(app)),
+      expedientesFiltrados.map((app) => ExpedienteMapper.toCardData({ ...app, operationalAlerts: alertsByApplication.get(app.id) })),
     );
 
     return NextResponse.json(
@@ -97,11 +105,11 @@ export async function GET(request: NextRequest) {
       },
       { status: 200 },
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[Expedientes API Error]:", error);
     return NextResponse.json(
-      { success: false, message: "Error al obtener los expedientes." },
-      { status: 500 },
+      { success: false, message: apiAuthorizationStatus(error) < 500 ? "No autorizado." : "Error al obtener los expedientes." },
+      { status: apiAuthorizationStatus(error) },
     );
   }
 }

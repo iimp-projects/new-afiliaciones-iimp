@@ -1,3 +1,5 @@
+import { getApisNetPeToken } from "@/lib/config/env";
+
 interface ReniecResponse { nombres: string; apellidoPaterno: string; apellidoMaterno: string; numeroDocumento: string; }
 
 export interface SunatResponse { razonSocial: string; numeroDocumento: string; estado: string; condicion: string; direccion: string; departamento: string; provincia: string; distrito: string; }
@@ -9,12 +11,12 @@ export type RucLookupResult =
 
 export class ApisNetPeService {
   private readonly baseUrl = "https://api.apis.net.pe/v2";
-  // El token de respaldo existente se conserva por compatibilidad; requiere una intervención de seguridad separada.
-  private readonly token = process.env.APIS_NET_PE_TOKEN || "apis-token-13383.Aph50ddFaV03b9sZaRprJo5ZBpMz0yC4";
 
   public async getDni(dni: string): Promise<ReniecResponse | null> {
+    const token = this.getToken();
+
     try {
-      const response = await fetch(`${this.baseUrl}/reniec/dni?numero=${dni}`, { method: "GET", headers: { Authorization: `Bearer ${this.token}`, Accept: "application/json" }, next: { revalidate: 3600 } });
+      const response = await fetch(`${this.baseUrl}/reniec/dni?numero=${dni}`, { method: "GET", headers: { Authorization: `Bearer ${token}`, Accept: "application/json" }, next: { revalidate: 3600 } });
       if (!response.ok) return null;
       const data = await response.json();
       return data.numeroDocumento ? data : null;
@@ -25,8 +27,10 @@ export class ApisNetPeService {
   }
 
   public async getRuc(ruc: string): Promise<RucLookupResult> {
+    const token = this.getToken();
+
     try {
-      const response = await fetch(`${this.baseUrl}/sunat/ruc/full?numero=${ruc}`, { method: "GET", headers: { Authorization: `Bearer ${this.token}`, Accept: "application/json" }, next: { revalidate: 3600 } });
+      const response = await fetch(`${this.baseUrl}/sunat/ruc/full?numero=${ruc}`, { method: "GET", headers: { Authorization: `Bearer ${token}`, Accept: "application/json" }, next: { revalidate: 3600 } });
       if (response.status === 404) return { status: "NOT_FOUND" };
       if (!response.ok) return { status: "SERVICE_ERROR" };
       const data = await response.json();
@@ -34,6 +38,14 @@ export class ApisNetPeService {
     } catch (error) {
       console.error("[ApisNetPeService] Error buscando RUC:", error);
       return { status: "SERVICE_ERROR" };
+    }
+  }
+
+  private getToken(): string {
+    try {
+      return getApisNetPeToken();
+    } catch {
+      throw new Error("Falta configurar APIS_NET_PE_TOKEN.");
     }
   }
 }

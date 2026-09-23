@@ -1,9 +1,17 @@
 "use client";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { CheckCircle2, XCircle } from "lucide-react";
 
 export default function ReviewEndorsementPage() {
+  return (
+    <Suspense fallback={null}>
+      <ReviewEndorsementContent />
+    </Suspense>
+  );
+}
+
+function ReviewEndorsementContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
   
@@ -28,7 +36,7 @@ export default function ReviewEndorsementPage() {
         setStatus("ERROR");
         setMessage(data.message);
       }
-    } catch (error) {
+    } catch {
       setStatus("ERROR");
       setMessage("Error de conexión.");
     }

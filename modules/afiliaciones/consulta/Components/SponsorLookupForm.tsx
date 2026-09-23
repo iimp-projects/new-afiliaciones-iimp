@@ -54,11 +54,10 @@ export const SponsorLookupForm: React.FC<SponsorLookupFormProps> = ({
 
       if (res.ok && data && !data.error) {
         setFoundMember({
-          personId: data.personId,
-          dni: data.dni || cleanDni,
-          fullName: data.fullName,
-          iimpCode: data.iimpCode || "---",
-          email: data.email || "---",
+          dni: cleanDni,
+          fullName: "Aval hábil validado",
+          iimpCode: "Protegido",
+          email: "Protegido",
           isActive: true,
         });
       } else {

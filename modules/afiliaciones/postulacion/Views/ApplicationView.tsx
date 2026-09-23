@@ -36,6 +36,7 @@ import EndorsementsStep from "../Components/ApplicationStepper/EndorsementsStep"
 import DeclarationStep from "../Components/ApplicationStepper/DeclarationStep";
 
 import { ApplicationApi } from "../Services/ApplicationApi";
+import { resolvePersonalInformationUploads } from "../Services/PersonalInformationUploads";
 import type { ApplicationDraft } from "../Models/ApplicationDraft";
 import type { PersonalInformation } from "../Models/PersonalInformation";
 import { MembershipType } from "../Types/MembershipType";
@@ -69,6 +70,7 @@ export default function ApplicationView({
   const [application, setApplication] = useState<string | null>(
     trackingCode ?? null,
   );
+  const [applicationId, setApplicationId] = useState<number | null>(null);
   const [isStepValid, setIsStepValid] = useState(false);
   const [flowError, setFlowError] = useState<{ code: string; message: string } | null>(null);
   useEffect(() => {
@@ -105,6 +107,7 @@ export default function ApplicationView({
         return;
       }
       setApplication(response.trackingCode);
+      setApplicationId(response.id);
 
       setCurrentStep(response.currentStep);
 
@@ -141,13 +144,10 @@ export default function ApplicationView({
   ): Promise<void> => {
     setSaving(true);
     try {
-      const newDraft: ApplicationDraft = {
-        ...draft,
-        membershipType,
-        personalInformation,
-      };
-      setDraft(newDraft);
-      if (!application) {
+      // El upload exige una postulación autorizada (cookie de acceso). Por eso
+      // el borrador debe existir ANTES de subir los archivos del paso.
+      let currentApplication = application;
+      if (!currentApplication) {
         const response = await api.start({
           affiliateType: membershipType,
           documentType: personalInformation.documentType,
@@ -155,14 +155,23 @@ export default function ApplicationView({
           email: personalInformation.primaryEmail,
           phone: personalInformation.phone,
         });
+        currentApplication = response.trackingCode;
         setApplication(response.trackingCode);
-        await api.updateDraft(response.trackingCode, {
-          currentStep: 1,
-          draftData: newDraft,
-        });
-        return;
+        setApplicationId(response.id);
       }
-      await api.updateDraft(application, { currentStep, draftData: newDraft });
+
+      const resolvedPersonalInformation = await resolvePersonalInformationUploads(
+        personalInformation,
+        (file, folder) => api.uploadFile(file, folder),
+      );
+
+      const newDraft: ApplicationDraft = {
+        ...draft,
+        membershipType,
+        personalInformation: resolvedPersonalInformation,
+      };
+      setDraft(newDraft);
+      await api.updateDraft(currentApplication, { currentStep, draftData: newDraft });
     } catch (error) {
       throw error;
     } finally {
@@ -614,7 +623,8 @@ export default function ApplicationView({
         )}
 
         {currentStep === 4 && (
-          <EndorsementsStep
+          applicationId && <EndorsementsStep
+            applicationId={applicationId}
             ref={stepRef}
             value={draft.endorsements}
             saving={saving}

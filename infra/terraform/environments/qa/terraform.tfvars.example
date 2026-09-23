@@ -1,0 +1,35 @@
+# Ultra-Lean QA — valores de ejemplo. Copiar a terraform.tfvars.
+# NO incluir secretos: los secretos viven en SSM Parameter Store (SecureString).
+
+project_name = "afiliaciones"
+environment  = "qa"
+aws_region   = "us-east-2"
+
+# Red (CIDR_PENDING_ORGANIZATIONAL_CONFIRMATION)
+vpc_cidr           = "10.20.0.0/16"
+public_subnet_cidr = "10.20.0.0/24"
+availability_zone  = "us-east-2a"
+
+# Compute
+instance_type        = "t3.small"
+root_volume_size_gb  = 20
+data_volume_size_gb  = 30
+
+# Hostname QA (DNS no creado todavía)
+qa_hostname = "afiliaciones-qa.iimp.org.pe"
+
+# Observabilidad
+log_retention_days = 7
+
+# Scheduler: false durante la validación inicial; true luego (L-V 08:00-20:00 America/Lima)
+enable_scheduler  = false
+scheduler_timezone = "America/Lima"
+
+# SNS (SMS)
+enable_sns_publish = false
+
+# Parámetros no sensibles adicionales (opcional)
+non_secret_parameters = {}
+
+# Subject inmutable confirmado mediante la configuración OIDC y los IDs públicos de GitHub.
+github_oidc_subject = "repo:iimp-projects@277050971/new-afiliaciones-iimp@1304167655:environment:qa"

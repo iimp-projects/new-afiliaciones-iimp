@@ -14,10 +14,11 @@ const bundle = await build({ stdin: { resolveDir: cwd, loader: "tsx", contents: 
   import { ConsultaView } from "./modules/afiliaciones/consulta/Views/ConsultaView";
   const channels = [{ channel: "EMAIL", destination: "m***@example.com" }];
   window.fixture.challenge = { hasApplication: window.fixture.status !== null, requiresVerification: window.fixture.status !== null, context: "opaque", channels, options: [{context: "opaque", channels}] };
-  window.fixture.verified = false; window.fixture.detailCalls = 0;
+  window.fixture.verified = false; window.fixture.detailCalls = 0; window.fixture.lookupCalls = 0; window.fixture.lookupBody = null;
   const summary = {id: 7, affiliateType: "ACTIVE", createdAt: "2026-08-01T12:00:00Z", status: window.fixture.status, canStartNew: window.fixture.canStartNew, recoveryUrl: window.fixture.status === "DRAFT" ? "/postulacion/asociado?trackingCode=private-7" : null};
-  window.fetch = async url => { let data = [];
-    if (url.includes("validate-document") || url === "/api/consulta/verification") data = window.fixture.challenge;
+  window.fetch = async (url, options = {}) => { let data = [];
+    if (url.includes("validate-document")) data = window.fixture.challenge;
+    else if (url === "/api/consulta/verification") { window.fixture.lookupCalls++; window.fixture.lookupBody = JSON.parse(options.body); data = window.fixture.challenge; }
     else if (url.includes("verify-otp")) { window.fixture.verified = true; data = {success: true}; }
     else if (url === "/api/consulta/applications") { if (!window.fixture.verified) throw Error("Unverified list"); data = window.fixture.multiple ? [summary, {...summary, id: 8, status: "REJECTED"}] : [summary]; }
     else if (url.startsWith("/api/consulta?")) { if (!window.fixture.verified) throw Error("Unverified detail"); window.fixture.detailCalls++; data = {...summary, applicationId: 7, applicationCode: "EXP-7", applicantName: "Authorized applicant", areas: {}, observations: [], pendingObservations: [], draftData: {}}; }
@@ -28,7 +29,7 @@ const bundle = await build({ stdin: { resolveDir: cwd, loader: "tsx", contents: 
   builder.onResolve({filter: /^(next\/image|next\/link|next\/navigation)$|\/StatusPaymentReady$/}, args => ({path: args.path, namespace: "boundary"}));
   builder.onLoad({filter: /.*/, namespace: "boundary"}, args => ({loader: "jsx", resolveDir: cwd, contents: args.path.endsWith("StatusPaymentReady") ? 'export function StatusPaymentReady() { return <div data-payment="existing">Existing payment flow</div>; }' : args.path === "next/navigation" ? 'export const useRouter = () => ({push(url) { location.href = url; }});' : 'import React from "react"; export default function Wrapper({priority, ...props}) { return React.createElement("a", props); }'}));
 }}] });
-const browser = await puppeteer.launch({headless: true});
+const browser = await puppeteer.launch({headless: true, args: ["--no-sandbox", "--disable-gpu"]});
 const clickText = async (page, label) => {
   const clicked = await page.evaluate(label => { const button = [...document.querySelectorAll("button")].find(button => button.textContent.trim().toLowerCase().startsWith(label.toLowerCase())); if (!button) return false; button.click(); return true; }, label);
   assert.equal(clicked, true, `Button ${label}`);
@@ -53,6 +54,12 @@ try {
     } else {
       await page.type('input[placeholder="Ingrese su número de documento"]', "12345678");
       await page.$eval("form", form => form.requestSubmit());
+      assert.equal(await page.evaluate(() => window.fixture.lookupCalls), 0);
+      await page.waitForSelector('#consultation-email');
+      await page.type('#consultation-email', "maria@example.com");
+      await page.$eval("form", form => form.requestSubmit());
+      assert.equal(await page.evaluate(() => window.fixture.lookupCalls), 1);
+      assert.deepEqual(await page.evaluate(() => window.fixture.lookupBody), {documentType: "DNI", documentNumber: "12345678", email: "maria@example.com"});
     }
     if (status !== null) {
       await page.waitForFunction(() => document.querySelector('[role="dialog"]')?.textContent.includes("Verifica tu identidad"));
@@ -95,6 +102,12 @@ try {
     } else {
       await page.type('input[placeholder="Ingrese su número de documento"]', "12345678");
       await page.$eval("form", form => form.requestSubmit());
+      assert.equal(await page.evaluate(() => window.fixture.lookupCalls), 0);
+      await page.waitForSelector('#consultation-email');
+      await page.type('#consultation-email', "maria@example.com");
+      await page.$eval("form", form => form.requestSubmit());
+      assert.equal(await page.evaluate(() => window.fixture.lookupCalls), 1);
+      assert.deepEqual(await page.evaluate(() => window.fixture.lookupBody), {documentType: "DNI", documentNumber: "12345678", email: "maria@example.com"});
     }
     await page.waitForSelector('[role="dialog"]');
     await clickText(page, "Enviar código por");

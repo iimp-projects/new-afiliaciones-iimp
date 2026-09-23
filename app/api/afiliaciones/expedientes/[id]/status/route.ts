@@ -1,23 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ValidationStatus, ValidationAction } from "@prisma/client";
-import { contextService } from "@/modules/auth/context/service";
 import { ApplicationStatusCalculatorService } from "@/modules/afiliaciones/postulacion/Services/ApplicationStatusCalculatorService";
+import { AssociatesIntegrationService } from "@/modules/afiliaciones/associates-integration/Services/AssociatesIntegrationService";
+import { processPreparedStudentIntegrationAfterCommit } from "@/modules/afiliaciones/expedientes/Services/AdministrativeStatusPostCommitService";
 import { NotifyComiteService } from "@/modules/afiliaciones/expedientes/Services/NotifyComiteService"; 
 import { NotifyApplicantService } from "@/modules/afiliaciones/postulacion/Services/NotifyApplicantService";
 import { OBSERVATION_FIELD_KEYS } from "@/modules/afiliaciones/observations/ObservationFields";
+import { stripObservationMarkup } from "@/modules/afiliaciones/observations/ObservationText";
+import { AssociateProvisioningService } from "@/modules/afiliaciones/asociados/Services/AssociateProvisioningService";
+import { apiAuthorizationStatus, requireApiPermission } from "@/modules/auth/context/api-authorization";
+import { expedienteAuthorizationService } from "@/modules/afiliaciones/expedientes/Services/ExpedienteAuthorizationService";
 
 export async function PATCH(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const currentUser = await requireApiPermission("update", "memberships");
         const { id } = await params;
         const appId = parseInt(id, 10);
+        if (!Number.isInteger(appId) || appId < 1) return NextResponse.json({ success: false, message: "Expediente inválido." }, { status: 400 });
         const body = await request.json();
         
         // 1. Extraemos el targetDepartmentCode que ahora envía el Modal del SuperAdmin
         const { newStatus, reason, fieldPaths = [], targetDepartmentCode } = body;
+        const plainTextReason = typeof reason === "string" ? stripObservationMarkup(reason) : "";
+        if (plainTextReason.length > 2000) {
+            return NextResponse.json({ success: false, message: "El motivo excede el máximo de 2000 caracteres." }, { status: 422 });
+        }
+        if (["OBSERVED", "REJECTED"].includes(newStatus) && !plainTextReason) {
+            return NextResponse.json({ success: false, message: "Debe indicar un motivo." }, { status: 422 });
+        }
         
         const normalizedFieldPaths = Array.isArray(fieldPaths)
             ? [...new Set(fieldPaths.filter((field): field is string => typeof field === "string" && OBSERVATION_FIELD_KEYS.has(field)))]
@@ -27,29 +41,7 @@ export async function PATCH(
             return NextResponse.json({ success: false, message: "Seleccione al menos un campo observado." }, { status: 400 });
         }
 
-        const currentUser = await contextService.getCurrentUser().catch(() => null);
-        const userDept = currentUser ? currentUser.role.slug : 'SISTEMA';
-
-        // 2. Mapa estricto de roles normales a departamentos
-        const roleDeptMap: Record<string, string> = {
-            "LOGISTICA": "LOGISTICA",
-            "ATENCION_ASOCIADO": "ASOCIADOS",
-            "COMUNICACIONES": "COMUNICACIONES",
-            "LEGAL": "LEGAL",
-            "COMITE_EVALUADOR": "COMITE",
-        };
-
-        // 3. Asignación Dinámica del Área
-        let deptCode = roleDeptMap[userDept];
-
-        // Magia para Administradores: Si envían un área objetivo, sobreescribimos la suya
-        if ((userDept === "SUPER_ADMIN" || userDept === "SYSTEM_ADMIN") && targetDepartmentCode) {
-            deptCode = targetDepartmentCode; 
-        }
-
-        if (!deptCode) {
-            return NextResponse.json({ success: false, message: "No se pudo determinar el área de revisión o faltan permisos." }, { status: 400 });
-        }
+        const deptCode = expedienteAuthorizationService.resolveWritableDepartment(currentUser, targetDepartmentCode);
 
         // 4. Mapeo de Estados
         let targetAreaStatus: ValidationStatus | null = null;
@@ -77,6 +69,9 @@ export async function PATCH(
         }
 
         // 5. Transacción de Base de Datos
+        const associatesIntegrationService = new AssociatesIntegrationService();
+        let integrationId: number | null = null;
+
         await prisma.$transaction(async (tx) => {
             let departmentName = deptCode || "GENERAL";
 
@@ -94,7 +89,7 @@ export async function PATCH(
                         where: { id: validation.id },
                         data: {
                             status: targetAreaStatus,
-                            validatedById: currentUser?.id,
+                            validatedById: currentUser.id,
                             validatedAt: new Date()
                         }
                     });
@@ -103,9 +98,9 @@ export async function PATCH(
                     await tx.membershipValidationHistory.create({
                         data: {
                             validationId: validation.id,
-                            userId: currentUser?.id,
+                            userId: currentUser.id,
                             action: actionEnum,
-                            comment: reason || 'Actualización de estado del área'
+                            comment: plainTextReason || 'Actualización de estado del área'
                         }
                     });
 
@@ -115,7 +110,7 @@ export async function PATCH(
                             data: {
                                 applicationId: appId,
                                 reviewDepartment: deptCode,
-                                errorDescription: reason || "Se requiere subsanación.",
+                                errorDescription: plainTextReason || "Se requiere subsanación.",
                                 fieldPaths: normalizedFieldPaths,
                             }
                         });
@@ -124,9 +119,16 @@ export async function PATCH(
             }
 
             // D) Recalculamos automáticamente el estado general del expediente
-            const calculator = new ApplicationStatusCalculatorService();
-            await calculator.recalculate(appId, tx);
+            const calculator = new ApplicationStatusCalculatorService(associatesIntegrationService);
+            await calculator.recalculate(appId, tx, (preparedIntegrationId) => {
+                integrationId = preparedIntegrationId;
+            });
         });
+
+        await processPreparedStudentIntegrationAfterCommit(integrationId, associatesIntegrationService);
+        if (integrationId !== null) {
+            await new AssociateProvisioningService().provisionCompletedApplication(appId);
+        }
 
         // 6. Lanzamiento de Eventos / Notificaciones (Fuera de la transacción para no bloquear)
         if (targetAreaStatus === ValidationStatus.APPROVED) {
@@ -134,12 +136,13 @@ export async function PATCH(
             notifyService.execute(appId).catch(console.error);
         } else if (targetAreaStatus === ValidationStatus.OBSERVED) {
             const notifyApplicant = new NotifyApplicantService();
-            notifyApplicant.notifyObservationCreated(appId, reason, normalizedFieldPaths).catch(console.error);
+            notifyApplicant.notifyObservationCreated(appId, plainTextReason, normalizedFieldPaths).catch(console.error);
         }
 
         return NextResponse.json({ success: true, message: "Estado y observaciones actualizadas correctamente." }, { status: 200 });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("[Update Status Error]:", error);
-        return NextResponse.json({ success: false, message: error.message || "Error al actualizar el estado." }, { status: 500 });
+        const status = apiAuthorizationStatus(error, error instanceof Error && (error.message.includes("área") || error.message.includes("rol")) ? 403 : 500);
+        return NextResponse.json({ success: false, message: status < 500 ? "No autorizado." : "Error al actualizar el estado." }, { status });
     }
 }

@@ -5,6 +5,9 @@ import { NiubizAuthorizationResultClassifier } from "./NiubizAuthorizationResult
 
 export interface NiubizMappedAuthorizationResponse extends PaymentGatewayResult {
   gatewayPayload?: Prisma.InputJsonValue;
+  gatewayAmount?: number;
+  gatewayCurrency?: string;
+  gatewayPurchaseNumber?: string;
 }
 
 export class NiubizResponseMapper {
@@ -30,6 +33,9 @@ export class NiubizResponseMapper {
         ?? this.nonEmptyString(response.data?.TRANSACTION_ID)
         ?? this.nonEmptyString(response.transactionId),
       responseCode,
+      ...(typeof response.order?.authorizedAmount === "number" ? { gatewayAmount: response.order.authorizedAmount } : typeof response.order?.amount === "number" ? { gatewayAmount: response.order.amount } : {}),
+      ...(this.nonEmptyString(response.order?.currency) ? { gatewayCurrency: this.nonEmptyString(response.order?.currency) } : {}),
+      ...(this.nonEmptyString(response.order?.purchaseNumber) ? { gatewayPurchaseNumber: this.nonEmptyString(response.order?.purchaseNumber) } : {}),
       authorizationCode: this.nonEmptyString(response.order?.authorizationCode)
         ?? this.nonEmptyString(response.authorizationCode)
         ?? this.nonEmptyString(response.dataMap?.AUTHORIZATION_CODE),

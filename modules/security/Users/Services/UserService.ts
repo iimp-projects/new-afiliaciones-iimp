@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import { accountActivationService } from "@/modules/auth/account-activation/service";
 import { UserRepository } from "../Repositories/UserRepository";
 import type { CreateUserInput, UpdateUserInput } from "../DTOs/user.schema";
 
@@ -15,10 +16,9 @@ export class UserService {
     if (emailExists) throw new Error("El correo electrónico ya se encuentra registrado.");
     if (documentExists) throw new Error("El número de documento ya se encuentra registrado en el sistema.");
 
-    const defaultPassword = "Cambiar123!"; 
-    const hashedPassword = await bcrypt.hash(defaultPassword, 12);
-    
-    return await this.repository.createUserWithPerson(input, hashedPassword, imageUrl);
+    const user = await this.repository.createUserWithPerson(input, imageUrl);
+    await accountActivationService.createAndSendActivation(user.id);
+    return user;
   }
 
   async updateUser(input: UpdateUserInput, imageUrl?: string) {
@@ -30,8 +30,8 @@ export class UserService {
     return await this.repository.updateUserWithPerson(input, imageUrl);
   }
 
-  async toggleStatus(userId: number, currentStatus: any) {
-    return await this.repository.toggleUserStatus(userId, currentStatus);
+  async toggleStatus(userId: number) {
+    return await this.repository.toggleUserStatus(userId);
   }
 
   async deleteUser(userId: number) {

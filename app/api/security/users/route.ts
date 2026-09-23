@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     const s3Service = new S3StorageService();
     for (const user of result.data) {
       if (user.image) {
-        user.image = await s3Service.getPresignedUrl(user.image);
+        user.image = await s3Service.getPresignedAvatarUrl(user.image);
       }
     }
 

@@ -232,8 +232,9 @@ export class AssociatesIntegrationService {
     return this.repository.markFailed(applicationId, error, tx);
   }
 
-  listAdmin(params: Parameters<IAssociateIntegrationRepository["listAdmin"]>[0]) {
-    return this.repository.listAdmin(params);
+  async listAdmin(params: Parameters<IAssociateIntegrationRepository["listAdmin"]>[0]) {
+    const result = await this.repository.listAdmin(params);
+    return { total: result.total, data: result.data.map((item: any) => this.toAdminListItem(item)) };
   }
 
   async detailAdmin(id: number) {
@@ -241,15 +242,42 @@ export class AssociatesIntegrationService {
     if (!item) return null;
 
     const snapshot = item.requestPayloadSnapshot as AssociateRequestPayloadSnapshot;
-    const maskedDocument = snapshot.NumDocumento
-      ? `${snapshot.NumDocumento.slice(0, 2)}***${snapshot.NumDocumento.slice(-2)}`
-      : "";
-
-    const { attemptHistory, externalMessage, lastErrorMessage, ...safeItem } = item;
+    const person = item.application.person;
+    const billing = item.application.payments?.[0]?.billing ?? null;
+    const fullName = person ? formatFullName(person) : formatSnapshotName(snapshot);
+    const documentNumber = person?.documentNumber ?? snapshot.NumDocumento;
+    const documentType = person?.documentType ?? null;
+    const attemptHistory = item.attemptHistory ?? [];
     return {
-      ...safeItem,
-      externalMessage: sanitizeText(externalMessage),
-      lastErrorMessage: sanitizeText(lastErrorMessage),
+      integrationId: item.id,
+      applicationId: item.applicationId,
+      applicationCode: item.application.applicationCode,
+      trackingCode: item.application.trackingCode,
+      affiliateType: item.application.affiliateType,
+      trigger: item.trigger,
+      status: item.status,
+      attempts: item.attempts,
+      lastAttemptAt: item.lastAttemptAt,
+      syncedAt: item.syncedAt,
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt,
+      associate: { fullName, documentType, maskedDocumentNumber: maskDocument(documentNumber), addressAvailable: Boolean(person?.addresses?.length) },
+      billing: toSafeBilling(billing),
+      services: snapshot.servicios.map((service) => ({ concepto: service.concepto, anno: service.anno, moneda: service.moneda, monto: service.monto, cortesia: service.cortesia })),
+      result: {
+        externalAssociateCode: item.externalAssociateCode,
+        externalMessage: sanitizeText(item.externalMessage),
+        receiptType: item.externalReceiptType,
+        serie: item.externalReceiptSerie,
+        numero: item.externalReceiptNumber,
+        pdfReference: item.externalReceiptPdfReference,
+      },
+      error: {
+        httpStatus: item.lastErrorHttpStatus,
+        code: sanitizeText(item.lastErrorCode, 100),
+        message: sanitizeText(item.lastErrorMessage),
+        identifier: sanitizeText(item.lastErrorIdentifier, 255),
+      },
       attemptHistory: [...attemptHistory].sort((left: any, right: any) => right.attemptNumber - left.attemptNumber || right.startedAt.getTime() - left.startedAt.getTime()).map((attempt: any) => ({
         attemptNumber: attempt.attemptNumber,
         startedAt: attempt.startedAt,
@@ -263,12 +291,7 @@ export class AssociatesIntegrationService {
         externalMessage: sanitizeText(attempt.externalMessage),
         durationMs: attempt.durationMs,
       })),
-      requestPayloadSnapshot: {
-        Tipo: snapshot.Tipo,
-        documento: maskedDocument,
-        servicios: snapshot.servicios,
-        TipoFacturacion: snapshot.TipoFacturacion,
-      },
+      sanitizedPayloadPreview: toSanitizedPayloadPreview(snapshot),
     };
   }
 
@@ -313,6 +336,26 @@ export class AssociatesIntegrationService {
     return result;
   }
 
+  private toAdminListItem(item: any) {
+    const person = item.application.person;
+    const billing = item.application.payments?.[0]?.billing ?? null;
+    return {
+      integrationId: item.id,
+      applicationId: item.applicationId,
+      applicationCode: item.application.applicationCode,
+      trackingCode: item.application.trackingCode,
+      affiliateType: item.application.affiliateType,
+      trigger: item.trigger,
+      status: item.status,
+      attempts: item.attempts,
+      externalAssociateCode: item.externalAssociateCode,
+      lastAttemptAt: item.lastAttemptAt,
+      createdAt: item.createdAt,
+      associate: person ? { fullName: formatFullName(person), documentType: person.documentType, maskedDocumentNumber: maskDocument(person.documentNumber) } : null,
+      billing: toSafeBilling(billing),
+    };
+  }
+
   /**
    * Procesamiento normal (post-commit / ejecución interna).
    * Reclama la integración una sola vez antes de enviar al API externo.
@@ -345,7 +388,7 @@ export class AssociatesIntegrationService {
     try {
       payload = this.mapper.map(claimed.requestPayloadSnapshot);
     } catch (error) {
-      const mapped = toPersistedError(error);
+      const mapped = sanitizePersistedError(toPersistedError(error));
       return mapped.retryable
         ? this.repository.markRetryable(claimed.applicationId, mapped)
         : this.repository.markFailed(claimed.applicationId, mapped);
@@ -364,17 +407,25 @@ export class AssociatesIntegrationService {
 
     let outcome: AssociateIntegrationAttemptOutcome;
     let integration: AssociateIntegrationRecord | null = null;
+    console.info("SIE_ASSOCIATE_SEND", {
+      phase: "started",
+      operation: "SIE_ASSOCIATE_SEND",
+      integrationId: claimed.id,
+      applicationId: claimed.applicationId,
+      attemptNumber: attempt.attemptNumber,
+    });
     try {
       const result = await (this.client ??= new AssociatesApiClient()).createAssociate(payload);
       outcome = {
         result: AssociateIntegrationAttemptResult.SYNCED,
+        httpStatus: result.httpStatus,
         externalAssociateCode: result.externalAssociateCode,
         externalMessage: sanitizeText(result.externalMessage),
         durationMs: Date.now() - startedAt.getTime(),
       };
       integration = await this.repository.markSynced(claimed.applicationId, result);
     } catch (error) {
-      const mapped = toPersistedError(error);
+      const mapped = sanitizePersistedError(toPersistedError(error));
       outcome = {
         result: mapped.retryable ? AssociateIntegrationAttemptResult.RETRYABLE : AssociateIntegrationAttemptResult.FAILED,
         httpStatus: mapped.httpStatus,
@@ -398,9 +449,47 @@ export class AssociatesIntegrationService {
         error: error instanceof Error ? error.message : "unknown",
       });
     }
+    console.info("SIE_ASSOCIATE_SEND", {
+      phase: "finished",
+      operation: "SIE_ASSOCIATE_SEND",
+      integrationId: claimed.id,
+      applicationId: claimed.applicationId,
+      attemptNumber: attempt.attemptNumber,
+      result: outcome.result,
+      httpStatus: outcome.httpStatus ?? null,
+      externalAssociateCode: outcome.externalAssociateCode ?? null,
+      durationMs: outcome.durationMs,
+      errorCode: outcome.errorCode ?? null,
+    });
     return integration;
   }
 }
+
+function formatFullName(person: { firstName: string; paternalLastName: string; maternalLastName?: string | null }) {
+  return [person.firstName, person.paternalLastName, person.maternalLastName].filter(Boolean).join(" ");
+}
+
+function formatSnapshotName(snapshot: AssociateRequestPayloadSnapshot) {
+  return [snapshot.Nombres, snapshot.ApellidoPaterno, snapshot.ApellidoMaterno].filter(Boolean).join(" ") || "No disponible";
+}
+
+function maskDocument(value?: string | null) {
+  if (!value) return "—";
+  if (value.length <= 4) return "••••";
+  return `${value.slice(0, 2)}***${value.slice(-2)}`;
+}
+
+function toSafeBilling(billing: { receiptType?: string | null; documentType?: string | null; taxId?: string | null; businessName?: string | null; billingAddress?: string | null } | null) {
+  if (!billing) return { receiptType: null, billingDocumentType: null, maskedBillingDocument: "—", businessName: null, billingAddressAvailable: false };
+  return { receiptType: billing.receiptType ?? null, billingDocumentType: billing.documentType ?? null, maskedBillingDocument: maskDocument(billing.taxId), businessName: billing.receiptType === "FACTURA" ? billing.businessName ?? null : null, billingAddressAvailable: Boolean(billing.billingAddress?.trim()) };
+}
+
+function toSanitizedPayloadPreview(snapshot: AssociateRequestPayloadSnapshot) {
+  return { TipoDocumento: snapshot.TipoDocumento, NumDocumento: maskDocument(snapshot.NumDocumento), Nombres: snapshot.Nombres, ApellidoPaterno: snapshot.ApellidoPaterno, ApellidoMaterno: snapshot.ApellidoMaterno, Tipo: snapshot.Tipo, TipoFacturacion: snapshot.TipoFacturacion, TipDocFacturacion: snapshot.TipDocFacturacion, NumDocFacturacion: maskDocument(snapshot.NumDocFacturacion), RazonSocial: snapshot.RazonSocial ?? null, Email: maskEmail(snapshot.Email), Telefono: maskPhone(snapshot.Telefono), servicios: snapshot.servicios.map((service) => ({ concepto: service.concepto, anno: service.anno, moneda: service.moneda, monto: service.monto, cortesia: service.cortesia })) };
+}
+
+function maskEmail(value?: string | null) { if (!value || !value.includes("@")) return "—"; const [local, domain] = value.split("@"); return `${local.slice(0, 2)}***@${domain}`; }
+function maskPhone(value?: string | null) { if (!value) return "—"; return value.length > 4 ? `${value.slice(0, 2)}***${value.slice(-2)}` : "••••"; }
 
 function sanitizeText(value: unknown, maxLength = 1_000): string | undefined {
   if (typeof value !== "string" || !value.trim()) return undefined;
@@ -411,6 +500,16 @@ function sanitizeDetails(details: unknown): string[] | undefined {
   if (!Array.isArray(details)) return undefined;
   const sanitized = details.map((detail) => sanitizeText(detail, 500)).filter((detail): detail is string => Boolean(detail)).slice(0, 10);
   return sanitized.length ? sanitized : undefined;
+}
+
+function sanitizePersistedError(error: AssociateIntegrationError & { retryable: boolean }): AssociateIntegrationError & { retryable: boolean } {
+  return {
+    ...error,
+    code: sanitizeText(error.code, 100),
+    message: sanitizeText(error.message),
+    identifier: sanitizeText(error.identifier, 255),
+    details: sanitizeDetails(error.details),
+  };
 }
 
 function toPersistedError(

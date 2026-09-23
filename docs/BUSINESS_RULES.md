@@ -49,9 +49,7 @@
 ## Inconsistencias registradas — no corregidas
 
 - **IMPLEMENTADO EN CÓDIGO:** Prisma define `READY_FOR_PAYMENT` y `COMPLETED`, pero la UI maneja un vocabulario propio y normaliza `APPROVED` como listo para pago; `APPROVED` no pertenece al enum actual de estado general.
-- **IMPLEMENTADO EN CÓDIGO:** `ValidateDocumentService` referencia estados `APPROVED` y `CANCELLED` que no están definidos en `ApplicationStatus`.
 - **IMPLEMENTADO EN CÓDIGO:** consulta busca `DIRECTIVA` y `PAGOS`, mientras el catálogo sembrado incluye `COMITE` y no incluye `PAGOS`.
 - **IMPLEMENTADO EN CÓDIGO:** el seed marca `LEGAL` y `COMUNICACIONES` como requeridos, pero el calculador de pago no los exige.
 - **IMPLEMENTADO EN CÓDIGO:** la ruta pública recibe `documentType`, pero no lo utiliza en su filtro.
 - **PENDIENTE DE CONFIRMACIÓN:** cuál debe ser el conjunto oficial de áreas y condiciones obligatorias para cada tipo de afiliación.
-

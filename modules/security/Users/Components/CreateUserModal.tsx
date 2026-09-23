@@ -94,8 +94,8 @@ export function CreateUserModal({ onClose, onSuccess, roles }: CreateUserModalPr
     } else {
       setIsLoading(false);
       // ✅ TOAST DE ÉXITO CON CONTEXTO (El toque premium)
-      toast.success("¡Usuario Registrado!", { 
-          description: "El usuario ha sido creado y se le asignó la contraseña por defecto." 
+      toast.success("¡Usuario registrado!", {
+          description: "La cuenta quedó pendiente y se generó una invitación de activación de un solo uso."
       });
       onSuccess();
     }
@@ -140,7 +140,7 @@ export function CreateUserModal({ onClose, onSuccess, roles }: CreateUserModalPr
 
           <div className="bg-amber-50 border border-amber-200/60 text-amber-800 text-xs font-medium p-4 rounded-xl mb-8 flex gap-3">
              <Info className="shrink-0 text-amber-600" size={18} />
-             <p><strong>Atención:</strong> Al registrar al usuario, se le asignará la contraseña temporal por defecto <code className="bg-amber-100 px-1.5 py-0.5 rounded font-bold ml-1 text-amber-900">Cambiar123!</code>.</p>
+             <p><strong>Activación segura:</strong> la cuenta permanecerá pendiente hasta que el usuario cree su propia contraseña mediante el enlace de un solo uso enviado a su correo.</p>
           </div>
 
           <form id="createUserForm" onSubmit={handleSubmit} className="space-y-6" encType="multipart/form-data">

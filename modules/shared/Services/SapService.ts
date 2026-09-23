@@ -1,5 +1,6 @@
 import axios from 'axios';
 import https from 'https';
+import { getSapConfig } from '@/lib/config/env';
 
 export class SapService {
     private baseUrl: string;
@@ -9,15 +10,15 @@ export class SapService {
     private agent: https.Agent;
 
     constructor() {
-        this.baseUrl = process.env.SAP_SERVICE_LAYER_URL || '';
-        this.companyDb = process.env.SAP_COMPANY_DB || '';
-        this.username = process.env.SAP_USER || '';
-        this.password = process.env.SAP_PASSWORD || '';
+        // Configuración validada explícitamente: sin fallbacks silenciosos a ''.
+        const config = getSapConfig();
+        this.baseUrl = config.baseUrl;
+        this.companyDb = config.companyDb;
+        this.username = config.username;
+        this.password = config.password;
 
-        // Ignoramos el error de certificado (UNABLE_TO_VERIFY_LEAF_SIGNATURE)
-        // Solo en desarrollo local. En producción (AWS) validará correctamente.
         this.agent = new https.Agent({
-            rejectUnauthorized: process.env.NODE_ENV === 'production'
+            rejectUnauthorized: true
         });
     }
 

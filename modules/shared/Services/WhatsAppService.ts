@@ -1,3 +1,5 @@
+import { getWhatsAppConfig } from "@/lib/config/env";
+
 export type WhatsAppErrorCode = "CONFIGURATION_ERROR" | "INVALID_PHONE" | "AUTH_ERROR" | "TEMPLATE_ERROR" | "RATE_LIMIT" | "PROVIDER_ERROR" | "NETWORK_ERROR";
 
 export type WhatsAppDiagnostic = {
@@ -15,7 +17,6 @@ export class WhatsAppServiceError extends Error {
 
 type WhatsAppApiResponse = { messages?: Array<{ id?: string }> };
 type WhatsAppMetaErrorResponse = { error?: { code?: number; error_subcode?: number; type?: string; fbtrace_id?: string } };
-const DEFAULT_GRAPH_API_VERSION = "v26.0";
 const REQUEST_TIMEOUT_MS = 10_000;
 
 export class WhatsAppService {
@@ -61,14 +62,11 @@ export class WhatsAppService {
   }
 
   private getConfiguration() {
-    const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID?.trim();
-    const accessToken = process.env.WHATSAPP_ACCESS_TOKEN?.trim();
-    const graphApiVersion = process.env.WHATSAPP_GRAPH_API_VERSION?.trim() || DEFAULT_GRAPH_API_VERSION;
-    void process.env.WHATSAPP_WABA_ID;
-    if (!phoneNumberId || !accessToken || !/^v\d+\.\d+$/.test(graphApiVersion)) {
+    try {
+      return getWhatsAppConfig();
+    } catch {
       throw new WhatsAppServiceError("CONFIGURATION_ERROR", { message: "WhatsApp server configuration is incomplete or invalid." });
     }
-    return { phoneNumberId, accessToken, graphApiVersion };
   }
 
   private normalizePhone(phone: string): string {

@@ -62,22 +62,22 @@ export function DashboardClient({ currentUser }: { currentUser: any }) {
   const [tooltip, setTooltip] = useState<{ x: number, y: number, name: string, count: number, percentage: number } | null>(null);
   const [isMapExpanded, setIsMapExpanded] = useState(false);
 
+  async function loadData() {
+    setIsLoading(true);
+    const res = await fetchDashboardStats();
+    if (res.success) setData(res.data);
+    setIsLoading(false);
+    setCurrentTime(new Date().toLocaleDateString("es-PE", { day: '2-digit', month: 'short', year: 'numeric' }));
+  }
+
   useEffect(() => {
     setMounted(true);
     fetch(PERU_GEOJSON_URL).then(res => res.json()).then(setPeruGeoData);
     fetch(WORLD_TOPOJSON_URL).then(res => res.json()).then(topo => {
       setWorldGeoData(topojson.feature(topo as any, (topo as any).objects.countries));
     });
-    loadData();
+    void loadData();
   }, []);
-
-  const loadData = async () => {
-    setIsLoading(true);
-    const res = await fetchDashboardStats();
-    if (res.success) setData(res.data);
-    setIsLoading(false);
-    setCurrentTime(new Date().toLocaleDateString("es-PE", { day: '2-digit', month: 'short', year: 'numeric' }));
-  };
 
   const handleExportMapCSV = () => {
     if (!data) return;

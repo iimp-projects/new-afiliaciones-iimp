@@ -1,14 +1,20 @@
 import { PrismaClient, StudyLevel } from '@prisma/client';
 import { Client } from 'pg';
 
-const prisma = new PrismaClient({
-  datasources: {
-    db: { url: "postgresql://postgres:admin@localhost:5432/bd_afiliaciones_dev?schema=public" }
-  }
-});
+// HERRAMIENTA HISTÓRICA DE MIGRACIÓN — NO FORMA PARTE DEL FLUJO PRODUCTIVO.
+// Requiere ejecución manual explícita contra una base aislada.
+if (process.env.ALLOW_LEGACY_MIGRATION !== 'true') {
+  console.error('[LEGACY] Migración histórica deshabilitada. Define ALLOW_LEGACY_MIGRATION=true para ejecutarla manualmente.');
+  process.exit(1);
+}
+
+const prisma = new PrismaClient();
+
+const legacyDatabaseUrl = process.env.LEGACY_DATABASE_URL;
+if (!legacyDatabaseUrl) throw new Error('LEGACY_DATABASE_URL es obligatorio.');
 
 const oldDb = new Client({
-  connectionString: "postgresql://postgres:admin@localhost:5432/bdafiliacion"
+  connectionString: legacyDatabaseUrl
 });
 
 async function migrarCatalogos() {

@@ -173,11 +173,11 @@ export class ApplicationApi {
    * BÚSQUEDA DE AVAL (ASOCIADO ACTIVO)
    * ============================================
    */
-  async validateSponsor(documentNumber: string): Promise<any> {
+  async validateSponsor(documentNumber: string, applicationId: number): Promise<{ eligible: true; sponsorFullName: string; sponsorEmail: string; sponsorCode: string; sponsorPersonId: number }> {
     const response = await fetch(`${this.baseUrl}/validate-sponsor`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ documentNumber }),
+      body: JSON.stringify({ documentNumber, applicationId }),
     });
 
     const result = await response.json();

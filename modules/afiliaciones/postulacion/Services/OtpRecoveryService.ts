@@ -1,10 +1,32 @@
 import { VerificationError } from "@/modules/shared/Models/VerificationError";
 import { randomInt } from "crypto";
+import type { DocumentType } from "@prisma/client";
 import { MailService } from "@/modules/shared/Services/MailService";
 import { SmsService } from "@/modules/shared/Services/SmsService";
 import { WhatsAppService } from "@/modules/shared/Services/WhatsAppService";
 import { VerificationRepository } from "../Repositories/VerificationRepository";
 import { destinationChannels, type VerificationChannel, type VerificationContext } from "@/modules/shared/Models/Verification";
+import { resolveOtpChannelAvailability } from "./OtpChannelAvailability";
+
+const OTP_PROVIDER: Record<VerificationChannel, string> = { EMAIL: "smtp", SMS: "sns", WHATSAPP: "meta" };
+
+function categorizeOtpError(error: unknown): string {
+  const name = error instanceof Error ? error.name : "";
+  const code = (error as { code?: unknown } | null)?.code;
+  if (name === "ConfigurationError" || code === "CONFIGURATION_ERROR") return "OTP_CONFIGURATION_ERROR";
+  if (name.startsWith("Prisma")) return "OTP_DATABASE_ERROR";
+  return "OTP_PROVIDER_FAILURE";
+}
+
+function logOtpFailure(operation: string, channel: VerificationChannel, error: unknown): void {
+  console.error({ operation, channel, provider: OTP_PROVIDER[channel], category: categorizeOtpError(error) });
+}
+
+export type OtpIdentifier =
+  | string
+  | number
+  | { kind: "application"; applicationId: number }
+  | { kind: "document"; documentType: DocumentType; documentNumber: string };
 
 export class OtpRecoveryService {
   constructor(
@@ -14,21 +36,50 @@ export class OtpRecoveryService {
     private readonly whatsappService = new WhatsAppService(),
   ) { }
 
+  /** Resolves the concrete application server-side; returns null for decoys. */
+  private async resolveForSend(identifier: OtpIdentifier, channel: VerificationChannel) {
+    if (typeof identifier === "object" && identifier !== null && identifier.kind === "document") {
+      const candidates = await this.repository.findCandidates(identifier.documentType, identifier.documentNumber);
+      return candidates.find(candidate => destinationChannels(candidate.email, candidate.phone, resolveOtpChannelAvailability()).some(option => option.channel === channel)) ?? null;
+    }
+    const key = typeof identifier === "object" && identifier !== null ? identifier.applicationId : identifier;
+    return this.repository.findApplication(key);
+  }
+
+  private async resolveForVerify(identifier: OtpIdentifier, context: VerificationContext) {
+    if (typeof identifier === "object" && identifier !== null && identifier.kind === "document") {
+      const pending = await this.repository.findPendingApplication(identifier.documentType, identifier.documentNumber, context);
+      return pending ? this.repository.findApplication(pending.applicationId) : null;
+    }
+    const key = typeof identifier === "object" && identifier !== null ? identifier.applicationId : identifier;
+    return this.repository.findApplication(key);
+  }
+
   async generateAndSendOtp(
-    identifier: string | number,
+    identifier: OtpIdentifier,
     channel: VerificationChannel = "EMAIL",
     context: VerificationContext = "RESUME_APPLICATION"
   ): Promise<void> {
-    const app = await this.repository.findApplication(identifier);
-    if (!app) throw new VerificationError("Postulación no encontrada.");
+    const app = await this.resolveForSend(identifier, channel);
+    // Decoy (nonexistent document/application) or no destination for the channel:
+    // never disclose the cause, never send, never create access.
+    if (!app) return;
 
-    if (!destinationChannels(app.email, app.phone).some((option) => option.channel === channel)) {
+    if (!destinationChannels(app.email, app.phone, resolveOtpChannelAvailability()).some((option) => option.channel === channel)) {
       throw new VerificationError("El canal seleccionado no está disponible.");
     }
 
     const code = randomInt(100000, 1000000).toString();
     const destination = (channel === "EMAIL" ? app.email : app.phone).trim();
-    const otp = await this.repository.reserve(app.id, channel, destination, code, context);
+
+    let otp: { id: number };
+    try {
+      otp = await this.repository.reserve(app.id, channel, destination, code, context);
+    } catch (error) {
+      if (error instanceof VerificationError) throw error;
+      logOtpFailure("OTP_RESERVATION_ERROR", channel, error);
+      throw new VerificationError("No pudimos enviar el código por este medio.");
+    }
 
     try {
       if (channel === "EMAIL") {
@@ -106,18 +157,20 @@ export class OtpRecoveryService {
       } else {
         await this.whatsappService.sendOtp({ phone: destination, code });
       }
-    } catch {
+    } catch (error) {
       await this.repository.invalidate(otp.id);
+      logOtpFailure("OTP_PROVIDER_FAILURE", channel, error);
       throw new VerificationError("No pudimos enviar el código por este medio.");
     }
   }
 
 
-  async verifyOtp(identifier: string | number, code: string, context: VerificationContext = "RESUME_APPLICATION") {
+  async verifyOtp(identifier: OtpIdentifier, code: string, context: VerificationContext = "RESUME_APPLICATION") {
     if (!/^\d{6}$/.test(code)) throw new VerificationError("El código ingresado no es correcto.");
-    const app = await this.repository.findApplication(identifier);
-    if (!app) throw new VerificationError("Postulación no encontrada.");
-    return this.repository.consume(app.id, code, context);
+    const app = await this.resolveForVerify(identifier, context);
+    if (!app) throw new VerificationError("El código ingresado no es correcto.");
+    const proof = await this.repository.consume(app.id, code, context);
+    return { applicationId: app.id, ...proof };
   }
 
 }

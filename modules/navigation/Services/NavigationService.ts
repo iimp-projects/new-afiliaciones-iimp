@@ -16,6 +16,9 @@ export class NavigationService {
         const result: NavigationNode[] = [];
 
         for (const node of nodes) {
+            const isAffiliate = await this.authProvider.isAffiliate?.() ?? false;
+            if (node.audience === "affiliate" && !isAffiliate) continue;
+            if (node.audience === "administrative" && isAffiliate) continue;
             // 1. Evaluar Permiso si el nodo lo requiere
             if (node.permission) {
                 const hasAccess = await this.authProvider.hasPermission(

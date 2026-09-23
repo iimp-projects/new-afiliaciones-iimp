@@ -1,8 +1,10 @@
-import jwt from "jsonwebtoken";
 import { MailService } from "@/modules/shared/Services/MailService";
+import { getAppBaseUrl } from "@/lib/config/env";
 import { ApplicationDraft } from "../Models/ApplicationDraft";
 import { Application } from "../Entities/Application";
 import { DeclarationPdfService } from "../Services/DeclarationPdfService"; 
+import { signEndorsementToken } from "./EndorsementToken";
+import { prisma } from "@/lib/prisma";
 
 export class NotifySponsorsService {
   private readonly mailService = new MailService();
@@ -14,15 +16,16 @@ export class NotifySponsorsService {
     draft: ApplicationDraft,
     pdfBuffer?: Buffer
   ): Promise<void> {
-    const endorsements = draft.endorsements;
-    if (!endorsements) return;
+    const sponsors = await prisma.membershipApproval.findMany({
+      where: { applicationId: Number(application.id), status: { not: "INACTIVE" } },
+      include: {
+        sponsorPerson: {
+          include: { user: true, contacts: { where: { isPrimary: true }, take: 1 } },
+        },
+      },
+    });
 
-    const sponsors = [
-      endorsements.firstEndorsement,
-      endorsements.secondEndorsement,
-    ].filter((e) => e && e.sponsorPersonId && e.sponsorEmail);
-
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const baseUrl = getAppBaseUrl();
 
     const personal = draft.personalInformation;
     const applicantName = personal
@@ -32,7 +35,7 @@ export class NotifySponsorsService {
     // Garantizar que siempre haya un buffer de PDF
     let finalPdfBuffer = pdfBuffer;
     if (!finalPdfBuffer) {
-      const generatedUint8Array = await this.declarationPdfService.generate(draft);
+      const generatedUint8Array = await this.declarationPdfService.generate(draft, { allowedApplicationIds: [Number(application.id)] });
       finalPdfBuffer = Buffer.from(generatedUint8Array);
     }
 
@@ -48,26 +51,27 @@ export class NotifySponsorsService {
       "https://s3-iimp-gestor-de-archivos-v3.s3.sa-east-1.amazonaws.com/boletines/images/IMG20260817_120138.png";
 
     for (const sponsor of sponsors) {
+      const sponsorEmail = sponsor.sponsorPerson.user?.email || sponsor.sponsorPerson.contacts[0]?.email;
+      if (!sponsorEmail) continue;
+      const sponsorFullName = [sponsor.sponsorPerson.firstName, sponsor.sponsorPerson.paternalLastName, sponsor.sponsorPerson.maternalLastName].filter(Boolean).join(" ");
       const payload = {
         applicationId: application.id,
-        sponsorPersonId: sponsor!.sponsorPersonId,
+        sponsorPersonId: sponsor.sponsorPersonId,
       };
 
-      const token = jwt.sign(payload, process.env.JWT_SECRET!, {
-        expiresIn: "7d",
-      });
+      const token = signEndorsementToken(payload);
 
       const approvalUrl = `${baseUrl}/postulacion/avales/revisar?token=${token}`;
 
       const htmlTemplate = this.buildHtmlTemplate(
-        sponsor!.sponsorFullName || "Aval",
+        sponsorFullName || "Aval",
         applicantName,
         approvalUrl,
         logoUrl
       );
 
       await this.mailService.sendMail({
-        to: sponsor!.sponsorEmail!,
+        to: sponsorEmail,
         subject: `IIMP | Solicitud de respaldo institucional – Postulación de ${applicantName}`,
         html: htmlTemplate,
         attachments,
@@ -84,7 +88,7 @@ export class NotifySponsorsService {
     applicantName: string;
     draft: ApplicationDraft;
   }): Promise<void> {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const baseUrl = getAppBaseUrl();
     const logoUrl =
       "https://s3-iimp-gestor-de-archivos-v3.s3.sa-east-1.amazonaws.com/boletines/images/IMG20260817_120138.png";
 
@@ -93,9 +97,7 @@ export class NotifySponsorsService {
       sponsorPersonId: params.sponsorPersonId,
     };
 
-    const token = jwt.sign(payload, process.env.JWT_SECRET!, {
-      expiresIn: "7d",
-    });
+    const token = signEndorsementToken(payload);
 
     const approvalUrl = `${baseUrl}/postulacion/avales/revisar?token=${token}`;
 
@@ -110,7 +112,7 @@ export class NotifySponsorsService {
     let attachments: Array<{ filename: string; content: Buffer; contentType: string }> = [];
 
     if (params.draft) {
-      const pdfUint8Array = await this.declarationPdfService.generate(params.draft);
+      const pdfUint8Array = await this.declarationPdfService.generate(params.draft, { allowedApplicationIds: [params.applicationId] });
       attachments = [
         {
           filename: "Declaracion_Jurada_Postulante.pdf",
@@ -174,15 +176,23 @@ export class NotifySponsorsService {
           .info-value { font-size: 15px; font-weight: 700; color: #C39254; margin-top: 3px; }
           .btn-container { text-align: center; margin: 28px 0 18px 0; }
           .btn { display: inline-block; background-color: #C39254; color: #ffffff !important; text-decoration: none; padding: 13px 30px; border-radius: 6px; font-weight: 700; font-size: 14px; }
+          .banner-header { background-color: #C39254; padding: 25px 20px; text-align: center; }
+          .logo { max-width: 170px; height: auto; filter: brightness(0) invert(1); }
+          .header-title { color: #ffffff; font-size: 16px; font-weight: 700; margin-top: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+          .footer-banner { background-color: #C39254; color: #ffffff; padding: 25px 20px; font-size: 11px; line-height: 1.5; }
+          .footer-grid { display: table; width: 100%; }
+          .footer-col-left { display: table-cell; width: 50%; vertical-align: top; padding-right: 10px; }
+          .footer-col-right { display: table-cell; width: 50%; vertical-align: top; padding-left: 10px; }
+          .footer-heading { font-weight: 700; text-transform: uppercase; margin-bottom: 4px; font-size: 11px; letter-spacing: 0.5px; }
+          .footer-link { color: #ffffff !important; text-decoration: underline; }
         </style>
       </head>
       <body>
         <div class="card">
           <!-- CABECERA -->
-          <div style="text-align: center; padding: 35px 30px 25px; border-bottom: 1px solid #EDF2F7;">
-            <img src="${logoUrl}" alt="IIMP Logo" style="max-width: 160px; height: auto; display: block; margin: 0 auto 14px;" />
-            <p style="margin: 0 0 6px; font-size: 11px; font-weight: 700; color: #C39254; letter-spacing: 1.5px; text-transform: uppercase;">Ecosistema Digital de Afiliaciones</p>
-            <h1 style="margin: 0; font-size: 22px; font-weight: 700; color: #C39254;">Solicitud de Respaldo Institucional</h1>
+          <div class="banner-header">
+            <img src="${logoUrl}" alt="IIMP Logo" class="logo" />
+            <div class="header-title">Solicitud de Respaldo Institucional</div>
           </div>
 
           <div class="content">
@@ -207,13 +217,21 @@ export class NotifySponsorsService {
           </div>
 
           <!-- PIE DE PÁGINA -->
-          <div style="border-top: 1px solid #EDF2F7; padding: 20px 30px; text-align: center; font-size: 11px; color: #94A3B8; line-height: 1.8;">
-            © ${new Date().getFullYear()} Instituto de Ingenieros de Minas del Perú<br>
-            Calle Los Canarios 155-157, Urb. San César II Etapa, La Molina, Lima 12, Perú<br>
-            <a href="mailto:asociados@iimp.org.pe" style="color: #C39254; text-decoration: none;">asociados@iimp.org.pe</a>
-            &nbsp;|&nbsp;
-            <a href="mailto:liset.otoya@iimp.org.pe" style="color: #C39254; text-decoration: none;">liset.otoya@iimp.org.pe</a><br>
-            Lunes a viernes de 09:00 a 18:00 hrs.
+          <div class="footer-banner">
+            <div class="footer-grid">
+              <div class="footer-col-left">
+                <strong>INSTITUTO DE INGENIEROS DE MINAS DEL PERÚ</strong><br><br>
+                © Copyright ${new Date().getFullYear()} - Instituto de Ingenieros de Minas del Perú, todos los derechos reservados.
+              </div>
+              <div class="footer-col-right">
+                <div class="footer-heading">Dirección</div>
+                Calle Los Canarios 155-157, Urb. San César II Etapa, La Molina, Lima 12, Perú<br><br>
+                <div class="footer-heading">Horario de Atención</div>
+                Lunes a viernes de 09:00 a 18:00 hrs.<br><br>
+                <a href="mailto:asociados@iimp.org.pe" class="footer-link">asociados@iimp.org.pe</a> |
+                <a href="mailto:liset.otoya@iimp.org.pe" class="footer-link">liset.otoya@iimp.org.pe</a>
+              </div>
+            </div>
           </div>
         </div>
       </body>
@@ -244,15 +262,23 @@ export class NotifySponsorsService {
           .code-box { background-color: #F4F5F7; border: 1px solid rgba(195, 146, 84, 0.3); padding: 14px; border-radius: 8px; text-align: center; margin: 18px 0; }
           .code-title { font-size: 11px; color: #718096; text-transform: uppercase; font-weight: 700; }
           .code-value { font-family: monospace; font-size: 16px; font-weight: 700; color: #C39254; margin-top: 4px; }
+          .banner-header { background-color: #C39254; padding: 25px 20px; text-align: center; }
+          .logo { max-width: 170px; height: auto; filter: brightness(0) invert(1); }
+          .header-title { color: #ffffff; font-size: 16px; font-weight: 700; margin-top: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+          .footer-banner { background-color: #C39254; color: #ffffff; padding: 25px 20px; font-size: 11px; line-height: 1.5; }
+          .footer-grid { display: table; width: 100%; }
+          .footer-col-left { display: table-cell; width: 50%; vertical-align: top; padding-right: 10px; }
+          .footer-col-right { display: table-cell; width: 50%; vertical-align: top; padding-left: 10px; }
+          .footer-heading { font-weight: 700; text-transform: uppercase; margin-bottom: 4px; font-size: 11px; letter-spacing: 0.5px; }
+          .footer-link { color: #ffffff !important; text-decoration: underline; }
         </style>
       </head>
       <body>
         <div class="card">
           <!-- CABECERA -->
-          <div style="text-align: center; padding: 35px 30px 25px; border-bottom: 1px solid #EDF2F7;">
-            <img src="${logoUrl}" alt="IIMP Logo" style="max-width: 160px; height: auto; display: block; margin: 0 auto 14px;" />
-            <p style="margin: 0 0 6px; font-size: 11px; font-weight: 700; color: #C39254; letter-spacing: 1.5px; text-transform: uppercase;">Ecosistema Digital de Afiliaciones</p>
-            <h1 style="margin: 0; font-size: 22px; font-weight: 700; color: #C39254;">Actualización de Aval Registrada</h1>
+          <div class="banner-header">
+            <img src="${logoUrl}" alt="IIMP Logo" class="logo" />
+            <div class="header-title">Actualización de Aval Registrada</div>
           </div>
 
           <div class="content">
@@ -273,13 +299,21 @@ export class NotifySponsorsService {
           </div>
 
           <!-- PIE DE PÁGINA -->
-          <div style="border-top: 1px solid #EDF2F7; padding: 20px 30px; text-align: center; font-size: 11px; color: #94A3B8; line-height: 1.8;">
-            © ${new Date().getFullYear()} Instituto de Ingenieros de Minas del Perú<br>
-            Calle Los Canarios 155-157, Urb. San César II Etapa, La Molina, Lima 12, Perú<br>
-            <a href="mailto:asociados@iimp.org.pe" style="color: #C39254; text-decoration: none;">asociados@iimp.org.pe</a>
-            &nbsp;|&nbsp;
-            <a href="mailto:liset.otoya@iimp.org.pe" style="color: #C39254; text-decoration: none;">liset.otoya@iimp.org.pe</a><br>
-            Lunes a viernes de 09:00 a 18:00 hrs.
+          <div class="footer-banner">
+            <div class="footer-grid">
+              <div class="footer-col-left">
+                <strong>INSTITUTO DE INGENIEROS DE MINAS DEL PERÚ</strong><br><br>
+                © Copyright ${new Date().getFullYear()} - Instituto de Ingenieros de Minas del Perú, todos los derechos reservados.
+              </div>
+              <div class="footer-col-right">
+                <div class="footer-heading">Dirección</div>
+                Calle Los Canarios 155-157, Urb. San César II Etapa, La Molina, Lima 12, Perú<br><br>
+                <div class="footer-heading">Horario de Atención</div>
+                Lunes a viernes de 09:00 a 18:00 hrs.<br><br>
+                <a href="mailto:asociados@iimp.org.pe" class="footer-link">asociados@iimp.org.pe</a> |
+                <a href="mailto:liset.otoya@iimp.org.pe" class="footer-link">liset.otoya@iimp.org.pe</a>
+              </div>
+            </div>
           </div>
         </div>
       </body>

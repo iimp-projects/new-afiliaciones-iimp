@@ -25,8 +25,8 @@ La creación filtra documento, tipo de documento, tipo de afiliación y `deleted
 
 ## Autorización y privacidad
 
-1. ValidateDocumentService y QueryVerificationService delegan en ApplicationLookupService y ApplicationLookupRepository. Se analizan todas las solicitudes no eliminadas, incluyendo affiliateType en Postulación.
-2. Antes del OTP solo salen existencia, necesidad de verificación, destinos enmascarados y contextos opacos AES-256-GCM de 15 minutos. No salen nombres, contactos completos, trackingCode ni estados.
+1. ValidateDocumentService delega en ApplicationLookupService para Postulación. En Consulta, el primer paso de tipo y documento es local y no llama al servidor; QueryVerificationService consulta ApplicationLookupRepository únicamente después de recibir tipo, documento y correo válidos.
+2. Consulta exige la coincidencia de tipo, documento y correo, además de rate limiting por IP e identidad. Solo después de esa coincidencia salen destinos enmascarados y un contexto opaco AES-256-GCM de 15 minutos. No salen nombres, contactos completos, trackingCode ni estados.
 3. Los contactos distintos se muestran como opciones enmascaradas. Ambos flujos usan los mismos canales, modales, endpoints y OtpRecoveryService.
 4. El consumo del OTP devuelve el canal y destino realmente verificados. Solo se autorizan solicitudes del mismo documento que comparten ese destino. Un contacto distinto o cambiado después del envío no recibe autorización.
 5. La cookie `iimp_application_access` es HttpOnly, SameSite Strict, Secure en producción, con duración de 15 minutos y path `/api`. Contiene los IDs autorizados. TrackingCode identifica, pero no autoriza.
@@ -58,7 +58,7 @@ Las pruebas de servicios y rutas usan dobles de persistencia y proveedores. Las 
 
 La prueba de layering usa Tailwind y los componentes reales, escritorio/móvil y scroll 0/350: verifica portal, footer cubierto, clic y foco bloqueados, scroll bloqueado y restauración.
 
-Resultado de la ejecución final: 80 pruebas automatizadas aprobadas; 22 escenarios de matriz en navegador y 4 de layering aprobados; 0 fallidos. ESLint en los archivos nuevos revisados y `git diff --check` sin errores. TypeScript global conserva 49 diagnósticos fuera de los archivos de esta implementación; no se declara compilación global satisfactoria.
+Los conteos anteriores pertenecían al cierre histórico de esta implementación. La compuerta global vigente está en [QUALITY_GATES.md](QUALITY_GATES.md): TypeScript estricto, ESLint bloqueante, Vitest y build se verifican sobre el repositorio completo.
 
 ## Archivos de la implementación
 

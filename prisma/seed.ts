@@ -11,8 +11,10 @@ import {
   seedDistricts,
   seedUniversities,
   seedSpecialties,
+  seedAcademicDegrees,
   seedBenefits, 
   seedMembershipDepartments,
+  seedAddressTypes,
   seedSystemSettings,
   // seedCompanies,
   // seedConfiguration,
@@ -32,7 +34,6 @@ const main = async (): Promise<void> => {
      await runSeed('Auth: Permissions', seedPermissions);
      await runSeed('Auth: Roles', seedRoles);
      await runSeed('Auth: Role-Permissions', seedRolePermissions);
-     await runSeed('Auth: Users', seedUsers);
     
      await runSeed('Catalogs: Countries', seedCountries);
      await runSeed('Catalogs: Departments', seedDepartments);
@@ -40,19 +41,22 @@ const main = async (): Promise<void> => {
      await runSeed('Catalogs: Districts', seedDistricts);
      await runSeed('Catalogs: Universities', seedUniversities);    
      await runSeed('Catalogs: Specialties', seedSpecialties);
+     await runSeed('Catalogs: Academic Degrees', seedAcademicDegrees);
     // await runSeed('Catalogs: Companies', seedCompanies);
     
     await runSeed('Catalogs: Benefits', seedBenefits);
     await runSeed('Catalogs: Membership Departments', seedMembershipDepartments);
+    await runSeed('Catalogs: Address Types', seedAddressTypes);
     await runSeed('System: System Settings', seedSystemSettings);
     // await runSeed('System: Configuration', seedConfiguration);
     
 
     // 2. MÓDULOS DEVELOPMENT
     if (IS_PRODUCTION) {
-      seedLogger.warn('Entorno de Producción detectado. Omitiendo inyección de datos de prueba.');
+      seedLogger.warn('Entorno de Producción detectado. Omitiendo usuarios y datos de prueba.');
     } else {
       seedLogger.info('Inyectando datos de demostración...')
+      await runSeed('Auth: Users', seedUsers);
       // seedLogger.divider();
       // seedLogger.info('Inyectando datos de demostración para desarrollo local/staging...');
       // seedLogger.divider();

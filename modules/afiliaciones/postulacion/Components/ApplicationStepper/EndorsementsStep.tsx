@@ -11,6 +11,7 @@ export interface StepRef {
 }
 
 interface EndorsementsStepProps {
+  applicationId: number;
   value?: ApplicationDraft["endorsements"];
   saving?: boolean;
   onSave(endorsements: ApplicationDraft["endorsements"]): Promise<void>;
@@ -27,7 +28,7 @@ const emptyEndorsements: Endorsements = {
 };
 
 const EndorsementsStep = forwardRef<StepRef, EndorsementsStepProps>(
-  ({ value, saving = false, onSave, onNext, onBack, onValidityChange }, ref) => {
+  ({ applicationId, value, saving = false, onSave, onNext, onBack, onValidityChange }, ref) => {
     
     const [form, setForm] = useState<Endorsements>(value ?? emptyEndorsements);
     const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -92,25 +93,21 @@ const EndorsementsStep = forwardRef<StepRef, EndorsementsStepProps>(
       else setIsSearching2(true);
 
       try {
-        const data = await applicationApi.validateSponsor(documentNumber);
-        
+        const sponsor = await applicationApi.validateSponsor(documentNumber, applicationId);
+
+        const endorsement = {
+          sponsorDocumentNumber: documentNumber,
+          sponsorFullName: sponsor.sponsorFullName,
+          sponsorEmail: sponsor.sponsorEmail,
+          sponsorCode: sponsor.sponsorCode,
+          sponsorPersonId: sponsor.sponsorPersonId,
+        };
+
         const newForm = { ...form };
         if (avalNum === 1) {
-          newForm.firstEndorsement = { 
-            sponsorPersonId: data.id,
-            sponsorDocumentNumber: documentNumber,
-            sponsorFullName: data.fullName, 
-            sponsorEmail: data.email, 
-            sponsorCode: data.sponsorCode 
-          };
+          newForm.firstEndorsement = endorsement;
         } else {
-          newForm.secondEndorsement = { 
-            sponsorPersonId: data.id,
-            sponsorDocumentNumber: documentNumber,
-            sponsorFullName: data.fullName, 
-            sponsorEmail: data.email, 
-            sponsorCode: data.sponsorCode 
-          };
+          newForm.secondEndorsement = endorsement;
         }
         setForm(newForm);
       } catch (error: any) {

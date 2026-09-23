@@ -87,9 +87,9 @@ export async function fetchAsociadosAction(params: FetchAsociadosParams) {
       const safeApplicationData = {
         ...applicationData,
         payments: applicationData.payments.map((payment) => {
-          const sanitized = { ...payment, totalAmount: Number(payment.totalAmount) };
-          delete sanitized.gatewayPayload;
-          return sanitized;
+          const { gatewayPayload, ...safePayment } = payment;
+          void gatewayPayload;
+          return { ...safePayment, totalAmount: Number(payment.totalAmount) };
         }),
       };
       return ({
@@ -108,11 +108,12 @@ export async function fetchAsociadosAction(params: FetchAsociadosParams) {
   }
 }
 
-async function resolveAffiliatePhoto(user: { image: string | null; person: { applications: Array<{ documents: Array<{ mimeType: string; category: string; fileName: string; fileUrl: string }> }> } | null }) {
-  const photo = user.person?.applications.flatMap((application) => application.documents).find((document) => document.mimeType.startsWith("image/") && (document.category === "OTHER" || document.fileName.toLowerCase().includes("foto")));
-  if (!photo?.fileUrl) return user.image;
+async function resolveAffiliatePhoto(user: { image: string | null; person: { applications: Array<{ id: number; documents: Array<{ mimeType: string; category: string; fileName: string; fileUrl: string }> }> } | null }) {
+  const application = user.person?.applications.find((candidate) => candidate.documents.some((document) => document.mimeType.startsWith("image/") && (document.category === "OTHER" || document.fileName.toLowerCase().includes("foto"))));
+  const photo = application?.documents.find((document) => document.mimeType.startsWith("image/") && (document.category === "OTHER" || document.fileName.toLowerCase().includes("foto")));
+  if (!application || !photo?.fileUrl) return user.image;
   try {
-    return await new S3StorageService().getPresignedUrl(photo.fileUrl);
+    return await new S3StorageService().getPresignedApplicationDocumentUrl(photo.fileUrl, [`afiliaciones/applications/${application.id}`]);
   } catch {
     return user.image;
   }

@@ -48,9 +48,13 @@ describe("global verification loading overlay", () => {
   });
 });
 
-it("ConsultationForm only requests document identity, without a tracking code", () => {
+it("ConsultationForm initially shows only document identity", () => {
   const markup = renderToStaticMarkup(<ConsultationForm onSubmit={vi.fn()} />);
+  expect(markup).toContain("Tipo de Documento");
   expect(markup).toContain("Número de Documento");
+  expect(markup).toContain("Consultar Estado");
+  expect(markup).not.toContain("Correo registrado");
+  expect(markup).not.toContain("Verifica tu identidad");
   expect(markup).not.toContain("seguimiento");
   expect(markup).not.toContain("query-tracking-code");
 });

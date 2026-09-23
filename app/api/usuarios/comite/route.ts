@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { apiAuthorizationStatus, requireApiPermission } from "@/modules/auth/context/api-authorization";
 
 export async function GET() {
   try {
+    await requireApiPermission("read", "memberships");
     const comiteUsers = await prisma.user.findMany({
       where: { 
         role: { slug: "COMITE_EVALUADOR" }, 
@@ -22,7 +24,8 @@ export async function GET() {
     }));
 
     return NextResponse.json({ success: true, data: formattedData });
-  } catch (error) {
-    return NextResponse.json({ success: false, error: "Error al obtener miembros del comité." }, { status: 500 });
+  } catch (error: unknown) {
+    const status = apiAuthorizationStatus(error, 500);
+    return NextResponse.json({ success: false, error: status < 500 ? "No autorizado." : "Error al obtener miembros del comité." }, { status });
   }
 }

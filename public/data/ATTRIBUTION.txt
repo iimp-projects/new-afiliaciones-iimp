@@ -1,0 +1,9 @@
+Datasets estáticos usados por el dashboard (servidos localmente).
+
+peru-departamental-simple.geojson
+  Origen: https://github.com/juaneladio/peru-geojson
+  Licencia: MPL-2.0 (ver LICENSE-peru-geojson.txt)
+
+countries-50m.json
+  Origen: https://github.com/topojson/world-atlas (Natural Earth)
+  Licencia: ISC (ver LICENSE-world-atlas.txt)

@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ExpedienteRepository } from "@/modules/afiliaciones/expedientes/Repositories/ExpedienteRepository";
+import { apiAuthorizationStatus, requireApiPermission } from "@/modules/auth/context/api-authorization";
 
 export async function GET(
     request: NextRequest, 
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        await requireApiPermission("read", "memberships");
         const { id } = await params;
         const repository = new ExpedienteRepository();
         
@@ -28,11 +30,11 @@ export async function GET(
             headers: { "Content-Type": "application/json" }
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("[Expediente Detalle API Error]:", error);
         return NextResponse.json(
-            { success: false, message: "Error al obtener el detalle del expediente." },
-            { status: 500 }
+            { success: false, message: apiAuthorizationStatus(error) < 500 ? "No autorizado." : "Error al obtener el detalle del expediente." },
+            { status: apiAuthorizationStatus(error) }
         );
     }
 }

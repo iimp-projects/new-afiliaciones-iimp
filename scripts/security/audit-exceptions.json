@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "description": "Excepciones explícitas para el SECURITY_RUNTIME_GATE. Cada entrada está ligada a un advisory (GHSA) y a un paquete exactos. Cualquier CRITICAL/HIGH runtime no listado aquí hace fallar el gate. Las excepciones expiradas también hacen fallar el gate.",
+  "exceptions": [
+    {
+      "advisory": "GHSA-p6gq-j5cr-w38f",
+      "package": "nodemailer",
+      "affectedVersion": "7.0.13",
+      "reason": "HIGH sin fix compatible: el parche (nodemailer >= 9.0.1) choca con el peer 'nodemailer: ^7.0.7 || ^8.0.5' de @auth/core y next-auth. La precondición de explotación (opción 'raw' + disableFileAccess/disableUrlAccess) no existe en MailService.",
+      "classification": "NOT_REACHABLE",
+      "owner": "backend/security",
+      "createdAt": "2026-09-20",
+      "expiresAt": "2026-12-19",
+      "invalidatedBy": [
+        "Uso de la opción 'raw' en MailService o cualquier sendMail.",
+        "Configuración de disableFileAccess o disableUrlAccess con input no confiable.",
+        "Nuevos callers de MailService que pasen raw/headers controlables por el usuario."
+      ]
+    },
+    {
+      "advisory": "GHSA-2x7j-588g-ccc2",
+      "package": "nodemailer",
+      "affectedVersion": "7.0.13",
+      "reason": "HIGH sin fix compatible: el parche (nodemailer >= 9.1.0) choca con el peer 'nodemailer: ^7.0.7 || ^8.0.5' de @auth/core y next-auth. Los valores de dirección están acotados (<=254 chars) o validados con Zod, y no se construyen listas de destinatarios desde input público.",
+      "classification": "NOT_REACHABLE",
+      "owner": "backend/security",
+      "createdAt": "2026-09-20",
+      "expiresAt": "2026-12-19",
+      "invalidatedBy": [
+        "Listas de destinatarios construidas desde input público sin límite de longitud.",
+        "Nuevos callers de MailService que reciban 'to'/'cc'/'bcc'/'from'/'replyTo' sin validación.",
+        "Eliminación del límite de longitud en la validación de correos."
+      ]
+    }
+  ]
+}

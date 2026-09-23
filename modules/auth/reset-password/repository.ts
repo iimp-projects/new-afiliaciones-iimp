@@ -1,85 +1,34 @@
-// import { prisma } from "@/modules/shared/database/prisma.client";
-// import bcrypt from "bcryptjs";
-
-// export const ResetPasswordRepository = {
-//   async findValidToken(email: string, tokenHash: string) {
-//     return await prisma.passwordResetToken.findFirst({
-//       where: {
-//         email,
-//         tokenHash,
-//         expiresAt: { gt: new Date() },
-//       },
-//     });
-//   },
-
-//   async updatePassword(email: string, passwordPlain: string) {
-//     const hashedPassword = await bcrypt.hash(passwordPlain, 12);
-//     await prisma.user.update({
-//       where: { email },
-//       data: { password: hashedPassword },
-//     });
-//   },
-
-//   async deleteTokenById(tokenId: string) {
-//     await prisma.passwordResetToken.delete({
-//       where: { id: tokenId },
-//     });
-//   },
-  
-//   async checkRateLimit(key: string, limit: number, windowMinutes: number): Promise<boolean> {
-//     const now = new Date();
-//     await prisma.authRateLimit.deleteMany({ where: { expiresAt: { lt: now } } });
-//     const record = await prisma.authRateLimit.findUnique({ where: { key } });
-//     if (!record) {
-//       await prisma.authRateLimit.create({
-//         data: { key, points: 1, expiresAt: new Date(now.getTime() + windowMinutes * 60 * 1000) },
-//       });
-//       return true;
-//     }
-//     if (record.points >= limit) return false;
-//     await prisma.authRateLimit.update({ where: { key }, data: { points: record.points + 1 } });
-//     return true;
-//   },
-// };
-
-
-import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { prisma } from "@/lib/prisma";
 
 export const ResetPasswordRepository = {
-  async findValidToken(email: string, tokenHash: string) {
-    return await prisma.verificationToken.findFirst({
-      where: {
-        identifier: email,
-        token: tokenHash,
-        expires: { gt: new Date() },
-      },
-    });
-  },
-
-  async updatePassword(email: string, passwordPlain: string) {
+  async consumeAndResetPassword(email: string, tokenHashes: readonly string[], passwordPlain: string) {
     const hashedPassword = await bcrypt.hash(passwordPlain, 12);
-    
-    // 1. Buscamos el ID del usuario por su email
-    const user = await prisma.user.findUnique({ where: { email } });
-    
-    if (user) {
-        // 2. Actualizamos su contraseña en la tabla Credential correcta
-        await prisma.credential.updateMany({
-            where: { 
-                userId: user.id, 
-                type: 'PASSWORD' 
-            },
-            data: { secret: hashedPassword }
-        });
-    }
-  },
+    await prisma.$transaction(async (tx) => {
+      const consumed = await tx.verificationToken.deleteMany({
+        where: { identifier: email, token: { in: [...tokenHashes] }, expires: { gt: new Date() } },
+      });
+      if (consumed.count !== 1) throw new Error("INVALID_TOKEN");
 
-  async deleteToken(identifier: string, token: string) {
-    await prisma.verificationToken.delete({
-      where: { 
-        identifier_token: { identifier, token } 
-      },
+      const user = await tx.user.findUnique({
+        where: { email },
+        select: { id: true, status: true, deletedAt: true },
+      });
+      if (!user || user.status !== "ACTIVE" || user.deletedAt) throw new Error("INVALID_TOKEN");
+
+      const credentials = await tx.credential.updateMany({
+        where: { userId: user.id, type: "PASSWORD", isActive: true },
+        data: { secret: hashedPassword },
+      });
+      if (credentials.count < 1) throw new Error("INVALID_TOKEN");
+
+      await tx.verificationToken.deleteMany({ where: { identifier: email } });
+
+      const revokedAt = new Date();
+      await tx.userSession.updateMany({
+        where: { userId: user.id, isRevoked: false },
+        data: { isRevoked: true, revokedAt, revokeReason: "Contraseña restablecida." },
+      });
     });
-  }
+  },
 };

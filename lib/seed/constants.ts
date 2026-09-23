@@ -8,7 +8,6 @@ export const IS_PRODUCTION = SEED_ENV === 'production';
 export const SEED_CONSTANTS = {
   SYSTEM: {
     ADMIN_EMAIL: 'admin@iimp.org.pe',
-    DEFAULT_PASSWORD: 'ChangeThisPassword123!',
   },
   
   // Catálogo estático de Roles inmutables de negocio

@@ -86,6 +86,7 @@ export function UpdateStatusModal({ isOpen, onClose, onSuccess, onError, targetS
         const formData = new FormData();
         formData.append("file", attachments[0]);
         formData.append("folder", "afiliaciones/observaciones");
+        formData.append("applicationId", String(drawerData.caseId));
         const uploadRes = await fetch("/api/afiliaciones/postulacion/upload", { method: "POST", body: formData });
         const uploadData = await uploadRes.json();
         if (uploadData.success) uploadedUrl = uploadData.data.url;

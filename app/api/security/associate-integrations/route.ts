@@ -1,4 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { contextService } from "@/modules/auth/context/service";
 import { AssociatesIntegrationService } from "@/modules/afiliaciones/associates-integration/Services/AssociatesIntegrationService";
-export async function GET(request:NextRequest){try{const user=await contextService.getCurrentUser();if(!user)return NextResponse.json({success:false,message:"No autenticado."},{status:401});await contextService.requireRole(["SUPER_ADMIN"]);const q=request.nextUrl.searchParams,page=Math.max(1,Number(q.get("page")||1)),pageSize=Math.min(100,Math.max(1,Number(q.get("pageSize")||20)));const result=await new AssociatesIntegrationService().listAdmin({page,pageSize,status:q.get("status") as never||undefined,trigger:q.get("trigger") as never||undefined,affiliateType:q.get("affiliateType") as never||undefined,search:q.get("search")||undefined,from:q.get("dateFrom")?new Date(q.get("dateFrom")!):undefined,to:q.get("dateTo")?new Date(q.get("dateTo")!):undefined});return NextResponse.json({success:true,data:result.data.map((x:any)=>({integrationId:x.id,applicationId:x.applicationId,applicationCode:x.application.applicationCode,trackingCode:x.application.trackingCode,affiliateType:x.application.affiliateType,trigger:x.trigger,status:x.status,attempts:x.attempts,externalAssociateCode:x.externalAssociateCode,lastAttemptAt:x.lastAttemptAt,syncedAt:x.syncedAt,createdAt:x.createdAt,updatedAt:x.updatedAt,lastErrorCode:x.lastErrorCode})),pagination:{page,pageSize,total:result.total}})}catch(error){return NextResponse.json({success:false,message:error instanceof Error?error.message:"Error administrativo."},{status:403})}}
+
+export async function GET(request: NextRequest) {
+  try {
+    const user = await contextService.getCurrentUser();
+    if (!user) return NextResponse.json({ success: false, message: "No autenticado." }, { status: 401 });
+    await contextService.requireRole(["SUPER_ADMIN"]);
+    const query = request.nextUrl.searchParams;
+    const page = Math.max(1, Number(query.get("page") || 1));
+    const pageSize = Math.min(100, Math.max(1, Number(query.get("pageSize") || 20)));
+    const result = await new AssociatesIntegrationService().listAdmin({ page, pageSize, status: query.get("status") as never || undefined, trigger: query.get("trigger") as never || undefined, affiliateType: query.get("affiliateType") as never || undefined, search: query.get("search") || undefined, from: query.get("dateFrom") ? new Date(query.get("dateFrom")!) : undefined, to: query.get("dateTo") ? new Date(query.get("dateTo")!) : undefined });
+    return NextResponse.json({ success: true, data: result.data, pagination: { page, pageSize, total: result.total } });
+  } catch (error) {
+    return NextResponse.json({ success: false, message: error instanceof Error ? error.message : "Error administrativo." }, { status: 403 });
+  }
+}

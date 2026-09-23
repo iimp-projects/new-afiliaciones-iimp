@@ -1,25 +1,58 @@
 # Dominio de pagos
 
-## Contexto
+Este documento describe el código observado en `modules/afiliaciones/payments` y `app/api/payments`. No confirma habilitación contractual de Niubiz en producción.
 
-El pago se relaciona con una `MembershipApplication` y el flujo actual muestra la experiencia de pago cuando el estado normalizado es `READY_FOR_PAYMENT`. La elegibilidad y sus condiciones exactas se documentan en `BUSINESS_RULES.md`. Este documento no implementa ni confirma una integración Niubiz.
+## Estado implementado
 
-## Estado actual comprobado
+El dominio ya contiene:
 
-| Pieza | Estado actual |
-| --- | --- |
-| `StatusPaymentReady` y `PaymentStepper` | UI de tres pasos existente. |
-| `PaymentProcessStep` y `PaymentFooter` | Muestran UI y alertas; no inician un pago real. |
-| `PaymentApi` | Cliente HTTP para `POST /api/payments`, no consumido por la UI actual. |
-| `PaymentService` | Selecciona mock o stub Niubiz. |
-| Mock | Devuelve escenarios en memoria `PAID`, `FAILED` o `PENDING`; no persiste. |
-| Stub Niubiz | Lanza un error intencional; no hay integración. |
-| `/api/payments` | Valida parcialmente el request y delega al servicio; no persiste ni valida elegibilidad. |
-| Prisma | Define `Payment`, `Billing` e `Invoice`, sin repositorio de pagos actual. |
+- schemas Zod para creación, autorización y facturación;
+- `PaymentService` como orquestador;
+- `PaymentRepository` con persistencia y transacciones;
+- proveedores `MockPaymentProvider` y `NiubizPaymentProvider`;
+- creación de sesión Checkout y autorización Niubiz;
+- callback, restauración de estado y reset de sandbox;
+- resolución de monto en servidor;
+- facturación y verificación RUC;
+- email de confirmación;
+- recálculo de solicitud e integración/provisión de asociado después de pago.
 
-Por tanto, el dominio existe como base parcial, pero no está conectado de punta a punta ni registra pagos/facturación.
+El proveedor Niubiz aplica actualmente guards que exigen ambiente `TEST`. No declares producción lista sin validar contrato oficial, credenciales, callbacks, conciliación y seguridad.
 
-## Modelo de datos actual
+## Flujo
+
+```text
+Consulta/UI
+  → autorización temporal de aplicación
+  → POST /api/payments
+  → PaymentService.initiate
+  → elegibilidad + monto + billing
+  → PaymentRepository crea PENDING
+  → PaymentProvider
+      ├─ MOCK: resultado simulado persistido
+      └─ NIUBIZ TEST: security → session → checkout
+
+Callback/authorize
+  → referencia temporal + transactionToken
+  → claim PENDING → PROCESSING
+  → autorización Niubiz
+  → persistencia PAID/FAILED/PENDING
+  → recálculo de aplicación
+  → email e integración post-commit
+```
+
+## Invariantes
+
+- Solo una aplicación `READY_FOR_PAYMENT`, no eliminada, puede iniciar pago.
+- La cookie/autorización temporal debe corresponder al `applicationId`.
+- El monto y moneda se resuelven en servidor.
+- No puede existir otro pago activo salvo la reanudación explícita de Niubiz TEST.
+- Un pago Niubiz solo se autoriza desde `PENDING` y se reclama antes de llamar al proveedor.
+- La transición a `PAID` y el recálculo asociado se persisten transaccionalmente.
+- Fallos de red/autorización incierta devuelven el pago a `PENDING` para no marcar un rechazo falso.
+- No se almacenan PAN ni CVV; solo datos de respuesta permitidos y tarjeta enmascarada.
+
+## Modelo persistido
 
 ```text
 MembershipApplication 1 ──< N Payment
@@ -27,45 +60,47 @@ Payment 1 ── 0..1 Billing
 Billing 1 ── 0..1 Invoice
 ```
 
-`Payment` registra aplicación, gateway, identificadores/respuestas del proveedor, monto decimal, moneda, estado, fecha y payload JSON opcional. `Billing` pertenece de forma única a un pago y contiene identificador fiscal, razón social, dirección, país y correo. `Invoice` pertenece de forma única a la facturación y contiene tipo, serie, número, fecha y referencias SUNAT. Ver `DATABASE.md` para las restricciones exactas.
+Estados Prisma: `PENDING`, `PROCESSING`, `PAID`, `FAILED`, `REFUNDED`.
 
-Estados Prisma reales: `PENDING`, `PROCESSING`, `PAID`, `FAILED`, `REFUNDED`. Gateways reales: `NIUBIZ`, `IZIPAY`, `STRIPE`, `PAYPAL`, `BANK_TRANSFER`.
+Gateways del schema: `NIUBIZ`, `IZIPAY`, `STRIPE`, `PAYPAL`, `BANK_TRANSFER`. Que un enum exista no significa que el proveedor esté implementado.
 
-## Arquitectura futura propuesta
+## Endpoints observados
 
-```text
-UI → PaymentApi → API Route / Server Action → PaymentService
-  → PaymentRepository → Prisma
+| Ruta | Propósito |
+| --- | --- |
+| `POST /api/payments` | Inicia un pago autorizado. |
+| `POST /api/payments/authorize` | Autoriza un pago Niubiz desde el cliente autorizado. |
+| `POST /api/payments/niubiz/callback` | Recibe token de transacción y redirige el resultado. |
+| `GET /api/payments/restore` | Restaura contexto mediante referencia temporal. |
+| `POST /api/payments/[paymentId]/sandbox-reset` | Operación controlada para sandbox. |
 
-PaymentService → PaymentProvider
-  ├─ MockPaymentProvider
-  └─ NiubizPaymentProvider
-```
+## Configuración
 
-Es una propuesta, no implementación actual. Debe seguir la referencia de postulación: DTOs/validación de entrada, Service como caso de uso y Repository para persistencia. El proveedor debe permanecer aislado de UI y Prisma.
+- `PAYMENT_PROVIDER`: `MOCK` o `NIUBIZ`.
+- `PAYMENT_ENVIRONMENT`: `TEST` o `PRODUCTION`; el proveedor actual solo declara readiness para TEST.
+- `PAYMENT_AUTH_SECRET`: secreto exclusivo de al menos 32 caracteres para firmar autorizaciones temporales de pago; no reutilizar `AUTH_SECRET`.
+- Variables `NIUBIZ_TEST_*` y `NIUBIZ_PROD_*`: consulta [ENVIRONMENT.md](ENVIRONMENT.md) y `PaymentConfig.ts`.
 
-## Mock y ambientes
+No copies payloads ni URLs desde ejemplos no oficiales. Los contratos del proveedor deben verificarse con documentación del producto contratado.
 
-El mock actual sirve para desarrollo local y pruebas con resultados `PAID`, `FAILED` y `PENDING`. La intención es configurar TEST y luego PRODUCTION por variables de entorno. Por ahora, el alcance seguro es MOCK/TEST.
+## Controles y riesgos pendientes
 
-## Niubiz Pago Web — pendiente
+- autorización, callback y restauración usan propósitos criptográficos separados;
+- el callback tiene JTI persistente de un solo consumo;
+- restauración requiere la referencia y una cookie HttpOnly ligada a ella;
+- una aprobación se acepta solo si monto, moneda y número de orden coinciden con el pago persistido;
+- `gatewayPayload` conserva únicamente metadata allow-listed.
 
-La integración real depende del producto contratado, Merchant ID, credenciales, endpoints, payloads, headers, modalidad de checkout, callback, webhook si aplica, firmas y métodos de pago habilitados. Ninguno de esos contratos se debe inventar ni implementar hasta contar con fuentes oficiales.
+Antes de producción sigue pendiente implementar y probar la autenticidad/firma propia del callback según el contrato oficial del producto Niubiz contratado. No inventar headers o algoritmos a partir de ejemplos no oficiales. Consulta [SECURITY.md](SECURITY.md) y [auditoria_seguridad.md](../auditoria_seguridad.md).
 
-La arquitectura puede contemplar `CARD`, `YAPE` y `OTHER` como abstracciones de método, pero ello no confirma que Niubiz los habilite ni que pertenezcan al modelo actual.
+## Pruebas
 
-## Seguridad requerida para la futura implementación
+El módulo contiene pruebas de Service, Repository, settings, Niubiz, callbacks, clasificación de respuestas, billing e integración de sandbox. Toda modificación debe cubrir:
 
-- Secretos y llamadas al proveedor solo en backend; nunca `NEXT_PUBLIC_*`.
-- El servidor controla aplicación, elegibilidad, monto y moneda.
-- La confirmación de pago debe verificarse en backend, no confiar en el navegador.
-- No almacenar PAN, CVV ni datos equivalentes de tarjeta.
-- Sanitizar y minimizar `gatewayPayload`.
-- Diseñar idempotencia, callbacks/webhooks firmados, reintentos y conciliación antes de habilitar Niubiz TEST.
-
-## Monto y facturación
-
-La UI actual muestra S/ 300.00, mientras un seed demo registra S/ 150.00. No existe una regla central confirmada de monto; no decidirlo ni codificarlo aún.
-
-La emisión de comprobantes debe ocurrir después de un pago confirmado: `Payment → Billing → Invoice`. El schema soporta la relación, pero no existe servicio de emisión/facturación electrónica implementado.
-
+- autorización inválida;
+- solicitud no elegible;
+- pago duplicado/concurrente;
+- éxito, rechazo e incertidumbre del proveedor;
+- idempotencia de callback;
+- monto y moneda distintos;
+- transición y efectos post-commit.

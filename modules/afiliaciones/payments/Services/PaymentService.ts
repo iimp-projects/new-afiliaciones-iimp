@@ -18,6 +18,7 @@ import { billingDataSchema, type BillingDataInput } from "../DTOs/billing.schema
 import { isLegalEntityRuc } from "../Rules/BillingDocumentRules";
 import { ApisNetPeService, type RucLookupResult } from "../../../shared/Services/ApisNetPeService";
 import { AssociatesIntegrationService } from "../../associates-integration/Services/AssociatesIntegrationService";
+import { AssociateProvisioningService } from "../../asociados/Services/AssociateProvisioningService";
 
 export class PaymentServiceError extends Error {
   constructor(message: string, readonly status: number) { super(message); }
@@ -29,7 +30,7 @@ export class PaymentService {
     private readonly provider: PaymentProvider = createPaymentProvider(),
     private readonly repository: IPaymentRepository = new PaymentRepository(),
     private readonly statusCalculator: Pick<ApplicationStatusCalculatorService, "recalculate"> = new ApplicationStatusCalculatorService(),
-    private readonly authorizationService: Pick<typeof paymentAuthorizationService, "verify" | "createCallbackReference" | "verifyCallbackReference"> = paymentAuthorizationService,
+    private readonly authorizationService: Pick<typeof paymentAuthorizationService, "verify" | "createCallbackReference" | "verifyCallbackReference" | "consumeCallbackReference"> = paymentAuthorizationService,
     private readonly isNiubizTest = paymentConfig.provider === "NIUBIZ" && paymentConfig.environment === "TEST",
     private readonly confirmationEmailService: Pick<PaymentConfirmationEmailService, "sendIfNeeded"> = new PaymentConfirmationEmailService(repository),
     private readonly paymentSettingsResolver: Pick<PaymentSettingsResolver, "assertPaymentInitiationAvailable" | "getNiubizCheckoutSettings"> = new PaymentSettingsResolver(),
@@ -75,7 +76,7 @@ export class PaymentService {
     });
     const updatedPayment = resumed && providerResult.status === PaymentStatus.PENDING ? payment : await this.persistPaymentResult(payment, providerResult);
     const responseProviderResult = providerResult.checkout
-      ? { ...providerResult, checkout: { ...providerResult.checkout, callbackUrl: this.withCallbackReference(providerResult.checkout.callbackUrl, payment) } }
+      ? { ...providerResult, checkout: { ...providerResult.checkout, callbackUrl: await this.withCallbackReference(providerResult.checkout.callbackUrl, payment) } }
       : providerResult;
     return this.toResponse(updatedPayment, responseProviderResult);
   }
@@ -106,9 +107,17 @@ export class PaymentService {
   }
 
   async authorizeFromCallback(callbackReference: string | undefined, transactionToken: string, paymentChannel?: string): Promise<PersistedPayment> {
-    const reference = this.authorizationService.verifyCallbackReference(callbackReference);
+    const reference = await this.authorizationService.verifyCallbackReference(callbackReference);
     if (!reference) throw new PaymentServiceError("La referencia temporal del Checkout no es válida o expiró.", 403);
-    return this.authorizeNiubizPayment(await this.repository.findPaymentByIdForApplication(reference.paymentId, reference.applicationId), transactionToken, paymentChannel);
+    const payment = await this.authorizeNiubizPayment(
+      await this.repository.findPaymentByIdForApplication(reference.paymentId, reference.applicationId),
+      transactionToken,
+      paymentChannel,
+    );
+    // Consumir solo tras un resultado terminal. Si el proveedor queda incierto,
+    // authorizeNiubizPayment lanza y la referencia permanece para un reintento legítimo.
+    await this.authorizationService.consumeCallbackReference(callbackReference);
+    return payment;
   }
 
   private async authorizeNiubizPayment(payment: PersistedPayment | null, transactionToken: string, paymentChannel?: string): Promise<PersistedPayment> {
@@ -131,12 +140,14 @@ export class PaymentService {
 
     try {
       const { result } = await this.provider.authorize({ paymentId: claimedPayment.id, applicationId: claimedPayment.applicationId, amount: claimedPayment.totalAmount, currency: claimedPayment.currency }, transactionToken, paymentChannel);
+      this.assertGatewayResultMatchesPayment(claimedPayment, result);
       const persistedPayment = await this.persistPaymentResult(claimedPayment, result);
       if (persistedPayment.status === PaymentStatus.PAID) await this.confirmationEmailService.sendIfNeeded(persistedPayment.id);
       return persistedPayment;
     } catch (error) {
       if (error instanceof NiubizAuthorizationHttpError && error.response) {
         const result = this.provider.mapAuthorizationResponse(error.response, paymentChannel, error.status);
+        this.assertGatewayResultMatchesPayment(claimedPayment, result);
         if (result.status === PaymentStatus.FAILED) return this.persistPaymentResult(claimedPayment, result);
       }
       await this.repository.updatePaymentResult(claimedPayment.id, { status: PaymentStatus.PENDING });
@@ -157,13 +168,35 @@ export class PaymentService {
       const integration = source ? await this.associatesIntegrationService.prepareActivePayment(source, tx) : null;
       return { updated, integrationId: recalculatedIntegrationId ?? integration?.id };
     });
-    if (persisted.integrationId) await this.associatesIntegrationService.processAfterCommit(persisted.integrationId);
+    if (persisted.integrationId) {
+      try { await this.associatesIntegrationService.processAfterCommit(persisted.integrationId); }
+      catch (error) { console.error("[PAYMENT_POST_COMMIT] Falló el procesamiento de integración.", { paymentId: persisted.updated.id, applicationId: persisted.updated.applicationId, phase: "ASSOCIATE_INTEGRATION", errorName: error instanceof Error ? error.name : "UnknownError" }); }
+    }
+    if (persisted.updated.status === PaymentStatus.PAID) {
+      try { await new AssociateProvisioningService().provisionCompletedApplication(persisted.updated.applicationId); }
+      catch (error) {
+        const details = error instanceof Error
+          ? { errorName: error.name, errorMessage: error.message, errorCode: "code" in error && typeof error.code === "string" ? error.code : undefined }
+          : { errorName: "UnknownError" };
+        console.error("[PAYMENT_POST_COMMIT] Associate provisioning failed.", { paymentId: persisted.updated.id, applicationId: persisted.updated.applicationId, phase: "ASSOCIATE_PROVISIONING", ...details });
+      }
+    }
     return persisted.updated;
   }
 
-  private withCallbackReference(callbackUrl: string, payment: PersistedPayment): string {
+  private assertGatewayResultMatchesPayment(payment: PersistedPayment, result: PaymentGatewayResult & { gatewayAmount?: number; gatewayCurrency?: string; gatewayPurchaseNumber?: string }): void {
+    if (result.status !== PaymentStatus.PAID) return;
+    const amountMatches = typeof result.gatewayAmount === "number" && Math.abs(result.gatewayAmount - payment.totalAmount) < 0.001;
+    const currencyMatches = result.gatewayCurrency === payment.currency;
+    const purchaseMatches = result.gatewayPurchaseNumber === String(payment.id);
+    if (!amountMatches || !currencyMatches || !purchaseMatches) {
+      throw new PaymentServiceError("La respuesta del proveedor no coincide con la orden persistida.", 502);
+    }
+  }
+
+  private async withCallbackReference(callbackUrl: string, payment: PersistedPayment): Promise<string> {
     const url = new URL(callbackUrl);
-    url.searchParams.set("payment_callback", this.authorizationService.createCallbackReference(payment.id, payment.applicationId, paymentConfig.authorizationTtlSeconds));
+    url.searchParams.set("payment_callback", await this.authorizationService.createCallbackReference(payment.id, payment.applicationId, paymentConfig.authorizationTtlSeconds));
     return url.toString();
   }
 

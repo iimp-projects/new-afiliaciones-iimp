@@ -2,6 +2,7 @@
 import React from "react";
 import { DynamicIcon } from "@/modules/layout/Utils/DynamicIcon";
 import { CheckCircle2, Clock, XCircle, MinusCircle, AlertCircle } from "lucide-react";
+import { PortalAccessCard } from "./PortalAccessCard";
 
 interface ResumenTabProps {
   header: any;
@@ -40,6 +41,8 @@ export function ResumenTab({ header, payload, isStudent }: ResumenTabProps) {
 
   return (
     <div className="space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
+      <PortalAccessCard applicationId={payload.id} completed={payload.status === "COMPLETED"} />
+
       <div>
         <h3 className="text-[13px] font-bold text-slate-800 mb-3 flex items-center gap-2">Estado del expediente</h3>
         <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3 sm:space-y-4">

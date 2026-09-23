@@ -7,13 +7,18 @@ import { ApplicationAccessService } from "@/modules/afiliaciones/postulacion/Ser
 import { ApplicationFlowError } from "@/modules/afiliaciones/postulacion/Services/Exceptions/ApplicationFlowError";
 
 export async function POST(request: NextRequest) {
+  let parsed: ReturnType<typeof parseOtpRequest>;
   try {
-    const { identifier, code, purpose } = parseOtpRequest(await request.json(), "verify");
-    const service = new OtpRecoveryService();
-    const proof = await service.verifyOtp(identifier, code!, purpose);
+    parsed = parseOtpRequest(await request.json(), "verify");
+  } catch (error) {
+    return NextResponse.json({ message: error instanceof VerificationError ? error.message : "Datos de verificación inválidos." }, { status: 400 });
+  }
+
+  try {
+    const { applicationId, ...proof } = await new OtpRecoveryService().verifyOtp(parsed.identifier, parsed.code!, parsed.purpose);
     const response = NextResponse.json({ success: true, message: "Verificado correctamente." });
-    if (purpose === "APPLICATION_QUERY" && typeof identifier === "number") {
-      response.cookies.set(QUERY_COOKIE, await new ApplicationAccessService().grantVerified(identifier, proof), {
+    if (parsed.purpose === "APPLICATION_QUERY") {
+      response.cookies.set(QUERY_COOKIE, await new ApplicationAccessService().grantVerified(applicationId, proof), {
         httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "strict", path: "/api", maxAge: 15 * 60,
       });
     }

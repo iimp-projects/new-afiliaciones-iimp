@@ -206,7 +206,12 @@
 
 
 import { ResetPasswordView } from "@/modules/auth/reset-password/views/ResetPasswordView";
+import { Suspense } from "react";
 
 export default function ResetPasswordPage() {
-    return <ResetPasswordView />;
+    return (
+        <Suspense fallback={null}>
+            <ResetPasswordView />
+        </Suspense>
+    );
 }

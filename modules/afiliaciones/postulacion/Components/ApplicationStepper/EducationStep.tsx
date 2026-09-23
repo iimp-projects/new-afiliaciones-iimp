@@ -162,7 +162,7 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
 
     function updateField<K extends keyof AcademicStudy>(field: K, rawValue: AcademicStudy[K]) {
       let sanitizedValue: any = rawValue;
-      let instantWarning = "";
+      const instantWarning = "";
 
       if (typeof rawValue === "string") {
         if (field === "degreeTitle" || field === "otherInstitution" || field === "sectorExperience") {
@@ -248,7 +248,7 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
       setShowConfirmModal(false);
       try {
         setIsUploading(true);
-        let updatedForm = { ...form };
+        const updatedForm = { ...form };
 
         if (rawFile) {
           const uploaded = await applicationApi.uploadFile(rawFile, "afiliaciones/estudiantes");

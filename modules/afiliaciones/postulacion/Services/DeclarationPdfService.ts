@@ -4,6 +4,32 @@ import type { ApplicationDraft } from "../Models/ApplicationDraft";
 import { resolveEmploymentStatus } from "../Models/EmploymentInformation";
 import { prisma } from "@/lib/prisma";
 import { S3StorageService } from "@/modules/shared/Services/S3StorageService";
+import { getAppBaseUrl } from "@/lib/config/env";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+
+interface PdfGenerationAccess {
+  allowedApplicationIds: readonly number[];
+}
+
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;",
+  })[character]!);
+}
+
+function sanitizeTemplateData<T>(value: T): T {
+  if (typeof value === "string") return escapeHtml(value) as T;
+  if (Array.isArray(value)) return value.map((item) => sanitizeTemplateData(item)) as T;
+  if (value && typeof value === "object") {
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, sanitizeTemplateData(item)])) as T;
+  }
+  return value;
+}
 
 export class DeclarationPdfService {
   /**
@@ -13,11 +39,15 @@ export class DeclarationPdfService {
   private async fetchImageToBase64(url: string): Promise<string | null> {
     if (!url) return null;
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, { redirect: "error", signal: AbortSignal.timeout(5_000) });
       if (!response.ok) return null;
+      const mimeType = response.headers.get("content-type")?.split(";")[0]?.trim().toLowerCase();
+      if (!mimeType || !["image/jpeg", "image/png", "image/webp"].includes(mimeType)) return null;
+      const declaredLength = Number(response.headers.get("content-length") || 0);
+      if (declaredLength > 5 * 1024 * 1024) return null;
       const buffer = await response.arrayBuffer();
+      if (buffer.byteLength > 5 * 1024 * 1024) return null;
       const base64 = Buffer.from(buffer).toString("base64");
-      const mimeType = response.headers.get("content-type") || "image/png";
       return `data:${mimeType};base64,${base64}`;
     } catch (error) {
       console.error("Error convirtiendo imagen a Base64:", error);
@@ -28,14 +58,18 @@ export class DeclarationPdfService {
   /**
    * Genera el buffer del PDF basado en el borrador de la postulación
    */
-  public async generate(draft: ApplicationDraft): Promise<Uint8Array> {
-    const personal = draft.personalInformation || ({} as any);
-    const academic = draft.academicStudies?.[0] || ({} as any);
-    const employment = draft.employmentInformation || ({} as any);
+  public async generate(draft: ApplicationDraft, access: PdfGenerationAccess): Promise<Uint8Array> {
+    if (!access.allowedApplicationIds.length) throw new Error("No se autorizó la generación del documento.");
+    const rawPhoto = draft.personalInformation?.photo;
+    const rawPhotoUrl = rawPhoto && "url" in rawPhoto ? rawPhoto.url : draft.personalInformation?.photoUrl;
+    const safeDraft = sanitizeTemplateData(draft);
+    const personal = safeDraft.personalInformation || ({} as any);
+    const academic = safeDraft.academicStudies?.[0] || ({} as any);
+    const employment = safeDraft.employmentInformation || ({} as any);
     const employmentStatus = resolveEmploymentStatus(employment);
 
     // Extracción correcta de los avales
-    const endorsements = draft.endorsements || ({} as any);
+    const endorsements = safeDraft.endorsements || ({} as any);
     const aval1 = endorsements.firstEndorsement || {};
     const aval2 = endorsements.secondEndorsement || {};
 
@@ -88,23 +122,19 @@ export class DeclarationPdfService {
     // ==========================================
     // 2. CONVERSIÓN DE IMÁGENES A BASE64 Y S3
     // ==========================================
-    const logoUrl = "https://iimp.org.pe/images/iimp_logocolor.png";
-    const logoBase64 = (await this.fetchImageToBase64(logoUrl)) || logoUrl;
+    const logo = await readFile(path.join(process.cwd(), "public", "images", "logo-iimp.png"));
+    const logoBase64 = `data:image/png;base64,${logo.toString("base64")}`;
 
-    const photoRawUrl = personal.photo?.url || personal.photoUrl;
     let photoBase64 = null;
 
-    if (photoRawUrl) {
+    if (rawPhotoUrl) {
       try {
         const s3Service = new S3StorageService();
-        const presignedUrl = await s3Service.getPresignedUrl(photoRawUrl);
+        const prefixes = access.allowedApplicationIds.map((applicationId) => `afiliaciones/applications/${applicationId}`);
+        const presignedUrl = await s3Service.getPresignedApplicationDocumentUrl(rawPhotoUrl, prefixes);
         photoBase64 = await this.fetchImageToBase64(presignedUrl);
       } catch (err) {
         console.error("Error obteniendo URL firmada de S3:", err);
-      }
-
-      if (!photoBase64) {
-        photoBase64 = await this.fetchImageToBase64(photoRawUrl);
       }
     }
     personal.resolvedPhoto = photoBase64;
@@ -112,8 +142,8 @@ export class DeclarationPdfService {
     // ==========================================
     // 3. DATOS GLOBALES Y QR
     // ==========================================
-    const trackingCode = (draft as any).trackingCode || "demo";
-    const validationUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://iimp.org.pe"}/verificar/${trackingCode}`;
+    const trackingCode = (safeDraft as any).trackingCode || "demo";
+    const validationUrl = `${getAppBaseUrl()}/verificar/${encodeURIComponent(trackingCode)}`;
     const fechaActual = new Date().toLocaleDateString("es-PE");
     const horaActual = new Date().toLocaleTimeString("es-PE", {
       hour: "2-digit",
@@ -121,7 +151,7 @@ export class DeclarationPdfService {
     });
     const codigoExpediente = `EXP-${Math.floor(1000 + Math.random() * 9000)}`;
     const categoria =
-      (draft as any).category || draft.membershipType || "ASOCIADO ACTIVO";
+      (safeDraft as any).category || safeDraft.membershipType || "ASOCIADO ACTIVO";
 
     const qrCodeDataUrl = await QRCode.toDataURL(validationUrl, {
       errorCorrectionLevel: "H",
@@ -156,29 +186,34 @@ export class DeclarationPdfService {
     // ==========================================
     const browser = await puppeteer.launch({
       headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
     });
-    const page = await browser.newPage();
+    try {
+      const page = await browser.newPage();
+      await page.setJavaScriptEnabled(false);
+      await page.setRequestInterception(true);
+      page.on("request", (request) => {
+        if (request.url().startsWith("data:") || request.url() === "about:blank") request.continue();
+        else request.abort();
+      });
 
-    await page.setContent(bodyHtml, { waitUntil: "load" });
+      await page.setContent(bodyHtml, { waitUntil: "domcontentloaded" });
 
-    const pdfUint8Array = await page.pdf({
-      format: "A4",
-      printBackground: true,
-      displayHeaderFooter: true,
-      headerTemplate: headerHtml,
-      footerTemplate: footerHtml,
-      // Márgenes ajustados: 35mm arriba asegura que el header entre perfecto y el body inicie justo debajo
-      margin: {
-        top: "35mm",
-        bottom: "35mm",
-        left: "15mm",
-        right: "15mm",
-      },
-    });
+      // Garantiza que las fuentes estén resueltas antes de rasterizar el PDF.
+      // Sin esta espera, Chromium puede generar texto con una fuente de
+      // respaldo no embebida (glifos corruptos) de forma intermitente.
+      await page.evaluateHandle("document.fonts.ready");
 
-    await browser.close();
-    return pdfUint8Array;
+      return await page.pdf({
+        format: "A4",
+        printBackground: true,
+        displayHeaderFooter: true,
+        headerTemplate: headerHtml,
+        footerTemplate: footerHtml,
+        margin: { top: "35mm", bottom: "35mm", left: "15mm", right: "15mm" },
+      });
+    } finally {
+      await browser.close();
+    }
   }
 
   /**
@@ -255,6 +290,7 @@ export class DeclarationPdfService {
   <html lang="es">
   <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'">
     <style>
       body { 
         font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; 

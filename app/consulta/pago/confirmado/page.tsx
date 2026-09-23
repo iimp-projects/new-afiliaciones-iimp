@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { PaymentRepository } from "@/modules/afiliaciones/payments/Repositories/PaymentRepository";
 import { paymentAuthorizationService } from "@/modules/afiliaciones/payments/Services/PaymentAuthorizationService";
+import { cookies } from "next/headers";
 
-export default async function PaymentConfirmedPage({ searchParams }: { searchParams: Promise<{ payment_callback?: string }> }) {
-  const { payment_callback: callbackReference } = await searchParams;
-  const reference = paymentAuthorizationService.verifyCallbackReference(callbackReference);
+export default async function PaymentConfirmedPage({ searchParams }: { searchParams: Promise<{ payment_restore?: string }> }) {
+  const { payment_restore: restoreReference } = await searchParams;
+  const cookieStore = await cookies();
+  const reference = paymentAuthorizationService.verifyRestoreReference(restoreReference, cookieStore.get(paymentAuthorizationService.restoreCookieName)?.value);
   const payment = reference ? await new PaymentRepository().findPaymentConfirmationDetails(reference.paymentId) : null;
-  const valid = payment?.applicationId === reference?.applicationId && payment.status === "PAID";
+  const valid = Boolean(payment && reference && payment.applicationId === reference.applicationId && payment.status === "PAID");
   if (!valid || !payment) return <main className="min-h-screen grid place-items-center bg-slate-50 p-6"><section className="max-w-md rounded-3xl bg-white p-8 text-center shadow"><h1 className="text-xl font-bold text-slate-800">No pudimos confirmar el pago</h1><p className="mt-3 text-slate-600">Consulta nuevamente el estado de tu solicitud.</p><Link className="mt-6 inline-block rounded-xl bg-[#C5A059] px-6 py-3 font-bold text-white" href="/consulta">Volver a consulta</Link></section></main>;
   const name = payment.application.person ? [payment.application.person.firstName, payment.application.person.paternalLastName, payment.application.person.maternalLastName].filter(Boolean).join(" ") : "Postulante";
   const amount = new Intl.NumberFormat("es-PE", { style: "currency", currency: payment.currency, minimumFractionDigits: 2 }).format(payment.totalAmount).replace("PEN", "S/");

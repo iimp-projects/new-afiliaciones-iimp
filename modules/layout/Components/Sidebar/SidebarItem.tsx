@@ -17,6 +17,13 @@ interface SidebarItemProps {
 export function SidebarItem({ item, isNested = false, isCollapsed = false, onMobileClick }: SidebarItemProps) {
     const pathname = usePathname();
     const hasChildren = item.children && item.children.length > 0;
+    const isActive = pathname === item.href || (hasChildren && item.children?.some(child => pathname.startsWith(child.href || "")));
+    const [isOpen, setIsOpen] = useState(isActive);
+
+    useEffect(() => {
+        if (isActive && !isCollapsed) setIsOpen(true);
+        if (isCollapsed) setIsOpen(false);
+    }, [isActive, isCollapsed]);
     
     // ==========================================
     // 1. RENDERIZADO DE GRUPOS (Ej. MENÚ PRINCIPAL)
@@ -48,14 +55,6 @@ export function SidebarItem({ item, isNested = false, isCollapsed = false, onMob
     }
 
     // Lógica estricta de ruta activa
-    const isActive = pathname === item.href || (hasChildren && item.children?.some(child => pathname.startsWith(child.href || "")));
-    const [isOpen, setIsOpen] = useState(isActive);
-
-    useEffect(() => {
-        if (isActive && !isCollapsed) setIsOpen(true);
-        if (isCollapsed) setIsOpen(false);
-    }, [isActive, isCollapsed]);
-
     // ==========================================
     // 2. RENDERIZADO DE MENÚS DESPLEGABLES
     // ==========================================

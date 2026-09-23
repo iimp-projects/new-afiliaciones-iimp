@@ -28,7 +28,7 @@ export class GetExpedientesService {
   }
 
   async execute(params: { page: number; pageSize: number; search?: string; status?: string }) {
-    const { total, page, pageSize, totalPages, records } = await this.repository.getPaginated(params);
+    const { data: records, meta } = await this.repository.getPaginated(params);
 
     const items: SmartCaseCardData[] = records.map((app) => {
       // 1. NOMBRES E IDENTIDAD
@@ -43,18 +43,18 @@ export class GetExpedientesService {
 
       if (app.status === "OBSERVED" || app.observations.length > 0) {
         primaryBadge = { label: "OBSERVADO", icon: "error", colorClass: "text-red-700 bg-red-50 border-red-200" };
-      } else if (lastPayment?.status === "PAID" || app.status === "APPROVED") {
+      } else if (lastPayment?.status === "PAID" || app.status === "COMPLETED") {
         primaryBadge = { label: "PAGADO", icon: "check", colorClass: "text-emerald-700 bg-emerald-50 border-emerald-200" };
-      } else if (lastPayment?.status === "PENDING" || app.status === "UNDER_EVALUATION") {
+      } else if (lastPayment?.status === "PENDING" || app.status === "UNDER_EVALUACION" || app.status === "READY_FOR_PAYMENT") {
         primaryBadge = { label: "PENDIENTE", icon: "clock", colorClass: "text-amber-700 bg-amber-50 border-amber-200" };
       }
 
       // 3. VALIDACIONES ATÓMICAS (LOG, ASI, COM, TES)
       const atomicValidations: AtomicValidation[] = [
-        { label: "LOG", status: app.currentStep >= 3 ? "check" : "pending" },
-        { label: "ASI", status: isStudent ? "dash" : (app.approvals.every(a => a.status === "APPROVED") && app.approvals.length > 0 ? "check" : "pending") },
-        { label: "COM", status: app.status === "APPROVED" ? "check" : (app.status === "UNDER_EVALUATION" ? "pending" : "dash") },
-        { label: "TES", status: lastPayment?.status === "PAID" ? "check" : "pending" },
+        toAtomicValidation("LOG", app.currentStep >= 3 ? "check" : "pending"),
+        toAtomicValidation("ASI", isStudent ? "dash" : (app.approvals.every((approval) => approval.status === "APPROVED") && app.approvals.length > 0 ? "check" : "pending")),
+        toAtomicValidation("COM", app.status === "COMPLETED" || app.status === "READY_FOR_PAYMENT" ? "check" : (app.status === "UNDER_EVALUACION" ? "pending" : "dash")),
+        toAtomicValidation("TES", lastPayment?.status === "PAID" ? "check" : "pending"),
       ];
 
       return {
@@ -82,6 +82,16 @@ export class GetExpedientesService {
       };
     });
 
-    return { items, meta: { total, page, pageSize, totalPages } };
+    return { items, meta };
   }
+}
+
+function toAtomicValidation(label: string, status: "check" | "pending" | "dash"): AtomicValidation {
+  const presentation = {
+    check: { icon: "CheckCircle2", statusLabel: "Aprobado", statusColorClass: "bg-emerald-50 text-emerald-700" },
+    pending: { icon: "Clock", statusLabel: "Pendiente", statusColorClass: "bg-amber-50 text-amber-700" },
+    dash: { icon: "MinusCircle", statusLabel: "No aplica", statusColorClass: "bg-slate-100 text-slate-500" },
+  } as const;
+
+  return { label, status, ...presentation[status] };
 }

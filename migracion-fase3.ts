@@ -1,17 +1,21 @@
 import { PrismaClient } from "@prisma/client";
 import { Client } from "pg";
 
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: "postgresql://postgres:admin@localhost:5432/bd_afiliaciones_dev?schema=public", // <--- TU BD NUEVA
-    },
-  },
-});
+// HERRAMIENTA HISTÓRICA DE MIGRACIÓN — NO FORMA PARTE DEL FLUJO PRODUCTIVO.
+// Requiere ejecución manual explícita contra una base aislada.
+if (process.env.ALLOW_LEGACY_MIGRATION !== "true") {
+  console.error("[LEGACY] Migración histórica deshabilitada. Define ALLOW_LEGACY_MIGRATION=true para ejecutarla manualmente.");
+  process.exit(1);
+}
+
+const prisma = new PrismaClient();
+
+const legacyDatabaseUrl = process.env.LEGACY_DATABASE_URL;
+if (!legacyDatabaseUrl) throw new Error("LEGACY_DATABASE_URL es obligatorio.");
 
 // Conexión directa a la base de datos antigua
 const oldDb = new Client({
-  connectionString: "postgresql://postgres:admin@localhost:5432/bdafiliacion", // <--- TU BD ANTIGUA
+  connectionString: legacyDatabaseUrl,
 });
 
 // La ruta base de tu nuevo bucket S3 donde subiste la carpeta files/
@@ -180,7 +184,9 @@ async function migrarFichas() {
     const affiliateType = ficha.modalidad === 'E' ? "STUDENT" : "ACTIVE";
     const gender = mapGender(ficha.genero);
     
-    let { appStatus, sponsorStatus } = determineStatuses(ficha.estado);
+    const statuses = determineStatuses(ficha.estado);
+    let { appStatus } = statuses;
+    const { sponsorStatus } = statuses;
 
     let safeApplicationCode = ficha.nroficha ? String(ficha.nroficha).trim() : `LEGACY-${ficha.fichnro}`;
     const codeInUse = await prisma.membershipApplication.findFirst({ where: { applicationCode: safeApplicationCode } });
@@ -291,8 +297,8 @@ async function migrarFichas() {
         let sponsorPerson1Id: number | null = null;
         let sponsorPerson2Id: number | null = null;
         let code1 = "", code2 = "";
-        let intest1 = ficha.intestaval1 || 0;
-        let intest2 = ficha.intestaval2 || 0;
+        const intest1 = ficha.intestaval1 || 0;
+        const intest2 = ficha.intestaval2 || 0;
 
         if (affiliateType === "ACTIVE") {
           // AVAL 1
@@ -426,7 +432,7 @@ async function migrarFichas() {
 
         // E. INSERTAR ESTADOS DE AVALES CON FECHA HISTÓRICA
         if (sponsorPerson1Id) {
-          let indStatus1 = (intest1 === 1 || appStatus === "COMPLETED") ? "APPROVED" : sponsorStatus;
+          const indStatus1 = (intest1 === 1 || appStatus === "COMPLETED") ? "APPROVED" : sponsorStatus;
           await tx.membershipApproval.create({
             data: { 
               applicationId: app.id, 
@@ -440,7 +446,7 @@ async function migrarFichas() {
         }
 
         if (sponsorPerson2Id) {
-          let indStatus2 = (intest2 === 1 || appStatus === "COMPLETED") ? "APPROVED" : sponsorStatus;
+          const indStatus2 = (intest2 === 1 || appStatus === "COMPLETED") ? "APPROVED" : sponsorStatus;
           await tx.membershipApproval.create({
             data: { 
               applicationId: app.id, 
@@ -514,7 +520,7 @@ async function migrarFichas() {
               if (dept.code === "LOGISTICA" && Number(ficha.val_logistica) === 1) isDeptApproved = true;
             }
 
-            let finalStatus: any = appStatus === "REJECTED" ? "REJECTED" : (isDeptApproved ? "APPROVED" : "PENDING");
+            const finalStatus: any = appStatus === "REJECTED" ? "REJECTED" : (isDeptApproved ? "APPROVED" : "PENDING");
             
             // ✅ ASIGNACIÓN DE LOS NUEVOS RESPONSABLES POR ÁREA
             if (finalStatus === "APPROVED" || finalStatus === "REJECTED") {
@@ -569,7 +575,7 @@ async function migrarFichas() {
 
       countSuccess++;
     } catch (e) {
-      console.log(`❌ Error al migrar ficha N° ${ficha.fichnro} (DNI: ${docNumber}):`, e);
+      console.log(`❌ Error al migrar ficha N° ${ficha.fichnro}:`, e);
     }
   }
 

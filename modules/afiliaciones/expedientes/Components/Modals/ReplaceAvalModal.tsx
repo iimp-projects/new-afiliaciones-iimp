@@ -36,10 +36,7 @@ interface ReplaceAvalModalProps {
 
 interface NewSponsorData {
   success?: boolean;
-  id: number;
-  fullName?: string;
-  sponsorCode?: string | null;
-  email?: string | null;
+  eligible: boolean;
 }
 
 export function ReplaceAvalModal({
@@ -91,7 +88,7 @@ export function ReplaceAvalModal({
       const data = await response.json();
 
       if (data.success) {
-        setSponsorData(data);
+        setSponsorData(data.data);
       } else {
         setLocalError(
           data.message || "No se encontró un asociado hábil con ese DNI."
@@ -117,8 +114,7 @@ export function ReplaceAvalModal({
         body: JSON.stringify({
           application_id: applicationId,
           approval_id: oldApprovalId || null, // 👈 Enviamos el ID específico del aval a inactivar
-          sponsor_person_id: sponsorData.id,
-          sponsor_code: sponsorData.sponsorCode || null,
+          dni: documentNumber,
         }),
       });
 
@@ -392,7 +388,7 @@ export function ReplaceAvalModal({
                           Nombre completo
                         </div>
                         <div className="mt-0.5 text-[11px] font-semibold text-slate-800">
-                          {sponsorData.fullName || "No registrado"}
+                          Aval hábil validado
                         </div>
                       </div>
 
@@ -402,7 +398,7 @@ export function ReplaceAvalModal({
                             Cód. IIMP
                           </div>
                           <div className="mt-0.5 text-[11px] font-medium text-slate-700">
-                            {sponsorData.sponsorCode || "No registrado"}
+                            Se asignará al confirmar
                           </div>
                         </div>
 
@@ -411,7 +407,7 @@ export function ReplaceAvalModal({
                             Correo
                           </div>
                           <div className="mt-0.5 truncate text-[11px] font-medium text-slate-700">
-                            {sponsorData.email || "No registrado"}
+                            Protegido hasta confirmar
                           </div>
                         </div>
                       </div>

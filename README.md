@@ -1,36 +1,92 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Plataforma de Afiliaciones IIMP
 
-## Getting Started
+Aplicación web del Instituto de Ingenieros de Minas del Perú para postulaciones, avales, evaluación de expedientes, asociados, consulta pública, seguridad y pagos.
 
-First, run the development server:
+## Estado técnico
+
+- Next.js 16.2, React 19 y TypeScript con `strict: true`.
+- Prisma 6 y PostgreSQL.
+- Auth.js v5 con sesiones persistidas y RBAC.
+- Vitest: 51 archivos y 413 pruebas aprobadas en la última verificación local.
+- `npm run check`: cero errores de TypeScript, ESLint y pruebas.
+- `npm run build`: compilación de producción aprobada.
+- Deuda visible: `npm run lint:all` reporta advertencias heredadas, principalmente usos explícitos de `any`. No se permite aumentarlas.
+
+## Inicio rápido
+
+Requisitos: Node.js 20.9 o superior, npm y una instancia PostgreSQL accesible.
 
 ```bash
+npm install
+copy .env.example .env
+npx prisma generate
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+No ejecutes migraciones, seeds ni scripts de corrección de datos sin revisar primero [Base de datos](docs/DATABASE.md) y obtener autorización para el ambiente correspondiente.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Verificación obligatoria
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run check
+npm run build
+```
 
-## Learn More
+Comandos específicos:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run typecheck   # TypeScript estricto
+npm run lint        # Solo errores bloqueantes
+npm run lint:all    # Errores y deuda en warnings
+npm test            # Vitest una vez
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Fuentes de verdad
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Lee en este orden antes de modificar el proyecto:
 
-## Deploy on Vercel
+1. [BIBLE.md](BIBLE.md): propósito, dominios, invariantes y decisiones vigentes.
+2. [RULES.md](RULES.md): reglas obligatorias de ingeniería y definición de terminado.
+3. [Índice de documentación](docs/README.md): rutas hacia cada dominio.
+4. Código, pruebas y `prisma/schema.prisma`: autoridad final cuando exista una discrepancia.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Arquitectura resumida
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```text
+View / Component
+  → API client o Hook
+  → Route Handler o Server Action
+  → Service
+  → Repository
+  → Prisma
+  → PostgreSQL
+```
+
+El código se organiza principalmente por dominio dentro de `modules/`. Las excepciones heredadas no deben convertirse en patrones nuevos. Consulta [Arquitectura](docs/ARCHITECTURE.md).
+
+## Documentación esencial
+
+| Tema | Documento |
+| --- | --- |
+| Contexto canónico | [BIBLE.md](BIBLE.md) |
+| Reglas de código | [RULES.md](RULES.md) |
+| Arquitectura | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| Arquitecturas AWS propuestas | [docs/AWS_ARCHITECTURE.md](docs/AWS_ARCHITECTURE.md) |
+| Reglas de negocio | [docs/BUSINESS_RULES.md](docs/BUSINESS_RULES.md) |
+| Matriz de estados | [docs/APPLICATION_MATRIX.md](docs/APPLICATION_MATRIX.md) |
+| Autenticación y RBAC | [docs/AUTHENTICACION.md](docs/AUTHENTICACION.md) |
+| Modelo de datos | [docs/DATABASE.md](docs/DATABASE.md) |
+| Pagos | [docs/PAYMENTS.md](docs/PAYMENTS.md) |
+| Desarrollo local | [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) |
+| Calidad y tipado | [docs/QUALITY_GATES.md](docs/QUALITY_GATES.md) |
+| Pruebas | [docs/TESTING.md](docs/TESTING.md) |
+| Seguridad | [docs/SECURITY.md](docs/SECURITY.md) |
+| Trabajo con IA | [docs/AI_WORKFLOW.md](docs/AI_WORKFLOW.md) |
+
+## Asistentes de IA
+
+- Codex y agentes compatibles: [AGENTS.md](AGENTS.md).
+- Claude Code: [CLAUDE.md](CLAUDE.md).
+- Gemini CLI: [GEMINI.md](GEMINI.md).
+
+Los tres deben seguir la misma `BIBLE.md` y `RULES.md`; sus archivos no mantienen reglas de negocio duplicadas.

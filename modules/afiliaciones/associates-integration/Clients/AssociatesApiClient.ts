@@ -4,7 +4,7 @@ import { AssociatesApiError } from "./AssociatesApiError";
 
 type FetchLike = typeof fetch;
 type TokenCache = { token: string; expiresAt: number };
-export type AssociatesCreateResult = { externalAssociateCode: number; externalMessage: string; receipt?: { type?: string; serie?: string; number?: string; pdfReference?: string } };
+export type AssociatesCreateResult = { externalAssociateCode: number; externalMessage: string; httpStatus: number; receipt?: { type?: string; serie?: string; number?: string; pdfReference?: string } };
 type ErrorBody = { codigo?: string; mensaje?: string; identificador?: string; detalles?: string[] };
 
 export class AssociatesApiClient {
@@ -30,7 +30,7 @@ export class AssociatesApiClient {
     if (!response.ok) throw await this.toError(response, "CREATE_ASSOCIATE");
     const body = await this.json(response, "CREATE_ASSOCIATE");
     if (body?.estado !== true || !Number.isInteger(body.codigo)) throw new AssociatesApiError("La API de asociados devolvió una respuesta de éxito inválida.", { retryable: false, operation: "CREATE_ASSOCIATE" });
-    return { externalAssociateCode: body.codigo, externalMessage: typeof body.msg === "string" ? body.msg : "Success", receipt: body.contable ? { type: stringOrUndefined(body.contable.tipoDocumento), serie: stringOrUndefined(body.contable.serie), number: stringOrUndefined(body.contable.numero), pdfReference: stringOrUndefined(body.contable.pdfUrl) } : undefined };
+    return { externalAssociateCode: body.codigo, externalMessage: typeof body.msg === "string" ? body.msg : "Success", httpStatus: response.status, receipt: body.contable ? { type: stringOrUndefined(body.contable.tipoDocumento), serie: stringOrUndefined(body.contable.serie), number: stringOrUndefined(body.contable.numero), pdfReference: stringOrUndefined(body.contable.pdfUrl) } : undefined };
   }
 
   private async token(): Promise<string> {

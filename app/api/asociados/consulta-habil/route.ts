@@ -1,11 +1,24 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { verificationTokenRateLimiter } from "@/modules/auth/rate-limit/VerificationTokenRateLimiter";
+import { ApiAuthorizationError, requireApiPermission } from "@/modules/auth/context/api-authorization";
 
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const dni = searchParams.get("dni");
     const applicationId = searchParams.get("applicationId"); // Opcional, para bloquear avales anteriores
+    try {
+      await requireApiPermission("read", "memberships");
+    } catch (error) {
+      if (error instanceof ApiAuthorizationError) {
+        return NextResponse.json(
+          { error: error.status === 401 ? "No autenticado." : "No autorizado." },
+          { status: error.status },
+        );
+      }
+      throw error;
+    }
 
     if (!dni || dni.trim().length !== 8) {
       return NextResponse.json(
@@ -15,6 +28,10 @@ export async function GET(req: Request) {
     }
 
     const cleanDni = dni.trim();
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
+    if (!(await verificationTokenRateLimiter.consume("associate-lookup", `${ip}:${cleanDni}`, 10, 15))) {
+      return NextResponse.json({ error: "Demasiados intentos." }, { status: 429 });
+    }
 
     // 1. Buscar a la persona e incluir usuario y contactos
     const person = await prisma.person.findFirst({
@@ -60,29 +77,7 @@ export async function GET(req: Request) {
       );
     }
 
-    // 5. Nombre completo
-    const fullName = [person.firstName, person.paternalLastName, person.maternalLastName]
-      .filter(Boolean)
-      .join(" ");
-
-    // 6. Obtener el correo (priorizar email de User o primer email de contactos)
-    const email =
-      person.user?.email ||
-      person.contacts.find((c) => c.email)?.email ||
-      "Sin correo registrado";
-
-    const existingEndorsement = person.endorsementsGiven?.[0];
-    const sponsorCode = existingEndorsement?.sponsorCode || (person.user ? `A-${person.user.id}` : "---");
-
-    return NextResponse.json({
-    personId: person.id,
-    dni: person.documentNumber,
-    fullName: fullName,
-    iimpCode: String(sponsorCode),
-    sponsorCode: String(sponsorCode),
-    email: email,
-    isActive: true,
-    });
+    return NextResponse.json({ eligible: true });
   } catch (error: any) {
     console.error("Error al consultar asociado:", error);
     return NextResponse.json(

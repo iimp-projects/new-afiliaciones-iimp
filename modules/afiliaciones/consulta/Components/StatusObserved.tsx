@@ -359,10 +359,9 @@ export const StatusObserved: React.FC<Props> = ({ data, onUploadSuccess }) => {
         throw new Error(resData?.message || "No se encontró ningún socio activo con ese DNI.");
       const sponsorInfo = resData.data || resData;
       setFoundSponsor({
-        personId: sponsorInfo.id || sponsorInfo.personId,
-        fullName: sponsorInfo.fullName,
-        email: sponsorInfo.email,
-        iimpCode: sponsorInfo.sponsorCode || sponsorInfo.iimpCode,
+        fullName: "Aval hábil validado",
+        email: "",
+        iimpCode: "",
         dni: sponsorDni,
       });
     } catch (err: any) {
@@ -399,8 +398,6 @@ export const StatusObserved: React.FC<Props> = ({ data, onUploadSuccess }) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           application_id: Number(appId),
-          sponsor_person_id: foundSponsor.personId,
-          sponsor_code: foundSponsor.iimpCode,
           dni: foundSponsor.dni,
           status: "PENDING",
         }),
@@ -480,10 +477,7 @@ export const StatusObserved: React.FC<Props> = ({ data, onUploadSuccess }) => {
             {data.observations && data.observations.length > 0 ? (
               data.observations.map((obs, idx) => (
                 <li key={idx}>
-                  <span
-                    className="inline-block align-top [&>p]:inline [&>p]:m-0"
-                    dangerouslySetInnerHTML={{ __html: obs }}
-                  />
+                  <span className="inline-block whitespace-pre-wrap align-top">{obs}</span>
                 </li>
               ))
             ) : (

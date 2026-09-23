@@ -1,0 +1,156 @@
+name: Security and quality gates
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run security:secrets
+
+      # SECURITY_RUNTIME_GATE = BLOCKING.
+      # Bloquea CRITICAL/HIGH del árbol desplegable (npm audit --omit=dev --omit=optional).
+      # Solo se permiten advisories explícitos en scripts/security/audit-exceptions.json.
+      - name: SECURITY_RUNTIME_GATE (blocking)
+        run: npm run security:runtime
+
+      # SECURITY_FULL_AUDIT = REPORTING (non-blocking).
+      # Auditoría del árbol completo (incluye dev/tooling). Puede fallar por
+      # advisories dev-only sin fix compatible. Se conserva visible su resultado
+      # mediante continue-on-error; el criterio de bloqueo es el runtime gate.
+      - name: SECURITY_FULL_AUDIT (reporting only)
+        run: npm run security:dependencies
+        continue-on-error: true
+
+      - run: npm run check
+      - run: npm run build
+
+  # Builds the production image and validates it runs. The image stays inside
+  # the runner: no registry login, no push, no deployment.
+  docker-artifact:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: verify
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Build production image
+        run: docker build --tag afiliaciones-iimp:${{ github.sha }} .
+
+      # Fail-fast: sin configuración crítica el contenedor debe terminar (exit 1)
+      # en lugar de servir en estado roto.
+      - name: Fail-fast without required configuration
+        run: |
+          docker run -d --name artifact-failfast afiliaciones-iimp:${{ github.sha }}
+          sleep 8
+          if [ "$(docker inspect -f '{{.State.Running}}' artifact-failfast)" = "true" ]; then
+            echo "container started without required configuration (unexpected)"
+            docker rm -f artifact-failfast
+            exit 1
+          fi
+          echo "container exited as expected (fail-fast)"
+          docker rm -f artifact-failfast
+
+      - name: Start container (synthetic non-secret configuration)
+        run: |
+          docker run -d --name artifact-smoke \
+            --publish 3000:3000 \
+            -e AUTH_SECRET=ci-auth-signing-value-0000000000000000 \
+            -e AUTH_URL=https://example.invalid \
+            -e NEXT_PUBLIC_APP_URL=https://example.invalid \
+            -e PAYMENT_AUTH_SECRET=ci-payment-signing-value-000000000000 \
+            -e DATABASE_URL=postgresql://placeholder@127.0.0.1:5432/placeholder \
+            afiliaciones-iimp:${{ github.sha }}
+
+      - name: Smoke test /api/health/live
+        run: |
+          for attempt in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3000/api/health/live || true)
+            if [ "$code" = "200" ]; then
+              echo "live: HTTP 200"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "live health check did not return 200"
+          docker logs artifact-smoke
+          exit 1
+
+      - name: Readiness without database returns 503 (expected)
+        run: |
+          code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3000/api/health/ready || true)
+          if [ "$code" != "503" ]; then
+            echo "expected 503 without DATABASE_URL, got $code"
+            exit 1
+          fi
+          echo "ready: HTTP 503 (expected without database)"
+
+      - name: Container HEALTHCHECK reports healthy
+        run: |
+          for attempt in $(seq 1 20); do
+            status=$(docker inspect artifact-smoke --format '{{.State.Health.Status}}')
+            if [ "$status" = "healthy" ]; then
+              echo "container health: healthy"
+              exit 0
+            fi
+            sleep 5
+          done
+          docker inspect artifact-smoke --format '{{json .State.Health}}'
+          exit 1
+
+      - name: Runtime security assertions
+        run: |
+          uid=$(docker exec artifact-smoke id -u)
+          if [ "$uid" = "0" ]; then
+            echo "container runs as root"
+            exit 1
+          fi
+          for path in /app/.env /app/.git /app/.aws /app/.npmrc /home/nextjs/.aws; do
+            if docker exec artifact-smoke test -e "$path"; then
+              echo "forbidden path present: $path"
+              exit 1
+            fi
+          done
+          echo "runtime security assertions passed (uid=$uid)"
+
+      - name: Chromium smoke (synthetic PDF)
+        run: |
+          docker exec -i artifact-smoke node - <<'EOF'
+          const puppeteer = require('puppeteer');
+          (async () => {
+            const browser = await puppeteer.launch({ headless: true });
+            const page = await browser.newPage();
+            await page.setContent('<html><body><h1>ci</h1></body></html>');
+            const pdf = await page.pdf({ format: 'A4' });
+            await browser.close();
+            console.log('chromium smoke PDF_BYTES=' + pdf.length);
+          })().catch((error) => {
+            console.error('chromium smoke failed:', error.message);
+            process.exit(1);
+          });
+          EOF
+
+      - name: Stop and remove container
+        if: always()
+        run: docker rm -f artifact-smoke || true

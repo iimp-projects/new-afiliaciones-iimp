@@ -117,7 +117,7 @@ const DeclarationStep = forwardRef<StepRef, DeclarationStepProps>(
       setShowConfirmModal(false);
       try {
         setIsUploading(true);
-        let updatedForm = { ...form };
+        const updatedForm = { ...form };
 
         if (rawFile) {
           const uploaded = await applicationApi.uploadFile(rawFile, "afiliaciones/declaraciones");

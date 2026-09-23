@@ -37,12 +37,15 @@ export interface PersonalInformation {
     provinceId?: number | null;   
     districtId?: number | null;
     address: string;
+    foreignRegion?: string | null;
+    foreignCity?: string | null;
 
     /**
      * Documentos
      */
-    photo?: File | null;
-    identityDocument?: File | null;
+    photo?: File | UploadedFile | null;
+    photoUrl?: string;
+    identityDocument?: File | UploadedFile | null;
 
     /**
      * Estado de la validación de identidad

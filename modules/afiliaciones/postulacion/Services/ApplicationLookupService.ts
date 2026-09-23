@@ -3,6 +3,7 @@ import { destinationChannels } from "@/modules/shared/Models/Verification";
 import { VerificationError } from "@/modules/shared/Models/VerificationError";
 import { ApplicationLookupRepository } from "../Repositories/ApplicationLookupRepository";
 import { queryAuthorization } from "@/modules/afiliaciones/consulta/Services/QueryAuthorizationService";
+import { resolveOtpChannelAvailability } from "./OtpChannelAvailability";
 
 export const applicationIdentitySchema = z.object({ documentType: z.enum(["DNI", "CE", "PASSPORT"]), documentNumber: z.string().trim().min(4).max(20).regex(/^[a-zA-Z0-9]+$/), affiliateType: z.enum(["ACTIVE", "STUDENT"]).optional() }).strict();
 export class ApplicationLookupService {
@@ -17,7 +18,7 @@ export class ApplicationLookupService {
       const key = JSON.stringify([application.email.trim().toLowerCase(), application.phone.trim()]);
       if (!contacts.has(key)) contacts.set(key, application);
     }
-    const options = Array.from(contacts.values()).map(application => ({ context: queryAuthorization.create(application.id, "QUERY_CHALLENGE"), channels: destinationChannels(application.email, application.phone) }));
+    const options = Array.from(contacts.values()).map(application => ({ context: queryAuthorization.create(application.id, "QUERY_CHALLENGE"), channels: destinationChannels(application.email, application.phone, resolveOtpChannelAvailability()) }));
     return { hasApplication: applications.length > 0, requiresVerification: applications.length > 0, context: options[0]?.context, channels: options[0]?.channels || [], options };
   }
 }

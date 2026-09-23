@@ -54,7 +54,7 @@ async function main(): Promise<void> {
   if (!execute || !confirmed) throw new Error("La escritura requiere ambos flags explícitos.");
 
   const timestamp = new Date().toISOString();
-  let createdIds: number[] = [];
+  const createdIds: number[] = [];
   try {
     await prisma.$transaction(async (tx) => {
       const current = await tx.academicDegree.findMany({ orderBy: { id: "asc" } });

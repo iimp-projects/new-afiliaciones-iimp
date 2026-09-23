@@ -2,34 +2,26 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { EndorsementStatus } from "@prisma/client";
 import { NotifySponsorsService } from "@/modules/afiliaciones/postulacion/Services/NotifySponsorsService";
-import { contextService } from "@/modules/auth/context/service"; 
+import { apiAuthorizationStatus, requireApiPermission } from "@/modules/auth/context/api-authorization";
 
 export async function POST(req: Request) {
   try {
-    // SOLUCIÓN: Recibimos el correo explícitamente desde el Frontend
-    const { applicationId, approvalId, sponsorEmail } = await req.json();
+    const currentUser = await requireApiPermission("update", "memberships");
+    const { applicationId, approvalId } = await req.json();
 
-    if (!applicationId || !approvalId || !sponsorEmail) {
+    if (!applicationId || !approvalId) {
       return NextResponse.json({ success: false, error: "Faltan parámetros obligatorios." }, { status: 400 });
     }
 
-    if (sponsorEmail === "No registrado") {
-      return NextResponse.json({ success: false, error: "El aval no tiene un correo válido registrado." }, { status: 400 });
-    }
-
-    // 1. Identificar al administrador
-    const currentUser = await contextService.getCurrentUser().catch(() => null);
-    const actorName = currentUser 
-      ? `${currentUser.person.firstName} ${currentUser.person.paternalLastName}` 
-      : "Sistema";
+    const actorName = `${currentUser.person.firstName} ${currentUser.person.paternalLastName}`;
 
     // 2. Obtener Aprobación actual
     const approval = await prisma.membershipApproval.findUnique({
       where: { id: Number(approvalId) },
-      include: { sponsorPerson: true }
+      include: { sponsorPerson: { include: { user: true, contacts: { where: { isPrimary: true }, take: 1 } } } }
     });
 
-    if (!approval || approval.status !== EndorsementStatus.PENDING) {
+    if (!approval || approval.applicationId !== Number(applicationId) || approval.status !== EndorsementStatus.PENDING) {
       return NextResponse.json({ success: false, error: "El aval no existe o ya no está pendiente." }, { status: 400 });
     }
 
@@ -47,6 +39,8 @@ export async function POST(req: Request) {
 
     const sponsorPerson = approval.sponsorPerson;
     const sponsorFullName = `${sponsorPerson.firstName || ""} ${sponsorPerson.paternalLastName || ""}`.trim();
+    const sponsorEmail = sponsorPerson.user?.email || sponsorPerson.contacts[0]?.email;
+    if (!sponsorEmail) return NextResponse.json({ success: false, error: "El aval no tiene un correo registrado." }, { status: 400 });
 
     const draft = typeof (application as any).draftData === 'string'
       ? JSON.parse((application as any).draftData)
@@ -57,7 +51,7 @@ export async function POST(req: Request) {
     await notifyService.sendSingleSponsorNotification({
       applicationId: application.id,
       sponsorPersonId: sponsorPerson.id,
-      sponsorEmail: sponsorEmail, // <--- Este es el correo 100% exacto que ves en la pantalla
+      sponsorEmail,
       sponsorFullName: sponsorFullName,
       applicantName: applicantFullName,
       draft: draft || {}
@@ -77,8 +71,9 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, message: "Correo reenviado correctamente y registrado en el historial." });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("💥 Error reenviando correo al aval:", error);
-    return NextResponse.json({ success: false, error: "Error interno del servidor al reenviar correo." }, { status: 500 });
+    const status = apiAuthorizationStatus(error, 500);
+    return NextResponse.json({ success: false, error: status < 500 ? "No autorizado." : "Error interno del servidor al reenviar correo." }, { status });
   }
 }
