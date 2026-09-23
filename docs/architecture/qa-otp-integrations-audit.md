@@ -68,7 +68,7 @@ sea `VerificationError` explícito. El único rastro lo emiten los propios servi
 | Provider | **AWS SNS** (`PublishCommand`, SMS Transactional, SenderID `IIMP`) |
 | Config | `AWS_DEFAULT_REGION` (SET en QA) + cadena de credenciales por defecto (instance role) |
 | IAM | el rol `afiliaciones-qa-ec2-role` **no** incluye `sns:Publish` |
-| Nota de diseño | `qa-ultra-lean-technical-design.md` indica `sns:Publish` "solo si SMS está habilitado"; nunca se habilitó |
+| Nota de diseño | la arquitectura QA (consolidada en `../QA_ARCHITECTURE.md`) prevé `sns:Publish` "solo si SMS está habilitado" (`enable_sns_publish`); nunca se habilitó |
 | Sin envío | no se ejecutó `Publish` en esta fase |
 
 ## 6. Email

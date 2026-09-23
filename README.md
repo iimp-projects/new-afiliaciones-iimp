@@ -71,6 +71,7 @@ El código se organiza principalmente por dominio dentro de `modules/`. Las exce
 | Contexto canónico | [BIBLE.md](BIBLE.md) |
 | Reglas de código | [RULES.md](RULES.md) |
 | Arquitectura | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| Arquitectura y despliegue QA | [docs/QA_ARCHITECTURE.md](docs/QA_ARCHITECTURE.md) |
 | Arquitecturas AWS propuestas | [docs/AWS_ARCHITECTURE.md](docs/AWS_ARCHITECTURE.md) |
 | Reglas de negocio | [docs/BUSINESS_RULES.md](docs/BUSINESS_RULES.md) |
 | Matriz de estados | [docs/APPLICATION_MATRIX.md](docs/APPLICATION_MATRIX.md) |

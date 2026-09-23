@@ -7,7 +7,8 @@ Este directorio contiene documentación técnica y funcional. El [README princip
 | Documento | Alcance |
 | --- | --- |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Arquitectura observada, capas y excepciones. |
-| [AWS_ARCHITECTURE.md](AWS_ARCHITECTURE.md) | Tres propuestas AWS, seguridad, recuperación, costos y preparación Terraform. |
+| [QA_ARCHITECTURE.md](QA_ARCHITECTURE.md) | Ambiente QA: arquitectura AWS, Terraform, CI/CD, despliegue, costos y operación. |
+| [AWS_ARCHITECTURE.md](AWS_ARCHITECTURE.md) | Propuestas productivas AWS (planificación, no implementado). |
 | [BUSINESS_RULES.md](BUSINESS_RULES.md) | Reglas de negocio respaldadas por código y pendientes. |
 | [APPLICATION_MATRIX.md](APPLICATION_MATRIX.md) | Estados y acciones de postulación/consulta. |
 | [AUTHENTICACION.md](AUTHENTICACION.md) | Login, sesiones, contexto y RBAC. |

@@ -1,5 +1,13 @@
 # QA FinOps y Análisis de Infraestructura Existente — Afiliaciones IIMP
 
+> **DOCUMENTO HISTÓRICO — NO REPRESENTA LA ARQUITECTURA QA ACTUAL**
+>
+> Este análisis corresponde a una propuesta anterior y se conserva únicamente como
+> referencia histórica. La arquitectura QA actualmente implementada, sus costos
+> vigentes y el proceso de despliegue están documentados en `docs/QA_ARCHITECTURE.md`.
+> La estimación de ~USD 115–119/mes que aparece en este documento **no** es el costo
+> QA actual y la arquitectura aquí descrita **no** es la actualmente desplegada.
+
 > **Fecha de análisis:** 2026-09-20
 > **Cuenta AWS:** `5649********7461` (enmascarada) · alias `iimp`
 > **Región objetivo QA:** us-east-2
@@ -116,9 +124,10 @@ NAT `NOT_RECOMMENDED` (no existe), VPC `NOT_RECOMMENDED` (solo default), Route53
 
 ## 6. Current Afiliaciones QA Architecture
 
-Baseline documentado en `docs/architecture/qa-architecture-and-costs.md`:
+Baseline histórico (arquitectura ALB/ECS/RDS, luego descartada por Ultra-Lean):
 VPC dedicada + ALB + ECS Fargate (1 vCPU/2 GB, 1 task) + RDS PostgreSQL db.t4g.micro Single-AZ +
 NAT single + S3 + ECR + Secrets (13) + CloudWatch 30 d + IAM. Plan: 82/0/0.
+La arquitectura QA vigente (Ultra-Lean) está consolidada en `../QA_ARCHITECTURE.md`.
 
 ## 7. Cost Drivers (arquitectura QA)
 
@@ -298,8 +307,6 @@ Criterio: **LOWEST_REASONABLE_COST_WITHOUT_COMPROMISING_REQUIRED_SECURITY**.
 
 ## Nota sobre el documento anterior
 
-`docs/architecture/qa-architecture-and-costs.md` **no se modifica** en esta fase. Tras aprobar
-una arquitectura deberá actualizarse para:
-- reemplazar “costo razonable” por “Costo estimado de la arquitectura QA aislada 24x7”
-  (USD ~119–133/mes) y compararla objetivamente con el Escenario B (~USD 75/mes);
-- reflejar la decisión de horario operativo y el ahorro (~USD 44/mes).
+La arquitectura QA fue posteriormente rediseñada a **Ultra-Lean** (EC2 única + Caddy + PostgreSQL
+local). La fuente de verdad vigente es `../QA_ARCHITECTURE.md`. Este análisis de FinOps/inventario
+legacy conserva valor como contexto histórico del gasto existente, no como referencia de costos QA.
