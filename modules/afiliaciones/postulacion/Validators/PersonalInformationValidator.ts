@@ -90,11 +90,9 @@ export class PersonalInformationValidator extends BaseValidator {
     }
 
     if (countryId === 1) {
+      // Perú: país, departamento y dirección son obligatorios; provincia y
+      // distrito son opcionales (pueden no existir opciones disponibles).
       if (!data.departmentId) this.addError("departmentId", "REQ", "Seleccione un departamento.");
-      if (!data.provinceId) this.addError("provinceId", "REQ", "Seleccione una provincia.");
-      if (!Number.isInteger(Number(data.districtId)) || Number(data.districtId) <= 0) {
-        this.addError("districtId", "REQ", "Seleccione un distrito.");
-      }
     }
   }
 

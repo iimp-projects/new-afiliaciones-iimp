@@ -1418,10 +1418,7 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
                 </div>
                 <div>
                   <label className="text-xs font-bold text-slate-700 mb-1.5 block uppercase">
-                    Provincia{" "}
-                    {form.countryId === 1 && (
-                      <span className="text-red-500">*</span>
-                    )}
+                    Provincia
                   </label>
                   <SearchableSelect
                     options={provinces}
@@ -1429,7 +1426,7 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
                       !form.departmentId
                         ? "Seleccione..."
                         : provinces.length === 0
-                          ? "Departamento sin provincias"
+                          ? "Sin provincias disponibles"
                           : "Seleccione..."
                     }
                     value={form.provinceId}
@@ -1439,16 +1436,13 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
                     onBlur={() => handleBlur("provinceId")}
                     disabled={isProvDisabled}
                     hasError={touched.provinceId && !!errors.provinceId}
-                    emptyMessage="Departamento sin provincias"
+                    emptyMessage="Sin provincias disponibles"
                   />
                   {getErrorText("provinceId")}
                 </div>
                 <div>
                   <label className="text-xs font-bold text-slate-700 mb-1.5 block uppercase">
-                    Distrito{" "}
-                    {form.countryId === 1 && (
-                      <span className="text-red-500">*</span>
-                    )}
+                    Distrito
                   </label>
                   <SearchableSelect
                     options={districts}
@@ -1456,7 +1450,7 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
                       !form.provinceId
                         ? "Seleccione..."
                         : districts.length === 0
-                          ? "Provincia sin distritos"
+                          ? "Sin distritos disponibles"
                           : "Seleccione..."
                     }
                     value={form.districtId}
@@ -1466,7 +1460,7 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
                     onBlur={() => handleBlur("districtId")}
                     disabled={isDistDisabled}
                     hasError={touched.districtId && !!errors.districtId}
-                    emptyMessage="Provincia sin distritos"
+                    emptyMessage="Sin distritos disponibles"
                   />
                   {getErrorText("districtId")}
                 </div>

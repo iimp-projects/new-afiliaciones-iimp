@@ -356,24 +356,51 @@ export class UpdateDraftService {
         let districtId: number | null = null;
         if (countryHasDistrictHierarchy) {
             const departmentId = Number(personal.departmentId);
-            const provinceId = Number(personal.provinceId);
-            const requestedDistrictId = Number(personal.districtId);
-            if (!Number.isInteger(departmentId) || departmentId <= 0 || !Number.isInteger(provinceId) || provinceId <= 0 || !Number.isInteger(requestedDistrictId) || requestedDistrictId <= 0) {
-                throw new ApplicationFlowError("INVALID_INPUT", "Seleccione departamento, provincia y distrito para el país elegido.", 422);
+            if (!Number.isInteger(departmentId) || departmentId <= 0) {
+                throw new ApplicationFlowError("INVALID_INPUT", "Seleccione el departamento para el país elegido.", 422);
             }
 
-            const district = await tx.district.findFirst({
-                where: {
-                    id: requestedDistrictId,
-                    isActive: true,
-                    province: { id: provinceId, isActive: true, department: { id: departmentId, countryId, isActive: true } },
-                },
+            const department = await tx.department.findFirst({
+                where: { id: departmentId, isActive: true, countryId },
                 select: { id: true },
             });
-            if (!district) {
-                throw new ApplicationFlowError("INVALID_INPUT", "El distrito no corresponde a la ubicación seleccionada.", 422);
+            if (!department) {
+                throw new ApplicationFlowError("INVALID_INPUT", "El departamento no corresponde al país seleccionado.", 422);
             }
-            districtId = district.id;
+
+            const provinceId = Number(personal.provinceId);
+            const requestedDistrictId = Number(personal.districtId);
+            const hasProvince = Number.isInteger(provinceId) && provinceId > 0;
+            const hasDistrict = Number.isInteger(requestedDistrictId) && requestedDistrictId > 0;
+
+            if (hasDistrict) {
+                const district = await tx.district.findFirst({
+                    where: {
+                        id: requestedDistrictId,
+                        isActive: true,
+                        province: {
+                            isActive: true,
+                            ...(hasProvince ? { id: provinceId } : {}),
+                            department: { id: departmentId, countryId, isActive: true },
+                        },
+                    },
+                    select: { id: true },
+                });
+                if (!district) {
+                    throw new ApplicationFlowError("INVALID_INPUT", "El distrito no corresponde a la ubicación seleccionada.", 422);
+                }
+                districtId = district.id;
+            } else if (hasProvince) {
+                const province = await tx.province.findFirst({
+                    where: { id: provinceId, isActive: true, department: { id: departmentId, countryId, isActive: true } },
+                    select: { id: true },
+                });
+                if (!province) {
+                    throw new ApplicationFlowError("INVALID_INPUT", "La provincia no corresponde al departamento seleccionado.", 422);
+                }
+                // Provincia sin distrito: permitido (districtId permanece null).
+            }
+            // Sin provincia ni distrito: permitido (ambos quedan null).
         }
 
         const addressType = await tx.addressType.findUnique({

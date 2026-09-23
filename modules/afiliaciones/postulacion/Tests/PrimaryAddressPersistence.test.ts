@@ -18,10 +18,12 @@ const application = (affiliateType: "ACTIVE" | "STUDENT" = "ACTIVE") => ({
 
 const transaction = (
   primaryAddress: { id: number } | null = null,
-  options: { hasDistrictHierarchy?: boolean; validDistrict?: boolean } = {},
+  options: { hasDistrictHierarchy?: boolean; validDistrict?: boolean; validDepartment?: boolean; validProvince?: boolean } = {},
 ) => {
   const hasDistrictHierarchy = options.hasDistrictHierarchy ?? true;
   const validDistrict = options.validDistrict ?? true;
+  const validDepartment = options.validDepartment ?? true;
+  const validProvince = options.validProvince ?? true;
   const district = { findFirst: vi.fn() };
   district.findFirst
     .mockResolvedValueOnce(hasDistrictHierarchy ? { id: 321 } : null)
@@ -29,6 +31,8 @@ const transaction = (
 
   return {
   country: { findUnique: vi.fn().mockResolvedValue({ id: personal.countryId, isActive: true }) },
+  department: { findFirst: vi.fn().mockResolvedValue(validDepartment ? { id: 10 } : null) },
+  province: { findFirst: vi.fn().mockResolvedValue(validProvince ? { id: 20 } : null) },
   district,
   addressType: { findUnique: vi.fn().mockResolvedValue({ id: 77, isActive: true }) },
   address: {
@@ -94,9 +98,21 @@ describe("Primary address persistence", () => {
     expect(tx.address.create).not.toHaveBeenCalled();
   });
 
-  it("requires a district when the selected country has district hierarchy", async () => {
+  it("allows a null district (province optional) when the country has district hierarchy", async () => {
     const tx = transaction();
-    await expect((new UpdateDraftService({} as never) as unknown as PrimaryAddressPersistence).persistPrimaryAddress(tx, 42, { ...personal, districtId: null })).rejects.toMatchObject({ code: "INVALID_INPUT", httpStatus: 422 });
+    await (new UpdateDraftService({} as never) as unknown as PrimaryAddressPersistence).persistPrimaryAddress(tx, 42, { ...personal, districtId: null });
+    expect(tx.address.create).toHaveBeenCalledWith({ data: { personId: 42, countryId: 1, addressTypeId: 77, districtId: null, street: "Av. Personal 155", foreignRegion: null, foreignCity: null, isPrimary: true } });
+  });
+
+  it("allows null province and district when the department is valid", async () => {
+    const tx = transaction();
+    await (new UpdateDraftService({} as never) as unknown as PrimaryAddressPersistence).persistPrimaryAddress(tx, 42, { ...personal, provinceId: null, districtId: null });
+    expect(tx.address.create).toHaveBeenCalledWith({ data: { personId: 42, countryId: 1, addressTypeId: 77, districtId: null, street: "Av. Personal 155", foreignRegion: null, foreignCity: null, isPrimary: true } });
+  });
+
+  it("requires a department when the selected country has district hierarchy", async () => {
+    const tx = transaction();
+    await expect((new UpdateDraftService({} as never) as unknown as PrimaryAddressPersistence).persistPrimaryAddress(tx, 42, { ...personal, departmentId: null })).rejects.toMatchObject({ code: "INVALID_INPUT", httpStatus: 422 });
     expect(tx.address.create).not.toHaveBeenCalled();
   });
 
