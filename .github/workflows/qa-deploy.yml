@@ -29,6 +29,8 @@ jobs:
     if: inputs.confirm_deploy
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      DATABASE_URL: postgresql://ci@127.0.0.1:1/ci?schema=public
     steps:
       - name: Checkout requested revision
         uses: actions/checkout@v4
