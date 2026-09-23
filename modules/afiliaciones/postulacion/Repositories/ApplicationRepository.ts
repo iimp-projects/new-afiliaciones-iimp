@@ -7,6 +7,7 @@ import { ApplicationDraft } from "../Models/ApplicationDraft";
 import { blocksNewApplication, canEditApplication, canSubmitApplication, currentApplicationStates } from "../Models/ApplicationAction";
 import { ApplicationFlowError } from "../Services/Exceptions/ApplicationFlowError";
 import { normalizeEmploymentInformation } from "../Models/EmploymentInformation";
+import { ContactUniquenessService } from "../Services/ContactUniquenessService";
 
 export class ApplicationRepository implements IApplicationRepository {
   constructor(private readonly db = prisma) {}
@@ -19,6 +20,7 @@ export class ApplicationRepository implements IApplicationRepository {
       if (existing.some(item => blocksNewApplication(item.status))) throw new ApplicationFlowError("APPLICATION_EXISTS", "Encontramos una solicitud asociada a este documento. Verifica tu identidad para continuar.");
       if (existing.length && !existing.some(item => authorizedIds.includes(item.id))) throw new ApplicationFlowError("VERIFICATION_REQUIRED", "Verifica tu identidad antes de iniciar una nueva postulación.", 401);
       await this.assertEmailIdentityAvailable(tx, application.email!, application.documentNumber!);
+      await this.assertContactUnique(tx, { email: application.email, phone: application.phone });
       const person = await tx.person.findUnique({ where: { documentType_documentNumber: { documentType: application.documentType as never, documentNumber: application.documentNumber! } }, include: { user: true } });
       if (person?.user?.type === "AFFILIATE") throw new ApplicationFlowError("APPLICATION_EXISTS", "No es posible iniciar otra postulación. Consulta tu solicitud o contacta al IIMP.");
       const created = await tx.membershipApplication.create({ data: { applicationCode: application.applicationCode!, trackingCode: application.trackingCode!, documentType: application.documentType as never, documentNumber: application.documentNumber!, affiliateType: application.affiliateType as never, email: application.email!, phone: application.phone!, status: "DRAFT", currentStep: 1, draftData: {} } });
@@ -163,6 +165,8 @@ export class ApplicationRepository implements IApplicationRepository {
       if (mergedDraft.employmentInformation && typeof mergedDraft.employmentInformation === "object") {
         mergedDraft.employmentInformation = normalizeEmploymentInformation(mergedDraft.employmentInformation as ApplicationDraft["employmentInformation"] extends infer T ? NonNullable<T> : never);
       }
+      const personal = (mergedDraft.personalInformation ?? {}) as { primaryEmail?: string; phone?: string };
+      await this.assertContactUnique(tx, { email: personal.primaryEmail, phone: personal.phone, excludeApplicationId: application.id });
       const updated = await tx.membershipApplication.update({ where: { trackingCode }, data: { currentStep: application.status === "DRAFT" ? dto.currentStep : application.currentStep, draftData: mergedDraft as unknown as Prisma.InputJsonValue, lastAccessAt: new Date() } });
       return this.mapToEntity(updated);
     });
@@ -247,6 +251,7 @@ export class ApplicationRepository implements IApplicationRepository {
     const personal = draft.personalInformation;
 
     await this.assertEmailIdentityAvailable(tx, application.email, personal.documentNumber);
+    await this.assertContactUnique(tx, { email: personal.primaryEmail, phone: personal.phone, excludeApplicationId: application.id });
 
     if (!personal.documentNumber) {
       throw new Error("El número de documento es obligatorio.");
@@ -284,6 +289,47 @@ export class ApplicationRepository implements IApplicationRepository {
     });
     if (owner?.person && owner.person.documentNumber !== documentNumber) {
       throw new ApplicationFlowError("EMAIL_CONFLICT", "Este correo ya se encuentra asociado a una cuenta existente. Verifica el correo ingresado o utiliza otro correo para continuar.", 409);
+    }
+  }
+
+  /**
+   * Garantiza que el correo y el celular no estén registrados por otra
+   * postulación. La misma postulación (excluida por id) puede volver a guardar
+   * sus propios valores sin considerarse duplicado.
+   *
+   * Regla de negocio: `REJECTED` es la única excepción. Cualquier otra
+   * postulación (incluida COMPLETED) bloquea la reutilización.
+   */
+  private async assertContactUnique(
+    tx: Prisma.TransactionClient,
+    input: { email?: string | null; phone?: string | null; excludeApplicationId?: number },
+  ): Promise<void> {
+    const email = ContactUniquenessService.normalizeEmail(input.email);
+    const phone = ContactUniquenessService.normalizePhone(input.phone);
+    if (!email && !phone) return;
+
+    const existing = await tx.membershipApplication.findMany({
+      where: {
+        deletedAt: null,
+        status: { not: "REJECTED" },
+      },
+      select: { id: true, email: true, phone: true, status: true },
+    });
+
+    const conflict = ContactUniquenessService.detectConflict(
+      existing.filter((item) => ContactUniquenessService.blocksDuplicateReuse(item.status)),
+      {
+        email: input.email,
+        phone: input.phone,
+        excludeId: input.excludeApplicationId,
+      },
+    );
+
+    if (conflict.email) {
+      throw new ApplicationFlowError("DUPLICATE_EMAIL", "Este correo electrónico ya se encuentra registrado.", 409);
+    }
+    if (conflict.phone) {
+      throw new ApplicationFlowError("DUPLICATE_PHONE", "Este número de celular ya se encuentra registrado.", 409);
     }
   }
 

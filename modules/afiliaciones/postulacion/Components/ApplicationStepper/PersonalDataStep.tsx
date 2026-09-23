@@ -946,6 +946,26 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
           await onSave(form);
           onNext();
         } catch (error: any) {
+          if (error?.code === "DUPLICATE_EMAIL") {
+            setTouched((prev) => ({ ...prev, primaryEmail: true }));
+            setErrors((prev) => ({
+              ...prev,
+              primaryEmail:
+                error.message ||
+                "Este correo electrónico ya se encuentra registrado.",
+            }));
+            return;
+          }
+          if (error?.code === "DUPLICATE_PHONE") {
+            setTouched((prev) => ({ ...prev, phone: true }));
+            setErrors((prev) => ({
+              ...prev,
+              phone:
+                error.message ||
+                "Este número de celular ya se encuentra registrado.",
+            }));
+            return;
+          }
           setGlobalError(
             error.message ||
               "Ocurrió un error al subir los archivos a S3 o guardar los datos.",
