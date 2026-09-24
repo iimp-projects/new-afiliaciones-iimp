@@ -87,22 +87,106 @@ function UserAvatar({ user }: { user: any }) {
   );
 }
 
-function RowActions({ user, onEdit, onChangePassword, onConfirmAction }: { user: any; onEdit: (u: any) => void; onChangePassword: (u: any) => void; onConfirmAction: (actionData: any) => void }) {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) setIsMenuOpen(false);
-    };
-    if (isMenuOpen) document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isMenuOpen]);
-
+export function RowActionsMenu({
+  user,
+  onEdit,
+  onChangePassword,
+  onToggleStatus,
+  onRevokeSessions,
+  onDelete,
+}: {
+  user: any;
+  onEdit: () => void;
+  onChangePassword: () => void;
+  onToggleStatus: () => void;
+  onRevokeSessions: () => void;
+  onDelete: () => void;
+}) {
   const isActive = user.status === "ACTIVE";
 
+  return (
+    <div className="w-56 bg-white border border-slate-100 rounded-xl shadow-[0_10px_40px_-15px_rgba(0,0,0,0.2)] py-1.5 text-left">
+      <button onClick={onEdit} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-bold text-slate-600 hover:bg-slate-50 hover:text-[#C5A059] transition-colors outline-none">
+        <Edit size={15} /> Editar Datos
+      </button>
+      <button onClick={onChangePassword} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-bold text-amber-600 hover:bg-amber-50 transition-colors outline-none">
+        <KeyRound size={15} /> Cambiar Contraseña
+      </button>
+      <div className="h-px bg-slate-100 my-1 mx-2"></div>
+      <button onClick={onToggleStatus} className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-bold transition-colors outline-none ${isActive ? "text-slate-600 hover:bg-amber-50 hover:text-amber-600" : "text-slate-600 hover:bg-emerald-50 hover:text-emerald-600"}`}>
+        {isActive ? <><Lock size={15} /> Bloquear Acceso</> : <><Unlock size={15} /> Desbloquear Acceso</>}
+      </button>
+      {isActive && (
+        <button onClick={onRevokeSessions} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-bold text-slate-600 hover:bg-slate-100 transition-colors outline-none">
+          <LogOut size={15} /> Cerrar Sesiones
+        </button>
+      )}
+      <div className="h-px bg-slate-100 my-1 mx-2"></div>
+      <button onClick={onDelete} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-bold text-red-600 hover:bg-red-50 transition-colors outline-none">
+        <Trash2 size={15} /> Eliminar Usuario
+      </button>
+    </div>
+  );
+}
+
+const MENU_MARGIN = 8;
+
+function RowActions({ user, onEdit, onChangePassword, onConfirmAction }: { user: any; onEdit: (u: any) => void; onChangePassword: (u: any) => void; onConfirmAction: (actionData: any) => void }) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  const closeMenu = () => setIsMenuOpen(false);
+
+  // Posiciona el menú fuera del layout (portal) usando coordenadas del viewport,
+  // abriendo hacia arriba cuando no hay espacio suficiente abajo.
+  useEffect(() => {
+    if (!isMenuOpen) return;
+
+    const place = () => {
+      const btn = buttonRef.current;
+      const menu = menuRef.current;
+      if (!btn || !menu) return;
+
+      const rect = btn.getBoundingClientRect();
+      const menuWidth = menu.offsetWidth || 224;
+      const menuHeight = menu.offsetHeight || 280;
+
+      const openUp = rect.bottom + menuHeight + MENU_MARGIN > window.innerHeight;
+      const top = openUp ? rect.top - menuHeight - 4 : rect.bottom + 4;
+      let left = rect.right - menuWidth;
+      left = Math.max(MENU_MARGIN, Math.min(left, window.innerWidth - menuWidth - MENU_MARGIN));
+
+      setCoords({ top, left });
+    };
+
+    place();
+    window.addEventListener("resize", place);
+    window.addEventListener("scroll", place, true);
+    return () => {
+      window.removeEventListener("resize", place);
+      window.removeEventListener("scroll", place, true);
+    };
+  }, [isMenuOpen]);
+
+  // Cierra al hacer click fuera del botón o del menú.
+  useEffect(() => {
+    if (!isMenuOpen) return;
+
+    const handlePointerDown = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (menuRef.current?.contains(target)) return;
+      if (buttonRef.current?.contains(target)) return;
+      closeMenu();
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    return () => document.removeEventListener("mousedown", handlePointerDown);
+  }, [isMenuOpen]);
+
   const handleToggleStatus = () => {
-    setIsMenuOpen(false);
+    closeMenu();
     const isActivating = user.status !== "ACTIVE";
     onConfirmAction({
       title: isActivating ? "Desbloquear Usuario" : "Bloquear Usuario",
@@ -114,7 +198,7 @@ function RowActions({ user, onEdit, onChangePassword, onConfirmAction }: { user:
   };
 
   const handleDelete = () => {
-    setIsMenuOpen(false);
+    closeMenu();
     onConfirmAction({
       title: "Eliminar Usuario",
       message: `¿Estás completamente seguro de eliminar permanentemente al usuario ${user.person.firstName}? Esta acción es irreversible.`,
@@ -125,7 +209,7 @@ function RowActions({ user, onEdit, onChangePassword, onConfirmAction }: { user:
   };
 
   const handleRevokeSessions = () => {
-    setIsMenuOpen(false);
+    closeMenu();
     onConfirmAction({
       title: "Cerrar Sesiones",
       message: `¿Deseas cerrar remotamente todas las sesiones abiertas de ${user.person.firstName}? Tendrá que volver a iniciar sesión.`,
@@ -136,38 +220,43 @@ function RowActions({ user, onEdit, onChangePassword, onConfirmAction }: { user:
   };
 
   return (
-    <div ref={menuRef} className="relative inline-flex justify-end w-full">
+    <div className="inline-flex justify-end w-full">
       <button
+        ref={buttonRef}
         className="p-2 text-slate-300 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all outline-none"
-        onClick={() => setIsMenuOpen(!isMenuOpen)}
+        onClick={() => setIsMenuOpen((open) => !open)}
         title="Acciones"
+        aria-label="Acciones"
+        aria-haspopup="menu"
+        aria-expanded={isMenuOpen}
       >
         <MoreVertical size={18} />
       </button>
 
-      {isMenuOpen && (
-        <div className="absolute right-0 top-full mt-1 w-56 bg-white border border-slate-100 rounded-xl shadow-[0_10px_40px_-15px_rgba(0,0,0,0.2)] py-1.5 z-[100] animate-in fade-in zoom-in-95 text-left">
-          <button onClick={() => { setIsMenuOpen(false); onEdit(user); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-bold text-slate-600 hover:bg-slate-50 hover:text-[#C5A059] transition-colors outline-none">
-            <Edit size={15} /> Editar Datos
-          </button>
-          <button onClick={() => { setIsMenuOpen(false); onChangePassword(user); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-bold text-amber-600 hover:bg-amber-50 transition-colors outline-none">
-            <KeyRound size={15} /> Cambiar Contraseña
-          </button>
-          <div className="h-px bg-slate-100 my-1 mx-2"></div>
-          <button onClick={handleToggleStatus} className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-bold transition-colors outline-none ${isActive ? "text-slate-600 hover:bg-amber-50 hover:text-amber-600" : "text-slate-600 hover:bg-emerald-50 hover:text-emerald-600"}`}>
-            {isActive ? <><Lock size={15} /> Bloquear Acceso</> : <><Unlock size={15} /> Desbloquear Acceso</>}
-          </button>
-          {isActive && (
-            <button onClick={handleRevokeSessions} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-bold text-slate-600 hover:bg-slate-100 transition-colors outline-none">
-              <LogOut size={15} /> Cerrar Sesiones
-            </button>
-          )}
-          <div className="h-px bg-slate-100 my-1 mx-2"></div>
-          <button onClick={handleDelete} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-bold text-red-600 hover:bg-red-50 transition-colors outline-none">
-            <Trash2 size={15} /> Eliminar Usuario
-          </button>
-        </div>
-      )}
+      {isMenuOpen &&
+        createPortal(
+          <div
+            ref={menuRef}
+            style={{
+              position: "fixed",
+              top: coords?.top ?? 0,
+              left: coords?.left ?? 0,
+              visibility: coords ? "visible" : "hidden",
+            }}
+            className="z-[200]"
+            role="menu"
+          >
+            <RowActionsMenu
+              user={user}
+              onEdit={() => { closeMenu(); onEdit(user); }}
+              onChangePassword={() => { closeMenu(); onChangePassword(user); }}
+              onToggleStatus={handleToggleStatus}
+              onRevokeSessions={handleRevokeSessions}
+              onDelete={handleDelete}
+            />
+          </div>,
+          document.body
+        )}
     </div>
   );
 }

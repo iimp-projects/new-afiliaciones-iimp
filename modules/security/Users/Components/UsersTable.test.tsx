@@ -8,7 +8,7 @@ vi.mock("../Actions/user.actions", () => ({
   revokeUserSessionsAction: vi.fn(),
 }));
 
-import { UsersTable } from "./UsersTable";
+import { UsersTable, RowActionsMenu } from "./UsersTable";
 
 const activeUser = {
   id: 1,
@@ -55,5 +55,37 @@ describe("UsersTable", () => {
   it("renders an empty state when there are no users", () => {
     const html = renderToStaticMarkup(<UsersTable users={[]} roles={[]} onActionSuccess={vi.fn()} />);
     expect(html).toContain("No hay usuarios");
+  });
+
+  it("renders the actions trigger button for each row", () => {
+    const html = renderToStaticMarkup(<UsersTable users={[activeUser]} roles={[]} onActionSuccess={vi.fn()} />);
+    expect(html).toContain('aria-label="Acciones"');
+  });
+});
+
+describe("RowActionsMenu", () => {
+  const noop = vi.fn();
+
+  it("keeps all existing actions for an ACTIVE user", () => {
+    const html = renderToStaticMarkup(
+      <RowActionsMenu user={activeUser} onEdit={noop} onChangePassword={noop} onToggleStatus={noop} onRevokeSessions={noop} onDelete={noop} />,
+    );
+
+    expect(html).toContain("Editar Datos");
+    expect(html).toContain("Cambiar Contraseña");
+    expect(html).toContain("Bloquear Acceso");
+    expect(html).toContain("Cerrar Sesiones");
+    expect(html).toContain("Eliminar Usuario");
+  });
+
+  it("shows Desbloquear Acceso and hides Cerrar Sesiones for an INACTIVE user", () => {
+    const inactive = { ...activeUser, status: "INACTIVE" };
+    const html = renderToStaticMarkup(
+      <RowActionsMenu user={inactive} onEdit={noop} onChangePassword={noop} onToggleStatus={noop} onRevokeSessions={noop} onDelete={noop} />,
+    );
+
+    expect(html).toContain("Desbloquear Acceso");
+    expect(html).not.toContain("Bloquear Acceso");
+    expect(html).not.toContain("Cerrar Sesiones");
   });
 });
