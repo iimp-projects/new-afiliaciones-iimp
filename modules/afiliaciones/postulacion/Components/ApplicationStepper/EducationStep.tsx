@@ -433,7 +433,7 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
               {/* Años (Común, pero adaptado visualmente) */}
               <div>
                 <label className="text-xs font-bold text-slate-700 mb-1.5 block uppercase tracking-wide">
-                    Año de Ingreso <FieldHelp title="Año de ingreso" description="Año en que inició sus estudios." /> {isStudent && <span className="text-red-500">*</span>}
+                    Año de Ingreso <FieldHelp title="Año de ingreso" description="Año en que inició sus estudios." /> <span className="text-red-500">*</span>
                 </label>
                 <input type="text" placeholder="YYYY" value={form.admissionYear ?? ""} onChange={(e) => updateField("admissionYear", e.target.value as any)} onBlur={() => handleBlur("admissionYear")} className={getInputClass("admissionYear")} />
                 {getErrorText("admissionYear")}
@@ -441,7 +441,7 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
 
               {!isStudent && (
                 <div>
-                  <label className="text-xs font-bold text-slate-700 mb-1.5 block uppercase tracking-wide">Año de Egreso<FieldHelp title="Año de egreso" description="Año en que culminó o egresó de la institución." /></label>
+                  <label className="text-xs font-bold text-slate-700 mb-1.5 block uppercase tracking-wide">Año de Egreso<FieldHelp title="Año de egreso" description="Año en que culminó o egresó de la institución." /> <span className="text-red-500">*</span></label>
                   <input type="text" placeholder="YYYY" value={form.graduationYear ?? ""} onChange={(e) => updateField("graduationYear", e.target.value as any)} onBlur={() => handleBlur("graduationYear")} className={getInputClass("graduationYear")} />
                   {getErrorText("graduationYear")}
                 </div>

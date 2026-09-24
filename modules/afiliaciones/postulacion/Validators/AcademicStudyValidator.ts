@@ -52,6 +52,14 @@ export class AcademicStudyValidator extends BaseValidator {
             ValidationRules.minLength(data.specialty, 4, "specialty", this, "MIN", "Mínimo 4 caracteres.");
             ValidationRules.maxLength(data.specialty, 150, "specialty", this, "MAX", "Máximo 150 caracteres.");
         }
+
+        // Año de ingreso y año de egreso son obligatorios para Asociado Activo.
+        if (data.admissionYear === undefined || data.admissionYear === null) {
+            this.addError("admissionYear", "REQ", "El año de ingreso es obligatorio.");
+        }
+        if (data.graduationYear === undefined || data.graduationYear === null) {
+            this.addError("graduationYear", "REQ", "El año de egreso es obligatorio.");
+        }
     }
 
     private validateProfessionalInformation(data: AcademicStudy, membershipType: MembershipType): void {
