@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { checkLockStatus } from "../action"; // Importamos la nueva función
+import { resolveCredentialsLogin } from "../submit-login";
 
 export function useLogin() {
   const [email, setEmail] = useState("");
@@ -12,45 +13,38 @@ export function useLogin() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+  const submittingRef = useRef(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setError("");
     setIsLoading(true);
 
-    try {
-      // 1. Verificamos si la cuenta YA está bloqueada antes de tocar NextAuth
-      const preCheck = await checkLockStatus(email);
-      if (preCheck.locked) {
-        setError(preCheck.message!);
-        setIsLoading(false);
-        return;
-      }
+    const result = await resolveCredentialsLogin(
+      { email, password },
+      {
+        checkLockStatus,
+        signIn: (options) =>
+          signIn("credentials", {
+            email: options.email,
+            password: options.password,
+            redirect: false,
+          }),
+      },
+    );
 
-      // 2. Intentamos iniciar sesión
-      const res = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      });
-
-      if (res?.error) {
-        // 3. Si falló, verificamos si ESTE último intento acaba de bloquear la cuenta
-        const postCheck = await checkLockStatus(email);
-        if (postCheck.locked) {
-          setError(postCheck.message!);
-        } else {
-          setError("Correo o contraseña incorrectos. Por favor, intenta de nuevo.");
-        }
-      } else {
-        router.push("/intranet");
-        router.refresh();
-      }
-    } catch (err) {
-      setError("Ocurrió un error inesperado al conectar con el servidor.");
-    } finally {
-      setIsLoading(false);
+    if (result.keepLoading) {
+      // Éxito: mantenemos el estado de carga hasta que la navegación
+      // saque al usuario de /login. No restaurar isLoading aquí.
+      router.replace("/intranet");
+      return;
     }
+
+    setError(result.errorMessage ?? "");
+    setIsLoading(false);
+    submittingRef.current = false;
   };
 
   const handleSocialLogin = (provider: string) => {
