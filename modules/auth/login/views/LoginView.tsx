@@ -1,7 +1,6 @@
 import { LoginHero } from "../components/LoginHero";
 import { LoginHeader } from "../components/LoginHeader";
 import { LoginForm } from "../components/LoginForm";
-import { LoginSocialButtons } from "../components/LoginSocialButtons";
 import { LoginFooter } from "../components/LoginFooter";
 
 export function LoginView() {
@@ -15,7 +14,6 @@ export function LoginView() {
         <div className="w-full max-w-[420px] px-6 relative z-10">
           <LoginHeader />
           <LoginForm />
-          <LoginSocialButtons />
           <LoginFooter />
         </div>
       </section>
