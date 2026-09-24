@@ -3,35 +3,10 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
-import { MoreVertical, Shield, Activity, Lock, Unlock, Edit, Trash2, LogOut, KeyRound, AlertTriangle } from "lucide-react";
-import { toggleUserStatusAction, deleteUserAction, revokeUserSessionsAction } from "../Actions/user.actions";
+import { MoreVertical, Shield, Activity, Lock, Unlock, Edit, Trash2, LogOut, KeyRound, AlertTriangle, X } from "lucide-react";
+import { toggleUserStatusAction, deleteUserAction, revokeUserSessionsAction, bulkBlockUsersAction, bulkUnblockUsersAction, bulkRevokeSessionsAction, bulkDeleteUsersAction } from "../Actions/user.actions";
 import { EditUserModal } from "./EditUserModal";
 import { ChangePasswordModal } from "./ChangePasswordModal";
-
-const getRoleBadgeColor = (slug?: string) => {
-  if (!slug) return "text-slate-500 bg-slate-100 border-slate-200";
-  switch (slug) {
-    case "SUPER_ADMIN": return "text-purple-700 bg-purple-50 border-purple-200";
-    case "SYSTEM_ADMIN": return "text-indigo-700 bg-indigo-50 border-indigo-200";
-    case "GERENCIA_GENERAL":
-    case "SECRETARIA_GENERAL": return "text-blue-700 bg-blue-50 border-blue-200";
-    case "COMITE_EVALUADOR":
-    case "VALIDADOR": return "text-cyan-700 bg-cyan-50 border-cyan-200";
-    case "LOGISTICA":
-    case "OPERACIONES": return "text-orange-700 bg-orange-50 border-orange-200";
-    case "TESORERIA":
-    case "CONTABILIDAD":
-    case "CAJA": return "text-emerald-700 bg-emerald-50 border-emerald-200";
-    case "LEGAL": return "text-rose-700 bg-rose-50 border-rose-200";
-    case "COMUNICACIONES":
-    case "ATENCION_ASOCIADO": return "text-pink-700 bg-pink-50 border-pink-200";
-    case "MESA_PARTES": return "text-amber-700 bg-amber-50 border-amber-200";
-    case "ASOCIADO_ACTIVO":
-    case "ASOCIADO_ESTUDIANTE": return "text-[#C5A059] bg-[#C5A059]/10 border-[#E8D09E]";
-    case "POSTULANTE": return "text-slate-600 bg-slate-100 border-slate-300";
-    default: return "text-slate-600 bg-slate-50 border-slate-200";
-  }
-};
 
 function getProfileLabel(type?: string) {
   switch (type) {
@@ -266,6 +241,26 @@ export function UsersTable({ users, roles, onActionSuccess }: { users: any[]; ro
   const [changingPasswordUser, setChangingPasswordUser] = useState<any | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<any | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+
+  const allVisibleSelected = users.length > 0 && users.every((user) => selectedIds.has(user.id));
+  const someSelected = selectedIds.size > 0 && !allVisibleSelected;
+  const selectedCount = selectedIds.size;
+
+  const toggleRow = (id: number) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    setSelectedIds(allVisibleSelected ? new Set() : new Set(users.map((user) => user.id)));
+  };
+
+  const clearSelection = () => setSelectedIds(new Set());
 
   const executeConfirmAction = async () => {
     setIsProcessing(true);
@@ -273,6 +268,7 @@ export function UsersTable({ users, roles, onActionSuccess }: { users: any[]; ro
       const res = await confirmDialog.action();
       if (res.success) {
         toast.success(res.message);
+        clearSelection();
         onActionSuccess();
       } else {
         toast.error(res.message);
@@ -284,6 +280,44 @@ export function UsersTable({ users, roles, onActionSuccess }: { users: any[]; ro
       setConfirmDialog(null);
     }
   };
+
+  const plural = (n: number) => (n === 1 ? "" : "s");
+
+  const requestBulk = (payload: { title: string; message: string; confirmText: string; isDanger: boolean; action: () => Promise<any> }) => {
+    setConfirmDialog(payload);
+  };
+
+  const confirmBulkBlock = () => requestBulk({
+    title: "Bloquear usuarios",
+    message: `Se bloqueará el acceso de ${selectedCount} usuario${plural(selectedCount)} seleccionado${plural(selectedCount)}. Estos usuarios no podrán iniciar sesión hasta que sean desbloqueados.`,
+    confirmText: "Bloquear usuarios",
+    isDanger: true,
+    action: async () => await bulkBlockUsersAction([...selectedIds]),
+  });
+
+  const confirmBulkUnblock = () => requestBulk({
+    title: "Desbloquear usuarios",
+    message: `Se habilitará nuevamente el acceso de ${selectedCount} usuario${plural(selectedCount)} seleccionado${plural(selectedCount)}.`,
+    confirmText: "Desbloquear usuarios",
+    isDanger: false,
+    action: async () => await bulkUnblockUsersAction([...selectedIds]),
+  });
+
+  const confirmBulkRevoke = () => requestBulk({
+    title: "Cerrar sesiones activas",
+    message: `Se cerrarán las sesiones activas de ${selectedCount} usuario${plural(selectedCount)}. Deberán volver a iniciar sesión.`,
+    confirmText: "Cerrar sesiones",
+    isDanger: false,
+    action: async () => await bulkRevokeSessionsAction([...selectedIds]),
+  });
+
+  const confirmBulkDelete = () => requestBulk({
+    title: "Eliminar usuarios",
+    message: `Esta acción eliminará ${selectedCount} usuario${plural(selectedCount)} seleccionado${plural(selectedCount)}. Verifica la selección antes de continuar.`,
+    confirmText: "Eliminar usuarios",
+    isDanger: true,
+    action: async () => await bulkDeleteUsersAction([...selectedIds]),
+  });
 
   if (users.length === 0) {
     return (
@@ -301,24 +335,69 @@ export function UsersTable({ users, roles, onActionSuccess }: { users: any[]; ro
 
   return (
     <>
+      {selectedCount > 0 && (
+        <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 shadow-sm">
+          <span className="text-sm font-bold text-slate-700">
+            {selectedCount} usuario{plural(selectedCount)} seleccionado{plural(selectedCount)}
+          </span>
+          <div className="ml-auto flex flex-wrap items-center gap-2">
+            <button onClick={confirmBulkBlock} className="inline-flex items-center gap-1.5 px-3 h-8 rounded-lg border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 text-xs font-bold transition-colors">
+              <Lock size={14} /> Bloquear
+            </button>
+            <button onClick={confirmBulkUnblock} className="inline-flex items-center gap-1.5 px-3 h-8 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 text-xs font-bold transition-colors">
+              <Unlock size={14} /> Desbloquear
+            </button>
+            <button onClick={confirmBulkRevoke} className="inline-flex items-center gap-1.5 px-3 h-8 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 text-xs font-bold transition-colors">
+              <LogOut size={14} /> Cerrar sesiones
+            </button>
+            <button onClick={confirmBulkDelete} className="inline-flex items-center gap-1.5 px-3 h-8 rounded-lg border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 text-xs font-bold transition-colors">
+              <Trash2 size={14} /> Eliminar
+            </button>
+            <button onClick={clearSelection} className="inline-flex items-center gap-1.5 px-3 h-8 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700 text-xs font-bold transition-colors">
+              <X size={14} /> Deseleccionar
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[1080px]">
+          <table className="w-full text-left border-collapse min-w-[1120px]">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50/80">
-                <th className="px-6 py-3.5 text-[10px] font-black uppercase tracking-widest text-slate-400">Usuario</th>
-                <th className="px-6 py-3.5 text-[10px] font-black uppercase tracking-widest text-slate-400">Documento</th>
-                <th className="px-6 py-3.5 text-[10px] font-black uppercase tracking-widest text-slate-400">Correo</th>
-                <th className="px-6 py-3.5 text-[10px] font-black uppercase tracking-widest text-slate-400">Rol / Perfil</th>
-                <th className="px-6 py-3.5 text-[10px] font-black uppercase tracking-widest text-slate-400">Estado</th>
-                <th className="px-6 py-3.5 text-[10px] font-black uppercase tracking-widest text-slate-400">Fecha de Registro</th>
-                <th className="px-6 py-3.5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Acciones</th>
+                <th className="w-10 px-3 py-3.5 text-center">
+                  <input
+                    type="checkbox"
+                    checked={allVisibleSelected}
+                    ref={(el) => { if (el) el.indeterminate = someSelected; }}
+                    onChange={toggleAll}
+                    aria-label="Seleccionar todos los usuarios visibles"
+                    className="h-4 w-4 cursor-pointer accent-[#C5A059]"
+                  />
+                </th>
+                <th className="px-4 py-3.5 text-[10px] font-black uppercase tracking-widest text-slate-400">Usuario</th>
+                <th className="px-4 py-3.5 text-[10px] font-black uppercase tracking-widest text-slate-400">Documento</th>
+                <th className="px-4 py-3.5 text-[10px] font-black uppercase tracking-widest text-slate-400">Correo</th>
+                <th className="px-4 py-3.5 text-[10px] font-black uppercase tracking-widest text-slate-400">Rol / Perfil</th>
+                <th className="px-4 py-3.5 text-[10px] font-black uppercase tracking-widest text-slate-400">Estado</th>
+                <th className="px-4 py-3.5 text-[10px] font-black uppercase tracking-widest text-slate-400">Fecha de Registro</th>
+                <th className="px-4 py-3.5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {users.map((user) => (
                 <tr key={user.id} className="hover:bg-[#fdfaf5]/60 transition-colors group">
-                  <td className="px-6 py-4">
+                  <td className="px-3 py-4 text-center" onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(user.id)}
+                      onChange={() => toggleRow(user.id)}
+                      aria-label={`Seleccionar usuario ${user.person.firstName} ${user.person.paternalLastName}`}
+                      className="h-4 w-4 cursor-pointer accent-[#C5A059]"
+                    />
+                  </td>
+
+                  <td className="px-4 py-4">
                     <div className="flex items-center gap-3">
                       <UserAvatar user={user} />
                       <span className="font-bold text-slate-800 text-[13px] capitalize" title={`${user.person.firstName} ${user.person.paternalLastName} ${user.person.maternalLastName || ""}`.trim()}>
@@ -327,38 +406,36 @@ export function UsersTable({ users, roles, onActionSuccess }: { users: any[]; ro
                     </div>
                   </td>
 
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-4">
                     <div className="flex flex-col">
                       <span className="text-[10px] font-black text-[#C5A059] uppercase tracking-wider mb-0.5">{user.person.documentType}</span>
                       <span className="font-bold text-slate-700 text-[13px] font-mono">{user.person.documentNumber}</span>
                     </div>
                   </td>
 
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-4">
                     <span className="text-[13px] font-semibold text-slate-600 truncate block max-w-[220px]" title={user.email}>{user.email}</span>
                   </td>
 
-                  <td className="px-6 py-4">
-                    <div className="flex flex-col items-start gap-1">
-                      <span className={`text-[9px] px-2 py-0.5 rounded-md font-extrabold tracking-widest uppercase border ${getRoleBadgeColor(user.role?.slug)}`}>
-                        {user.role?.name || "Sin Rol"}
-                      </span>
-                      <span className="text-[11px] font-bold text-slate-500">{getProfileLabel(user.type)}</span>
+                  <td className="px-4 py-4">
+                    <div className="flex flex-col items-start gap-0.5">
+                      <span className="text-[13px] font-semibold text-slate-700">{user.role?.name || "Sin Rol"}</span>
+                      <span className="text-[11px] font-medium text-slate-400">{getProfileLabel(user.type)}</span>
                     </div>
                   </td>
 
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-4">
                     <StatusBadge status={user.status} />
                   </td>
 
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-4">
                     <span className="flex items-center gap-1.5 text-[12px] font-semibold text-slate-500 whitespace-nowrap">
                       <Activity size={13} className="text-slate-300" />
                       {new Date(user.createdAt).toLocaleDateString("es-PE")}
                     </span>
                   </td>
 
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-4">
                     <RowActions user={user} onEdit={setEditingUser} onChangePassword={setChangingPasswordUser} onConfirmAction={setConfirmDialog} />
                   </td>
                 </tr>

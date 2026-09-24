@@ -6,6 +6,10 @@ vi.mock("../Actions/user.actions", () => ({
   toggleUserStatusAction: vi.fn(),
   deleteUserAction: vi.fn(),
   revokeUserSessionsAction: vi.fn(),
+  bulkBlockUsersAction: vi.fn(),
+  bulkUnblockUsersAction: vi.fn(),
+  bulkRevokeSessionsAction: vi.fn(),
+  bulkDeleteUsersAction: vi.fn(),
 }));
 
 import { UsersTable, RowActionsMenu } from "./UsersTable";
@@ -60,6 +64,26 @@ describe("UsersTable", () => {
   it("renders the actions trigger button for each row", () => {
     const html = renderToStaticMarkup(<UsersTable users={[activeUser]} roles={[]} onActionSuccess={vi.fn()} />);
     expect(html).toContain('aria-label="Acciones"');
+  });
+
+  it("renders a master checkbox and a per-row checkbox", () => {
+    const html = renderToStaticMarkup(<UsersTable users={[activeUser]} roles={[]} onActionSuccess={vi.fn()} />);
+
+    expect(html).toContain('aria-label="Seleccionar todos los usuarios visibles"');
+    expect(html).toContain('aria-label="Seleccionar usuario Ana Pérez"');
+  });
+
+  it("does not render the bulk toolbar when nothing is selected", () => {
+    const html = renderToStaticMarkup(<UsersTable users={[activeUser]} roles={[]} onActionSuccess={vi.fn()} />);
+    expect(html).not.toContain("seleccionado");
+  });
+
+  it("renders role as plain text without decorative badge styling", () => {
+    const html = renderToStaticMarkup(<UsersTable users={[activeUser]} roles={[]} onActionSuccess={vi.fn()} />);
+
+    expect(html).toContain("Revisor de Área");
+    expect(html).not.toContain("rounded-md");
+    expect(html).not.toContain("bg-cyan-50");
   });
 });
 

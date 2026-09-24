@@ -135,3 +135,53 @@ export async function changeUserPasswordAction(userId: number, newPasswordPlain:
     return { success: false, message: "No se pudo actualizar la contraseña." };
   }
 }
+
+// 7. ACCIONES MASIVAS (BULK)
+
+export async function bulkBlockUsersAction(userIds: number[]) {
+  try {
+    const operator = await contextService.requirePermission("update", "users");
+    const service = new UserService();
+    const result = await service.bulkBlockUsers(userIds, operator.id);
+    revalidatePath("/intranet/security/users");
+    return { success: true, ...result };
+  } catch (error: any) {
+    return { success: false, message: "No se pudo bloquear a los usuarios." };
+  }
+}
+
+export async function bulkUnblockUsersAction(userIds: number[]) {
+  try {
+    const operator = await contextService.requirePermission("update", "users");
+    const service = new UserService();
+    const result = await service.bulkUnblockUsers(userIds, operator.id);
+    revalidatePath("/intranet/security/users");
+    return { success: true, ...result };
+  } catch (error: any) {
+    return { success: false, message: "No se pudo desbloquear a los usuarios." };
+  }
+}
+
+export async function bulkRevokeSessionsAction(userIds: number[]) {
+  try {
+    const operator = await contextService.requirePermission("update", "users");
+    const service = new UserService();
+    const result = await service.bulkRevokeSessions(userIds, operator.id);
+    revalidatePath("/intranet/security/users");
+    return { success: true, ...result };
+  } catch (error: any) {
+    return { success: false, message: "No se pudieron cerrar las sesiones." };
+  }
+}
+
+export async function bulkDeleteUsersAction(userIds: number[]) {
+  try {
+    const operator = await contextService.requirePermission("delete", "users");
+    const service = new UserService();
+    const result = await service.bulkDeleteUsers(userIds, operator.id);
+    revalidatePath("/intranet/security/users");
+    return { success: true, ...result };
+  } catch (error: any) {
+    return { success: false, message: "No se pudieron eliminar los usuarios." };
+  }
+}

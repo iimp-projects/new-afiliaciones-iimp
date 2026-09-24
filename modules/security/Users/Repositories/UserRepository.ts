@@ -226,4 +226,57 @@ export class UserRepository {
       },
     });
   }
+
+  async setUsersStatus(ids: number[], status: UserStatus): Promise<number[]> {
+    if (ids.length === 0) return [];
+
+    return prisma.$transaction(async (tx) => {
+      const users = await tx.user.findMany({
+        where: { id: { in: ids }, deletedAt: null },
+        select: { id: true },
+      });
+      const processedIds = users.map((user) => user.id);
+      if (processedIds.length === 0) return [];
+
+      await tx.user.updateMany({
+        where: { id: { in: processedIds } },
+        data: { status },
+      });
+
+      if (status === UserStatus.INACTIVE) {
+        const revokedAt = new Date();
+        await tx.userSession.updateMany({
+          where: { userId: { in: processedIds }, isRevoked: false },
+          data: { isRevoked: true, revokedAt, revokeReason: "Usuario desactivado por un administrador." },
+        });
+      }
+
+      return processedIds;
+    });
+  }
+
+  async softDeleteUsers(ids: number[]): Promise<number[]> {
+    if (ids.length === 0) return [];
+
+    return prisma.$transaction(async (tx) => {
+      const users = await tx.user.findMany({
+        where: { id: { in: ids }, deletedAt: null },
+        select: { id: true },
+      });
+      const processedIds = users.map((user) => user.id);
+      if (processedIds.length === 0) return [];
+
+      const deletedAt = new Date();
+      await tx.user.updateMany({
+        where: { id: { in: processedIds } },
+        data: { deletedAt, status: UserStatus.INACTIVE },
+      });
+      await tx.userSession.updateMany({
+        where: { userId: { in: processedIds }, isRevoked: false },
+        data: { isRevoked: true, revokedAt: deletedAt, revokeReason: "Usuario eliminado por un administrador." },
+      });
+
+      return processedIds;
+    });
+  }
 }
