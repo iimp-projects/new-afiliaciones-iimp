@@ -1,7 +1,7 @@
 import { ApplicationStatus, Prisma, ValidationStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { Application } from "../Entities/Application";
-import { IApplicationRepository } from "./Interfaces/IApplicationRepository";
+import { IApplicationRepository, SwornDeclarationDocument } from "./Interfaces/IApplicationRepository";
 import { UpdateDraftDTO } from "../DTOs/update-draft.dto";
 import { ApplicationDraft } from "../Models/ApplicationDraft";
 import { blocksNewApplication, canEditApplication, canSubmitApplication, currentApplicationStates } from "../Models/ApplicationAction";
@@ -200,6 +200,22 @@ export class ApplicationRepository implements IApplicationRepository {
 
       return await this.completeApplication(tx, application, personId);
     });
+  }
+
+  async findSwornDeclaration(applicationId: number): Promise<SwornDeclarationDocument | null> {
+    const document = await this.db.applicationDocument.findFirst({
+      where: { applicationId, category: "SWORN_DECLARATION" },
+      select: { id: true, applicationId: true, category: true, fileUrl: true },
+    });
+
+    if (!document) return null;
+
+    return {
+      id: document.id,
+      applicationId: document.applicationId,
+      category: document.category,
+      fileUrl: document.fileUrl,
+    };
   }
 
   // =================================================================

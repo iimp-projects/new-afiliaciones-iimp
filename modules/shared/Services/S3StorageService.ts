@@ -136,6 +136,48 @@ export class S3StorageService {
   }
 
   /**
+   * Descarga el contenido de un objeto privado como `Buffer`.
+   * El acceso sigue siendo explícito: la clave se valida contra los prefijos
+   * (o claves exactas) autorizados antes de leer el objeto.
+   */
+  public async getObjectBuffer(
+    fileUrl: string,
+    allowedPrefixes: readonly string[],
+    allowedKeys: readonly string[] = [],
+  ): Promise<Buffer> {
+    try {
+      const key = this.getObjectKey(fileUrl);
+      if (!isObjectKeyAllowed(key, allowedPrefixes, allowedKeys)) {
+        throw new Error("No tiene acceso a este archivo.");
+      }
+
+      const command = new GetObjectCommand({ Bucket: this.bucket, Key: key });
+      const response = await this.client.send(command);
+      return await this.bodyToBuffer(response.Body);
+    } catch (error) {
+      console.error("[S3StorageService] Error descargando objeto:", error);
+      throw error instanceof Error ? error : new Error("No se pudo descargar el documento desde S3.");
+    }
+  }
+
+  private async bodyToBuffer(body: unknown): Promise<Buffer> {
+    if (!body) throw new Error("El documento no tiene contenido.");
+
+    const stream = body as {
+      transformToByteArray?: () => Promise<Uint8Array>;
+    };
+    if (typeof stream.transformToByteArray === "function") {
+      return Buffer.from(await stream.transformToByteArray());
+    }
+
+    const chunks: Buffer[] = [];
+    for await (const chunk of body as AsyncIterable<Uint8Array | string>) {
+      chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : Buffer.from(chunk));
+    }
+    return Buffer.concat(chunks);
+  }
+
+  /**
    * Firma una imagen de perfil. A diferencia de los documentos de expediente,
    * el avatar es opcional: ante una clave no autorizada o un error de firma
    * devuelve `null` para que la UI use su fallback (iniciales) sin romper la

@@ -1,6 +1,13 @@
 import { Application } from "../../Entities/Application";
 import { UpdateDraftDTO } from "../../DTOs/update-draft.dto";
 
+export interface SwornDeclarationDocument {
+  id: string;
+  applicationId: number;
+  category: string;
+  fileUrl: string;
+}
+
 /**
  * Contrato del repositorio de postulaciones.
  *
@@ -35,4 +42,6 @@ export interface IApplicationRepository {
   updateDraft(trackingCode: string, dto: UpdateDraftDTO, expectedStatus?: string): Promise<Application>;
 
   submitApplication(trackingCode: string): Promise<Application>;
+
+  findSwornDeclaration(applicationId: number): Promise<SwornDeclarationDocument | null>;
 }

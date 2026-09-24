@@ -5,7 +5,7 @@ import { ApplicationValidator } from "../Validators/ApplicationValidator";
 import { ValidationException } from "./Exceptions/ValidationException";
 import { NotifySponsorsService } from "./NotifySponsorsService";
 import { NotifyApplicantService } from "./NotifyApplicantService";
-import { DeclarationPdfService } from "./DeclarationPdfService";
+import { S3StorageService } from "@/modules/shared/Services/S3StorageService";
 import { ApplicationAccessService } from "./ApplicationAccessService";
 import { ApplicationFlowError } from "./Exceptions/ApplicationFlowError";
 import { canSubmitApplication } from "../Models/ApplicationAction";
@@ -13,7 +13,6 @@ import { canSubmitApplication } from "../Models/ApplicationAction";
 export class SubmitApplicationService {
   private readonly notifyService = new NotifySponsorsService();
   private readonly notifyApplicantService = new NotifyApplicantService();
-  private readonly declarationPdfService = new DeclarationPdfService();
 
   constructor(
     private readonly repository: IApplicationRepository,
@@ -28,27 +27,39 @@ export class SubmitApplicationService {
     const draft = this.getDraft(application);
     this.validateDraft(draft);
 
-    // 1. Guardar en BD
+    // 1. Guardar en BD (commit de la postulación y persistencia de documentos).
     const submittedApplication =
       await this.repository.submitApplication(trackingCode);
 
-    // 2. Generar el PDF en memoria en un scope global a la función
-    let pdfBuffer: Buffer | undefined;
+    // 2. Recuperar la Declaración Jurada FIRMADA (una sola vez por submit).
+    //    La fuente es ApplicationDocument(category = SWORN_DECLARATION); NO se
+    //    regenera el PDF con DeclarationPdfService.
+    let signedDeclarationBuffer: Buffer | undefined;
     try {
-      const pdfUint8Array = await this.declarationPdfService.generate(draft, { allowedApplicationIds: [Number(application.id)] });
-      pdfBuffer = Buffer.from(pdfUint8Array);
-    } catch (pdfError) {
-      console.error("[SubmitApplicationService] Error generando PDF:", pdfError);
+      const signedDocument = await this.repository.findSwornDeclaration(Number(submittedApplication.id));
+      if (
+        signedDocument
+        && signedDocument.applicationId === Number(submittedApplication.id)
+        && signedDocument.category === "SWORN_DECLARATION"
+      ) {
+        const s3StorageService = new S3StorageService();
+        signedDeclarationBuffer = await s3StorageService.getObjectBuffer(
+          signedDocument.fileUrl,
+          [`afiliaciones/applications/${submittedApplication.id}`],
+        );
+      }
+    } catch (signedDownloadError) {
+      console.error("[SubmitApplicationService] No se pudo recuperar la Declaración Jurada firmada:", signedDownloadError);
     }
 
-    // 3. Notificar al postulante con el PDF
+    // 3. Notificar al postulante con la declaración firmada (si está disponible).
     try {
-      await this.notifyApplicantService.execute(submittedApplication, draft, pdfBuffer);
+      await this.notifyApplicantService.execute(submittedApplication, draft, signedDeclarationBuffer);
     } catch (applicantMailError) {
       console.error("[SubmitApplicationService] Error enviando correo al postulante:", applicantMailError);
     }
 
-    // 4. Enviar notificaciones a los avales pasando TAMBIÉN el pdfBuffer
+    // 4. Notificar a los avales con la MISMA declaración firmada.
     const isActiveMember = 
       draft.membershipType === "ACTIVE" || 
       (draft as any)?.affiliateType === "ACTIVE" ||
@@ -56,7 +67,7 @@ export class SubmitApplicationService {
 
     if (isActiveMember) {
       try {
-        await this.notifyService.execute(submittedApplication, draft, pdfBuffer);
+        await this.notifyService.execute(submittedApplication, draft, signedDeclarationBuffer);
       } catch (sponsorsMailError) {
         console.error("[SubmitApplicationService] Error enviando correo a los avales:", sponsorsMailError);
       }

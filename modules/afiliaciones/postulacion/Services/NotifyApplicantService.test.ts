@@ -52,4 +52,23 @@ describe("NotifyApplicantService — no expone el código de seguimiento", () =>
     expect(html).not.toContain("Código de Seguimiento");
     expect(html).toContain("Consultar Estado de Solicitud");
   });
+
+  it("adjunta exactamente el buffer firmado recibido (no lo regenera)", async () => {
+    const signedBuffer = Buffer.from("SIGNED_DECLARATION");
+    await new NotifyApplicantService().execute(application as never, draft as never, signedBuffer);
+
+    const { attachments, html } = sendMail.mock.calls[0][0];
+    expect(attachments).toHaveLength(1);
+    expect(attachments[0].content.toString()).toBe("SIGNED_DECLARATION");
+    expect(attachments[0].contentType).toBe("application/pdf");
+    expect(attachments[0].filename).toContain("Firmada");
+    expect(html).toContain("Declaración Jurada firmada");
+  });
+
+  it("envía el correo sin adjunto cuando no hay buffer firmado", async () => {
+    await new NotifyApplicantService().execute(application as never, draft as never);
+
+    const { attachments } = sendMail.mock.calls[0][0];
+    expect(attachments).toEqual([]);
+  });
 });

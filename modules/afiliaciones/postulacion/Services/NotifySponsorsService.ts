@@ -10,11 +10,11 @@ export class NotifySponsorsService {
   private readonly mailService = new MailService();
   private readonly declarationPdfService = new DeclarationPdfService();
 
-  // 1. Método execute (Modificado para autoregenerar PDF si no viene por parámetro)
+  // 1. Método execute (adjunta la Declaración Jurada firmada recibida por parámetro)
   async execute(
     application: Application,
     draft: ApplicationDraft,
-    pdfBuffer?: Buffer
+    signedDeclarationBuffer?: Buffer
   ): Promise<void> {
     const sponsors = await prisma.membershipApproval.findMany({
       where: { applicationId: Number(application.id), status: { not: "INACTIVE" } },
@@ -32,20 +32,17 @@ export class NotifySponsorsService {
       ? `${personal.names || ""} ${personal.fatherLastName || ""} ${personal.motherLastName || ""}`.trim()
       : "el postulante";
 
-    // Garantizar que siempre haya un buffer de PDF
-    let finalPdfBuffer = pdfBuffer;
-    if (!finalPdfBuffer) {
-      const generatedUint8Array = await this.declarationPdfService.generate(draft, { allowedApplicationIds: [Number(application.id)] });
-      finalPdfBuffer = Buffer.from(generatedUint8Array);
-    }
-
-    const attachments = [
-      {
-        filename: "Declaracion_Jurada_Postulante.pdf",
-        content: finalPdfBuffer,
-        contentType: "application/pdf",
-      },
-    ];
+    // La fuente del adjunto es la Declaración Jurada firmada persistida (SWORN_DECLARATION).
+    // No se regenera un PDF: si no existe, el correo se envía sin adjunto.
+    const attachments = signedDeclarationBuffer
+      ? [
+        {
+          filename: "Declaracion_Jurada_Firmada_Postulante.pdf",
+          content: signedDeclarationBuffer,
+          contentType: "application/pdf",
+        },
+      ]
+      : [];
 
     const logoUrl =
       "https://s3-iimp-gestor-de-archivos-v3.s3.sa-east-1.amazonaws.com/boletines/images/IMG20260817_120138.png";

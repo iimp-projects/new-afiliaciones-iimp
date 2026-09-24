@@ -9,7 +9,7 @@ export class NotifyApplicantService {
   async execute(
     application: Application,
     draft: ApplicationDraft,
-    pdfBuffer?: Buffer
+    signedDeclarationBuffer?: Buffer
   ): Promise<void> {
     // ✅ Corregido: Ahora busca 'primaryEmail' de acuerdo a tu JSON
     const personal = (draft as any)?.personalInformation;
@@ -71,7 +71,7 @@ export class NotifyApplicantService {
               <a href="${trackingUrl}" class="btn">Consultar Estado de Solicitud →</a>
             </div>
 
-            <p style="font-size: 12px; color: #64748B; text-align: center;">Adjunto a este correo encontrará el archivo PDF con su Declaración Jurada y Ficha Oficial registrada.</p>
+            <p style="font-size: 12px; color: #64748B; text-align: center;">Adjunto a este correo encontrará su Declaración Jurada firmada registrada en el sistema.</p>
           </div>
 
           <div class="footer">
@@ -87,11 +87,11 @@ export class NotifyApplicantService {
       </html>
     `;
 
-    const attachments = pdfBuffer
+    const attachments = signedDeclarationBuffer
       ? [
         {
-          filename: "Declaracion_Jurada_IIMP.pdf",
-          content: pdfBuffer,
+          filename: "Declaracion_Jurada_Firmada_IIMP.pdf",
+          content: signedDeclarationBuffer,
           contentType: "application/pdf",
         },
       ]
