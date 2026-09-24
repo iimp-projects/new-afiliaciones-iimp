@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import { Plus, Download } from "lucide-react";
 import { NavigationHeaderIcon } from "@/modules/layout/Components/NavigationHeaderIcon";
 // ❌ ¡Asegúrate de NO importar { Toaster } de sonner aquí!
-import { UsersGrid } from "../Components/UsersGrid";
+import { UsersTable } from "../Components/UsersTable";
 import { CreateUserModal } from "../Components/CreateUserModal";
 import { UsersFilterBar } from "../Components/UsersFilterBar";
 import { UsersPagination } from "../Components/UsersPagination";
@@ -115,11 +115,10 @@ export function UsersView({ roles }: UsersViewProps) {
             </div>
           </div>
         ) : (
-          <UsersGrid 
-            users={users} 
-            roles={roles} 
-            onActionSuccess={fetchUsers} 
-            // ❌ Ya no pasamos props basura de showToast
+          <UsersTable
+            users={users}
+            roles={roles}
+            onActionSuccess={fetchUsers}
           />
         )}
       </div>

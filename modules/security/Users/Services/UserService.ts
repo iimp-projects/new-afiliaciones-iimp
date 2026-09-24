@@ -1,12 +1,13 @@
 import bcrypt from "bcryptjs";
-import { accountActivationService } from "@/modules/auth/account-activation/service";
 import { UserRepository } from "../Repositories/UserRepository";
 import type { CreateUserInput, UpdateUserInput } from "../DTOs/user.schema";
+
+const BCRYPT_COST = 12;
 
 export class UserService {
   private repository = new UserRepository();
 
- async getList(page: number = 1, pageSize: number = 10, search?: string, status?: string, roleId?: number) {
+  async getList(page: number = 1, pageSize: number = 10, search?: string, status?: string, roleId?: number) {
     return await this.repository.getPaginatedUsers(page, pageSize, search, status, roleId);
   }
 
@@ -16,9 +17,10 @@ export class UserService {
     if (emailExists) throw new Error("El correo electrónico ya se encuentra registrado.");
     if (documentExists) throw new Error("El número de documento ya se encuentra registrado en el sistema.");
 
-    const user = await this.repository.createUserWithPerson(input, imageUrl);
-    await accountActivationService.createAndSendActivation(user.id);
-    return user;
+    // La contraseña se hashea con el mismo mecanismo (bcrypt) que valida el login,
+    // y se persiste junto al usuario activo en una única transacción.
+    const hashedPassword = await bcrypt.hash(input.password, BCRYPT_COST);
+    return await this.repository.createUserWithPerson(input, imageUrl, hashedPassword);
   }
 
   async updateUser(input: UpdateUserInput, imageUrl?: string) {
@@ -39,7 +41,7 @@ export class UserService {
   }
 
   async changeUserPassword(userId: number, newPasswordPlain: string) {
-    const hashedPassword = await bcrypt.hash(newPasswordPlain, 12);
+    const hashedPassword = await bcrypt.hash(newPasswordPlain, BCRYPT_COST);
     return await this.repository.updateUserPassword(userId, hashedPassword);
   }
 }

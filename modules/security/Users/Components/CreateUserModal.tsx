@@ -95,7 +95,7 @@ export function CreateUserModal({ onClose, onSuccess, roles }: CreateUserModalPr
       setIsLoading(false);
       // ✅ TOAST DE ÉXITO CON CONTEXTO (El toque premium)
       toast.success("¡Usuario registrado!", {
-          description: "La cuenta quedó pendiente y se generó una invitación de activación de un solo uso."
+          description: "La cuenta se creó activa. El usuario ya puede iniciar sesión con su correo y contraseña."
       });
       onSuccess();
     }
@@ -140,7 +140,7 @@ export function CreateUserModal({ onClose, onSuccess, roles }: CreateUserModalPr
 
           <div className="bg-amber-50 border border-amber-200/60 text-amber-800 text-xs font-medium p-4 rounded-xl mb-8 flex gap-3">
              <Info className="shrink-0 text-amber-600" size={18} />
-             <p><strong>Activación segura:</strong> la cuenta permanecerá pendiente hasta que el usuario cree su propia contraseña mediante el enlace de un solo uso enviado a su correo.</p>
+             <p><strong>Acceso inmediato:</strong> la cuenta se creará activa y el usuario podrá iniciar sesión de inmediato con la contraseña definida a continuación.</p>
           </div>
 
           <form id="createUserForm" onSubmit={handleSubmit} className="space-y-6" encType="multipart/form-data">
@@ -211,6 +211,12 @@ export function CreateUserModal({ onClose, onSuccess, roles }: CreateUserModalPr
                 <label className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-2 block ml-1">Correo Electrónico</label>
                 <input name="email" type="email" className={inputClass("email")} placeholder="usuario@iimp.org.pe" />
                 {errors.email && <span className="text-red-500 text-xs mt-1 block font-bold">{errors.email[0]}</span>}
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-2 block ml-1">Contraseña</label>
+                <input name="password" type="password" className={inputClass("password")} placeholder="Mínimo 8 caracteres" />
+                {errors.password && <span className="text-red-500 text-xs mt-1 block font-bold">{errors.password[0]}</span>}
               </div>
 
               <div className="md:col-span-2" ref={dropdownRef}>

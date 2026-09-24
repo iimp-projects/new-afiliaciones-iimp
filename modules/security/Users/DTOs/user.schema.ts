@@ -8,7 +8,11 @@ export const createUserSchema = z.object({
   firstName: z.string().min(2, "El nombre es obligatorio."),
   paternalLastName: z.string().min(2, "El apellido paterno es obligatorio."),
   maternalLastName: z.string().optional(),
-  email: z.string().email("El correo electrónico no es válido."),
+  email: z
+    .string()
+    .email("El correo electrónico no es válido.")
+    .transform((value) => value.trim().toLowerCase()),
+  password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres."),
   roleId: z.coerce.number().min(1, "Debe seleccionar un rol."),
   userType: z.nativeEnum(UserType).default(UserType.VALIDATOR),
 });

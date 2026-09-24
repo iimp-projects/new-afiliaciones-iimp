@@ -16,27 +16,42 @@ describe("UserRepository security invariants", () => {
     vi.clearAllMocks();
     db.$transaction.mockImplementation((callback: (client: typeof tx) => unknown) => callback(tx));
     tx.person.upsert.mockResolvedValue({ id: 9 });
-    tx.user.create.mockResolvedValue({ id: 42, status: "PENDING" });
+    tx.user.create.mockResolvedValue({ id: 42, status: "ACTIVE" });
+    tx.credential.create.mockResolvedValue({});
     tx.user.update.mockResolvedValue({ id: 42 });
     tx.userSession.updateMany.mockResolvedValue({ count: 1 });
   });
 
-  it("persists administrative accounts as pending and without a password credential", async () => {
-    await new UserRepository().createUserWithPerson({
-      documentType: "DNI",
-      documentNumber: "12345678",
-      firstName: "Ana",
-      paternalLastName: "Pérez",
-      email: "ana@example.com",
-      roleId: 2,
-      userType: "VALIDATOR",
-    } as never);
+  it("persists administrative accounts as active with a hashed password credential, atomically", async () => {
+    await new UserRepository().createUserWithPerson(
+      {
+        documentType: "DNI",
+        documentNumber: "12345678",
+        firstName: "Ana",
+        paternalLastName: "Pérez",
+        email: "ana@example.com",
+        roleId: 2,
+        userType: "VALIDATOR",
+      } as never,
+      undefined,
+      "hashed-secret",
+    );
 
-    expect(tx.user.create).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({ status: "PENDING" }),
-    }));
-    expect(tx.user.create.mock.calls[0][0].data).not.toHaveProperty("emailVerified");
-    expect(tx.credential.create).not.toHaveBeenCalled();
+    expect(tx.user.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ status: "ACTIVE", emailVerified: expect.any(Date) }),
+      }),
+    );
+    expect(tx.credential.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          userId: 42,
+          type: "PASSWORD",
+          secret: "hashed-secret",
+          isActive: true,
+        }),
+      }),
+    );
   });
 
   it("derives deactivation from persisted state and revokes every existing session atomically", async () => {

@@ -30,7 +30,10 @@ export class LoginService {
       throw new SecurityError('Demasiados intentos de acceso. Intente nuevamente más tarde.');
     }
 
-    const user = await loginRepository.findUserWithPassword(credentials.email);
+    // El email es el identificador de autenticación y debe tratarse de forma
+    // consistente con el alta (trim + lowercase), sin depender del frontend.
+    const normalizedEmail = credentials.email.trim().toLowerCase();
+    const user = await loginRepository.findUserWithPassword(normalizedEmail);
 
 
     if (!user) {

@@ -67,7 +67,7 @@ export class UserRepository {
   ) {
     const existingEmail = await prisma.user.findFirst({
       where: {
-        email,
+        email: { equals: email, mode: "insensitive" },
         ...(ignoreUserId ? { id: { not: ignoreUserId } } : {}),
       },
     });
@@ -97,7 +97,8 @@ export class UserRepository {
 
   async createUserWithPerson(
     data: CreateUserInput,
-    imageUrl?: string,
+    imageUrl: string | undefined,
+    hashedPassword: string,
   ) {
     return prisma.$transaction(async (tx) => {
       const person = await tx.person.upsert({
@@ -126,9 +127,19 @@ export class UserRepository {
           email: data.email,
           roleId: data.roleId,
           personId: person.id,
-          status: UserStatus.PENDING,
+          status: UserStatus.ACTIVE,
+          emailVerified: new Date(),
           type: data.userType,
           image: imageUrl,
+        },
+      });
+
+      await tx.credential.create({
+        data: {
+          userId: user.id,
+          type: CredentialType.PASSWORD,
+          secret: hashedPassword,
+          isActive: true,
         },
       });
 
