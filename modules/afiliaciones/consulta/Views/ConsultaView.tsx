@@ -9,7 +9,7 @@ import { ProcessLoadingOverlay } from "@/modules/shared/Components/ProcessLoadin
 import { ConsultaHero } from "../Components/ConsultaHero";
 import { ConsultaHeader } from "../Components/ConsultaHeader";
 import { ConsultationForm } from "../Components/ConsultationForm";
-import { StatusInReview } from "../Components/StatusInReview";
+import { EvaluationFlow } from "../Components/EvaluationFlow";
 import { StatusObserved } from "../Components/StatusObserved";
 
 import { StatusRejected } from "../Components/StatusRejected";
@@ -137,19 +137,24 @@ export function ConsultaView({ initialPaymentCallback }: ConsultaViewProps) {
           </p>
         </div>
 
-        <main className="flex-1 w-full max-w-3xl mx-auto px-4 sm:px-6 pb-20">
+        <main className="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 pb-20">
           <div className="bg-white rounded-[32px] border border-gray-200 shadow-2xl p-6 sm:p-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-slate-100">
-              <div>
-                <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">N° de Expediente</h2>
-                <p className="text-lg font-extrabold text-[#C5A059] font-mono tracking-wider">{statusData.applicationCode}</p>
-              </div>
-            </div>
+            {notice.action === "VIEW_STATUS" ? (
+              <EvaluationFlow data={statusData} />
+            ) : (
+              <>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-slate-100">
+                  <div>
+                    <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">N° de Expediente</h2>
+                    <p className="text-lg font-extrabold text-[#C5A059] font-mono tracking-wider">{statusData.applicationCode}</p>
+                  </div>
+                </div>
 
-            <ApplicationStateNotice status={currentStatus || "UNKNOWN"} context="CONSULTA" canStartNew={statusData.canStartNew} onPrimary={notice.action === "REVIEW_OBSERVATIONS" ? () => setShowObservations(true) : notice.action === "START_NEW_APPLICATION" ? () => { window.location.href = statusData.affiliateType === "STUDENT" ? "/postulacion/estudiante" : "/postulacion/asociado"; } : undefined} />
-            {notice.action === "VIEW_STATUS" && <StatusInReview data={statusData} />}
-            {notice.action === "REVIEW_OBSERVATIONS" && showObservations && <StatusObserved data={statusData as never} onUploadSuccess={handleRefresh} />}
-            {notice.action === "VIEW_REJECTION" || currentStatus === "REJECTED" ? <StatusRejected data={statusData} /> : null}
+                <ApplicationStateNotice status={currentStatus || "UNKNOWN"} context="CONSULTA" canStartNew={statusData.canStartNew} onPrimary={notice.action === "REVIEW_OBSERVATIONS" ? () => setShowObservations(true) : notice.action === "START_NEW_APPLICATION" ? () => { window.location.href = statusData.affiliateType === "STUDENT" ? "/postulacion/estudiante" : "/postulacion/asociado"; } : undefined} />
+                {notice.action === "REVIEW_OBSERVATIONS" && showObservations && <StatusObserved data={statusData as never} onUploadSuccess={handleRefresh} />}
+                {notice.action === "VIEW_REJECTION" || currentStatus === "REJECTED" ? <StatusRejected data={statusData} /> : null}
+              </>
+            )}
 
             <div className="mt-10 pt-6 border-t border-slate-100 flex flex-col items-center">
               <button onClick={() => setStatusData(null)} className="w-full h-12 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-100 hover:text-slate-800 transition-all flex items-center justify-center gap-2">

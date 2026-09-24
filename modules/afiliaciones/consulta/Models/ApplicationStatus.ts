@@ -1,4 +1,4 @@
-export type AreaStatusType = "PENDING" | "APPROVED" | "OBSERVED" | "REJECTED" | "NOT_REQUIRED";
+export type AreaStatusType = "PENDING" | "UNDER_EVALUATION" | "OBSERVED" | "RESOLVED" | "APPROVED" | "REJECTED" | "NOT_REQUIRED";
 export type GlobalStatusType = "DRAFT" | "PENDING" | "UNDER_EVALUACION" | "OBSERVED" | "RESOLVED" | "READY_FOR_PAYMENT" | "COMPLETED" | "REJECTED";
 
 export interface ConsultationQuery {
