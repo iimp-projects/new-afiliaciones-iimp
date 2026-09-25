@@ -24,7 +24,7 @@ export interface SystemSettingViewModel {
 
 export const SETTING_PRESENTATION: Record<string, { title: string; description: string }> = {
   PAYMENT_REGISTRATION_PRICE: { title: "Precio de inscripción", description: "Monto aplicable a nuevas postulaciones." },
-  PAYMENT_MONTHLY_FEE: { title: "Precio de mensualidad", description: "Cuota mensual vigente." },
+  PAYMENT_MONTHLY_FEE: { title: "Cuota anual", description: "Cuota anual vigente." },
   PAYMENTS_ENABLED: { title: "Pagos habilitados", description: "Permite iniciar pagos desde la consulta." },
   PAYMENT_START_AT: { title: "Inicio", description: "Inicio de la ventana de pagos." },
   PAYMENT_END_AT: { title: "Fin", description: "Fin exclusivo de la ventana de pagos." },

@@ -33,6 +33,7 @@ import type { IPaymentRepository, PaymentGatewayResult, PaymentTransaction, Pend
 import { PaymentAmountResolver } from "../Services/PaymentAmountResolver";
 import { PaymentService, PaymentServiceError } from "../Services/PaymentService";
 import { NiubizAuthorizationHttpError, NiubizAuthorizationNetworkError } from "../Services/Niubiz/NiubizAuthorizationService";
+import { SystemSettingsError } from "../../../security/system-settings/Services/SystemSettingsService";
 
 const input: CreatePaymentInput = {
   applicationId: 42,
@@ -391,6 +392,14 @@ describe("PaymentService", () => {
     const availability = { assertPaymentInitiationAvailable: vi.fn().mockRejectedValue(new PaymentServiceError("Los pagos se encuentran deshabilitados temporalmente.", 409)), getNiubizCheckoutSettings: vi.fn() };
     const service = new PaymentService(amountResolver as never, new MockPaymentProvider("PENDING"), repository, { recalculate: vi.fn() }, authorizedPayment, false, undefined, availability as never);
     await expect(service.initiate(input, "authorized")).rejects.toMatchObject({ status: 409 });
+    expect(repository.created).toBeUndefined();
+  });
+
+  it("convierte SystemSettingsError de resolución de monto a 503 (no 500 genérico)", async () => {
+    const repository = new PaymentRepositoryFake();
+    const amountResolver = { resolve: vi.fn().mockRejectedValue(new SystemSettingsError("No existe una cuota de afiliación vigente válida configurada.", 503)) };
+    const service = new PaymentService(amountResolver as never, new MockPaymentProvider("PAID"), repository, { recalculate: vi.fn() }, authorizedPayment);
+    await expect(service.initiate(input, "authorized")).rejects.toMatchObject({ status: 503, message: "No existe una cuota de afiliación vigente válida configurada." });
     expect(repository.created).toBeUndefined();
   });
 

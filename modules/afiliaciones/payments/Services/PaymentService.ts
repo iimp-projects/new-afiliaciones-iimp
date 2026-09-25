@@ -14,6 +14,7 @@ import { paymentAuthorizationService } from "./PaymentAuthorizationService";
 import { NiubizAuthorizationHttpError, NiubizAuthorizationNetworkError } from "./Niubiz/NiubizAuthorizationService";
 import { PaymentConfirmationEmailService } from "./PaymentConfirmationEmailService";
 import { PaymentSettingsResolver } from "../../../security/system-settings/Services/PaymentSettingsResolver";
+import { SystemSettingsError } from "../../../security/system-settings/Services/SystemSettingsService";
 import { billingDataSchema, type BillingDataInput } from "../DTOs/billing.schema";
 import { isLegalEntityRuc } from "../Rules/BillingDocumentRules";
 import { ApisNetPeService, type RucLookupResult } from "../../../shared/Services/ApisNetPeService";
@@ -52,7 +53,7 @@ export class PaymentService {
       if (activePayment && this.canResumeNiubizTestPayment(activePayment)) return { payment: activePayment, application, resumed: true };
       if (activePayment) throw new PaymentServiceError("Ya existe un pago pendiente para esta postulación.", 409);
       await this.assertPaymentInitiationAvailable();
-      const amount = await this.amountResolver.resolve();
+      const amount = await this.resolveAmount();
       const payment = await this.repository.createPendingPayment({ applicationId: input.applicationId, billingData, billingTraceability: resolvedBilling.billingTraceability, gateway: provider.gateway, ...amount }, tx);
       return { payment, application, resumed: false };
     });
@@ -212,8 +213,23 @@ export class PaymentService {
 
   private async getInitiationProvider(): Promise<PaymentProvider> {
     if (!(this.provider instanceof NiubizPaymentProvider)) return this.provider;
-    const settings = await this.paymentSettingsResolver.getNiubizCheckoutSettings();
+    let settings: Awaited<ReturnType<PaymentSettingsResolver["getNiubizCheckoutSettings"]>>;
+    try {
+      settings = await this.paymentSettingsResolver.getNiubizCheckoutSettings();
+    } catch (error) {
+      if (error instanceof SystemSettingsError) throw new PaymentServiceError(error.message, 503);
+      throw error;
+    }
     return this.provider.withCheckoutSettings(settings);
+  }
+
+  private async resolveAmount() {
+    try {
+      return await this.amountResolver.resolve();
+    } catch (error) {
+      if (error instanceof SystemSettingsError) throw new PaymentServiceError(error.message, 503);
+      throw error;
+    }
   }
 
   private async assertPaymentInitiationAvailable(): Promise<void> {

@@ -20,7 +20,7 @@ const inputClass = "mt-1.5 h-11 w-full rounded-xl border border-slate-200 bg-sla
 
 const COPY: Record<string, { title: string; valueLabel: string; description?: string }> = {
   PAYMENT_REGISTRATION_PRICE: { title: "Cambiar precio de inscripción", valueLabel: "Nuevo precio", description: "Este importe se aplicará únicamente a nuevos pagos." },
-  PAYMENT_MONTHLY_FEE: { title: "Cambiar cuota mensual", valueLabel: "Nuevo importe", description: "Esta configuración queda preparada para una futura integración de cobro." },
+  PAYMENT_MONTHLY_FEE: { title: "Cambiar cuota anual", valueLabel: "Nuevo importe", description: "Esta configuración queda preparada para una futura integración de cobro." },
   PAYMENTS_ENABLED: { title: "Actualizar disponibilidad de pagos", valueLabel: "Estado", description: "Cuando los pagos estén desactivados, ningún postulante podrá iniciar un nuevo pago." },
   PAYMENT_START_AT: { title: "Definir inicio del periodo", valueLabel: "Fecha y hora de inicio" },
   PAYMENT_END_AT: { title: "Definir cierre del periodo", valueLabel: "Fecha y hora de cierre" },

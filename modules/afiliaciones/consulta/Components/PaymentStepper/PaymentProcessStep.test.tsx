@@ -27,4 +27,11 @@ describe("PaymentProcessStep", () => {
     expect(markup).toContain("20107972090");
     expect(markup).toContain("ASOCIADO ACTIVO");
   });
+
+  it("diferencia el fallo de inicialización de un pago rechazado", () => {
+    const markup = renderToStaticMarkup(<PaymentProcessStep {...props} paymentUiState="INIT_FAILED" error="No se pudo conectar con el servicio de pagos." />);
+    expect(markup).toContain("No pudimos iniciar el pago");
+    expect(markup).not.toContain("Pago no aprobado");
+    expect(markup).toContain("Intentar nuevamente");
+  });
 });

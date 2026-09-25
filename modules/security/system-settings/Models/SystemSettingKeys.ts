@@ -27,7 +27,7 @@ export interface SystemSettingDefinition {
 
 export const SYSTEM_SETTING_DEFINITIONS: Record<SystemSettingKey, SystemSettingDefinition> = {
   PAYMENT_REGISTRATION_PRICE: { category: "PAYMENTS", dataType: ConfigDataType.MONEY, description: "Precio de inscripción vigente.", min: "0.01" },
-  PAYMENT_MONTHLY_FEE: { category: "PAYMENTS", dataType: ConfigDataType.MONEY, description: "Cuota mensual vigente.", min: "0" },
+  PAYMENT_MONTHLY_FEE: { category: "PAYMENTS", dataType: ConfigDataType.MONEY, description: "Cuota anual vigente.", min: "0" },
   PAYMENTS_ENABLED: { category: "PAYMENTS", dataType: ConfigDataType.BOOLEAN, description: "Habilita el inicio de pagos." },
   PAYMENT_START_AT: { category: "AVAILABILITY", dataType: ConfigDataType.DATETIME, description: "Inicio de la ventana de pagos." },
   PAYMENT_END_AT: { category: "AVAILABILITY", dataType: ConfigDataType.DATETIME, description: "Fin exclusivo de la ventana de pagos." },

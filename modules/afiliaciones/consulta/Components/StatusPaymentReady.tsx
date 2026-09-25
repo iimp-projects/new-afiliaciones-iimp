@@ -39,7 +39,7 @@ export const StatusPaymentReady: React.FC<Props> = ({ data, onCancel, initialBil
       setPaymentUiState(paymentResult.status === "PENDING" ? "IDLE" : paymentResult.status === "PAID" ? "PAYMENT_SUCCESS" : "PAYMENT_FAILED");
     } catch (paymentError) {
       setError(paymentError instanceof Error ? paymentError.message : "No se pudo preparar el formulario de pago.");
-      setPaymentUiState("PAYMENT_FAILED");
+      setPaymentUiState("INIT_FAILED");
     } finally {
       setLoading(false);
     }

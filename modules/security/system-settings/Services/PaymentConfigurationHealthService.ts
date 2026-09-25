@@ -29,7 +29,7 @@ interface PaymentHealthRuntimeConfig {
 
 const labels: Record<SystemSettingKey, string> = {
   PAYMENT_REGISTRATION_PRICE: "Precio de inscripción vigente",
-  PAYMENT_MONTHLY_FEE: "Precio de mensualidad",
+  PAYMENT_MONTHLY_FEE: "Cuota anual",
   PAYMENTS_ENABLED: "Pagos habilitados",
   PAYMENT_START_AT: "Inicio de ventana de pagos",
   PAYMENT_END_AT: "Fin de ventana de pagos",
