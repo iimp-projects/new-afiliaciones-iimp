@@ -102,6 +102,7 @@ export const rolePermissionsData: RolePermissionMatrix = {
     ["upload", "documents"],
     ["read", "documents"],
     ["read", "memberships"],
+    ["read", "alerts"],
   ],
 
   LOGISTICA: [
@@ -113,6 +114,7 @@ export const rolePermissionsData: RolePermissionMatrix = {
     ["reopen", "applications"],
     ["read", "documents"],
     ["validate", "documents"],
+    ["read", "memberships"],
   ],
 
   MESA_PARTES: [

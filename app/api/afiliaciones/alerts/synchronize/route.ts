@@ -5,7 +5,7 @@ import { operationalAlertTrackingService } from "@/modules/afiliaciones/alerts/S
 
 export async function POST() {
   try {
-    await contextService.requirePermission("update", "memberships");
+    await contextService.requirePermission("update", "alerts");
     return NextResponse.json(await operationalAlertTrackingService.synchronize());
   } catch (error) {
     const unauthorized = error instanceof AuthenticationError || error instanceof AuthorizationError;

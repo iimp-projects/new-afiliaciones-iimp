@@ -29,6 +29,7 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
   const [meta, setMeta] = useState({ total: 0, page: 1, pageSize: 8, totalPages: 1 });
   const [isMounted, setIsMounted] = useState(false);
   const [isPaginationSticky, setIsPaginationSticky] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const [drawerData, setDrawerData] = useState<DrawerData<any> | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -60,17 +61,29 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
 
   const fetchExpedientes = useCallback(async () => {
     setIsLoading(true);
+    setLoadError(null);
     try {
       const queryParams = new URLSearchParams({ page: meta.page.toString(), pageSize: meta.pageSize.toString() });
       Object.entries(filters).forEach(([key, value]) => { if (value && value !== "Todos") queryParams.append(key, value); });
       const response = await fetch(`/api/afiliaciones/expedientes?${queryParams.toString()}`);
       const result = await response.json();
+      if (!response.ok) {
+        setExpedientes([]);
+        setMeta((prev) => ({ ...prev, total: 0 }));
+        setLoadError(response.status === 403 ? "No tienes acceso para consultar los expedientes." : "No se pudieron cargar los expedientes. Intenta nuevamente.");
+        return [];
+      }
       if (result.success) {
         setExpedientes(result.data);
         setMeta(result.meta);
         return result.data;
       }
-    } catch (error) { console.error(error); } finally { setIsLoading(false); }
+    } catch (error) {
+      setExpedientes([]);
+      setMeta((prev) => ({ ...prev, total: 0 }));
+      setLoadError("No se pudieron cargar los expedientes. Intenta nuevamente.");
+      console.error(error);
+    } finally { setIsLoading(false); }
     return [];
   }, [filters, meta.page, meta.pageSize]);
 
@@ -406,6 +419,13 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
                 />
               )
             })}
+          </div>
+        ) : loadError ? (
+          <div className="flex flex-col items-center justify-center py-16 px-4 text-center bg-transparent rounded-2xl border-2 border-red-200 border-dashed animate-in fade-in zoom-in-95 duration-500 mt-4">
+            <AlertCircle className="text-red-400 mb-2" size={28} />
+            <h3 className="text-lg font-black text-slate-800 tracking-tight mb-1">No se pudieron cargar los expedientes</h3>
+            <p className="text-sm text-slate-500 mb-3 max-w-md">{loadError}</p>
+            <button onClick={() => fetchExpedientes()} className="px-5 py-2.5 bg-white border border-slate-200 text-slate-600 hover:text-[#C5A059] hover:bg-[#fdfaf5] rounded-xl font-bold text-sm transition-all shadow-sm flex items-center gap-2 focus:outline-none"><RefreshCcw size={16} /> Reintentar</button>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-16 px-4 text-center bg-transparent rounded-2xl border-2 border-slate-200 border-dashed animate-in fade-in zoom-in-95 duration-500 mt-4">

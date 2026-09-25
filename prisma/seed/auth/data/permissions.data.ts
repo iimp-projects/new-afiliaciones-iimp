@@ -128,6 +128,12 @@ export const permissionsData: Prisma.PermissionCreateManyInput[] = [
   { action: "read", subject: "notifications", description: "Consultar notificaciones." },
 
   // ===========================================================================
+  // OPERATIONAL ALERTS
+  // ===========================================================================
+  { action: "read", subject: "alerts", description: "Consultar alertas operativas." },
+  { action: "update", subject: "alerts", description: "Gestionar alertas operativas." },
+
+  // ===========================================================================
   // CONFIGURATION
   // ===========================================================================
   { action: "read", subject: "configuration", description: "Consultar configuración." },

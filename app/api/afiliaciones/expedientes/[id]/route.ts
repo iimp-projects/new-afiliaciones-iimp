@@ -7,7 +7,7 @@ export async function GET(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        await requireApiPermission("read", "memberships");
+        await requireApiPermission("read", "applications");
         const { id } = await params;
         const repository = new ExpedienteRepository();
         

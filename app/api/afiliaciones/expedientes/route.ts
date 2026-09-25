@@ -7,7 +7,7 @@ import { apiAuthorizationStatus, requireApiPermission } from "@/modules/auth/con
 
 export async function GET(request: NextRequest) {
   try {
-    const currentUser = await requireApiPermission("read", "memberships");
+    const currentUser = await requireApiPermission("read", "applications");
     const searchParams = request.nextUrl.searchParams;
     const page = parseInt(searchParams.get("page") || "1");
     const pageSize = parseInt(searchParams.get("pageSize") || "8");

@@ -123,7 +123,7 @@ export const securityModuleDefinition: ModuleDefinition = {
                     href: "/intranet/alertas",
                     icon: "BellRing",
                     order: 1,
-                    permission: { action: "read", subject: "memberships" }
+                    permission: { action: "read", subject: "alerts" }
                 },
                 {
                     id: "nav-master-data",

@@ -8,7 +8,7 @@ const severities = new Set(["CRITICAL", "WARNING"]);
 
 export async function GET(request: Request) {
   try {
-    await contextService.requirePermission("read", "memberships");
+    await contextService.requirePermission("read", "alerts");
     const params = new URL(request.url).searchParams;
     const integer = (name: string, fallback: number, max: number) => {
       const value = Number(params.get(name) ?? fallback);
