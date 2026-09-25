@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Search, CheckCircle2, AlertTriangle, CloudUpload, ExternalLink, BriefcaseBusiness, Building2, UserMinus, Info } from "lucide-react";
+import { Search, CheckCircle2, AlertTriangle, CloudUpload, ExternalLink, BriefcaseBusiness, Building2, UserMinus, Clock, MessageSquareText } from "lucide-react";
 import { ApplicationStatusData } from "../Models/ApplicationStatus";
 
 interface ExtendedApplicationStatusData extends Partial<ApplicationStatusData> {
@@ -75,7 +75,7 @@ const isFilePath = (path: string) =>
 const fieldLabels: Record<string, string> = {
   names: "Nombres",
   fatherLastName: "Apellido paterno",
-  motherLastName: "Apellido mamterno",
+  motherLastName: "Apellido materno",
   birthDate: "Fecha de nacimiento",
   gender: "Género",
   phone: "Celular",
@@ -449,50 +449,76 @@ export const StatusObserved: React.FC<Props> = ({ data, onUploadSuccess }) => {
   });
   const hasPendingChanges = hasFileChanges || hasTextChanges;
 
+  // Observación real del evaluador (pendingObservations[].message); cae a
+  // la lista genérica de observaciones solo si no hay mensaje detallado.
+  const evaluatorObservations = (data.pendingObservations ?? [])
+    .map((item) => item.message)
+    .filter((message) => message.trim().length > 0);
+  const observationMessages = evaluatorObservations.length > 0 ? evaluatorObservations : (data.observations ?? []);
+
   // ─────────────────────────────────────────────────────────────────────
   // RENDER
   // ─────────────────────────────────────────────────────────────────────
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {/* Columna Izquierda */}
-      <div className="md:col-span-2 space-y-6">
-        {/* Mensajes globales */}
-        {errorMessage && (
-          <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-600 font-bold text-xs flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 shrink-0" /> {errorMessage}
-          </div>
-        )}
-        {successMessage && (
-          <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold text-xs flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 shrink-0" /> {successMessage}
-          </div>
-        )}
-
-        {/* Observaciones del Comité */}
-        <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-3">
-          <div className="flex items-center gap-2 text-amber-800 font-semibold text-sm">
-            <span>⚠️</span> Observaciones del Evaluador
-          </div>
-          <ul className="text-xs text-slate-700 space-y-2 list-disc pl-4">
-            {data.observations && data.observations.length > 0 ? (
-              data.observations.map((obs, idx) => (
-                <li key={idx}>
-                  <span className="inline-block whitespace-pre-wrap align-top">{obs}</span>
-                </li>
-              ))
-            ) : (
-              <li>Por favor, revise los requerimientos o avales rechazados e ingrese la nueva información.</li>
-            )}
-          </ul>
+    <div className="space-y-6">
+      {/* Cabecera compacta */}
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+        <div>
+          <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Expediente</span>
+          <p className="text-lg font-extrabold text-[#C5A059] font-mono tracking-wider">{data.applicationCode}</p>
+          <h2 className="mt-3 text-xl font-black text-slate-800">Tienes observaciones por subsanar</h2>
+          <p className="mt-1 max-w-xl text-sm leading-relaxed text-slate-600">
+            Revisa lo indicado por el evaluador, corrige únicamente los campos solicitados y envía nuevamente tu información.
+          </p>
         </div>
+        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-800">
+          <Clock className="h-3.5 w-3.5" /> Vence en {data.expirationDate || "5 días"}
+        </span>
+      </header>
 
-        {/* ── Campos observados para corregir ── */}
-        {observedFields.length > 0 && (
-          <div className="p-5 bg-white border border-slate-200 rounded-2xl space-y-5 shadow-sm">
-            <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide">
-              Campos a corregir
-            </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {/* Mensajes globales */}
+      {errorMessage && (
+        <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 font-semibold text-xs flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 shrink-0" /> {errorMessage}
+        </div>
+      )}
+      {successMessage && (
+        <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold text-xs flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 shrink-0" /> {successMessage}
+        </div>
+      )}
+
+      {/* Observación del evaluador */}
+      <section className="rounded-xl border border-amber-100 bg-amber-50/40 p-4 sm:p-5">
+        <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-amber-800">
+          <MessageSquareText className="h-4 w-4 shrink-0 text-[#C5A059]" />
+          Observación del evaluador
+        </div>
+        <div className="mt-3 space-y-2">
+          {observationMessages.length > 0 ? (
+            observationMessages.map((obs, idx) => (
+              <p key={idx} className="whitespace-pre-wrap text-sm leading-relaxed text-slate-800">
+                &ldquo;{obs}&rdquo;
+              </p>
+            ))
+          ) : (
+            <p className="text-sm leading-relaxed text-slate-600">
+              Revisa los requerimientos indicados e ingresa la nueva información.
+            </p>
+          )}
+        </div>
+        <span className="mt-3 inline-block text-xs font-semibold text-slate-500">
+          Campos solicitados: {observedFields.length}
+        </span>
+      </section>
+
+      {/* ── Información a corregir ── */}
+      {observedFields.length > 0 && (
+        <section className="space-y-4">
+          <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-800">
+            Información a corregir
+          </h3>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {observedFields.map((path) => {
                 const fieldKey = path.split(".").at(-1) ?? path;
                 const label = fieldLabels[fieldKey] ?? fieldKey;
@@ -930,28 +956,38 @@ export const StatusObserved: React.FC<Props> = ({ data, onUploadSuccess }) => {
               })}
             </div>
 
-            <button
-              type="button"
-              onClick={saveCorrection}
-              disabled={savingCorrection || !hasPendingChanges}
-              className="w-full h-11 bg-[#C5A059] hover:bg-[#b08e4b] text-white font-bold text-xs rounded-xl disabled:opacity-50 transition-colors"
-            >
-              {savingCorrection ? "Guardando..." : "Guardar correcciones"}
-            </button>
+            <p className="text-xs text-slate-400">
+              Solo puedes modificar los campos solicitados por el evaluador.
+            </p>
 
-            {!hasPendingChanges && !savingCorrection && (
-              <p className="text-center text-[11px] text-slate-400">
-                Suba o modifique los campos indicados para poder guardar.
+            <div className="flex flex-col items-start gap-2">
+              <button
+                type="button"
+                onClick={saveCorrection}
+                disabled={savingCorrection || !hasPendingChanges}
+                className="inline-flex h-11 items-center justify-center rounded-xl bg-[#C5A059] px-6 text-sm font-bold text-white transition-colors hover:bg-[#b08e4b] disabled:opacity-50"
+              >
+                {savingCorrection ? "Guardando..." : "Guardar correcciones"}
+              </button>
+
+              <p className="text-xs text-slate-400">
+                Al guardar, tus correcciones serán remitidas nuevamente para evaluación.
               </p>
-            )}
-          </div>
+
+              {!hasPendingChanges && !savingCorrection && (
+                <p className="text-[11px] text-slate-400">
+                  Modifica los campos indicados para poder guardar.
+                </p>
+              )}
+            </div>
+          </section>
         )}
 
         {/* ── Módulo: Reemplazar Aval Rechazado ── */}
         {isSponsorRejected && (
           <div className="p-5 bg-white border border-slate-200 rounded-2xl space-y-4 shadow-sm">
             <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide">
-              {observedFields.length > 0 ? "2." : "1."} Reemplazar Aval Rechazado
+              Reemplazar Aval Rechazado
             </h4>
 
             <div className="space-y-3">
@@ -1000,24 +1036,6 @@ export const StatusObserved: React.FC<Props> = ({ data, onUploadSuccess }) => {
             )}
           </div>
         )}
-      </div>
-
-      {/* Columna Derecha: Detalle del Trámite */}
-      <div className="space-y-4">
-        <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 space-y-3">
-          <h5 className="text-xs font-bold text-slate-800">Detalles del Trámite</h5>
-          <div>
-            <span className="text-[10px] uppercase text-slate-400 block font-semibold">N° de Expediente</span>
-            <span className="text-xs font-bold text-slate-700">{data.applicationCode}</span>
-          </div>
-          <div>
-            <span className="text-[10px] uppercase text-slate-400 block font-semibold">Plazo de Subsanación</span>
-            <span className="text-xs font-bold text-red-600 flex items-center gap-1">
-              ⏳ Vence en {data.expirationDate || "5 días"}
-            </span>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

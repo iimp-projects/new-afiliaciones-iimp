@@ -36,7 +36,7 @@ const clickText = async (page, label) => {
 };
 const titles = {
   POSTULACION: {DRAFT: "Tienes una postulación pendiente de completar", PENDING: "Ya tienes una postulación registrada", UNDER_EVALUACION: "Tu postulación está en evaluación", OBSERVED: "Tu postulación tiene observaciones", RESOLVED: "Tus observaciones ya fueron subsanadas", READY_FOR_PAYMENT: "Tu postulación fue aprobada", COMPLETED: "Tu proceso de afiliación ya fue completado", REJECTED: "Tu postulación anterior fue rechazada"},
-  CONSULTA: {DRAFT: "Tu postulación aún no ha sido enviada", PENDING: "Solicitud recibida", UNDER_EVALUACION: "En evaluación", OBSERVED: "Tienes observaciones pendientes", RESOLVED: "Subsanación enviada", READY_FOR_PAYMENT: "Existing payment flow", COMPLETED: "Proceso completado", REJECTED: "Postulación rechazada"},
+  CONSULTA: {DRAFT: "Tu postulación aún no ha sido enviada", PENDING: "Solicitud recibida", UNDER_EVALUACION: "En evaluación", OBSERVED: "Tienes observaciones por subsanar", RESOLVED: "Subsanación enviada", READY_FOR_PAYMENT: "Existing payment flow", COMPLETED: "Proceso completado", REJECTED: "Postulación rechazada"},
 };
 let cases = 0;
 try {
@@ -83,7 +83,8 @@ try {
       assert.equal(await page.$('input'), null);
     }
     if (context === "CONSULTA" && status === "OBSERVED") {
-      await clickText(page, "Revisar y subsanar");
+      // La subsanación se muestra directamente, sin paso intermedio ni botón "Revisar y subsanar".
+      assert.equal(await page.evaluate(() => [...document.querySelectorAll("button")].some(b => b.textContent.trim().toLowerCase().includes("revisar y subsanar"))), false);
       assert.equal(await page.$('[data-payment="existing"]'), null);
     }
     assert.deepEqual(errors, []);

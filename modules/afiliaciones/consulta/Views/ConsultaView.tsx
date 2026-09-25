@@ -49,7 +49,6 @@ interface ConsultaViewProps {
 export function ConsultaView({ initialPaymentCallback }: ConsultaViewProps) {
   const { loading, statusData, setStatusData, handleConsult, handleRefresh, currentStatus, challenge, setChallenge, error, loadApplication, notice } = useConsulta();
   const [authorizedGate, setAuthorizedGate] = useState(false);
-  const [showObservations, setShowObservations] = useState(false);
   useEffect(() => { if (!initialPaymentCallback && new URLSearchParams(window.location.search).has("applicationId")) setAuthorizedGate(true); }, [initialPaymentCallback]);
   const [restored, setRestored] = useState<RestorePayload | null>(null);
   const [restoreState, setRestoreState] = useState<RestoreState>(initialPaymentCallback ? "RESTORING_PAYMENT" : "IDLE");
@@ -87,7 +86,7 @@ export function ConsultaView({ initialPaymentCallback }: ConsultaViewProps) {
       <main className="flex flex-col md:flex-row h-screen w-full overflow-hidden bg-surface font-sans antialiased animate-in fade-in duration-500">
         <ConsultaHero />
         <ProcessLoadingOverlay open={loading} title="Preparando consulta..." description="Estamos procesando tu solicitud de forma segura." />
-        {(challenge || authorizedGate) && <ExistingApplicationGate challenge={challenge || undefined} authorized={authorizedGate} context="CONSULTA" onClose={() => { setChallenge(null); setAuthorizedGate(false); }} onQuery={async (application) => { await loadApplication(application); setAuthorizedGate(false); setShowObservations(false); }} />}
+        {(challenge || authorizedGate) && <ExistingApplicationGate challenge={challenge || undefined} authorized={authorizedGate} context="CONSULTA" onClose={() => { setChallenge(null); setAuthorizedGate(false); }} onQuery={async (application) => { await loadApplication(application); setAuthorizedGate(false); }} />}
         <section className="w-full md:w-[45%] h-full flex flex-col relative overflow-hidden bg-surface-container-lowest overflow-y-auto scrollbar-thin scrollbar-thumb-outline-variant">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary-container/20 rounded-full blur-3xl pointer-events-none -translate-y-1/2 translate-x-1/4"></div>
           <div className="w-full max-w-[420px] px-6 py-10 mx-auto my-auto relative z-10">
@@ -141,6 +140,8 @@ export function ConsultaView({ initialPaymentCallback }: ConsultaViewProps) {
           <div className="bg-white rounded-[32px] border border-gray-200 shadow-2xl p-6 sm:p-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
             {notice.action === "VIEW_STATUS" ? (
               <EvaluationFlow data={statusData} />
+            ) : notice.action === "REVIEW_OBSERVATIONS" ? (
+              <StatusObserved data={statusData as never} onUploadSuccess={handleRefresh} />
             ) : (
               <>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-slate-100">
@@ -150,8 +151,7 @@ export function ConsultaView({ initialPaymentCallback }: ConsultaViewProps) {
                   </div>
                 </div>
 
-                <ApplicationStateNotice status={currentStatus || "UNKNOWN"} context="CONSULTA" canStartNew={statusData.canStartNew} onPrimary={notice.action === "REVIEW_OBSERVATIONS" ? () => setShowObservations(true) : notice.action === "START_NEW_APPLICATION" ? () => { window.location.href = statusData.affiliateType === "STUDENT" ? "/postulacion/estudiante" : "/postulacion/asociado"; } : undefined} />
-                {notice.action === "REVIEW_OBSERVATIONS" && showObservations && <StatusObserved data={statusData as never} onUploadSuccess={handleRefresh} />}
+                <ApplicationStateNotice status={currentStatus || "UNKNOWN"} context="CONSULTA" canStartNew={statusData.canStartNew} onPrimary={notice.action === "START_NEW_APPLICATION" ? () => { window.location.href = statusData.affiliateType === "STUDENT" ? "/postulacion/estudiante" : "/postulacion/asociado"; } : undefined} />
                 {notice.action === "VIEW_REJECTION" || currentStatus === "REJECTED" ? <StatusRejected data={statusData} /> : null}
               </>
             )}
