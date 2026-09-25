@@ -10,14 +10,13 @@ import { OBSERVATION_FIELD_KEYS } from "@/modules/afiliaciones/observations/Obse
 import { stripObservationMarkup } from "@/modules/afiliaciones/observations/ObservationText";
 import { AssociateProvisioningService } from "@/modules/afiliaciones/asociados/Services/AssociateProvisioningService";
 import { apiAuthorizationStatus, requireApiPermission } from "@/modules/auth/context/api-authorization";
-import { expedienteAuthorizationService } from "@/modules/afiliaciones/expedientes/Services/ExpedienteAuthorizationService";
+import { expedienteAuthorizationService, resolveRequiredApplicationPermission } from "@/modules/afiliaciones/expedientes/Services/ExpedienteAuthorizationService";
 
 export async function PATCH(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const currentUser = await requireApiPermission("update", "memberships");
         const { id } = await params;
         const appId = parseInt(id, 10);
         if (!Number.isInteger(appId) || appId < 1) return NextResponse.json({ success: false, message: "Expediente inválido." }, { status: 400 });
@@ -25,6 +24,15 @@ export async function PATCH(
         
         // 1. Extraemos el targetDepartmentCode que ahora envía el Modal del SuperAdmin
         const { newStatus, reason, fieldPaths = [], targetDepartmentCode } = body;
+
+        // 2. Autorización dinámica por acción (CAPABILITY) — FAIL-CLOSED.
+        //    RESOLVED, estados desconocidos o inválidos se rechazan aquí.
+        const requiredAction = resolveRequiredApplicationPermission(newStatus);
+        if (!requiredAction) {
+            return NextResponse.json({ success: false, message: "Estado de área inválido." }, { status: 400 });
+        }
+        const currentUser = await requireApiPermission(requiredAction, "applications");
+
         const plainTextReason = typeof reason === "string" ? stripObservationMarkup(reason) : "";
         if (plainTextReason.length > 2000) {
             return NextResponse.json({ success: false, message: "El motivo excede el máximo de 2000 caracteres." }, { status: 422 });
@@ -41,21 +49,19 @@ export async function PATCH(
             return NextResponse.json({ success: false, message: "Seleccione al menos un campo observado." }, { status: 400 });
         }
 
+        // 3. Scope de área (SCOPE) — ownership. No confía en targetDepartmentCode para no-admin.
         const deptCode = expedienteAuthorizationService.resolveWritableDepartment(currentUser, targetDepartmentCode);
 
         // 4. Mapeo de Estados
         let targetAreaStatus: ValidationStatus | null = null;
         let actionEnum: ValidationAction = ValidationAction.START_REVIEW;
 
-        if (newStatus === "UNDER_EVALUACION" || newStatus === "UNDER_EVALUATION" || newStatus === "APPROVED") {
+        if (newStatus === "APPROVED") {
             targetAreaStatus = ValidationStatus.APPROVED;
             actionEnum = ValidationAction.APPROVED;
         } else if (newStatus === "OBSERVED") {
             targetAreaStatus = ValidationStatus.OBSERVED;
             actionEnum = ValidationAction.OBSERVED;
-        } else if (newStatus === "RESOLVED") {
-            targetAreaStatus = ValidationStatus.RESOLVED;
-            actionEnum = ValidationAction.SUBMITTED_CORRECTION;
         } else if (newStatus === "REJECTED") {
             targetAreaStatus = ValidationStatus.REJECTED;
             actionEnum = ValidationAction.REJECTED;

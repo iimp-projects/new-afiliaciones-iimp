@@ -36,3 +36,26 @@ export class ExpedienteAuthorizationService {
 }
 
 export const expedienteAuthorizationService = new ExpedienteAuthorizationService();
+
+/**
+ * Mapa de transiciones de estado permitidas vía el endpoint `/status`.
+ * Cada transición exige la acción RBAC que representa la operación real
+ * sobre la postulación (CAPABILITY), distinta del scope de área (SCOPE).
+ */
+const STATUS_PERMISSION_MAP: Readonly<Record<string, string>> = {
+  OBSERVED: "observe",
+  APPROVED: "approve",
+  REJECTED: "reject",
+  PENDING: "reopen",
+};
+
+/**
+ * Resuelve el permiso requerido para una transición de estado de área.
+ *
+ * FAIL-CLOSED: devuelve `null` para `RESOLVED`, estados desconocidos o
+ * entradas que no son strings. Nunca devuelve `"update"` como fallback.
+ */
+export function resolveRequiredApplicationPermission(targetStatus: unknown): string | null {
+  if (typeof targetStatus !== "string") return null;
+  return STATUS_PERMISSION_MAP[targetStatus] ?? null;
+}

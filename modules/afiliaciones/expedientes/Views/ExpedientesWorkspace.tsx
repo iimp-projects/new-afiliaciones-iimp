@@ -94,11 +94,12 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
     setIsDrawerOpen(true);
 
     const isAdmin = currentUser?.role?.slug === "SUPER_ADMIN" || currentUser?.role?.slug === "SYSTEM_ADMIN";
+    const isComite = currentUser?.role?.slug === "COMITE_EVALUADOR";
     const validations = cardData.atomicValidations || [];
     const myDepartmentName = getDepartmentLabelByRole(currentUser?.role?.slug);
     const myValidation = validations.find((v: any) => v.label.toLowerCase() === myDepartmentName.toLowerCase()) || validations[0];
     
-    const hasAlreadyValidated = !isAdmin && myValidation && ["APPROVED", "check", "REJECTED", "error"].includes(myValidation.status);
+    const hasAlreadyValidated = !isAdmin && !isComite && myValidation && ["APPROVED", "check", "REJECTED", "error"].includes(myValidation.status);
     const dniMatch = cardData.identity.subtitle.match(/DNI\s*(\d+)/i);
     const cleanSubtitle = dniMatch ? `DNI: ${dniMatch[1]}` : cardData.identity.subtitle;
     const realUserName = currentUser ? `${currentUser.person.firstName} ${currentUser.person.paternalLastName}` : "Administrador";
@@ -243,18 +244,14 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
   const isClosedFinal = payload ? ["APPROVED", "COMPLETED", "REJECTED", "READY_FOR_PAYMENT"].includes(payload.status) : false;
 
   let disableApproveButton = false;
-  let disableResolveButton = false;
   let disableObserveButton = false;
   let disableRejectButton = false;
 
   if (isClosedFinal) {
     disableApproveButton = true;
-    disableResolveButton = true;
     disableObserveButton = true;
     disableRejectButton = true;
   } else if (isAdmin) {
-    const hasAnyObserved = validationsRaw.some((v:any) => ["OBSERVED", "review", "alert"].includes(v.status));
-    disableResolveButton = !hasAnyObserved; 
     disableApproveButton = false;
     disableObserveButton = false;
     disableRejectButton = false;
@@ -264,11 +261,9 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
     if (isAreaResolved) {
       disableApproveButton = false;
       disableObserveButton = false;
-      disableResolveButton = true; 
       disableRejectButton = false;
     } else {
       disableApproveButton = isActionDisabled || hasPendingObservations;
-      disableResolveButton = isActionDisabled || !isAreaObserved;
       disableObserveButton = isActionDisabled || isAreaObserved;
       disableRejectButton = isActionDisabled;
     }
@@ -461,7 +456,6 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
           drawerData && !isDrawerLoading ? (
             <>
               <button onClick={() => { setTargetStatus("APPROVED"); setShowStatusModal(true); }} disabled={disableApproveButton} className="flex items-center gap-2 h-9 px-4 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale"><CheckCircle2 size={16} /> Otorgar Conformidad</button>
-              <button onClick={() => { setTargetStatus("RESOLVED"); setShowStatusModal(true); }} disabled={disableResolveButton} className="flex items-center gap-2 h-9 px-4 rounded-lg bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-xs font-bold transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale"><CheckCircle2 size={16} /> Subsanar</button>
               <button onClick={() => { setTargetStatus("OBSERVED"); setShowStatusModal(true); }} disabled={disableObserveButton} className="flex items-center gap-2 h-9 px-4 rounded-lg bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-700 text-xs font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale"><AlertCircle size={16} /> Observar</button>
               <button onClick={() => { setTargetStatus("REJECTED"); setShowStatusModal(true); }} disabled={disableRejectButton} className="flex items-center gap-2 h-9 px-3 rounded-lg text-red-500 hover:bg-red-50 text-xs font-bold transition-colors ml-auto disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale"><XCircle size={16} /> Rechazar Definitivo</button>
             </>
