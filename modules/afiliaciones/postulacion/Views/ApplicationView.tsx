@@ -82,6 +82,7 @@ export default function ApplicationView({
   // ESTADO QUE CONTROLA SI YA SE ENVIÓ PARA MOSTRAR LA PANTALLA FINAL
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [recoveryMessage, setRecoveryMessage] = useState<string | null>(null);
+  const submissionConfettiFiredRef = useRef(false);
 
   const [draft, setDraft] = useState<ApplicationDraft>({
     ...emptyDraft,
@@ -237,34 +238,43 @@ export default function ApplicationView({
       setIsSubmitted(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
 
-      // Celebramos con confetti
-      const duration = 3 * 1000;
-      const animationEnd = Date.now() + duration;
-      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
-      const randomInRange = (min: number, max: number) =>
-        Math.random() * (max - min) + min;
-      const interval: any = setInterval(function () {
-        const timeLeft = animationEnd - Date.now();
-        if (timeLeft <= 0) return clearInterval(interval);
-        const particleCount = 50 * (timeLeft / duration);
-        confetti({
-          ...defaults,
-          particleCount,
-          colors: ["#C5A059", "#E8D09E", "#D6A84A", "#2F3136", "#F7F8FA"],
-          origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
-        });
-        confetti({
-          ...defaults,
-          particleCount,
-          colors: ["#C5A059", "#E8D09E", "#D6A84A", "#2F3136", "#F7F8FA"],
-          origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
-        });
-      }, 250);
+      // Celebramos con confetti (una sola vez, respetando reduced-motion)
+      fireSubmissionConfetti();
     } catch (error) {
       throw error;
     } finally {
       setSaving(false);
     }
+  };
+
+  const fireSubmissionConfetti = () => {
+    if (submissionConfettiFiredRef.current) return;
+    if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    submissionConfettiFiredRef.current = true;
+
+    const duration = 3 * 1000;
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 150 };
+    const randomInRange = (min: number, max: number) =>
+      Math.random() * (max - min) + min;
+    const colors = ["#C5A059", "#E8D09E", "#D6A84A", "#2F3136", "#F7F8FA"];
+    const interval = window.setInterval(function () {
+      const timeLeft = animationEnd - Date.now();
+      if (timeLeft <= 0) return window.clearInterval(interval);
+      const particleCount = 50 * (timeLeft / duration);
+      confetti({
+        ...defaults,
+        particleCount,
+        colors,
+        origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+      });
+      confetti({
+        ...defaults,
+        particleCount,
+        colors,
+        origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+      });
+    }, 250);
   };
 
   // ========================================================

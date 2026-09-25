@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState, forwardRef, useImperativeHandle } from "react";
+import { useState, forwardRef, useImperativeHandle } from "react";
 import { CheckCircle2, ShieldCheck, Mail, Clock, ArrowRight } from "lucide-react";
-import confetti from "canvas-confetti";
 import { MembershipType } from "../../Types/MembershipType";
 
 export interface StepRef {
@@ -22,25 +21,6 @@ const FinishStep = forwardRef<StepRef, FinishStepProps>(
     
     const [submitted, setSubmitted] = useState(false);
     const [error, setError] = useState<string | null>(null);
-
-    // Efecto de Confetti al montar la vista de éxito
-    useEffect(() => {
-      const duration = 3 * 1000;
-      const animationEnd = Date.now() + duration;
-      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
-      const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
-
-      const interval: any = setInterval(function () {
-        const timeLeft = animationEnd - Date.now();
-        if (timeLeft <= 0) return clearInterval(interval);
-
-        const particleCount = 50 * (timeLeft / duration);
-        confetti({ ...defaults, particleCount, colors: ['#C5A059', '#E8D09E', '#D6A84A', '#2F3136', '#F7F8FA'], origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
-        confetti({ ...defaults, particleCount, colors: ['#C5A059', '#E8D09E', '#D6A84A', '#2F3136', '#F7F8FA'], origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
-      }, 250);
-
-      return () => clearInterval(interval);
-    }, []);
 
     // Conexión imperativa con el Footer del Orquestador
     useImperativeHandle(ref, () => ({
