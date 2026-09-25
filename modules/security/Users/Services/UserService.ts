@@ -21,15 +21,28 @@ export class UserService {
   }
 
   async createUser(input: CreateUserInput, imageUrl?: string) {
-    const { emailExists, documentExists } = await this.repository.checkExistingUser(input.email, input.documentNumber);
-    
-    if (emailExists) throw new Error("El correo electrónico ya se encuentra registrado.");
-    if (documentExists) throw new Error("El número de documento ya se encuentra registrado en el sistema.");
+    const existingUser = await this.repository.findUserByEmailIncludingDeleted(input.email);
+    const documentOwner = await this.repository.findPersonByDocument(input.documentNumber);
 
-    // La contraseña se hashea con el mismo mecanismo (bcrypt) que valida el login,
-    // y se persiste junto al usuario activo en una única transacción.
+    if (!existingUser) {
+      if (documentOwner) throw new Error("El número de documento ya se encuentra registrado en el sistema.");
+      const hashedPassword = await bcrypt.hash(input.password, BCRYPT_COST);
+      return await this.repository.createUserWithPerson(input, imageUrl, hashedPassword);
+    }
+
+    // Usuario activo con el mismo correo → se rechaza.
+    if (existingUser.deletedAt === null) {
+      throw new Error("El correo electrónico ya se encuentra registrado.");
+    }
+
+    // El correo pertenece a un usuario eliminado (soft-delete): se reutiliza la identidad
+    // existente en lugar de crear un segundo registro con el mismo email.
+    if (documentOwner && documentOwner.id !== existingUser.personId) {
+      throw new Error("El número de documento ya se encuentra registrado en el sistema.");
+    }
+
     const hashedPassword = await bcrypt.hash(input.password, BCRYPT_COST);
-    return await this.repository.createUserWithPerson(input, imageUrl, hashedPassword);
+    return await this.repository.reactivateUser(existingUser.id, input, imageUrl, hashedPassword);
   }
 
   async updateUser(input: UpdateUserInput, imageUrl?: string) {

@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner"; // ✅ IMPORTAMOS SONNER DIRECTO
-import { X, Save, AlertCircle, Camera, ChevronDown, Check, Info } from "lucide-react";
+import { X, Save, AlertCircle, Camera, ChevronDown, Check, Info, Eye, EyeOff } from "lucide-react";
 import { createUserAction } from "../Actions/user.actions";
 
 interface CreateUserModalProps {
@@ -22,6 +22,9 @@ export function CreateUserModal({ onClose, onSuccess, roles }: CreateUserModalPr
   const [isRoleOpen, setIsRoleOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<number | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -44,6 +47,14 @@ export function CreateUserModal({ onClose, onSuccess, roles }: CreateUserModalPr
     const formData = new FormData(e.currentTarget);
     const photoFile = formData.get("photo") as File;
     let finalImageUrl = "";
+
+    const password = formData.get("password") as string;
+    const confirmPassword = formData.get("confirmPassword") as string;
+    if (password !== confirmPassword) {
+      setErrors({ confirmPassword: ["Las contraseñas no coinciden."] });
+      setIsLoading(false);
+      return;
+    }
 
     if (photoFile && photoFile.size > 0) {
       try {
@@ -215,8 +226,24 @@ export function CreateUserModal({ onClose, onSuccess, roles }: CreateUserModalPr
 
               <div className="md:col-span-2">
                 <label className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-2 block ml-1">Contraseña</label>
-                <input name="password" type="password" className={inputClass("password")} placeholder="Mínimo 8 caracteres" />
+                <div className="relative">
+                  <input name="password" type={showPassword ? "text" : "password"} className={`${inputClass("password")} pr-11`} placeholder="Mínimo 8 caracteres" autoComplete="new-password" />
+                  <button type="button" onClick={() => setShowPassword(v => !v)} aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#C5A059] transition-colors">
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
                 {errors.password && <span className="text-red-500 text-xs mt-1 block font-bold">{errors.password[0]}</span>}
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-2 block ml-1">Confirmar contraseña</label>
+                <div className="relative">
+                  <input name="confirmPassword" type={showConfirmPassword ? "text" : "password"} className={`${inputClass("confirmPassword")} pr-11`} placeholder="Repite la contraseña" autoComplete="new-password" />
+                  <button type="button" onClick={() => setShowConfirmPassword(v => !v)} aria-label={showConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#C5A059] transition-colors">
+                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+                {errors.confirmPassword && <span className="text-red-500 text-xs mt-1 block font-bold">{errors.confirmPassword[0]}</span>}
               </div>
 
               <div className="md:col-span-2" ref={dropdownRef}>

@@ -4,7 +4,10 @@ import type { CreateUserInput } from "../DTOs/user.schema";
 
 const mocks = vi.hoisted(() => ({
   checkExistingUser: vi.fn(),
+  findUserByEmailIncludingDeleted: vi.fn(),
+  findPersonByDocument: vi.fn(),
   createUserWithPerson: vi.fn(),
+  reactivateUser: vi.fn(),
   setUsersStatus: vi.fn(),
   softDeleteUsers: vi.fn(),
   revokeAllSessions: vi.fn(),
@@ -14,7 +17,10 @@ const mocks = vi.hoisted(() => ({
 vi.mock("../Repositories/UserRepository", () => ({
   UserRepository: class {
     checkExistingUser = mocks.checkExistingUser;
+    findUserByEmailIncludingDeleted = mocks.findUserByEmailIncludingDeleted;
+    findPersonByDocument = mocks.findPersonByDocument;
     createUserWithPerson = mocks.createUserWithPerson;
+    reactivateUser = mocks.reactivateUser;
     setUsersStatus = mocks.setUsersStatus;
     softDeleteUsers = mocks.softDeleteUsers;
   },
@@ -38,8 +44,10 @@ const input = {
 describe("UserService administrative creation", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.checkExistingUser.mockResolvedValue({ emailExists: false, documentExists: false });
+    mocks.findUserByEmailIncludingDeleted.mockResolvedValue(null);
+    mocks.findPersonByDocument.mockResolvedValue(null);
     mocks.createUserWithPerson.mockResolvedValue({ id: 42 });
+    mocks.reactivateUser.mockResolvedValue({ id: 42 });
   });
 
   it("hashes the password so the login mechanism can verify it (never stores plaintext)", async () => {
@@ -57,17 +65,44 @@ describe("UserService administrative creation", () => {
     await expect(bcrypt.compare(input.password, hashedPassword)).resolves.toBe(true);
   });
 
-  it("rejects a duplicated email", async () => {
-    mocks.checkExistingUser.mockResolvedValue({ emailExists: true, documentExists: false });
+  it("rejects a duplicated email for an ACTIVE user", async () => {
+    mocks.findUserByEmailIncludingDeleted.mockResolvedValue({ id: 5, deletedAt: null, personId: 10 });
 
     await expect(new UserService().createUser(input)).rejects.toThrow("correo electrónico");
     expect(mocks.createUserWithPerson).not.toHaveBeenCalled();
+    expect(mocks.reactivateUser).not.toHaveBeenCalled();
   });
 
-  it("rejects a duplicated document number", async () => {
-    mocks.checkExistingUser.mockResolvedValue({ emailExists: false, documentExists: true });
+  it("rejects a duplicated document number when the email is new", async () => {
+    mocks.findUserByEmailIncludingDeleted.mockResolvedValue(null);
+    mocks.findPersonByDocument.mockResolvedValue({ id: 10 });
 
     await expect(new UserService().createUser(input)).rejects.toThrow("documento");
+    expect(mocks.createUserWithPerson).not.toHaveBeenCalled();
+  });
+
+  it("reuses a deleted user's email by reactivating the existing record instead of creating a new one", async () => {
+    mocks.findUserByEmailIncludingDeleted.mockResolvedValue({ id: 5, deletedAt: new Date(), personId: 10 });
+    mocks.findPersonByDocument.mockResolvedValue({ id: 10 });
+
+    const result = await new UserService().createUser(input);
+
+    expect(result).toEqual({ id: 42 });
+    expect(mocks.createUserWithPerson).not.toHaveBeenCalled();
+    expect(mocks.reactivateUser).toHaveBeenCalledTimes(1);
+
+    const [userId, , , hashedPassword] = mocks.reactivateUser.mock.calls[0] as [number, CreateUserInput, string | undefined, string];
+    expect(userId).toBe(5);
+    expect(hashedPassword).toBeTruthy();
+    expect(hashedPassword).not.toContain(input.password);
+  });
+
+  it("rejects reuse of a deleted email when its document belongs to another person", async () => {
+    mocks.findUserByEmailIncludingDeleted.mockResolvedValue({ id: 5, deletedAt: new Date(), personId: 10 });
+    mocks.findPersonByDocument.mockResolvedValue({ id: 99 });
+
+    await expect(new UserService().createUser(input)).rejects.toThrow("documento");
+    expect(mocks.reactivateUser).not.toHaveBeenCalled();
     expect(mocks.createUserWithPerson).not.toHaveBeenCalled();
   });
 });

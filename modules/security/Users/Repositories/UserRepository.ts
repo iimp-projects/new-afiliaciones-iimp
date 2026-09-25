@@ -95,6 +95,20 @@ export class UserRepository {
     };
   }
 
+  async findUserByEmailIncludingDeleted(email: string) {
+    return prisma.user.findFirst({
+      where: { email: { equals: email, mode: "insensitive" } },
+      select: { id: true, email: true, deletedAt: true, personId: true },
+    });
+  }
+
+  async findPersonByDocument(documentNumber: string) {
+    return prisma.person.findFirst({
+      where: { documentNumber },
+      select: { id: true },
+    });
+  }
+
   async createUserWithPerson(
     data: CreateUserInput,
     imageUrl: string | undefined,
@@ -144,6 +158,64 @@ export class UserRepository {
       });
 
       return user;
+    });
+  }
+
+  async reactivateUser(
+    userId: number,
+    data: CreateUserInput,
+    imageUrl: string | undefined,
+    hashedPassword: string,
+  ) {
+    return prisma.$transaction(async (tx) => {
+      const existing = await tx.user.findUnique({
+        where: { id: userId },
+        select: { personId: true },
+      });
+      if (!existing) throw new Error("Usuario no encontrado.");
+      if (!existing.personId) throw new Error("El usuario eliminado no tiene persona asociada.");
+
+      // Reutiliza la identidad existente (misma persona), actualizando sus datos.
+      await tx.person.update({
+        where: { id: existing.personId },
+        data: {
+          documentType: data.documentType,
+          documentNumber: data.documentNumber,
+          firstName: data.firstName,
+          paternalLastName: data.paternalLastName,
+          maternalLastName: data.maternalLastName,
+        },
+      });
+
+      await tx.user.update({
+        where: { id: userId },
+        data: {
+          email: data.email,
+          roleId: data.roleId,
+          status: UserStatus.ACTIVE,
+          deletedAt: null,
+          emailVerified: new Date(),
+          type: data.userType,
+          ...(imageUrl ? { image: imageUrl } : {}),
+        },
+      });
+
+      const credentialUpdate = await tx.credential.updateMany({
+        where: { userId, type: CredentialType.PASSWORD },
+        data: { secret: hashedPassword, isActive: true },
+      });
+      if (credentialUpdate.count === 0) {
+        await tx.credential.create({
+          data: {
+            userId,
+            type: CredentialType.PASSWORD,
+            secret: hashedPassword,
+            isActive: true,
+          },
+        });
+      }
+
+      return tx.user.findUnique({ where: { id: userId } });
     });
   }
 

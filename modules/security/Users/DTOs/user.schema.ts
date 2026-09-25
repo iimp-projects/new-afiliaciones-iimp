@@ -13,8 +13,12 @@ export const createUserSchema = z.object({
     .email("El correo electrónico no es válido.")
     .transform((value) => value.trim().toLowerCase()),
   password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres."),
+  confirmPassword: z.string().min(1, "Debe confirmar la contraseña."),
   roleId: z.coerce.number().min(1, "Debe seleccionar un rol."),
   userType: z.nativeEnum(UserType).default(UserType.VALIDATOR),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Las contraseñas no coinciden.",
+  path: ["confirmPassword"],
 });
 
 export const updateUserSchema = z.object({
