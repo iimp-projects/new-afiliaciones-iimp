@@ -62,4 +62,14 @@ describe("NavigationService - Application Service", () => {
         expect(tree.map((node) => node.id)).toEqual(["group-affiliate-main", "group-affiliate-account"]);
         expect(tree.flatMap((node) => node.children ?? []).every((node) => node.href?.startsWith("/intranet/mi-cuenta"))).toBe(true);
     });
+
+    it("muestra Mi perfil a cualquier usuario administrativo sin exigir un permiso adicional", async () => {
+        const service = new NavigationService(new MockAuthProvider(new Set()));
+        const tree = await service.getAuthorizedTree();
+        const account = tree.find((node) => node.id === "group-account");
+
+        const profile = account?.children?.find((node) => node.id === "nav-internal-profile");
+        expect(profile).toMatchObject({ href: "/intranet/mi-perfil", icon: "UserRound" });
+        expect(profile).not.toHaveProperty("permission");
+    });
 });

@@ -136,6 +136,22 @@ export const securityModuleDefinition: ModuleDefinition = {
             ]
         },
         {
+            id: "group-account",
+            title: "MI CUENTA",
+            type: "group",
+            audience: "administrative",
+            order: 30,
+            children: [
+                {
+                    id: "nav-internal-profile",
+                    title: "Mi perfil",
+                    href: "/intranet/mi-perfil",
+                    icon: "UserRound",
+                    order: 1,
+                },
+            ],
+        },
+        {
             id: "group-affiliate-main",
             title: "MENÚ PRINCIPAL",
             type: "group",
