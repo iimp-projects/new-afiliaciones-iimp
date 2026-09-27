@@ -152,7 +152,7 @@ export class ExpedienteRepository {
           },
         },
         payments: { orderBy: { createdAt: "desc" } },
-        approvals: { include: { sponsorPerson: true } },
+        approvals: { include: { sponsorPerson: { include: { user: true, contacts: true } } } },
         observations: { orderBy: { createdAt: "desc" } },
         documents: true,
         areaValidations: { include: { validatedBy: { include: { person: true } } } },
