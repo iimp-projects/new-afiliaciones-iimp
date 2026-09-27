@@ -2,7 +2,7 @@
 /* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps -- the alert refresh is explicitly triggered on mount and popover opening. */
 
 import { useState, useRef, useEffect } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Bell,
   Mail,
@@ -24,6 +24,7 @@ interface NavbarProps {
 
 export function Navbar({ user, onToggleSidebar }: NavbarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [activeLang, setActiveLang] = useState<"ES" | "EN" | "QU">("ES");
   const portalBreadcrumbs: Record<string, string> = { "/intranet/mi-cuenta": "Inicio", "/intranet/mi-cuenta/perfil": "Mi perfil", "/intranet/mi-cuenta/membresia": "Mi membresía", "/intranet/mi-cuenta/pagos": "Pagos y comprobantes", "/intranet/mi-cuenta/beneficios": "Beneficios", "/intranet/mi-cuenta/eventos": "Eventos", "/intranet/mi-cuenta/documentos": "Documentos", "/intranet/mi-cuenta/soporte": "Soporte" };
   const portalPage = portalBreadcrumbs[pathname];
@@ -300,7 +301,7 @@ export function Navbar({ user, onToggleSidebar }: NavbarProps) {
 
               {/* Opciones del menú */}
               <div className="p-2 space-y-1">
-                <button className="w-full flex items-center gap-3 px-3 py-2.5 text-[13px] font-bold text-slate-600 hover:text-[#c39254] hover:bg-orange-50 rounded-xl transition-colors">
+                <button onClick={() => { setIsProfileOpen(false); router.push("/intranet/mi-perfil"); }} className="w-full flex items-center gap-3 px-3 py-2.5 text-[13px] font-bold text-slate-600 hover:text-[#c39254] hover:bg-orange-50 rounded-xl transition-colors">
                   <User size={16} strokeWidth={2.5} />
                   Ver perfil
                 </button>
