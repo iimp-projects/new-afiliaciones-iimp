@@ -86,4 +86,43 @@ describe("ExpedienteRepository.getById — datos de contacto del aval", () => {
     expect(result!.approvals[0].sponsorPerson.user!.email).toBe("aval@example.com");
     expect(result!.approvals[0].sponsorPerson.contacts).toEqual([]);
   });
+
+  it("incluye validations.history con evidencia y usuario selectivo", async () => {
+    mocks.applicationFindUnique.mockResolvedValue({
+      id: 26,
+      draftData: null,
+      validations: [
+        {
+          id: 10,
+          department: { code: "LOGISTICA" },
+          history: [
+            {
+              id: 1,
+              action: "APPROVED",
+              attachmentUrl: "afiliaciones/applications/26/observations/x.pdf",
+              attachmentName: "x.pdf",
+              mimeType: "application/pdf",
+              user: { id: 1, name: "Ana", person: { firstName: "Ana", paternalLastName: "Pérez", maternalLastName: null } },
+            },
+          ],
+        },
+      ],
+    });
+
+    await new ExpedienteRepository().getById(26);
+
+    const arg = mocks.applicationFindUnique.mock.calls[0][0];
+    expect(arg.include.validations.include.history).toEqual({
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            person: { select: { firstName: true, paternalLastName: true, maternalLastName: true } },
+          },
+        },
+      },
+      orderBy: { createdAt: "asc" },
+    });
+  });
 });

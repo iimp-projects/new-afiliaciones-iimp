@@ -23,6 +23,7 @@ import {
   ChevronDown,
   ChevronUp,
   Clock,
+  Download,
   Eye,
   FileText,
   History,
@@ -310,8 +311,39 @@ function ObservationCard({
     }).format(new Date(dateString));
   };
 
-  const handleOpenDocument = (url: string) => {
-    window.open(url, "_blank");
+  const getSecureUrl = async (rawUrl: string) => {
+    try {
+      const res = await fetch(`/api/afiliaciones/postulacion/file?url=${encodeURIComponent(rawUrl)}`);
+      const data = await res.json();
+      return data.success && data.data?.url ? data.data.url : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const handleOpenDocument = async (url: string) => {
+    const secureUrl = await getSecureUrl(url);
+    if (!secureUrl) return alert("No se pudo obtener el acceso seguro al archivo.");
+    window.open(secureUrl, "_blank");
+  };
+
+  const handleDownloadDocument = async (url: string, name: string) => {
+    const secureUrl = await getSecureUrl(url);
+    if (!secureUrl) return alert("No se pudo obtener el acceso seguro para descargar.");
+    try {
+      const response = await fetch(secureUrl);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = name;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch {
+      window.open(secureUrl, "_blank");
+    }
   };
 
   const areaValidation = payload?.validations?.find(
@@ -435,15 +467,26 @@ function ObservationCard({
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => handleOpenDocument(data.attachmentUrl)}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 focus:outline-none"
-              title="Ver archivo"
-              aria-label="Ver archivo"
-            >
-              <Eye size={16} strokeWidth={1.8} />
-            </button>
+            <div className="flex shrink-0 items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => handleOpenDocument(data.attachmentUrl)}
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 focus:outline-none"
+                title="Ver archivo"
+                aria-label="Ver archivo"
+              >
+                <Eye size={16} strokeWidth={1.8} />
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDownloadDocument(data.attachmentUrl, data.attachmentName || `documento_adjunto_${data.id}`)}
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 focus:outline-none"
+                title="Descargar archivo"
+                aria-label="Descargar archivo"
+              >
+                <Download size={16} strokeWidth={1.8} />
+              </button>
+            </div>
           </div>
         )}
       </div>

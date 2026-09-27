@@ -15,6 +15,15 @@ function matchesDeclaredType(buffer: Buffer, mimeType: string): boolean {
   return false;
 }
 
+const APPLICATIONS_WRITE_ACTIONS = ["update", "observe", "approve", "reject", "reopen"] as const;
+
+function hasApplicationsWriteCapability(user: { permissions?: Set<string> }): boolean {
+  const permissions = user.permissions;
+  if (!permissions) return false;
+  if (permissions.has("manage:all")) return true;
+  return APPLICATIONS_WRITE_ACTIONS.some((action) => permissions.has(`${action}:applications`));
+}
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
@@ -51,16 +60,23 @@ export async function POST(request: NextRequest) {
 
     const applicantApplicationId = queryAuthorization.allowedIds(request.cookies.get(QUERY_COOKIE)?.value)[0];
     const requestedApplicationId = Number(formData.get("applicationId"));
-    const internalAccess = Boolean(user && await contextService.hasPermission("update", "memberships"));
-    const applicationId = applicantApplicationId
-      || (internalAccess && Number.isSafeInteger(requestedApplicationId) && requestedApplicationId > 0 ? requestedApplicationId : null);
-    if (!applicationId) {
-      return NextResponse.json({ message: "Verifica tu identidad para subir archivos." }, { status: 401 });
-    }
 
     const kind = resolveApplicationFolderKind(requestedFolder);
     if (!kind) {
       return NextResponse.json({ message: "Destino de archivo no permitido." }, { status: 400 });
+    }
+
+    // El acceso interno para la carpeta de evidencia de expediente se autoriza
+    // con la capacidad de escritura sobre applications (misma base que /status);
+    // el resto de carpetas conserva el permiso interno histórico.
+    const internalAccess = Boolean(user && (
+      await contextService.hasPermission("update", "memberships")
+      || (kind === "observations" && hasApplicationsWriteCapability(user))
+    ));
+    const applicationId = applicantApplicationId
+      || (internalAccess && Number.isSafeInteger(requestedApplicationId) && requestedApplicationId > 0 ? requestedApplicationId : null);
+    if (!applicationId) {
+      return NextResponse.json({ message: "Verifica tu identidad para subir archivos." }, { status: 401 });
     }
 
     const folder = `afiliaciones/applications/${applicationId}/${kind}`;

@@ -11,6 +11,7 @@ import { stripObservationMarkup } from "@/modules/afiliaciones/observations/Obse
 import { AssociateProvisioningService } from "@/modules/afiliaciones/asociados/Services/AssociateProvisioningService";
 import { apiAuthorizationStatus, requireApiPermission } from "@/modules/auth/context/api-authorization";
 import { expedienteAuthorizationService, resolveRequiredApplicationPermission } from "@/modules/afiliaciones/expedientes/Services/ExpedienteAuthorizationService";
+import { S3StorageService, isObjectKeyAllowed } from "@/modules/shared/Services/S3StorageService";
 
 export async function PATCH(
     request: NextRequest,
@@ -24,6 +25,10 @@ export async function PATCH(
         
         // 1. Extraemos el targetDepartmentCode que ahora envía el Modal del SuperAdmin
         const { newStatus, reason, fieldPaths = [], targetDepartmentCode } = body;
+
+        const attachmentUrl = typeof body.attachmentUrl === "string" && body.attachmentUrl.length > 0 ? body.attachmentUrl : null;
+        const attachmentName = typeof body.attachmentName === "string" && body.attachmentName.length > 0 && body.attachmentName.length <= 250 ? body.attachmentName : null;
+        const mimeType = typeof body.mimeType === "string" && body.mimeType.length > 0 && body.mimeType.length <= 100 ? body.mimeType : null;
 
         // 2. Autorización dinámica por acción (CAPABILITY) — FAIL-CLOSED.
         //    RESOLVED, estados desconocidos o inválidos se rechazan aquí.
@@ -74,6 +79,18 @@ export async function PATCH(
             return NextResponse.json({ success: false, message: "Estado de área inválido." }, { status: 400 });
         }
 
+        // Validación de evidencia: la clave/URL debe pertenecer al expediente actual.
+        if (attachmentUrl) {
+            try {
+                const key = new S3StorageService().getObjectKey(attachmentUrl);
+                if (!isObjectKeyAllowed(key, [`afiliaciones/applications/${appId}`])) {
+                    return NextResponse.json({ success: false, message: "La evidencia no pertenece a este expediente." }, { status: 400 });
+                }
+            } catch {
+                return NextResponse.json({ success: false, message: "La evidencia no es un archivo válido del expediente." }, { status: 400 });
+            }
+        }
+
         // 5. Transacción de Base de Datos
         const associatesIntegrationService = new AssociatesIntegrationService();
         let integrationId: number | null = null;
@@ -106,7 +123,10 @@ export async function PATCH(
                             validationId: validation.id,
                             userId: currentUser.id,
                             action: actionEnum,
-                            comment: plainTextReason || 'Actualización de estado del área'
+                            comment: plainTextReason || 'Actualización de estado del área',
+                            attachmentUrl,
+                            attachmentName,
+                            mimeType,
                         }
                     });
 
@@ -118,6 +138,7 @@ export async function PATCH(
                                 reviewDepartment: deptCode,
                                 errorDescription: plainTextReason || "Se requiere subsanación.",
                                 fieldPaths: normalizedFieldPaths,
+                                attachmentUrl,
                             }
                         });
                     }

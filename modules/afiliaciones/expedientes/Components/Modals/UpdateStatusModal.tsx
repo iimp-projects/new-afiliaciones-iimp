@@ -68,7 +68,8 @@ export function UpdateStatusModal({ isOpen, onClose, onSuccess, onError, targetS
   });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) setAttachments((prev) => [...prev, ...Array.from(e.target.files!)]);
+    const file = e.target.files?.[0];
+    if (file) setAttachments([file]);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -82,14 +83,23 @@ export function UpdateStatusModal({ isOpen, onClose, onSuccess, onError, targetS
     setIsUpdatingStatus(true);
     try {
       let uploadedUrl = null;
+      let uploadedName = null;
+      let uploadedType = null;
       if (attachments.length > 0) {
+        const file = attachments[0];
         const formData = new FormData();
-        formData.append("file", attachments[0]);
+        formData.append("file", file);
         formData.append("folder", "afiliaciones/observaciones");
         formData.append("applicationId", String(drawerData.caseId));
         const uploadRes = await fetch("/api/afiliaciones/postulacion/upload", { method: "POST", body: formData });
         const uploadData = await uploadRes.json();
-        if (uploadData.success) uploadedUrl = uploadData.data.url;
+        if (uploadData.success && uploadData.data?.url) {
+          uploadedUrl = uploadData.data.url;
+          uploadedName = uploadData.data.name || file.name;
+          uploadedType = uploadData.data.type || file.type;
+        } else {
+          return onError("No se pudo adjuntar la evidencia. Inténtalo nuevamente.");
+        }
       }
 
       const res = await fetch(`/api/afiliaciones/expedientes/${drawerData.caseId}/status`, {
@@ -100,6 +110,8 @@ export function UpdateStatusModal({ isOpen, onClose, onSuccess, onError, targetS
           reason: statusReason,
           fieldPaths: targetStatus === "OBSERVED" ? observedFieldPaths : undefined,
           attachmentUrl: uploadedUrl,
+          attachmentName: uploadedName,
+          mimeType: uploadedType,
           targetDepartmentCode: targetDepartment || undefined, 
         }),
       });
@@ -229,7 +241,7 @@ export function UpdateStatusModal({ isOpen, onClose, onSuccess, onError, targetS
             <div className="flex items-center justify-between mb-2 ml-1 pr-1">
               <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Evidencia Adjunta <span className="text-gray-400 font-normal normal-case">(Opcional)</span></label>
               <button type="button" onClick={() => fileInputRef.current?.click()} className="text-xs font-bold text-[#c39254] flex items-center gap-1 hover:text-[#7f561e] transition-colors bg-[#c39254]/10 px-2 py-1 rounded-md"><Paperclip size={14} /> Añadir</button>
-              <input type="file" multiple className="hidden" ref={fileInputRef} onChange={handleFileChange} />
+              <input type="file" className="hidden" ref={fileInputRef} onChange={handleFileChange} />
             </div>
             {attachments.length > 0 ? (
               <ul className="space-y-2">

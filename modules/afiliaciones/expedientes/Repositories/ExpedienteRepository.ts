@@ -158,7 +158,22 @@ export class ExpedienteRepository {
         areaValidations: { include: { validatedBy: { include: { person: true } } } },
         history: { orderBy: { createdAt: "desc" } },
         validations: {
-          include: { department: true, validatedBy: { include: { person: true } } },
+          include: {
+            department: true,
+            validatedBy: { include: { person: true } },
+            history: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                    person: { select: { firstName: true, paternalLastName: true, maternalLastName: true } },
+                  },
+                },
+              },
+              orderBy: { createdAt: "asc" },
+            },
+          },
           orderBy: { department: { displayOrder: "asc" } },
         },
       },

@@ -408,12 +408,15 @@ model MembershipValidation {
 
 // Nivel 3: Historial Inmutable de la Validación
 model MembershipValidationHistory {
-  id           Int              @id @default(autoincrement())
-  validationId Int              @map("validation_id")
-  userId       Int?             @map("user_id") // Quién realizó la acción (Revisor o Postulante)
-  action       ValidationAction
-  comment      String?          @db.Text
-  createdAt    DateTime         @default(now()) @map("created_at")
+  id             Int              @id @default(autoincrement())
+  validationId   Int              @map("validation_id")
+  userId         Int?             @map("user_id") // Quién realizó la acción (Revisor o Postulante)
+  action         ValidationAction
+  comment        String?          @db.Text
+  attachmentUrl  String?          @map("attachment_url")
+  attachmentName String?          @map("attachment_name")
+  mimeType       String?          @map("mime_type")
+  createdAt      DateTime         @default(now()) @map("created_at")
 
   validation MembershipValidation @relation(fields: [validationId], references: [id], onDelete: Cascade)
   user       User?                @relation(fields: [userId], references: [id], onDelete: SetNull)

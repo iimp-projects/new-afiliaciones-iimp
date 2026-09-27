@@ -123,4 +123,28 @@ describe("POST /api/afiliaciones/postulacion/upload authorization", () => {
     expect(response.status).toBe(403);
     expect(mocks.uploadFile).not.toHaveBeenCalled();
   });
+
+  it("permite a un usuario interno con capacidad applications subir evidencia", async () => {
+    mocks.getInternalApiUser.mockResolvedValue({ id: 1, permissions: new Set(["observe:applications"]) });
+    mocks.hasPermission.mockResolvedValue(false);
+    const response = await POST(uploadRequest({ folder: "afiliaciones/observaciones", applicationId: "42" }));
+    expect(response.status).toBe(200);
+    expect(mocks.uploadFile).toHaveBeenCalledWith(PNG, "foto.png", "image/png", "afiliaciones/applications/42/observations");
+  });
+
+  it("rechaza a un usuario interno sin capacidad applications ni update:memberships para evidencia", async () => {
+    mocks.getInternalApiUser.mockResolvedValue({ id: 1, permissions: new Set(["read:applications"]) });
+    mocks.hasPermission.mockResolvedValue(false);
+    const response = await POST(uploadRequest({ folder: "afiliaciones/observaciones", applicationId: "42" }));
+    expect(response.status).toBe(401);
+    expect(mocks.uploadFile).not.toHaveBeenCalled();
+  });
+
+  it("no amplía el acceso interno a carpetas no-evidencia sin update:memberships", async () => {
+    mocks.getInternalApiUser.mockResolvedValue({ id: 1, permissions: new Set(["observe:applications"]) });
+    mocks.hasPermission.mockResolvedValue(false);
+    const response = await POST(uploadRequest({ folder: "afiliaciones/fotos", applicationId: "42" }));
+    expect(response.status).toBe(401);
+    expect(mocks.uploadFile).not.toHaveBeenCalled();
+  });
 });
