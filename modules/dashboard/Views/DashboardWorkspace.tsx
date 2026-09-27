@@ -73,6 +73,7 @@ const DashboardDropdown = ({ value, options, onChange, disabled = false, classNa
 export function DashboardWorkspace({ currentUser }: { currentUser: any }) {
   const [data, setData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
 
   // LÓGICA DE ROLES PARA FILTRO DE ÁREAS
@@ -113,10 +114,22 @@ export function DashboardWorkspace({ currentUser }: { currentUser: any }) {
 
   async function loadData() {
     setIsLoading(true);
-    const res = await fetchDashboardStats();
-    if (res.success) setData(res.data);
-    setIsLoading(false);
-    setCurrentTime(new Date().toLocaleDateString("es-PE", { day: '2-digit', month: 'short', year: 'numeric' }));
+    setError(null);
+    try {
+      const res = await fetchDashboardStats();
+      if (res.success) {
+        setData(res.data);
+      } else {
+        setData(null);
+        setError("No pudimos cargar la información del panel.");
+      }
+    } catch {
+      setData(null);
+      setError("No pudimos cargar la información del panel.");
+    } finally {
+      setIsLoading(false);
+      setCurrentTime(new Date().toLocaleDateString("es-PE", { day: '2-digit', month: 'short', year: 'numeric' }));
+    }
   }
 
   useEffect(() => {
@@ -226,11 +239,37 @@ export function DashboardWorkspace({ currentUser }: { currentUser: any }) {
     return parts.length > 1 ? (parts[0][0] + parts[1][0]).toUpperCase() : parts[0][0].toUpperCase();
   };
 
-  if (isLoading || !data) {
+  if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-[80vh] space-y-4">
         <div className="animate-spin w-12 h-12 border-4 border-[#c39254] border-t-transparent rounded-full"></div>
         <p className="text-slate-500 font-bold animate-pulse">Sincronizando inteligencia de datos...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[80vh] space-y-4 px-6 text-center">
+        <div className="w-14 h-14 rounded-full flex items-center justify-center bg-amber-50 text-amber-500 border border-amber-100">
+          <AlertTriangle size={28} />
+        </div>
+        <p className="text-slate-700 font-bold">No pudimos cargar la información del panel.</p>
+        <p className="text-slate-500 text-sm">Intenta actualizar la información nuevamente.</p>
+        <button
+          onClick={loadData}
+          className="px-5 py-2.5 bg-gradient-to-r from-[#7f561e] to-[#c39254] hover:brightness-110 text-white text-sm font-bold rounded-md shadow-md transition-all flex items-center gap-2"
+        >
+          <RefreshCcw size={16} /> Reintentar
+        </button>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[80vh] space-y-4 px-6 text-center">
+        <p className="text-slate-500 font-medium">No hay información disponible para mostrar.</p>
       </div>
     );
   }

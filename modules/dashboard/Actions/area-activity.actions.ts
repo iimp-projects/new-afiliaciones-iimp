@@ -13,7 +13,7 @@ export interface AreaActivityParams {
 
 export async function fetchAreaActivityAction(params: AreaActivityParams) {
   try {
-    await contextService.requirePermission("read", "dashboard");
+    await contextService.requirePermission("read", "applications");
 
     const service = new AreaActivityService();
     const data = await service.getAreaActivityMetrics(params);

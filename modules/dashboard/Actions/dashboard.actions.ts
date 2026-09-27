@@ -5,7 +5,7 @@ import { DashboardService } from "../Services/DashboardService";
 
 export async function fetchDashboardStats() {
   try {
-    const user = await contextService.requirePermission("read", "dashboard");
+    const user = await contextService.requirePermission("read", "applications");
 
     const data = await DashboardService.getDashboardData(user.role.id, user.role.slug);
     return { success: true, data };
