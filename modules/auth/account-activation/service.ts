@@ -4,6 +4,9 @@ import { CredentialType, UserStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { MailService } from "@/modules/shared/Services/MailService";
 import { getAppBaseUrl } from "@/lib/config/env";
+import { emailLayout } from "@/modules/shared/Email/EmailLayout";
+import { emailCta, emailInfoBox } from "@/modules/shared/Email/EmailComponents";
+import { escapeHtml } from "@/modules/shared/Email/EmailEscaping";
 
 const ACTIVATION_PREFIX = "account-activation:";
 const ACTIVATION_TTL_MS = 24 * 60 * 60 * 1000;
@@ -90,9 +93,7 @@ function activationEmailTemplate(name: string, email: string, role: string, acti
     : role === "ASOCIADO_ACTIVO"
       ? "Tu proceso de afiliación como Asociado Activo ha sido completado correctamente."
       : "Se ha creado una cuenta institucional para ti.";
-  return `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#334155"><h1 style="color:#7f561e">Bienvenido(a) al IIMP</h1><p>Hola, ${escapeHtml(name)}:</p><p>${completion}</p><p>Tu usuario para ingresar al Portal de Asociados es: <strong>${escapeHtml(email)}</strong></p><p>Para proteger tu cuenta, crea tu contraseña mediante el siguiente botón. El enlace tiene una vigencia limitada.</p><p style="margin:28px 0"><a href="${activationUrl}" style="background:#c39254;color:#fff;padding:13px 22px;border-radius:8px;text-decoration:none;font-weight:bold">ACTIVAR MI CUENTA</a></p><p>Instituto de Ingenieros de Minas del Perú</p></div>`;
+  return emailLayout({ title: "¡Bienvenido(a) al IIMP!", summary: completion, variant: "success", content: `<p>Hola, ${escapeHtml(name)}:</p><p>Ya puedes activar tu cuenta para ingresar al Portal de Asociados.</p>${emailInfoBox(`Tu usuario de acceso es:<br><strong>${escapeHtml(email)}</strong>`, "success")}<p>Para proteger tu cuenta, crea tu contraseña mediante el siguiente botón. El enlace tiene una vigencia limitada.</p>${emailCta("ACTIVAR MI CUENTA", activationUrl)}` });
 }
-
-function escapeHtml(value: string) { return value.replace(/[&<>"']/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[character]!); }
 
 export const accountActivationService = new AccountActivationService();

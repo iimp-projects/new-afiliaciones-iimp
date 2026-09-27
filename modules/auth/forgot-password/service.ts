@@ -4,6 +4,9 @@ import { getAppBaseUrl } from "@/lib/config/env";
 import { verificationTokenRateLimiter } from "@/modules/auth/rate-limit/VerificationTokenRateLimiter";
 import { hashVerificationCode } from "@/modules/auth/verification/codeHash";
 import { ForgotPasswordRepository } from "./repository";
+import { emailLayout } from "@/modules/shared/Email/EmailLayout";
+import { emailCta, emailInfoBox } from "@/modules/shared/Email/EmailComponents";
+import { escapeHtml } from "@/modules/shared/Email/EmailEscaping";
 
 export const ForgotPasswordService = {
   async processRecoveryRequest(
@@ -44,25 +47,7 @@ export const ForgotPasswordService = {
     // Creamos el enlace mágico que lleva a la pantalla de reset con el email en la URL
     const resetUrl = `${appUrl}/reset-password?email=${encodeURIComponent(to)}`;
 
-    const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; border: 1px solid #eaeaea; border-radius: 8px; overflow: hidden;">
-        <div style="background-color: #7f561e; padding: 20px; text-align: center;">
-          <h2 style="color: #ffffff; margin: 0;">IIMP - Recuperación de Acceso</h2>
-        </div>
-        <div style="padding: 30px; color: #333; line-height: 1.6; text-align: center;">
-          <p>Has solicitado restablecer tu contraseña.</p>
-          <p>Ingresa el siguiente código de seguridad en la plataforma:</p>
-          <div style="margin: 20px auto; padding: 15px; background-color: #f9f9f9; border: 2px dashed #c39254; border-radius: 12px; display: inline-block;">
-             <span style="font-size: 32px; font-weight: 800; letter-spacing: 8px; color: #7f561e;">${code}</span>
-          </div>
-          <p style="font-size: 13px; color: #666; margin-bottom: 20px;">Este código expirará en <strong>30 minutos</strong>.</p>
-          
-          <a href="${resetUrl}" style="display: inline-block; background-color: #c39254; color: #ffffff; text-decoration: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; font-size: 14px;">
-            Ingresar código y cambiar contraseña
-          </a>
-        </div>
-      </div>
-    `;
+    const html = emailLayout({ title: "Recuperación de acceso", summary: "Restablece tu contraseña de forma segura.", variant: "neutral", content: `<p>Has solicitado restablecer tu contraseña.</p><p>Ingresa el siguiente código de seguridad en la plataforma:</p>${emailInfoBox(`<div style="text-align:center;font-size:32px;font-weight:bold;letter-spacing:8px;color:#7F561E;">${escapeHtml(code)}</div>`, "neutral")}<p>Este código expirará en <strong>30 minutos</strong>.</p>${emailCta("RESTABLECER CONTRASEÑA", resetUrl)}` });
 
     try {
       await mailService.sendMail({

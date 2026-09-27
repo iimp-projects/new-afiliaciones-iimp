@@ -7,6 +7,9 @@ import { WhatsAppService } from "@/modules/shared/Services/WhatsAppService";
 import { VerificationRepository } from "../Repositories/VerificationRepository";
 import { destinationChannels, type VerificationChannel, type VerificationContext } from "@/modules/shared/Models/Verification";
 import { resolveOtpChannelAvailability } from "./OtpChannelAvailability";
+import { emailLayout } from "@/modules/shared/Email/EmailLayout";
+import { emailInfoBox } from "@/modules/shared/Email/EmailComponents";
+import { escapeHtml } from "@/modules/shared/Email/EmailEscaping";
 
 const OTP_PROVIDER: Record<VerificationChannel, string> = { EMAIL: "smtp", SMS: "sns", WHATSAPP: "meta" };
 
@@ -101,7 +104,7 @@ export class OtpRecoveryService {
           ? "Código de verificación para consultar su postulación"
           : `IIMP | Asignación de código de verificación_ ${applicantName}`;
 
-        const htmlTemplate = `
+        const legacyHtmlTemplate = `
       <!DOCTYPE html>
       <html lang="es">
       <head>
@@ -146,6 +149,7 @@ export class OtpRecoveryService {
       </html>
       `;
 
+        const htmlTemplate = emailLayout({ title: "Código de Verificación", summary: "Código personal e intransferible.", variant: "neutral", content: `<p>Estimado(a) <strong>${escapeHtml(applicantName)}</strong>,</p><p>Se ha generado un código de verificación para acceder a su solicitud.</p>${emailInfoBox(`<div style="text-align:center;font-family:monospace;font-size:36px;font-weight:bold;letter-spacing:6px;color:#9A681F;">${escapeHtml(code)}</div>`, "neutral")}<p style="text-align:center;"><strong>Este código es válido por 15 minutos. No lo comparta con nadie.</strong></p><p style="font-size:12px;text-align:center;">Si usted no solicitó este código, por favor ignore este mensaje.</p>` });
         await this.mailService.sendMail({
           to: destination,
           subject: subjectTitle,

@@ -5,6 +5,9 @@ import { Application } from "../Entities/Application";
 import { DeclarationPdfService } from "../Services/DeclarationPdfService"; 
 import { signEndorsementToken } from "./EndorsementToken";
 import { prisma } from "@/lib/prisma";
+import { emailLayout } from "@/modules/shared/Email/EmailLayout";
+import { emailCta, emailInfoBox } from "@/modules/shared/Email/EmailComponents";
+import { escapeHtml } from "@/modules/shared/Email/EmailEscaping";
 
 export class NotifySponsorsService {
   private readonly mailService = new MailService();
@@ -157,6 +160,7 @@ export class NotifySponsorsService {
     approvalUrl: string,
     logoUrl: string
   ): string {
+    return emailLayout({ title: "Solicitud de Respaldo Institucional", summary: "Se requiere tu revisión como aval.", variant: "info", content: `<p>Estimado(a) <strong>${escapeHtml(sponsorFullName)}</strong>,</p><p>Reciba un cordial saludo del <strong>Instituto de Ingenieros de Minas del Perú (IIMP)</strong>.</p>${emailInfoBox(`Postulante a Asociado Activo:<br><strong>${escapeHtml(applicantName)}</strong>`, "info")}<p>El postulante ha solicitado su respaldo como <strong>aval</strong>. Agradeceremos que pueda revisar y validar la postulación mediante el siguiente enlace:</p>${emailCta("Revisar y Validar Postulación", approvalUrl)}<p style="font-size:12px;text-align:center;">El enlace estará disponible por <strong>7 días</strong> por motivos de seguridad.</p><p>Agradecemos de antemano su atención y apoyo en este proceso.</p>` });
     return `
       <!DOCTYPE html>
       <html lang="es">
@@ -241,6 +245,7 @@ export class NotifySponsorsService {
     newSponsorFullName: string,
     logoUrl: string
   ): string {
+    return emailLayout({ title: "Actualización de Aval Registrada", summary: "Tu nuevo aval fue registrado correctamente.", variant: "info", content: `<p>Estimado(a) <strong>${escapeHtml(applicantName)}</strong>,</p><p>Le informamos que ha registrado exitosamente un nuevo aval para su trámite de incorporación.</p>${emailInfoBox(`Nuevo Aval Asignado:<br><strong>${escapeHtml(newSponsorFullName)}</strong>`, "info")}<p>Hemos enviado una solicitud por correo electrónico a su nuevo aval para que proceda con la revisión y respaldo de su expediente.</p>` });
     return `
       <!DOCTYPE html>
       <html lang="es">

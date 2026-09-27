@@ -2,6 +2,8 @@ import { PaymentStatus } from "@prisma/client";
 import { MailService } from "../../../shared/Services/MailService";
 import type { IPaymentRepository, PaymentConfirmationDetails } from "../Repositories/Interfaces/IPaymentRepository";
 import { PaymentSettingsResolver } from "../../../security/system-settings/Services/PaymentSettingsResolver";
+import { emailLayout } from "@/modules/shared/Email/EmailLayout";
+import { emailInfoBox } from "@/modules/shared/Email/EmailComponents";
 
 const IIMP_LOGO_URL = "https://s3-iimp-gestor-de-archivos-v3.s3.sa-east-1.amazonaws.com/boletines/images/IMG20260817_120138.png";
 
@@ -49,11 +51,11 @@ export class PaymentConfirmationEmailService {
     const invoiceSection = invoice ? section("COMPROBANTE", rows([["Tipo", invoice.type], ["Serie", invoice.serie], ["Número", invoice.number], ["Fecha de emisión", formatDate(invoice.issueDate)]]) + (invoiceLinks ? '<p style="margin:18px 0 0;text-align:center;">' + invoiceLinks + "</p>" : "")) : "";
     const amount = escapeHtml(formatMoney(payment.totalAmount, payment.currency));
     const paymentBreakdown = payment.registrationAmount != null && payment.membershipFeeAmount != null
-      ? rows([["Inscripción", formatMoney(payment.registrationAmount, payment.currency)], ["Cuota de afiliación", formatMoney(payment.membershipFeeAmount, payment.currency)]])
+      ? rows([["Inscripción", formatMoney(payment.registrationAmount, payment.currency)], ["Cuota anual", formatMoney(payment.membershipFeeAmount, payment.currency)]])
       : "";
     const totalCard = '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:16px;background:#fff7e6;border:1px solid #f0dfb6;border-radius:10px;"><tr><td align="center" style="padding:18px;"><p style="margin:0;color:#8a671d;font-size:11px;font-weight:bold;letter-spacing:1px;">TOTAL PAGADO</p><p style="margin:8px 0;color:#6e4b12;font-size:28px;font-weight:bold;">' + amount + '</p><span style="display:inline-block;padding:5px 10px;border-radius:11px;background:#dcfce7;color:#15803d;font-size:10px;font-weight:bold;letter-spacing:.5px;">PAGADO ✓</span></td></tr></table>';
 
-    return '<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>' +
+    const legacyContent = '<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>' +
       '<body style="margin:0;padding:0;background:#f5f5f4;font-family:Arial,Helvetica,sans-serif;color:#1e293b;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f5f5f4;"><tr><td align="center" style="padding:28px 12px;">' +
       '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:620px;background:#ffffff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;"><tr><td style="height:4px;background:#c5a059;font-size:0;line-height:0;">&nbsp;</td></tr>' +
       '<tr><td align="center" style="padding:32px 28px 26px;"><img src="' + IIMP_LOGO_URL + '" alt="Instituto de Ingenieros de Minas del Perú" width="155" style="display:block;width:155px;max-width:100%;height:auto;margin:0 auto 22px;">' +
@@ -65,6 +67,9 @@ export class PaymentConfirmationEmailService {
       '<div style="margin:26px 0 0;"><p style="margin:0 0 12px;color:#2f3136;font-size:13px;font-weight:bold;letter-spacing:.4px;">¿QUÉ SIGUE AHORA?</p><p style="margin:0 0 8px;color:#334155;font-size:14px;line-height:20px;">✓ Tu pago fue registrado correctamente.</p><p style="margin:0 0 8px;color:#334155;font-size:14px;line-height:20px;">✓ Tu proceso de afiliación ha finalizado.</p></div>' +
       '<p style="margin:24px 0 0;padding-top:20px;border-top:1px solid #e5e7eb;color:#64748b;font-size:12px;line-height:18px;">Para cualquier consulta sobre tu afiliación:<br><strong style="color:#334155;">asociados@iimp.org.pe</strong><br><strong style="color:#334155;">+51 982 097 019 / +51 951 294 314</strong></p><p style="margin:16px 0 0;color:#64748b;font-size:12px;line-height:18px;">Por seguridad, nunca compartas información sensible de tus medios de pago.</p>' +
       '</td></tr><tr><td align="center" style="padding:28px 24px;background:#ffffff;border-top:1px solid #e5e7eb;color:#64748b;font-size:11px;line-height:18px;">Instituto de Ingenieros de Minas del Perú<br><span style="color:#8a671d;">Gracias por formar parte del IIMP.</span><br><br>Este es un mensaje automático. Por favor, no responda a este correo.<br>© ' + new Date().getFullYear() + ' Instituto de Ingenieros de Minas del Perú</td></tr></table></td></tr></table></body></html>';
+    // The detailed, server-built payment data remains intact; the surrounding
+    // institutional shell is now shared with every affiliation email.
+    return emailLayout({ title: "Pago confirmado", summary: "Tu pago fue procesado correctamente.", variant: "success", content: emailInfoBox(legacyContent, "success") });
   }
 }
 

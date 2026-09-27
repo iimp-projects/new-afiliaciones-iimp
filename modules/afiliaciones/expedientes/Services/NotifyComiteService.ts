@@ -2,6 +2,9 @@ import { prisma } from "@/lib/prisma";
 import { MailService } from "@/modules/shared/Services/MailService";
 import { DeclarationPdfService } from "@/modules/afiliaciones/postulacion/Services/DeclarationPdfService";
 import { ValidationAction } from "@prisma/client";
+import { emailLayout } from "@/modules/shared/Email/EmailLayout";
+import { emailInfoBox } from "@/modules/shared/Email/EmailComponents";
+import { escapeHtml } from "@/modules/shared/Email/EmailEscaping";
 
 export class NotifyComiteService {
   async execute(applicationId: number, isManualResend: boolean = false, targetUserId?: number, actorId?: number, actorName?: string) {
@@ -56,7 +59,7 @@ export class NotifyComiteService {
     }
 
     const mailService = new MailService();
-    const html = `
+    const legacyHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eaeaea; border-radius: 8px; overflow: hidden;">
         <div style="background-color: #7f561e; padding: 20px; text-align: center;">
           <h2 style="color: #ffffff; margin: 0;">Expediente Listo para Evaluación</h2>
@@ -79,6 +82,7 @@ export class NotifyComiteService {
       </div>
     `;
 
+    const html = emailLayout({ title: "Expediente Listo para Evaluación", summary: "Notificación interna para Comité Evaluador.", variant: "info", content: `<p>Estimados miembros del Comité Evaluador,</p><p>El expediente de <strong>${escapeHtml(postulanteName)}</strong> (Cód: ${escapeHtml(app.applicationCode)}) ha superado exitosamente los filtros administrativos previos y está listo para su veredicto final.</p>${emailInfoBox(`<strong>Resumen de Aprobaciones:</strong><ul><li>✓ <strong>Avales:</strong> Confirmados por ${escapeHtml(avalesNames)}</li><li>✓ <strong>Atención al Asociado:</strong> Revisado por ${escapeHtml(asocName)}</li><li>✓ <strong>Logística:</strong> Validado por ${escapeHtml(logName)}</li></ul>`, "info")}<p>Se adjunta la ficha de postulación en formato PDF para su respectiva revisión técnica.</p>` });
     await mailService.sendMail({
       to: comiteEmails,
       subject: `Nuevo Expediente para Comité - ${postulanteName}`,

@@ -4,6 +4,9 @@ import { ApplicationStatusCalculatorService } from "./ApplicationStatusCalculato
 import { MailService } from "@/modules/shared/Services/MailService";
 import { getAppBaseUrl } from "@/lib/config/env";
 import { verifyEndorsementToken } from "./EndorsementToken";
+import { emailLayout } from "@/modules/shared/Email/EmailLayout";
+import { emailCta, emailInfoBox } from "@/modules/shared/Email/EmailComponents";
+import { escapeHtml } from "@/modules/shared/Email/EmailEscaping";
 
 interface ReviewEndorsementPayload {
   applicationId: number;
@@ -141,7 +144,7 @@ export class ReviewEndorsementService {
         `
         : "";
 
-      const htmlContent = `
+      const legacyHtmlContent = `
         <!DOCTYPE html>
         <html lang="es">
         <head>
@@ -196,6 +199,7 @@ export class ReviewEndorsementService {
         </html>
       `;
 
+      const htmlContent = emailLayout({ title: "Estado de Aprobación de Aval", summary: `Tu aval ha ${isApproved ? "aprobado" : "rechazado"} tu solicitud.`, variant: isApproved ? "success" : "warning", content: `<p>Estimado(a) <strong>${escapeHtml(applicantName.toUpperCase())}</strong>,</p><p>Te informamos que tu aval <strong>${escapeHtml(sponsorName)}</strong> ha evaluado tu solicitud de incorporación.</p>${emailInfoBox(`<strong>${statusText}</strong><br>${escapeHtml(statusMessage)}`, isApproved ? "success" : "warning")}${!isApproved ? emailCta("ACTUALIZAR AVAL", trackingUrl) : ""}` });
       await this.mailService.sendMail({
         to: applicantEmail,
         subject: `IIMP | Status de aprobación de aval_ ${applicantName}`,
