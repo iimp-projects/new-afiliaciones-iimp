@@ -7,7 +7,7 @@ import { EndorsementStatus } from "@prisma/client";
 import { ApplicationStatusCalculatorService } from "@/modules/afiliaciones/postulacion/Services/ApplicationStatusCalculatorService";
 import { NotifySponsorsService } from "@/modules/afiliaciones/postulacion/Services/NotifySponsorsService";
 import { ApplicationDraft } from "@/modules/afiliaciones/postulacion/Models/ApplicationDraft";
-import { contextService } from "@/modules/auth/context/service";
+import { ApiAuthorizationError, requireApiPermission } from "@/modules/auth/context/api-authorization";
 
 export async function POST(req: NextRequest) {
   try {
@@ -24,11 +24,18 @@ export async function POST(req: NextRequest) {
 
     const appId = Number(application_id);
     if (!Number.isSafeInteger(appId) || appId <= 0) return NextResponse.json({ error: "Solicitud inválida." }, { status: 400 });
-    // Public corrections require the applicant's OTP authorization. The intranet
-    // institutional replacement is performed by a SUPER_ADMIN session instead.
-    const currentUser = await contextService.getCurrentUser().catch(() => null);
-    const isInstitutionalReplacement = Boolean(currentUser?.status === "ACTIVE" && await contextService.hasPermission("update", "memberships"));
-    if (!isInstitutionalReplacement) {
+    // Ruta dual: el camino institucional exige update:applications; el postulante
+    // público usa el QUERY_COOKIE. Un usuario interno sin permiso recibe 403 y
+    // nunca cae al flujo público.
+    let isInstitutionalReplacement = false;
+    try {
+      await requireApiPermission("update", "applications");
+      isInstitutionalReplacement = true;
+    } catch (error) {
+      if (!(error instanceof ApiAuthorizationError)) throw error;
+      if (error.status === 403) {
+        return NextResponse.json({ success: false, error: "No autorizado." }, { status: 403 });
+      }
       new ApplicationAccessService().require(appId, req.cookies.get(QUERY_COOKIE)?.value);
     }
     const approvalIdNum = approval_id ? Number(approval_id) : null;

@@ -6,7 +6,7 @@ import { apiAuthorizationStatus, requireApiPermission } from "@/modules/auth/con
 
 export async function POST(req: Request) {
   try {
-    const currentUser = await requireApiPermission("update", "memberships");
+    const currentUser = await requireApiPermission("update", "applications");
     const { applicationId, approvalId } = await req.json();
 
     if (!applicationId || !approvalId) {
