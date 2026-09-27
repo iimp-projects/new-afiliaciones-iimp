@@ -25,6 +25,39 @@ describe("AssociateAccessService", () => {
     await expect(new AssociateAccessService().resolve(10)).resolves.toMatchObject({ status: "NOT_PROVISIONED", canRetryProvisioning: true });
   });
 
+  it.each(["PENDING", "UNDER_EVALUACION", "OBSERVED", "APPROVED"])(
+    "rejects direct portal-access provisioning for a non-completed %s application before side effects",
+    async (status) => {
+      db.membershipApplication.findUnique.mockResolvedValue({ ...application(), status });
+
+      await expect(new AssociateAccessService().retryProvisioning(10, 1)).rejects.toBeInstanceOf(AssociateAccessError);
+
+      expect(provision).not.toHaveBeenCalled();
+      expect(activation).not.toHaveBeenCalled();
+      expect(db.auditLog.create).not.toHaveBeenCalled();
+    },
+  );
+
+  it("does not allow a super-admin actor to bypass the completed-status business rule", async () => {
+    db.membershipApplication.findUnique.mockResolvedValue({ ...application(), status: "PENDING" });
+
+    await expect(new AssociateAccessService().retryProvisioning(10, 1)).rejects.toBeInstanceOf(AssociateAccessError);
+
+    expect(provision).not.toHaveBeenCalled();
+    expect(activation).not.toHaveBeenCalled();
+  });
+
+  it("rejects a direct email-change request for a non-completed application before writes or email delivery", async () => {
+    db.membershipApplication.findUnique.mockResolvedValue({ ...application(), status: "PENDING" });
+
+    await expect(new AssociateAccessService().changeEmailAndProvision(10, "new@example.com", 1)).rejects.toBeInstanceOf(AssociateAccessError);
+
+    expect(db.personContact.update).not.toHaveBeenCalled();
+    expect(db.personContact.create).not.toHaveBeenCalled();
+    expect(activation).not.toHaveBeenCalled();
+    expect(provision).not.toHaveBeenCalled();
+  });
+
   it("classifies a conflict with different documents as DIFFERENT_IDENTITY", async () => {
     db.membershipApplication.findUnique.mockResolvedValue(application());
     db.user.findFirst.mockResolvedValue({ id: 80, personId: 9, email: "historic@example.com", status: "ACTIVE", role: null, person: { firstName: "Otra", paternalLastName: "Persona", maternalLastName: null, documentType: "DNI", documentNumber: "22222222" } });

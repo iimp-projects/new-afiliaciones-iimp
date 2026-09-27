@@ -6,7 +6,7 @@ import {
     MoreVertical, CheckCircle2, Clock, XCircle, 
     MinusCircle, AlertCircle, AlertTriangle, Eye, Users, Send, Mail, Phone, User, GraduationCap, KeyRound
 } from "lucide-react";
-import type { SmartCaseCardProps } from "./types";
+import { canManagePortalAccess, type SmartCaseCardProps } from "./types";
 import { FallbackAvatar } from "./FallbackAvatar";
 import { DynamicIcon } from "@/modules/layout/Utils/DynamicIcon";
 import { PortalAccessManager } from "@/modules/afiliaciones/expedientes/Components/Drawer/Tabs/PortalAccessManager";
@@ -40,6 +40,7 @@ export function SmartCaseCard({
 }: SmartCaseCardProps) {
   const { identity, primaryBadge, atomicValidations, metadata, topBorderColorClass, subStatus, operationalAlerts } = data;
   const isExpedienteLayout = data.rowLayout === "expediente";
+  const portalAccessAvailable = canManagePortalAccess(data.generalStatus);
   
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [avatarFailed, setAvatarFailed] = useState(false);
@@ -126,8 +127,16 @@ export function SmartCaseCard({
                 </div>
               </button>
 
-              {isExpedienteLayout && data.rawId && <button onClick={(e) => { e.stopPropagation(); setIsMenuOpen(false); setAccessManagerOpen(true); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-[#C5A059] transition-colors outline-none">
-                <KeyRound size={15} strokeWidth={2.5} /> Gestionar acceso al portal
+              {isExpedienteLayout && data.rawId && <button
+                disabled={!portalAccessAvailable}
+                onClick={portalAccessAvailable ? (e) => { e.stopPropagation(); setIsMenuOpen(false); setAccessManagerOpen(true); } : undefined}
+                className={`w-full flex items-start gap-2.5 px-4 py-2.5 text-sm font-bold transition-colors outline-none ${portalAccessAvailable ? "text-slate-600 hover:bg-slate-50 hover:text-[#C5A059]" : "cursor-not-allowed bg-slate-50 text-slate-300"}`}
+              >
+                <KeyRound size={15} className="mt-0.5 shrink-0" strokeWidth={2.5} />
+                <div className="flex flex-col items-start text-left">
+                  <span>Gestionar acceso al portal</span>
+                  {!portalAccessAvailable && <span className="mt-0.5 text-[9px] font-semibold leading-tight text-slate-400">Disponible cuando el expediente esté completado</span>}
+                </div>
               </button>}
 
               <div className="h-px bg-slate-100 my-1 mx-2"></div>
@@ -251,7 +260,7 @@ export function SmartCaseCard({
         <Clock size={14} className="text-slate-400" /> {metadata.lastUpdatedRelative}
       </div>
 
-      {isExpedienteLayout && data.rawId && <PortalAccessManager applicationId={data.rawId} open={accessManagerOpen} onClose={() => setAccessManagerOpen(false)} onAccessChanged={() => router.refresh()} />}
+      {isExpedienteLayout && data.rawId && portalAccessAvailable && <PortalAccessManager applicationId={data.rawId} open={accessManagerOpen} onClose={() => setAccessManagerOpen(false)} onAccessChanged={() => router.refresh()} />}
 
     </article>
   );

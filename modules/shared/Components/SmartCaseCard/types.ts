@@ -1,5 +1,11 @@
 export type CasePriority = "low" | "medium" | "high" | "critical";
 
+export const COMPLETED_APPLICATION_STATUS = "COMPLETED" as const;
+
+export function canManagePortalAccess(generalStatus?: string): boolean {
+  return generalStatus === COMPLETED_APPLICATION_STATUS;
+}
+
 // Se integran los nuevos estados del backend conservando la compatibilidad gráfica
 export type AtomicValidationStatus =
   | "PENDING"
@@ -84,6 +90,7 @@ export interface SmartCaseCardData {
   };
   allowedActions: string[];
   rawId?: number;
+  generalStatus?: string;
   operationalAlerts?: { total: number; critical: number; warning: number; highestSeverity: "CRITICAL" | "WARNING" | null };
 }
 

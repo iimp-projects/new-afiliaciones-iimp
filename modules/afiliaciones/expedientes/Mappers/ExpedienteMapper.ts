@@ -319,6 +319,7 @@ export class ExpedienteMapper {
     return {
       id: app.trackingCode,
       rawId: app.id,
+      generalStatus: app.status,
       operationalAlerts: app.operationalAlerts,
       trackingCode: app.trackingCode,
       topBorderColorClass,
