@@ -38,6 +38,8 @@ export async function GET(request: Request) {
     maskedCard: payment.maskedCard ?? null,
     cardType: payment.cardType ?? null,
     paymentChannel: payment.paymentChannel ?? null,
+    paymentMethod: payment.paymentMethod ?? "UNKNOWN",
+    paymentBrand: payment.paymentBrand ?? null,
     traceNumber: payment.traceNumber ?? null,
     billing: payment.billing ? {
       taxId: payment.billing.taxId,
@@ -75,7 +77,7 @@ export async function GET(request: Request) {
       completedPayment,
     },
     billingData: payment.billing ? { tipoDocumento: payment.billing.taxId.length === 11 ? "RUC" : "DNI", numeroDocumento: payment.billing.taxId, razonSocial: payment.billing.businessName, direccionFiscal: payment.billing.billingAddress ?? "", responsable: fullName, emailFacturacion: payment.billing.billingEmail ?? application.email } : null,
-    payment: { id: payment.id, status: payment.status, amount: Number(payment.totalAmount), registrationAmount: payment.registrationAmount, membershipFeeAmount: payment.membershipFeeAmount, currency: payment.currency, paymentDate: payment.paymentDate, transactionId: payment.transactionId, authorizationCode: payment.authorizationCode, cardBrand: payment.cardBrand, cardType: payment.cardType, maskedCard: payment.maskedCard, traceNumber: payment.traceNumber },
+    payment: { id: payment.id, status: payment.status, amount: Number(payment.totalAmount), registrationAmount: payment.registrationAmount, membershipFeeAmount: payment.membershipFeeAmount, currency: payment.currency, paymentDate: payment.paymentDate, transactionId: payment.transactionId, authorizationCode: payment.authorizationCode, cardBrand: payment.cardBrand, cardType: payment.cardType, maskedCard: payment.maskedCard, paymentMethod: payment.paymentMethod ?? "UNKNOWN", paymentBrand: payment.paymentBrand ?? null, traceNumber: payment.traceNumber },
     failure: payment.status === "FAILED" ? { code: payment.actionCode ?? payment.failureCode, message: action?.userMessage ?? payment.failureReason ?? "La operación fue rechazada por Niubiz." } : null,
   }, { headers: { "Cache-Control": "no-store" } });
 }

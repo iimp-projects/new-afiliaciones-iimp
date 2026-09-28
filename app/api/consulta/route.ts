@@ -158,6 +158,8 @@ export async function GET(request: NextRequest) {
         maskedCard: application.payments[0].maskedCard,
         cardType: application.payments[0].cardType,
         paymentChannel: application.payments[0].paymentChannel,
+        paymentMethod: application.payments[0].paymentMethod ?? "UNKNOWN",
+        paymentBrand: application.payments[0].paymentBrand ?? null,
         traceNumber: application.payments[0].traceNumber,
         billing: application.payments[0].billing ? {
           taxId: application.payments[0].billing.taxId,

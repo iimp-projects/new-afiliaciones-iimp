@@ -1,4 +1,4 @@
-import type { ApplicationStatus, PaymentGateway, PaymentStatus, Prisma } from "@prisma/client";
+import type { ApplicationStatus, PaymentGateway, PaymentMethod, PaymentStatus, Prisma } from "@prisma/client";
 import type { BillingDataInput } from "../../DTOs/billing.schema";
 import type { BillingDocumentType, BillingReceiptType, BillingVerificationSource, BillingVerificationStatus } from "@prisma/client";
 
@@ -56,6 +56,8 @@ export interface PaymentGatewayResult {
   actionCode?: string;
   cardType?: string;
   traceNumber?: string;
+  paymentMethod?: PaymentMethod;
+  paymentBrand?: string | null;
   gatewayPayload?: Prisma.InputJsonValue;
   checkout?: NiubizCheckoutConfig;
 }
@@ -88,6 +90,8 @@ export interface PaymentConfirmationDetails extends PersistedPayment {
   actionCode?: string;
   cardType?: string;
   traceNumber?: string;
+  paymentMethod: PaymentMethod;
+  paymentBrand: string | null;
   confirmationEmailSentAt?: Date;
   application: {
     status: ApplicationStatus;

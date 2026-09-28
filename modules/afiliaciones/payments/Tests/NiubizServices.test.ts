@@ -1,4 +1,4 @@
-import { PaymentStatus } from "@prisma/client";
+import { PaymentMethod, PaymentStatus } from "@prisma/client";
 import { describe, expect, it, vi } from "vitest";
 import type { NiubizTestConfig } from "../Config/PaymentConfig";
 import { NiubizPaymentProvider } from "../Providers/NiubizPaymentProvider";
@@ -171,7 +171,8 @@ describe("NiubizResponseMapper", () => {
       status: PaymentStatus.PAID,
       transactionId: "transaction-1",
       responseCode: "000",
-      gatewayPayload: { actionDescription: "Aprobada", brand: "VISA", maskedCard: "4111******1111" },
+      paymentMethod: PaymentMethod.UNKNOWN,
+      gatewayPayload: { actionDescription: "Aprobada", brand: "VISA", maskedCard: "4111******1111", paymentMethod: "UNKNOWN" },
     });
   });
 
@@ -206,9 +207,10 @@ describe("NiubizResponseMapper", () => {
       actionCode: "010",
       cardType: "C",
       traceNumber: "trace-1",
+      paymentMethod: PaymentMethod.UNKNOWN,
     });
     expect(result.gatewayTransactionDate).toEqual(new Date(Date.UTC(2026, 8, 3, 15, 22, 21)));
-    expect(result.gatewayPayload).toEqual({ transactionDate: "260903152221", brand: "visa", maskedCard: "455170******8059" });
+    expect(result.gatewayPayload).toEqual({ transactionDate: "260903152221", brand: "visa", maskedCard: "455170******8059", paymentMethod: "UNKNOWN" });
     expect(result).not.toHaveProperty("transactionToken");
     expect(result).not.toHaveProperty("securityToken");
   });
@@ -236,6 +238,61 @@ describe("NiubizResponseMapper", () => {
 
     expect(result.maskedCard).toBeUndefined();
     expect(result.paymentChannel).toBeUndefined();
-    expect(result.gatewayPayload).toEqual({ brand: "visa" });
+    expect(result.gatewayPayload).toEqual({ brand: "visa", paymentMethod: "UNKNOWN" });
+  });
+
+  it("clasifica WALLET + YAPE cuando YAPE_ID viene no vacío aunque coexista metadata de tarjeta", () => {
+    const result = new NiubizResponseMapper().mapAuthorization({
+      order: { transactionId: "transaction-1" },
+      dataMap: {
+        STATUS: "Authorized",
+        ACTION_CODE: "000",
+        CARD: "455788******3051",
+        BRAND: "visa",
+        CARD_TYPE: "D",
+        YAPE_ID: "yape-intent-id",
+      },
+    }, "web");
+
+    expect(result).toMatchObject({
+      status: PaymentStatus.PAID,
+      paymentMethod: PaymentMethod.WALLET,
+      paymentBrand: "YAPE",
+      cardBrand: "visa",
+      cardType: "D",
+      maskedCard: "455788******3051",
+      paymentChannel: "web",
+    });
+    expect(result.gatewayPayload).toMatchObject({ paymentMethod: "WALLET", paymentBrand: "YAPE", brand: "visa", maskedCard: "455788******3051" });
+  });
+
+  it("clasifica WALLET + YAPE cuando YAPE_ID viene en data", () => {
+    const result = new NiubizResponseMapper().mapAuthorization({
+      order: { transactionId: "transaction-1" },
+      data: { STATUS: "Authorized", ACTION_CODE: "000", YAPE_ID: "yape-intent-id" },
+    });
+
+    expect(result.paymentMethod).toBe(PaymentMethod.WALLET);
+    expect(result.paymentBrand).toBe("YAPE");
+  });
+
+  it("clasifica UNKNOWN cuando YAPE_ID está vacío", () => {
+    const result = new NiubizResponseMapper().mapAuthorization({
+      order: { transactionId: "transaction-1" },
+      dataMap: { STATUS: "Authorized", ACTION_CODE: "000", CARD: "455788******3051", BRAND: "visa", CARD_TYPE: "D", YAPE_ID: "" },
+    });
+
+    expect(result.paymentMethod).toBe(PaymentMethod.UNKNOWN);
+    expect(result.paymentBrand).toBeUndefined();
+  });
+
+  it("clasifica UNKNOWN cuando YAPE_ID está ausente", () => {
+    const result = new NiubizResponseMapper().mapAuthorization({
+      order: { transactionId: "transaction-1" },
+      dataMap: { STATUS: "Authorized", ACTION_CODE: "000", CARD: "455788******3051", BRAND: "visa", CARD_TYPE: "D" },
+    });
+
+    expect(result.paymentMethod).toBe(PaymentMethod.UNKNOWN);
+    expect(result.paymentBrand).toBeUndefined();
   });
 });

@@ -1,6 +1,7 @@
 import { PaymentStatus } from "@prisma/client";
 import { MailService } from "../../../shared/Services/MailService";
 import type { IPaymentRepository, PaymentConfirmationDetails } from "../Repositories/Interfaces/IPaymentRepository";
+import { paymentMethodLabel } from "../Models/PaymentMethod";
 import { PaymentSettingsResolver } from "../../../security/system-settings/Services/PaymentSettingsResolver";
 import { emailLayout } from "@/modules/shared/Email/EmailLayout";
 import { emailInfoBox } from "@/modules/shared/Email/EmailComponents";
@@ -38,10 +39,14 @@ export class PaymentConfirmationEmailService {
       ["Nombre completo", name], ["Documento", application.documentType + " " + application.documentNumber], ["Correo electrónico", application.email], ["Teléfono", application.phone],
       ["Tipo de afiliación", affiliateTypeLabel(application.affiliateType)], ["Código de expediente", application.applicationCode],
     ]);
+    const cardMetadataRows: Array<[string, string | null | undefined]> = payment.paymentMethod === "CARD"
+      ? [["Marca de tarjeta", payment.cardBrand], ["Tipo de tarjeta", cardTypeLabel(payment.cardType)], ["Tarjeta enmascarada", payment.maskedCard]]
+      : [];
     const paymentRows = rows([
       ["ID de transacción", payment.transactionId], ["Fecha y hora del pago", formatDate(payment.gatewayTransactionDate ?? payment.paymentDate)],
-      ["Canal de pago", paymentChannelLabel(payment.paymentChannel, payment.gateway)], ["Marca de tarjeta", payment.cardBrand], ["Tipo de tarjeta", cardTypeLabel(payment.cardType)],
-      ["Tarjeta enmascarada", payment.maskedCard], ["Moneda", payment.currency], ["Código de autorización", payment.authorizationCode], ["Trace number", payment.traceNumber],
+      ["Método de pago", paymentMethodLabel(payment.paymentMethod, payment.paymentBrand)], ["Proveedor / canal", paymentChannelLabel(payment.paymentChannel, payment.gateway)],
+      ...cardMetadataRows,
+      ["Moneda", payment.currency], ["Código de autorización", payment.authorizationCode], ["Trace number", payment.traceNumber],
     ]);
     const billingRows = payment.billing ? highlightedRows([
       ["Tipo de comprobante", payment.billing.receiptType ?? "No disponible"], ["Número de documento", payment.billing.taxId], ["Razón social / nombre", payment.billing.businessName],

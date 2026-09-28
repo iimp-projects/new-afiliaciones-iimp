@@ -1,4 +1,4 @@
-import { Currency, PaymentStatus, Prisma, type PrismaClient } from "@prisma/client";
+import { Currency, PaymentMethod, PaymentStatus, Prisma, type PrismaClient } from "@prisma/client";
 import { prisma } from "../../../../lib/prisma";
 import type {
   IPaymentRepository,
@@ -126,6 +126,8 @@ export class PaymentRepository implements IPaymentRepository, IPaymentSandboxRes
         actionCode: result.actionCode,
         cardType: result.cardType,
         traceNumber: result.traceNumber,
+        paymentMethod: result.paymentMethod ?? PaymentMethod.UNKNOWN,
+        paymentBrand: result.paymentBrand ?? null,
         gatewayPayload: result.gatewayPayload,
         paymentDate: result.status === PaymentStatus.PAID ? new Date() : null,
       },
@@ -175,6 +177,8 @@ export class PaymentRepository implements IPaymentRepository, IPaymentSandboxRes
       ...(payment.actionCode ? { actionCode: payment.actionCode } : {}),
       ...(payment.cardType ? { cardType: payment.cardType } : {}),
       ...(payment.traceNumber ? { traceNumber: payment.traceNumber } : {}),
+      paymentMethod: payment.paymentMethod,
+      paymentBrand: payment.paymentBrand,
       ...(payment.confirmationEmailSentAt ? { confirmationEmailSentAt: payment.confirmationEmailSentAt } : {}),
       application: payment.application,
       billing: payment.billing,
@@ -226,6 +230,8 @@ export class PaymentRepository implements IPaymentRepository, IPaymentSandboxRes
         actionCode: null,
         cardType: null,
         traceNumber: null,
+        paymentMethod: PaymentMethod.UNKNOWN,
+        paymentBrand: null,
         failureCode: null,
         failureReason: null,
         gatewayErrorCode: null,

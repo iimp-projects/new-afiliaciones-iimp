@@ -5,6 +5,7 @@ import { CheckCircle2, CreditCard, FileText, Home, Info, Mail, ReceiptText, User
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
+import { paymentMethodLabel } from "@/modules/afiliaciones/payments/Models/PaymentMethod";
 import type { ApplicationStatusData } from "../Models/ApplicationStatus";
 
 interface Props { data: ApplicationStatusData; onFinish?: () => void; }
@@ -81,8 +82,11 @@ export function StatusCompleted({ data, onFinish }: Props) {
               <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
                 <dl className="grid gap-x-7 gap-y-5 sm:grid-cols-2">
                   <Field label="ID de transacción" value={valueOrUnavailable(payment.transactionId)} /><Field label="Fecha del pago" value={formatDate(payment.gatewayTransactionDate ?? payment.paymentDate)} />
-                  <Field label="Método / canal" value={paymentChannelLabel(payment.paymentChannel, payment.gateway)} /><Field label="Tarjeta / marca" value={payment.cardBrand ? `${payment.cardBrand} · ${cardTypeLabel(payment.cardType)}` : cardTypeLabel(payment.cardType)} />
-                  {payment.maskedCard && <Field label="Tarjeta enmascarada" value={payment.maskedCard} />}<Field label="Moneda" value={payment.currency} />
+                  <Field label="Método de pago" value={paymentMethodLabel(payment.paymentMethod, payment.paymentBrand)} /><Field label="Proveedor / canal" value={paymentChannelLabel(payment.paymentChannel, payment.gateway)} />
+                  {payment.paymentMethod === "CARD" && <Field label="Marca" value={valueOrUnavailable(payment.cardBrand)} />}
+                  {payment.paymentMethod === "CARD" && <Field label="Tipo" value={cardTypeLabel(payment.cardType)} />}
+                  {payment.paymentMethod === "CARD" && payment.maskedCard && <Field label="Tarjeta enmascarada" value={payment.maskedCard} />}
+                  <Field label="Moneda" value={payment.currency} />
                   {payment.authorizationCode && <Field label="Código de autorización" value={payment.authorizationCode} />}{payment.traceNumber && <Field label="Trace number" value={payment.traceNumber} />}
                 </dl>
                 <div className="rounded-2xl border border-[#F0DFB6] bg-[#FFF7E6] px-7 py-6 text-center lg:min-w-56">{payment.registrationAmount != null && <p className="text-sm font-bold text-[#6E4B12]">Inscripción: {formatMoney(payment.registrationAmount, payment.currency)}</p>}{payment.membershipFeeAmount != null && <p className="mt-1 text-sm font-bold text-[#6E4B12]">Cuota de afiliación: {formatMoney(payment.membershipFeeAmount, payment.currency)}</p>}<p className="mt-3 text-[11px] font-black uppercase tracking-widest text-[#8A671D]">Total pagado</p><p className="mt-2 text-3xl font-black text-[#6E4B12]">{formatMoney(payment.amount, payment.currency)}</p><span className="mt-3 inline-flex rounded-full bg-emerald-100 px-3 py-1 text-[10px] font-black tracking-wide text-emerald-700">PAGADO</span></div>

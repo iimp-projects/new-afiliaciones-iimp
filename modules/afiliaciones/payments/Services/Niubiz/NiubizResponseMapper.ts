@@ -1,4 +1,4 @@
-import { PaymentStatus, type Prisma } from "@prisma/client";
+import { PaymentMethod, PaymentStatus, type Prisma } from "@prisma/client";
 import type { NiubizAuthorizationResponse } from "../../DTOs/Niubiz/NiubizAuthorization.dto";
 import type { PaymentGatewayResult } from "../../Repositories/Interfaces/IPaymentRepository";
 import { NiubizAuthorizationResultClassifier } from "./NiubizAuthorizationResultClassifier";
@@ -22,6 +22,9 @@ export class NiubizResponseMapper {
     const maskedCard = metadata.maskedCard;
     const failureReason = this.classifier.failureReason(response) ?? classification.action?.label;
     const cardType = this.cardType(response);
+    const { paymentMethod, paymentBrand } = this.paymentClassification(response);
+    metadata.paymentMethod = paymentMethod;
+    if (paymentBrand) metadata.paymentBrand = paymentBrand;
     const traceNumber = this.nonEmptyString(response.order?.traceNumber)
       ?? this.nonEmptyString(response.dataMap?.TRACE_NUMBER)
       ?? this.nonEmptyString(response.data?.TRACE_NUMBER);
@@ -45,6 +48,8 @@ export class NiubizResponseMapper {
       ...(paymentChannel === "web" ? { paymentChannel } : {}),
       ...(classification.actionCode ? { actionCode: classification.actionCode } : {}),
       ...(cardType ? { cardType } : {}),
+      paymentMethod,
+      ...(paymentBrand ? { paymentBrand } : {}),
       ...(traceNumber ? { traceNumber } : {}),
       ...(classification.outcome === "BUSINESS_DECLINED" && classification.actionCode ? { failureCode: classification.actionCode } : {}),
       ...(classification.outcome === "BUSINESS_DECLINED" && failureReason ? { failureReason } : {}),
@@ -53,7 +58,13 @@ export class NiubizResponseMapper {
     };
   }
 
-  /** Parses the Niubiz `yyMMddHHmmss` timestamp as UTC; invalid values are omitted. */
+  /**
+   * Parses the Niubiz `yyMMddHHmmss` timestamp as UTC; invalid values are omitted.
+   *
+   * TODO(timezone): Niubiz `TRANSACTION_DATE` is Lima local time, but this
+   * parser treats it as UTC, producing a ~-5h offset in `gatewayTransactionDate`.
+   * Tracked separately; not fixed in the payment-method change.
+   */
   parseTransactionDate(value: string | undefined): Date | undefined {
     if (!value || !/^\d{12}$/.test(value)) return undefined;
     const year = 2000 + Number(value.slice(0, 2));
@@ -106,6 +117,21 @@ export class NiubizResponseMapper {
       ?? this.nonEmptyString(response.data?.CARD_TYPE)
       ?? this.nonEmptyString(response.CARD_TYPE);
     return value === "C" || value === "D" ? value : undefined;
+  }
+
+  /**
+   * Derives the normalized payment classification exclusively from the positive
+   * Yape signal (`dataMap.YAPE_ID` / `data.YAPE_ID`). The card technical metadata
+   * (BRAND/CARD_TYPE/CARD) is intentionally NOT used to classify CARD yet: no
+   * confirmed negative-control evidence exists, so anything without a non-empty
+   * YAPE_ID falls back to UNKNOWN (with no brand).
+   */
+  private paymentClassification(response: NiubizAuthorizationResponse): { paymentMethod: PaymentMethod; paymentBrand: string | null } {
+    const yapeId = this.nonEmptyString(response.dataMap?.YAPE_ID)
+      ?? this.nonEmptyString(response.data?.YAPE_ID);
+    return yapeId
+      ? { paymentMethod: PaymentMethod.WALLET, paymentBrand: "YAPE" }
+      : { paymentMethod: PaymentMethod.UNKNOWN, paymentBrand: null };
   }
 
   private isMaskedCard(value: string): boolean {

@@ -55,6 +55,7 @@ export interface NiubizAuthorizationResponse {
     BRAND?: string;
     CARD_TYPE?: string;
     TRACE_NUMBER?: string;
+    YAPE_ID?: string;
   };
   dataMap?: {
     STATUS?: string;
@@ -67,6 +68,7 @@ export interface NiubizAuthorizationResponse {
     CARD_TYPE?: string;
     TRACE_NUMBER?: string;
     TRANSACTION_ID?: string;
+    YAPE_ID?: string;
   };
   CARD_TYPE?: string;
 }

@@ -41,6 +41,8 @@ const payment = {
   maskedCard: "411111******1111",
   cardType: "CREDIT",
   paymentChannel: "web",
+  paymentMethod: "WALLET",
+  paymentBrand: "YAPE",
   traceNumber: "trace-1",
   actionCode: null,
   failureCode: null,
@@ -89,6 +91,15 @@ describe("payment restore route", () => {
     const response = await GET(request());
     const body = await response.json();
     expect(body.application.draftData).toEqual({ personalInformation: { firstName: "Ana" } });
+  });
+
+  it("restores paymentMethod=WALLET and paymentBrand=YAPE without deriving them from card metadata", async () => {
+    const response = await GET(request());
+    const body = await response.json();
+    expect(body.application.completedPayment.paymentMethod).toBe("WALLET");
+    expect(body.application.completedPayment.paymentBrand).toBe("YAPE");
+    expect(body.payment.paymentMethod).toBe("WALLET");
+    expect(body.payment.paymentBrand).toBe("YAPE");
   });
 
   it("restores the safe Niubiz message and code for confirmed decline 116", async () => {

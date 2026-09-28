@@ -1,4 +1,4 @@
-import { Currency, PaymentGateway, PaymentStatus, Prisma, type PrismaClient } from "@prisma/client";
+import { Currency, PaymentGateway, PaymentMethod, PaymentStatus, Prisma, type PrismaClient } from "@prisma/client";
 import { describe, expect, it, vi } from "vitest";
 import { PaymentRepository } from "../Repositories/PaymentRepository";
 
@@ -47,9 +47,41 @@ describe("PaymentRepository", () => {
         actionCode: "000",
         cardType: "C",
         traceNumber: "trace-1",
+        paymentMethod: PaymentMethod.UNKNOWN,
+        paymentBrand: null,
       }),
     }));
     expect(JSON.stringify(update.mock.calls[0]?.[0])).not.toContain("transactionToken");
+  });
+
+  it("persiste paymentMethod WALLET y paymentBrand YAPE provenientes del resultado del proveedor", async () => {
+    const update = vi.fn().mockResolvedValue({
+      id: 99,
+      applicationId: 42,
+      totalAmount: new Prisma.Decimal(300),
+      currency: Currency.PEN,
+      gateway: PaymentGateway.NIUBIZ,
+      status: PaymentStatus.PAID,
+    });
+    const repository = new PaymentRepository({ payment: { update } } as unknown as PrismaClient);
+
+    await repository.updatePaymentResult(99, {
+      status: PaymentStatus.PAID,
+      paymentMethod: PaymentMethod.WALLET,
+      paymentBrand: "YAPE",
+      cardBrand: "visa",
+      cardType: "D",
+      maskedCard: "455788******3051",
+      paymentChannel: "web",
+      gatewayPayload: { brand: "visa", maskedCard: "455788******3051", paymentMethod: "WALLET", paymentBrand: "YAPE" },
+    });
+
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        paymentMethod: PaymentMethod.WALLET,
+        paymentBrand: "YAPE",
+      }),
+    }));
   });
 
   it("persiste fecha y detalles solo para un rechazo definitivo", async () => {

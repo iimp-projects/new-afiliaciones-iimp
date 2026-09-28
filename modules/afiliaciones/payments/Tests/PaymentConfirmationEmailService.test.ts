@@ -4,7 +4,7 @@ import { PaymentConfirmationEmailService } from "../Services/PaymentConfirmation
 
 const details = {
   id: 77, applicationId: 42, totalAmount: 300, currency: "PEN" as const, gateway: PaymentGateway.NIUBIZ, status: PaymentStatus.PAID,
-  transactionId: "transaction-77", paymentDate: new Date("2026-09-03T12:00:00Z"), gatewayTransactionDate: new Date("2026-09-03T12:00:00Z"), paymentChannel: "web", cardBrand: "VISA", cardType: "C", maskedCard: "************1234", authorizationCode: "AUTH-77", traceNumber: "TRACE-77",
+  transactionId: "transaction-77", paymentDate: new Date("2026-09-03T12:00:00Z"), gatewayTransactionDate: new Date("2026-09-03T12:00:00Z"), paymentChannel: "web", paymentMethod: "CARD", cardBrand: "VISA", cardType: "C", maskedCard: "************1234", authorizationCode: "AUTH-77", traceNumber: "TRACE-77",
   application: { status: "COMPLETED", applicationCode: "EXP-77", trackingCode: "TRACK-77", createdAt: new Date("2026-09-01T12:00:00Z"), submittedAt: new Date("2026-09-02T12:00:00Z"), draftData: { personalInformation: { birthDate: "1990-01-01", address: "Av. Prueba 123" } }, email: "applicant@example.com", phone: "999999999", documentType: "DNI", documentNumber: "12345678", affiliateType: "ACTIVE", person: { firstName: "Ana", paternalLastName: "Pérez", maternalLastName: null } },
   billing: { taxId: "20123456789", businessName: "Empresa SAC", billingAddress: "Av. Prueba 123", billingEmail: "billing@example.com", invoice: null },
 };
@@ -62,5 +62,28 @@ describe("PaymentConfirmationEmailService", () => {
     expect(html).toContain("DESCARGAR PDF");
     expect(html).toContain("DESCARGAR XML");
     expect(html).toContain("DESCARGAR CDR");
+  });
+
+  it("WALLET/YAPE: muestra Yape y oculta la metadata de tarjeta", async () => {
+    const repository = { findPaymentConfirmationDetails: vi.fn().mockResolvedValue({ ...details, paymentMethod: "WALLET", paymentBrand: "YAPE" }), markConfirmationEmailSent: vi.fn().mockResolvedValue(true) };
+    const mailService = { sendMail: vi.fn().mockResolvedValue(undefined) };
+    await new PaymentConfirmationEmailService(repository, mailService as never, enabledSettings as never).sendIfNeeded(details.id);
+    const html = mailService.sendMail.mock.calls[0][0].html as string;
+    expect(html).toContain("Yape");
+    expect(html).not.toContain("Marca de tarjeta");
+    expect(html).not.toContain("Tipo de tarjeta");
+    expect(html).not.toContain("Tarjeta enmascarada");
+    expect(html).not.toContain("VISA");
+  });
+
+  it("UNKNOWN: muestra No identificado y no interpreta metadata histórica como tarjeta", async () => {
+    const repository = { findPaymentConfirmationDetails: vi.fn().mockResolvedValue({ ...details, paymentMethod: "UNKNOWN" }), markConfirmationEmailSent: vi.fn().mockResolvedValue(true) };
+    const mailService = { sendMail: vi.fn().mockResolvedValue(undefined) };
+    await new PaymentConfirmationEmailService(repository, mailService as never, enabledSettings as never).sendIfNeeded(details.id);
+    const html = mailService.sendMail.mock.calls[0][0].html as string;
+    expect(html).toContain("No identificado");
+    expect(html).not.toContain("Marca de tarjeta");
+    expect(html).not.toContain("Tipo de tarjeta");
+    expect(html).not.toContain("Tarjeta enmascarada");
   });
 });

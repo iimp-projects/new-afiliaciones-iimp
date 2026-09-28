@@ -44,6 +44,8 @@ export interface ApplicationStatusData {
     maskedCard?: string | null;
     cardType?: string | null;
     paymentChannel?: string | null;
+    paymentMethod?: "CARD" | "WALLET" | "BANK_TRANSFER" | "CASH" | "POINTS" | "UNKNOWN" | null;
+    paymentBrand?: string | null;
     traceNumber?: string | null;
     billing?: { taxId: string; businessName: string; billingAddress?: string | null; billingEmail?: string | null; invoice?: { type: string; serie: string; number: string; issueDate: string | Date; pdfUrl?: string | null; xmlUrl?: string | null; sunatCdrUrl?: string | null } | null } | null;
   } | null;
