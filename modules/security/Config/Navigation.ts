@@ -140,7 +140,7 @@ export const securityModuleDefinition: ModuleDefinition = {
             title: "MI CUENTA",
             type: "group",
             audience: "administrative",
-            order: 30,
+            order: 5,
             children: [
                 {
                     id: "nav-internal-profile",

@@ -72,4 +72,12 @@ describe("NavigationService - Application Service", () => {
         expect(profile).toMatchObject({ href: "/intranet/mi-perfil", icon: "UserRound" });
         expect(profile).not.toHaveProperty("permission");
     });
+
+    it("ubica Mi perfil antes de Panel Principal para usuarios administrativos", async () => {
+        const service = new NavigationService(new MockAuthProvider(new Set()));
+        const tree = await service.getAuthorizedTree();
+
+        expect(tree.map((node) => node.id).indexOf("group-account"))
+            .toBeLessThan(tree.map((node) => node.id).indexOf("group-main"));
+    });
 });
