@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client";
+import { getAppBaseUrl } from "@/lib/config/env";
 import { paymentConfig } from "../../../afiliaciones/payments/Config/PaymentConfig";
 import { SYSTEM_SETTING_KEYS } from "../Models/SystemSettingKeys";
 import { SystemSettingsError, SystemSettingsService } from "./SystemSettingsService";
@@ -39,9 +40,11 @@ export class PaymentSettingsResolver {
       this.settings.getCurrentValue(SYSTEM_SETTING_KEYS.NIUBIZ_FORM_BUTTON_COLOR, now),
       this.settings.getCurrentValue(SYSTEM_SETTING_KEYS.NIUBIZ_SESSION_EXPIRATION_MINUTES, now),
     ]);
+    const explicitLogoUrl = (logoUrl?.value as string | undefined)?.trim();
+    const configuredLogoUrl = paymentConfig.niubiz.merchantLogoUrl?.trim();
     return {
       merchantName: this.requiredCheckoutValue(merchantName?.value as string | undefined, paymentConfig.niubiz.merchantName, "NIUBIZ_MERCHANT_NAME"),
-      logoUrl: (logoUrl?.value as string | undefined) ?? (paymentConfig.environment === "TEST" ? paymentConfig.niubiz.merchantLogoUrl : undefined),
+      logoUrl: explicitLogoUrl || configuredLogoUrl || this.iimpLogoUrl(),
       formButtonColor: this.requiredCheckoutValue(formButtonColor?.value as string | undefined, paymentConfig.niubiz.formButtonColor, "NIUBIZ_FORM_BUTTON_COLOR"),
       expirationMinutes: this.requiredCheckoutValue(expirationMinutes?.value as number | undefined, paymentConfig.niubiz.sessionExpirationMinutes, "NIUBIZ_SESSION_EXPIRATION_MINUTES"),
     };
@@ -61,6 +64,8 @@ export class PaymentSettingsResolver {
 
   private async boolean(key: typeof SYSTEM_SETTING_KEYS[keyof typeof SYSTEM_SETTING_KEYS], now: Date) { const setting = await this.settings.getCurrentValue(key, now); return setting ? setting.value as boolean : null; }
   private async date(key: typeof SYSTEM_SETTING_KEYS[keyof typeof SYSTEM_SETTING_KEYS], now: Date) { const setting = await this.settings.getCurrentValue(key, now); return setting ? setting.value as Date : null; }
+  /** Public absolute URL required by the externally hosted Niubiz checkout. */
+  private iimpLogoUrl() { return new URL("/images/logo-iimp.png", getAppBaseUrl()).toString(); }
   private requiredCheckoutValue<T>(settingValue: T | undefined, fallback: T | undefined, key: string): T {
     if (settingValue !== undefined) return settingValue;
     if (paymentConfig.environment === "TEST" && fallback !== undefined) return fallback;

@@ -15,6 +15,7 @@ describe("PaymentSettingsResolver", () => {
     vi.stubEnv("NIUBIZ_TEST_MERCHANT_NAME", "IIMP Test");
     vi.stubEnv("NIUBIZ_TEST_FORM_BUTTON_COLOR", "#C5A059");
     vi.stubEnv("NIUBIZ_TEST_SESSION_EXPIRATION_MINUTES", "5");
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://afiliaciones-qa.example.test");
     vi.resetModules();
     ({ PaymentAmountResolver } = await import("../Services/PaymentAmountResolver"));
     ({ PaymentSettingsResolver } = await import("../../../security/system-settings/Services/PaymentSettingsResolver"));
@@ -36,6 +37,11 @@ describe("PaymentSettingsResolver", () => {
     await expect(resolver.assertPaymentInitiationAvailable()).resolves.toBeUndefined();
     await expect(resolver.getNiubizCheckoutSettings()).resolves.toMatchObject({ expirationMinutes: expect.any(Number) });
     await expect(resolver.getPaymentConfirmationEmailSettings()).resolves.toMatchObject({ enabled: true });
+  });
+
+  it("usa el logo institucional público absoluto cuando no hay override", async () => {
+    const resolver = new PaymentSettingsResolver(settings() as never);
+    await expect(resolver.getNiubizCheckoutSettings()).resolves.toMatchObject({ logoUrl: "https://afiliaciones-qa.example.test/images/logo-iimp.png" });
   });
 
   it("resuelve la cuota anual desde System Settings cuando está configurada", async () => {
