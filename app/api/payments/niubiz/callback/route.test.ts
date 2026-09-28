@@ -70,6 +70,44 @@ describe("Niubiz callback redirects use the canonical base URL", () => {
     expect(location).not.toContain("0.0.0.0");
   });
 
+  it("restaura un rechazo terminal dentro de /consulta", async () => {
+    mocks.authorizeFromCallback.mockResolvedValue({ status: "FAILED", id: 1, applicationId: 2 });
+    const formData = new FormData();
+    formData.set("transactionToken", "A".repeat(32));
+    formData.set("channel", "web");
+    const request = new NextRequest("https://0.0.0.0:3000/api/payments/niubiz/callback", { method: "POST", body: formData });
+
+    const response = await POST(request);
+
+    expect(response.headers.get("location")).toBe(`${QA_URL}/consulta?payment_restore=ref-123`);
+    expect(response.headers.get("set-cookie")).toContain("payment_restore_session=session-123");
+    expect(response.headers.get("set-cookie")).toContain("HttpOnly");
+  });
+
+  it("conserva no-confirmado cuando el callback termina con un error incierto", async () => {
+    mocks.authorizeFromCallback.mockRejectedValue(new Error("timeout"));
+    const formData = new FormData();
+    formData.set("transactionToken", "A".repeat(32));
+    formData.set("channel", "web");
+    const request = new NextRequest("https://0.0.0.0:3000/api/payments/niubiz/callback", { method: "POST", body: formData });
+
+    const response = await POST(request);
+
+    expect(response.headers.get("location")).toBe(`${QA_URL}/consulta/pago/no-confirmado`);
+  });
+
+  it.each(["PENDING", "PROCESSING"] as const)("conserva no-confirmado para un resultado %s", async (status) => {
+    mocks.authorizeFromCallback.mockResolvedValue({ status, id: 1, applicationId: 2 });
+    const formData = new FormData();
+    formData.set("transactionToken", "A".repeat(32));
+    formData.set("channel", "web");
+    const request = new NextRequest("https://0.0.0.0:3000/api/payments/niubiz/callback", { method: "POST", body: formData });
+
+    const response = await POST(request);
+
+    expect(response.headers.get("location")).toBe(`${QA_URL}/consulta/pago/no-confirmado?payment_restore=ref-123`);
+  });
+
   it("redirige a no-confirmado cuando el callback no trae token válido", async () => {
     const formData = new FormData();
     formData.set("transactionToken", "bad");

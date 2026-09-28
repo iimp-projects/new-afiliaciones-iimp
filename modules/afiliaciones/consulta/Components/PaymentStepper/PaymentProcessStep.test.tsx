@@ -11,12 +11,13 @@ vi.mock("@/modules/afiliaciones/payments/Components/PaymentLoadingOverlay", () =
 import PaymentProcessStep from "./PaymentProcessStep";
 
 const billingData = { tipoDocumento: "RUC" as const, numeroDocumento: "20107972090", razonSocial: "Razón social real", direccionFiscal: "Av. Principal 123", responsable: "Responsable real", emailFacturacion: "facturacion@example.com" };
-const props = { billingData, confirmed: false, onConfirmedChange: vi.fn(), result: null, loading: false, error: null, onRetry: vi.fn(), paymentUiState: "PAYMENT_FAILED" as const, onCheckoutStateChange: vi.fn(), failureCode: "116", failureMessage: "Pago no aprobado", affiliateType: "ASOCIADO ACTIVO" };
+const props = { billingData, confirmed: false, onConfirmedChange: vi.fn(), result: null, loading: false, error: null, onRetry: vi.fn(), paymentUiState: "PAYMENT_FAILED" as const, onCheckoutStateChange: vi.fn(), failureCode: "116", failureMessage: "No cuentas con fondos suficientes para completar la compra. Intenta nuevamente con otra tarjeta.", affiliateType: "ASOCIADO ACTIVO" };
 
 describe("PaymentProcessStep", () => {
   it("presenta la alerta FAILED antes del resumen y mantiene el reintento fuera de ella", () => {
     const markup = renderToStaticMarkup(<PaymentProcessStep {...props} />);
     expect(markup.indexOf("Pago no aprobado")).toBeLessThan(markup.indexOf("Resumen final antes del pago"));
+    expect(markup).toContain("No cuentas con fondos suficientes para completar la compra. Intenta nuevamente con otra tarjeta.");
     expect(markup.lastIndexOf("Intentar nuevamente")).toBeGreaterThan(markup.indexOf("Código de soporte: 116"));
   });
 

@@ -46,7 +46,13 @@ export async function POST(request: Request) {
     }
     const callbackReference = new URL(request.url).searchParams.get("payment_callback") ?? undefined;
     const payment = await paymentService.authorizeFromCallback(callbackReference, token, parsedChannel);
-    const destination = payment.status === "FAILED" ? "/consulta/pago/no-confirmado" : "/consulta";
+    // Un FAILED es un rechazo terminal confirmado: restaurar el contexto seguro
+    // dentro del flujo para que el usuario vea el motivo y pueda reintentar.
+    // PENDING/PROCESSING siguen en el fallback conservador para no habilitar
+    // un nuevo pago si la autorización puede estar todavía en curso.
+    const destination = payment.status === "FAILED" || payment.status === "PAID"
+      ? "/consulta"
+      : "/consulta/pago/no-confirmado";
     return redirectWithRestoreSession(destination, payment.id, payment.applicationId);
   } catch (error) {
     if (error instanceof PaymentServiceError) {

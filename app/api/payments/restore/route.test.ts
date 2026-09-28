@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   verifyRestoreReference: vi.fn(),
   findPaymentConfirmationDetails: vi.fn(),
+  getNiubizActionCode: vi.fn(),
 }));
 
 vi.mock("next/headers", () => ({
@@ -18,7 +19,7 @@ vi.mock("@/modules/afiliaciones/payments/Repositories/PaymentRepository", () => 
   PaymentRepository: class { findPaymentConfirmationDetails = mocks.findPaymentConfirmationDetails; },
 }));
 vi.mock("@/modules/afiliaciones/payments/Services/Niubiz/NiubizActionCodes", () => ({
-  getNiubizActionCode: () => undefined,
+  getNiubizActionCode: mocks.getNiubizActionCode,
 }));
 
 import { GET } from "./route";
@@ -69,6 +70,7 @@ describe("payment restore route", () => {
     vi.clearAllMocks();
     mocks.verifyRestoreReference.mockReturnValue({ paymentId: 99, applicationId: 42 });
     mocks.findPaymentConfirmationDetails.mockResolvedValue(payment);
+    mocks.getNiubizActionCode.mockReturnValue(undefined);
   });
 
   it("rejects an invalid restore reference", async () => {
@@ -87,5 +89,29 @@ describe("payment restore route", () => {
     const response = await GET(request());
     const body = await response.json();
     expect(body.application.draftData).toEqual({ personalInformation: { firstName: "Ana" } });
+  });
+
+  it("restores the safe Niubiz message and code for confirmed decline 116", async () => {
+    mocks.findPaymentConfirmationDetails.mockResolvedValue({
+      ...payment,
+      status: "FAILED",
+      actionCode: "116",
+      failureCode: "116",
+      failureReason: "Fondos insuficientes",
+    });
+    mocks.getNiubizActionCode.mockReturnValue({
+      code: "116",
+      userMessage: "No cuentas con fondos suficientes para completar la compra. Intenta nuevamente con otra tarjeta.",
+    });
+
+    const response = await GET(request());
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.payment).toMatchObject({ status: "FAILED" });
+    expect(body.failure).toEqual({
+      code: "116",
+      message: "No cuentas con fondos suficientes para completar la compra. Intenta nuevamente con otra tarjeta.",
+    });
   });
 });
