@@ -1,6 +1,7 @@
 import type { NiubizTestConfig } from "../../Config/PaymentConfig";
 import type { NiubizAuthorizationRequest, NiubizAuthorizationResponse } from "../../DTOs/Niubiz/NiubizAuthorization.dto";
 import type { NiubizDataMap } from "../../DTOs/Niubiz/NiubizSession.dto";
+import { logNiubizAuthorizationStructure } from "./NiubizAuthorizationDiagnostics";
 
 export interface BuildNiubizAuthorizationInput {
   merchantId: string;
@@ -63,6 +64,9 @@ export class NiubizAuthorizationService {
 
     const body = await response.json().catch(() => null);
     if (!this.isRecord(body)) throw new NiubizAuthorizationHttpError(response.status);
+    // QA/TEST-only structural inventory before the DTO and mapper ignore unknown fields.
+    // This helper records keys and value types only; it never receives or logs request data.
+    logNiubizAuthorizationStructure(body);
     if (!response.ok) throw new NiubizAuthorizationHttpError(response.status, body as NiubizAuthorizationResponse);
 
     return { response: body as NiubizAuthorizationResponse, status: response.status };
