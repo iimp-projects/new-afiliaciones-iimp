@@ -46,7 +46,7 @@ export class AssociateSieProfileError extends Error {
 export class AssociateSieProfileService {
   constructor(
     private readonly database: AssociateLookup = prisma as unknown as AssociateLookup,
-    private readonly client: StateClient = new AssociatesApiClient(),
+    private readonly client?: StateClient,
     private readonly now: () => Date = () => new Date(),
   ) {}
 
@@ -69,9 +69,13 @@ export class AssociateSieProfileService {
     }
 
     return toAssociateSieProfileResponse(
-      await this.client.getAssociateState({ tipoDocumento, numDocumento: application.person.documentNumber }),
+      await this.apiClient().getAssociateState({ tipoDocumento, numDocumento: application.person.documentNumber }),
       this.now().toISOString(),
     );
+  }
+
+  private apiClient(): StateClient {
+    return this.client ?? new AssociatesApiClient();
   }
 }
 

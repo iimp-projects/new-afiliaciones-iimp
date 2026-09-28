@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AssociateSieProfileError, AssociateSieProfileService } from "./AssociateSieProfileService";
+import { AssociatesApiConfigurationError } from "@/modules/afiliaciones/associates-integration/Config/AssociatesApiConfig";
 
 const quota = { concepto: "CUOTA" as const, numero: 4, monto: 150, moneda: "S/" as const, anno: 2026, tipo: "Activo" as const, estadoContable: "Facturado" as const, fechaPago: "2026-01-03", fechaInicio: "2026-01-01", fechaFin: "2026-12-31", docGSer: "F001", docGNro: "20" };
 
@@ -30,5 +31,18 @@ describe("AssociateSieProfileService", () => {
     await expect(service().getByApplicationId(17)).rejects.toMatchObject({ status: 404 } satisfies Partial<AssociateSieProfileError>);
     await expect(service().getByApplicationId(18)).rejects.toMatchObject({ status: 422 } satisfies Partial<AssociateSieProfileError>);
     expect(getAssociateState).not.toHaveBeenCalled();
+  });
+
+  it("permite instanciar el servicio sin configuración SIE y falla cerradamente solo al consultar", async () => {
+    vi.stubEnv("ASSOCIATES_API_BASE_URL", "");
+    vi.stubEnv("ASSOCIATES_API_USER", "");
+    vi.stubEnv("ASSOCIATES_API_PASSWORD", "");
+    findFirst.mockResolvedValue({ person: { documentType: "DNI", documentNumber: "12345678", deletedAt: null } });
+
+    expect(() => new AssociateSieProfileService({ membershipApplication: { findFirst } })).not.toThrow();
+    await expect(new AssociateSieProfileService({ membershipApplication: { findFirst } }).getByApplicationId(19))
+      .rejects.toBeInstanceOf(AssociatesApiConfigurationError);
+    expect(getAssociateState).not.toHaveBeenCalled();
+    vi.unstubAllEnvs();
   });
 });
