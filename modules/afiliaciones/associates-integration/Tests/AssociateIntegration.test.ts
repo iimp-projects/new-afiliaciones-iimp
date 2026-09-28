@@ -16,6 +16,7 @@ const identity: Omit<AssociateRequestPayloadSnapshot, "Tipo" | "servicios"> = {
 class MemoryRepository implements IAssociateIntegrationRepository {
   private readonly records = new Map<number, AssociateIntegrationRecord>();
   readonly attemptHistory: any[] = [];
+  private readonly recoveryClaims = new Set<number>();
   async createPendingIfAbsent(input: { applicationId: number; trigger: AssociateIntegrationTrigger; requestPayloadSnapshot: AssociateRequestPayloadSnapshot }) {
     return this.records.get(input.applicationId) ?? this.save({ id: this.records.size + 1, applicationId: input.applicationId, trigger: input.trigger, status: AssociateIntegrationStatus.PENDING, requestPayloadSnapshot: input.requestPayloadSnapshot, externalAssociateCode: null, externalMessage: null, attempts: 0, lastAttemptAt: null, syncedAt: null, lastErrorHttpStatus: null, lastErrorCode: null, lastErrorMessage: null, lastErrorIdentifier: null, lastErrorDetails: null, externalReceiptType: null, externalReceiptSerie: null, externalReceiptNumber: null, externalReceiptPdfReference: null, createdAt: new Date(), updatedAt: new Date() });
   }
@@ -24,6 +25,7 @@ class MemoryRepository implements IAssociateIntegrationRepository {
   }
   async findByApplicationId(applicationId: number) { return this.records.get(applicationId) ?? null; }
   async findById(id: number) { return [...this.records.values()].find((record) => record.id === id) ?? null; }
+  async findPreDispatchRecoveryCandidate(id: number) { const integration = await this.findById(id); return integration ? { integration, attemptHistoryCount: this.attemptHistory.filter((item) => item.integrationId === id).length } : null; }
   async markProcessing(applicationId: number) { const record = this.records.get(applicationId); if (!record || (record.status !== AssociateIntegrationStatus.PENDING && record.status !== AssociateIntegrationStatus.RETRYABLE)) return null; return this.save({ ...record, status: AssociateIntegrationStatus.PROCESSING, attempts: record.attempts + 1, lastAttemptAt: new Date() }); }
   async claimPendingWithFinalizedPayload(applicationId: number, requestPayloadSnapshot: AssociateRequestPayloadSnapshot) { const record = this.records.get(applicationId); if (!record || record.status !== AssociateIntegrationStatus.PENDING || record.attempts !== 0) return null; return this.save({ ...record, requestPayloadSnapshot, status: AssociateIntegrationStatus.PROCESSING, attempts: 1, lastAttemptAt: new Date() }); }
   async markPendingClassificationFailed(applicationId: number, error: AssociateIntegrationError) { const record = this.records.get(applicationId); if (!record || record.status !== AssociateIntegrationStatus.PENDING || record.attempts !== 0) return null; return this.save({ ...record, status: AssociateIntegrationStatus.FAILED, lastErrorHttpStatus: error.httpStatus ?? null, lastErrorCode: error.code ?? null, lastErrorMessage: error.message ?? null, lastErrorIdentifier: error.identifier ?? null }); }
@@ -36,6 +38,7 @@ class MemoryRepository implements IAssociateIntegrationRepository {
   async listAdmin() { return { data: [], total: 0 }; }
   async findAdminById() { return null; }
   async createRetryAudit() {}
+  async resolvePreDispatchRecovery(data: { integrationId: number; reconciliation: "ABSENT" | "MATCH" }) { if (this.recoveryClaims.has(data.integrationId)) return null; this.recoveryClaims.add(data.integrationId); const record = await this.findById(data.integrationId); if (!record || record.status !== AssociateIntegrationStatus.FAILED || record.attempts !== 0 || this.attemptHistory.some((item) => item.integrationId === data.integrationId)) return null; return this.save({ ...record, status: data.reconciliation === "MATCH" ? AssociateIntegrationStatus.SYNCED : AssociateIntegrationStatus.RETRYABLE, syncedAt: data.reconciliation === "MATCH" ? new Date() : record.syncedAt }); }
   private error(applicationId: number, status: AssociateIntegrationStatus, error: AssociateIntegrationError) { const record = this.required(applicationId); return Promise.resolve(this.save({ ...record, status, lastErrorHttpStatus: error.httpStatus ?? null, lastErrorCode: error.code ?? null, lastErrorMessage: error.message ?? null, lastErrorIdentifier: error.identifier ?? null, lastErrorDetails: (error.details ?? null) as AssociateIntegrationRecord["lastErrorDetails"] })); }
   private required(applicationId: number) { const record = this.records.get(applicationId); if (!record) throw new Error("missing"); return record; }
   private save(record: AssociateIntegrationRecord) { this.records.set(record.applicationId, record); return record; }
@@ -248,4 +251,57 @@ describe("Associate integration Phase A", () => {
     expect(client.createAssociate).toHaveBeenCalledOnce();
   });
 
+});
+
+describe("SIE pre-dispatch recovery", () => {
+  const snapshot = new AssociateIntegrationSnapshotBuilder().active(identity, new Date("2026-09-09T15:00:00.000Z"), { registration: 150, monthlyFee: 150 });
+  const failed = async (repository: MemoryRepository, error: AssociateIntegrationError) => {
+    const service = new AssociatesIntegrationService(repository);
+    const record = await service.prepare({ applicationId: 900, trigger: AssociateIntegrationTrigger.ACTIVE_PAYMENT, requestPayloadSnapshot: snapshot });
+    await service.markFailed(record.applicationId, error);
+    return record;
+  };
+  const absent = { status: false as const, message: "No asociado" };
+
+  it("recovers a configuration failure after fresh ABSENT GET without POST", async () => {
+    const repository = new MemoryRepository(); const record = await failed(repository, { code: "ASSOCIATES_API_CONFIGURATION_MISSING", message: "La integración de asociados no está configurada correctamente." });
+    const client = { getAssociateState: vi.fn().mockResolvedValue(absent), createAssociate: vi.fn() };
+    const result = await new AssociatesIntegrationService(repository, undefined, client as never).recoverPreDispatchFailure(record.id, 7);
+    expect(result.status).toBe("RETRYABLE"); expect(client.getAssociateState).toHaveBeenCalledWith({ tipoDocumento: "1", numDocumento: identity.NumDocumento }); expect(client.createAssociate).not.toHaveBeenCalled();
+  });
+
+  it("supports only the exact legacy configuration incident", async () => {
+    const repository = new MemoryRepository(); const record = await failed(repository, { code: "SNAPSHOT_INVALID", message: "La integración de asociados no está configurada. Faltan variables privadas requeridas." });
+    const result = await new AssociatesIntegrationService(repository, undefined, { getAssociateState: vi.fn().mockResolvedValue(absent) } as never).recoverPreDispatchFailure(record.id, 7);
+    expect(result.status).toBe("RETRYABLE");
+  });
+
+  it.each([
+    [{ code: "SNAPSHOT_INVALID", message: "snapshot realmente inválido" }, "legacy without evidence"],
+    [{ httpStatus: 400, code: "HTTP_400", message: "invalid" }, "HTTP 400"],
+    [{ httpStatus: 403, code: "HTTP_403", message: "forbidden" }, "HTTP 403"],
+    [{ httpStatus: 409, code: "HTTP_409", message: "conflict" }, "HTTP 409"],
+  ])("blocks %s", async (error, _label) => {
+    const repository = new MemoryRepository(); const record = await failed(repository, error);
+    const client = { getAssociateState: vi.fn(), createAssociate: vi.fn() };
+    await expect(new AssociatesIntegrationService(repository, undefined, client as never).recoverPreDispatchFailure(record.id, 7)).rejects.toMatchObject({ status: 409 });
+    expect(client.getAssociateState).not.toHaveBeenCalled(); expect(client.createAssociate).not.toHaveBeenCalled();
+  });
+
+  it("blocks prior attempts, ambiguous GET and concurrent recovery", async () => {
+    const repository = new MemoryRepository(); const seed = new AssociatesIntegrationService(repository); const record = await seed.prepare({ applicationId: 901, trigger: AssociateIntegrationTrigger.ACTIVE_PAYMENT, requestPayloadSnapshot: snapshot });
+    await repository.markProcessing(record.applicationId); await repository.markFailed(record.applicationId, { code: "ASSOCIATES_API_CONFIGURATION_MISSING", message: "x" });
+    await expect(new AssociatesIntegrationService(repository, undefined, { getAssociateState: vi.fn() } as never).recoverPreDispatchFailure(record.id, 7)).rejects.toMatchObject({ status: 409 });
+    const clean = new MemoryRepository(); const cleanRecord = await failed(clean, { code: "ASSOCIATES_API_CONFIGURATION_MISSING", message: "x" }); const client = { getAssociateState: vi.fn().mockResolvedValue({ status: true, cuotas: [] }), createAssociate: vi.fn() };
+    await expect(new AssociatesIntegrationService(clean, undefined, client as never).recoverPreDispatchFailure(cleanRecord.id, 7)).rejects.toMatchObject({ status: 409 }); expect(client.createAssociate).not.toHaveBeenCalled();
+  });
+
+  it("reconciles an exact PRESENT state without POST and allows only one concurrent recovery", async () => {
+    const repository = new MemoryRepository(); const record = await failed(repository, { code: "ASSOCIATES_API_CONFIGURATION_MISSING", message: "x" });
+    const quota = (concepto: "INSCRIPCION" | "CUOTA", numero: number | null) => ({ concepto, numero, monto: 150, moneda: "S/" as const, anno: 2026, tipo: "Activo" as const, estadoContable: "Facturado" as const, fechaPago: "2026-01-01", fechaInicio: "2026-01-01", fechaFin: "2026-12-31", docGSer: "B001", docGNro: "1" });
+    const client = { getAssociateState: vi.fn().mockResolvedValue({ status: true, cuotas: [quota("INSCRIPCION", null), quota("CUOTA", 1)] }), createAssociate: vi.fn() };
+    const service = new AssociatesIntegrationService(repository, undefined, client as never);
+    const [first, second] = await Promise.allSettled([service.recoverPreDispatchFailure(record.id, 7), service.recoverPreDispatchFailure(record.id, 7)]);
+    expect([first, second].filter((item) => item.status === "fulfilled")).toHaveLength(1); expect((await repository.findById(record.id))?.status).toBe("SYNCED"); expect(client.createAssociate).not.toHaveBeenCalled();
+  });
 });

@@ -15,7 +15,7 @@ import type {
 import { AssociatesApiClient } from "../Clients/AssociatesApiClient";
 import { AssociatesApiError } from "../Clients/AssociatesApiError";
 import { AssociatesApiConfigurationError } from "../Config/AssociatesApiConfig";
-import { AssociatesPayloadMapper } from "../Mappers/AssociatesPayloadMapper";
+import { AssociatesPayloadMapper, AssociatesPayloadValidationError, toSieDocumentType } from "../Mappers/AssociatesPayloadMapper";
 import {
   AssociateIntegrationSnapshotBuilder,
   AssociateSnapshotBuildError,
@@ -343,6 +343,38 @@ export class AssociatesIntegrationService {
     return result;
   }
 
+  /**
+   * Recovers only a proven pre-dispatch configuration failure. It never sends
+   * POST /asociados; a later explicit RETRYABLE action still reconciles first.
+   */
+  async recoverPreDispatchFailure(id: number, userId: number) {
+    const finder = this.repository.findPreDispatchRecoveryCandidate;
+    const resolver = this.repository.resolvePreDispatchRecovery;
+    if (!finder || !resolver) throw recoveryError("La recuperación pre-despacho no está disponible.", 409);
+    const candidate = await finder.call(this.repository, id);
+    if (!candidate) throw recoveryError("Integración no encontrada.", 404);
+    const { integration, attemptHistoryCount } = candidate;
+    const legacy = isLegacyConfigurationFailure(integration);
+    if (!isPreDispatchFailure(integration, attemptHistoryCount) || !(integration.lastErrorCode === "ASSOCIATES_API_CONFIGURATION_MISSING" || legacy)) {
+      throw recoveryError("La integración no cumple las condiciones para recuperación pre-despacho.", 409);
+    }
+    let payload: AssociateRequestPayloadSnapshot;
+    try { payload = this.mapper.map(integration.requestPayloadSnapshot); }
+    catch (error) { throw recoveryError(error instanceof AssociatesPayloadValidationError ? "El snapshot no es válido para recuperación." : "No se pudo validar el snapshot de recuperación.", 409); }
+    if (legacy && !(payload.Tipo === "A" && hasEnrollmentServices(payload))) throw recoveryError("El incidente legacy no corresponde a un alta activa verificable.", 409);
+    let reconciliation: "ABSENT" | "MATCH";
+    try {
+      const state = await this.apiClient().getAssociateState(stateRequest(payload));
+      if (!state.status) reconciliation = "ABSENT";
+      else if (reconcileSnapshot(payload, state) === "MATCH") reconciliation = "MATCH";
+      else throw recoveryError("El estado remoto presente no permite recuperar esta integración.", 409);
+    }
+    catch { throw recoveryError("No se pudo reconciliar el estado remoto; la recuperación fue bloqueada.", 409); }
+    const recovered = await resolver.call(this.repository, { integrationId: integration.id, userId, originalErrorCode: integration.lastErrorCode, legacy, reconciliation });
+    if (!recovered) throw recoveryError("La integración cambió durante la recuperación.", 409);
+    return recovered;
+  }
+
   private toAdminListItem(item: any) {
     const person = item.application.person;
     const billing = item.application.payments?.[0]?.billing ?? null;
@@ -397,7 +429,7 @@ export class AssociatesIntegrationService {
     let finalizedSnapshot: AssociateRequestPayloadSnapshot;
     try {
       const state = await this.apiClient().getAssociateState({
-        tipoDocumento: integration.requestPayloadSnapshot.TipoDocumento,
+        ...stateRequest(integration.requestPayloadSnapshot),
         numDocumento: integration.requestPayloadSnapshot.NumDocumento,
       });
       finalizedSnapshot = this.finalizeActiveSnapshot(integration.requestPayloadSnapshot, state);
@@ -431,7 +463,7 @@ export class AssociatesIntegrationService {
 
   private async reconcileBeforeRetry(claimed: AssociateIntegrationRecord): Promise<ReconciliationResult> {
     try {
-      const state = await this.apiClient().getAssociateState({ tipoDocumento: claimed.requestPayloadSnapshot.TipoDocumento, numDocumento: claimed.requestPayloadSnapshot.NumDocumento });
+      const state = await this.apiClient().getAssociateState(stateRequest(claimed.requestPayloadSnapshot));
       const result = reconcileSnapshot(claimed.requestPayloadSnapshot, state);
       if (result === "MATCH") {
         await this.repository.markSyncedByReconciliation(claimed.applicationId);
@@ -450,7 +482,7 @@ export class AssociatesIntegrationService {
 
   private async reconcileUncertainPost(claimed: AssociateIntegrationRecord, original: AssociateIntegrationError & { retryable: boolean }): Promise<{ integration: AssociateIntegrationRecord; result: AssociateIntegrationAttemptResult }> {
     try {
-      const state = await this.apiClient().getAssociateState({ tipoDocumento: claimed.requestPayloadSnapshot.TipoDocumento, numDocumento: claimed.requestPayloadSnapshot.NumDocumento });
+      const state = await this.apiClient().getAssociateState(stateRequest(claimed.requestPayloadSnapshot));
       const result = reconcileSnapshot(claimed.requestPayloadSnapshot, state);
       if (result === "MATCH") return { integration: await this.repository.markSyncedByReconciliation(claimed.applicationId), result: AssociateIntegrationAttemptResult.SYNCED };
       if (result === "CONFLICT") return { integration: await this.repository.markFailed(claimed.applicationId, { code: "SIE_RECONCILIATION_CONFLICT", message: "El estado remoto es incompatible con el payload enviado." }), result: AssociateIntegrationAttemptResult.FAILED };
@@ -607,6 +639,37 @@ class SieStateClassificationError extends Error {
 }
 
 type ReconciliationResult = "MATCH" | "ABSENT" | "AMBIGUOUS" | "CONFLICT";
+
+const LEGACY_CONFIGURATION_ERROR_MESSAGE = "La integración de asociados no está configurada. Faltan variables privadas requeridas.";
+
+function stateRequest(snapshot: AssociateRequestPayloadSnapshot) {
+  return { tipoDocumento: toSieDocumentType(snapshot.TipoDocumento), numDocumento: snapshot.NumDocumento } as const;
+}
+
+function hasEnrollmentServices(snapshot: AssociateRequestPayloadSnapshot) {
+  const concepts = new Set(snapshot.servicios.map((service) => service.concepto));
+  return snapshot.servicios.length === 2 && concepts.size === 2 && concepts.has("INSCRIPCION") && concepts.has("CUOTA");
+}
+
+function isLegacyConfigurationFailure(item: AssociateIntegrationRecord) {
+  return item.lastErrorCode === "SNAPSHOT_INVALID" && item.lastErrorMessage === LEGACY_CONFIGURATION_ERROR_MESSAGE;
+}
+
+function isPreDispatchFailure(item: AssociateIntegrationRecord, attemptHistoryCount: number) {
+  return item.status === AssociateIntegrationStatus.FAILED
+    && item.attempts === 0
+    && attemptHistoryCount === 0
+    && item.lastAttemptAt === null
+    && item.lastErrorHttpStatus === null
+    && item.lastErrorIdentifier === null
+    && item.lastErrorDetails === null
+    && item.externalAssociateCode === null
+    && item.syncedAt === null;
+}
+
+function recoveryError(message: string, status: 404 | 409) {
+  return Object.assign(new Error(message), { status });
+}
 
 function isUncertainPostOutcome(error: unknown): boolean {
   if (!(error instanceof AssociatesApiError) || error.operation !== "CREATE_ASSOCIATE") return false;
