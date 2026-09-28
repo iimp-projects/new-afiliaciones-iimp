@@ -57,8 +57,29 @@ export class AssociateIntegrationRepository implements IAssociateIntegrationRepo
     return updated.count === 1 ? this.findByApplicationId(applicationId, tx) : null;
   }
 
+  async claimPendingWithFinalizedPayload(applicationId: number, requestPayloadSnapshot: AssociateRequestPayloadSnapshot, tx?: AssociateIntegrationTransaction): Promise<AssociateIntegrationRecord | null> {
+    const updated = await this.client(tx).associateIntegration.updateMany({
+      where: { applicationId, status: AssociateIntegrationStatus.PENDING, attempts: 0 },
+      data: { requestPayloadSnapshot: requestPayloadSnapshot as unknown as Prisma.InputJsonValue, status: AssociateIntegrationStatus.PROCESSING, attempts: { increment: 1 }, lastAttemptAt: new Date() },
+    });
+    return updated.count === 1 ? this.findByApplicationId(applicationId, tx) : null;
+  }
+
+  async markPendingClassificationFailed(applicationId: number, error: AssociateIntegrationError, tx?: AssociateIntegrationTransaction): Promise<AssociateIntegrationRecord | null> {
+    const updated = await this.client(tx).associateIntegration.updateMany({
+      where: { applicationId, status: AssociateIntegrationStatus.PENDING, attempts: 0 },
+      data: { status: AssociateIntegrationStatus.FAILED, lastErrorHttpStatus: error.httpStatus, lastErrorCode: error.code, lastErrorMessage: error.message, lastErrorIdentifier: error.identifier, lastErrorDetails: error.details === undefined ? Prisma.DbNull : error.details },
+    });
+    return updated.count === 1 ? this.findByApplicationId(applicationId, tx) : null;
+  }
+
   async markSynced(applicationId: number, result: { externalAssociateCode: number; externalMessage?: string; receipt?: { type?: string; serie?: string; number?: string; pdfReference?: string } }, tx?: AssociateIntegrationTransaction): Promise<AssociateIntegrationRecord> {
     const integration = await this.client(tx).associateIntegration.update({ where: { applicationId }, data: { status: AssociateIntegrationStatus.SYNCED, externalAssociateCode: result.externalAssociateCode, externalMessage: result.externalMessage, syncedAt: new Date(), externalReceiptType: result.receipt?.type, externalReceiptSerie: result.receipt?.serie, externalReceiptNumber: result.receipt?.number, externalReceiptPdfReference: result.receipt?.pdfReference, lastErrorHttpStatus: null, lastErrorCode: null, lastErrorMessage: null, lastErrorIdentifier: null, lastErrorDetails: Prisma.DbNull } });
+    return this.toRecord(integration);
+  }
+
+  async markSyncedByReconciliation(applicationId: number, tx?: AssociateIntegrationTransaction): Promise<AssociateIntegrationRecord> {
+    const integration = await this.client(tx).associateIntegration.update({ where: { applicationId }, data: { status: AssociateIntegrationStatus.SYNCED, externalAssociateCode: null, externalMessage: "SYNCED_BY_RECONCILIATION", syncedAt: new Date(), externalReceiptType: null, externalReceiptSerie: null, externalReceiptNumber: null, externalReceiptPdfReference: null, lastErrorHttpStatus: null, lastErrorCode: null, lastErrorMessage: null, lastErrorIdentifier: null, lastErrorDetails: Prisma.DbNull } });
     return this.toRecord(integration);
   }
 

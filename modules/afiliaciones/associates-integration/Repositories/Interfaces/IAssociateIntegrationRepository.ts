@@ -17,7 +17,12 @@ export interface IAssociateIntegrationRepository {
   findById(id: number, tx?: AssociateIntegrationTransaction): Promise<AssociateIntegrationRecord | null>;
   findByApplicationId(applicationId: number, tx?: AssociateIntegrationTransaction): Promise<AssociateIntegrationRecord | null>;
   markProcessing(applicationId: number, tx?: AssociateIntegrationTransaction): Promise<AssociateIntegrationRecord | null>;
+  /** Atomically freezes the first ACTIVE payload and claims it for dispatch. */
+  claimPendingWithFinalizedPayload(applicationId: number, requestPayloadSnapshot: AssociateRequestPayloadSnapshot, tx?: AssociateIntegrationTransaction): Promise<AssociateIntegrationRecord | null>;
+  /** Records a pre-dispatch classification failure without creating a POST attempt. */
+  markPendingClassificationFailed(applicationId: number, error: AssociateIntegrationError, tx?: AssociateIntegrationTransaction): Promise<AssociateIntegrationRecord | null>;
   markSynced(applicationId: number, result: { externalAssociateCode: number; externalMessage?: string; receipt?: { type?: string; serie?: string; number?: string; pdfReference?: string } }, tx?: AssociateIntegrationTransaction): Promise<AssociateIntegrationRecord>;
+  markSyncedByReconciliation(applicationId: number, tx?: AssociateIntegrationTransaction): Promise<AssociateIntegrationRecord>;
   markRetryable(applicationId: number, error: AssociateIntegrationError, tx?: AssociateIntegrationTransaction): Promise<AssociateIntegrationRecord>;
   markFailed(applicationId: number, error: AssociateIntegrationError, tx?: AssociateIntegrationTransaction): Promise<AssociateIntegrationRecord>;
   startAttempt(integrationId: number, startedAt: Date): Promise<AssociateIntegrationAttemptRecord>;

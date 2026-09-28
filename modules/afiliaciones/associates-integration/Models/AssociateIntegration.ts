@@ -8,6 +8,31 @@ export type AssociateServiceSnapshot = {
   cortesia: boolean;
 };
 
+/** Exact read-only contract returned by GET /asociados/estado. */
+export type SieAssociateStateQuota = {
+  concepto: "INSCRIPCION" | "CUOTA";
+  numero: number | null;
+  monto: number;
+  moneda: "S/" | "US$";
+  anno: number;
+  tipo: "Activo" | "Estudiante" | "Adherente" | "Vitalicio" | "Honorario" | "Fallecido" | "Renunciante" | "Separado" | "Anulado";
+  estadoContable: "Facturado" | "Pendiente";
+  fechaPago: string;
+  fechaInicio: string;
+  fechaFin: string;
+  docGSer: string;
+  docGNro: string;
+};
+
+export type SieAssociateState =
+  | { status: false; message: string }
+  | { status: true; cuotas: SieAssociateStateQuota[] };
+
+export type SieAssociateStateRequest = {
+  tipoDocumento: "1" | "4" | "7";
+  numDocumento: string;
+};
+
 /** Immutable payload-shaped data. It intentionally excludes credentials and tokens. */
 export type AssociateRequestPayloadSnapshot = {
   TipoDocumento: "1" | "4" | "7";

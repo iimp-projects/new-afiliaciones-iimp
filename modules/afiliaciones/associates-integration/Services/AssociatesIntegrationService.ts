@@ -1,8 +1,10 @@
-import { AssociateIntegrationAttemptResult, type AssociateIntegrationTrigger } from "@prisma/client";
+import { AssociateIntegrationAttemptResult, AssociateIntegrationStatus, AssociateIntegrationTrigger } from "@prisma/client";
 import type {
   AssociateIntegrationRecord,
   AssociateIntegrationAttemptOutcome,
   AssociateRequestPayloadSnapshot,
+  SieAssociateState,
+  SieAssociateStateQuota,
 } from "../Models/AssociateIntegration";
 import { AssociateIntegrationRepository } from "../Repositories/AssociateIntegrationRepository";
 import type {
@@ -25,7 +27,7 @@ export class AssociatesIntegrationService {
   constructor(
     private readonly repository: IAssociateIntegrationRepository = new AssociateIntegrationRepository(),
     private readonly mapper = new AssociatesPayloadMapper(),
-    private client?: Pick<AssociatesApiClient, "createAssociate">,
+    private client?: Pick<AssociatesApiClient, "createAssociate" | "getAssociateState">,
   ) {}
 
   prepare(
@@ -324,8 +326,12 @@ export class AssociatesIntegrationService {
       });
     }
 
-    // La integración ya está reclamada. No debe volver a ejecutar markProcessing().
-    const result = await this.processClaimedIntegration(claimed);
+    // A manual retry first reconciles the exact frozen payload. It may send a
+    // new POST only when SIE proves that operation is absent.
+    const reconciliation = await this.reconcileBeforeRetry(claimed);
+    const result = reconciliation === "ABSENT"
+      ? await this.processClaimedIntegration(claimed)
+      : await this.repository.findByApplicationId(claimed.applicationId);
 
     await this.repository.createRetryAudit({
       userId,
@@ -366,6 +372,15 @@ export class AssociatesIntegrationService {
     const integration = await this.repository.findById(integrationId);
     if (!integration) return null;
 
+    // P0-B applies only to the first ACTIVE dispatch. Student integrations and
+    // established RETRYABLE dispatches deliberately retain their prior flow.
+    if (
+      integration.trigger === AssociateIntegrationTrigger.ACTIVE_PAYMENT &&
+      integration.status === AssociateIntegrationStatus.PENDING
+    ) {
+      return this.processInitialActiveIntegration(integration);
+    }
+
     const claimed = await this.repository.markProcessing(
       integration.applicationId,
     );
@@ -375,6 +390,73 @@ export class AssociatesIntegrationService {
     }
 
     return this.processClaimedIntegration(claimed);
+  }
+
+  private async processInitialActiveIntegration(integration: AssociateIntegrationRecord): Promise<AssociateIntegrationRecord | null> {
+    let finalizedSnapshot: AssociateRequestPayloadSnapshot;
+    try {
+      const state = await this.apiClient().getAssociateState({
+        tipoDocumento: integration.requestPayloadSnapshot.TipoDocumento,
+        numDocumento: integration.requestPayloadSnapshot.NumDocumento,
+      });
+      finalizedSnapshot = this.finalizeActiveSnapshot(integration.requestPayloadSnapshot, state);
+    } catch (error) {
+      const persisted = sanitizePersistedError(toPersistedError(error));
+      // P0-C owns external retry/reconciliation. Until then this must be the
+      // existing reviewable terminal state, never a retry that skips GET state.
+      return this.repository.markPendingClassificationFailed(integration.applicationId, {
+        ...persisted,
+        code: persisted.code ?? "SIE_STATE_CLASSIFICATION_FAILED",
+      });
+    }
+
+    const claimed = await this.repository.claimPendingWithFinalizedPayload(
+      integration.applicationId,
+      finalizedSnapshot,
+    );
+    if (!claimed) return this.repository.findByApplicationId(integration.applicationId);
+    return this.processClaimedIntegration(claimed);
+  }
+
+  private finalizeActiveSnapshot(snapshot: AssociateRequestPayloadSnapshot, state: SieAssociateState): AssociateRequestPayloadSnapshot {
+    if (state.status === false) return snapshot;
+    const renewal = determineRenewalPeriod(state.cuotas, snapshot);
+    return new AssociateIntegrationSnapshotBuilder().renewalFromInitialActiveSnapshot(snapshot, renewal.anno);
+  }
+
+  private apiClient(): Pick<AssociatesApiClient, "createAssociate" | "getAssociateState"> {
+    return (this.client ??= new AssociatesApiClient());
+  }
+
+  private async reconcileBeforeRetry(claimed: AssociateIntegrationRecord): Promise<ReconciliationResult> {
+    try {
+      const state = await this.apiClient().getAssociateState({ tipoDocumento: claimed.requestPayloadSnapshot.TipoDocumento, numDocumento: claimed.requestPayloadSnapshot.NumDocumento });
+      const result = reconcileSnapshot(claimed.requestPayloadSnapshot, state);
+      if (result === "MATCH") {
+        await this.repository.markSyncedByReconciliation(claimed.applicationId);
+      } else if (result === "CONFLICT") {
+        await this.repository.markFailed(claimed.applicationId, { code: "SIE_RECONCILIATION_CONFLICT", message: "El estado remoto es incompatible con el payload enviado." });
+      } else if (result === "AMBIGUOUS") {
+        await this.repository.markRetryable(claimed.applicationId, { code: "SIE_RECONCILIATION_AMBIGUOUS", message: "El estado remoto no permite autorizar un nuevo envio." });
+      }
+      return result;
+    } catch (error) {
+      const persisted = sanitizePersistedError(toPersistedError(error));
+      await this.repository.markRetryable(claimed.applicationId, { ...persisted, code: "SIE_RECONCILIATION_GET_FAILED" });
+      return "AMBIGUOUS";
+    }
+  }
+
+  private async reconcileUncertainPost(claimed: AssociateIntegrationRecord, original: AssociateIntegrationError & { retryable: boolean }): Promise<{ integration: AssociateIntegrationRecord; result: AssociateIntegrationAttemptResult }> {
+    try {
+      const state = await this.apiClient().getAssociateState({ tipoDocumento: claimed.requestPayloadSnapshot.TipoDocumento, numDocumento: claimed.requestPayloadSnapshot.NumDocumento });
+      const result = reconcileSnapshot(claimed.requestPayloadSnapshot, state);
+      if (result === "MATCH") return { integration: await this.repository.markSyncedByReconciliation(claimed.applicationId), result: AssociateIntegrationAttemptResult.SYNCED };
+      if (result === "CONFLICT") return { integration: await this.repository.markFailed(claimed.applicationId, { code: "SIE_RECONCILIATION_CONFLICT", message: "El estado remoto es incompatible con el payload enviado." }), result: AssociateIntegrationAttemptResult.FAILED };
+      return { integration: await this.repository.markRetryable(claimed.applicationId, { code: result === "ABSENT" ? "SIE_RECONCILIATION_ABSENT" : "SIE_RECONCILIATION_AMBIGUOUS", message: "No se autorizo un segundo POST automatico tras un resultado incierto de SIE." }), result: AssociateIntegrationAttemptResult.RETRYABLE };
+    } catch {
+      return { integration: await this.repository.markRetryable(claimed.applicationId, { ...original, code: "SIE_RECONCILIATION_GET_FAILED" }), result: AssociateIntegrationAttemptResult.RETRYABLE };
+    }
   }
 
   /**
@@ -415,7 +497,7 @@ export class AssociatesIntegrationService {
       attemptNumber: attempt.attemptNumber,
     });
     try {
-      const result = await (this.client ??= new AssociatesApiClient()).createAssociate(payload);
+      const result = await this.apiClient().createAssociate(payload);
       outcome = {
         result: AssociateIntegrationAttemptResult.SYNCED,
         httpStatus: result.httpStatus,
@@ -426,18 +508,25 @@ export class AssociatesIntegrationService {
       integration = await this.repository.markSynced(claimed.applicationId, result);
     } catch (error) {
       const mapped = sanitizePersistedError(toPersistedError(error));
-      outcome = {
-        result: mapped.retryable ? AssociateIntegrationAttemptResult.RETRYABLE : AssociateIntegrationAttemptResult.FAILED,
-        httpStatus: mapped.httpStatus,
-        errorCode: sanitizeText(mapped.code, 100),
-        message: sanitizeText(mapped.message),
-        errorIdentifier: sanitizeText(mapped.identifier, 255),
-        errorDetails: sanitizeDetails(mapped.details),
-        durationMs: Date.now() - startedAt.getTime(),
-      };
-      integration = mapped.retryable
-        ? await this.repository.markRetryable(claimed.applicationId, mapped)
-        : await this.repository.markFailed(claimed.applicationId, mapped);
+      const uncertain = isUncertainPostOutcome(error);
+      if (uncertain) {
+        const reconciled = await this.reconcileUncertainPost(claimed, mapped);
+        integration = reconciled.integration;
+        outcome = { result: reconciled.result, httpStatus: mapped.httpStatus, errorCode: sanitizeText(mapped.code, 100), message: sanitizeText(mapped.message), errorIdentifier: sanitizeText(mapped.identifier, 255), errorDetails: sanitizeDetails(mapped.details), durationMs: Date.now() - startedAt.getTime() };
+      } else {
+        outcome = {
+          result: mapped.retryable ? AssociateIntegrationAttemptResult.RETRYABLE : AssociateIntegrationAttemptResult.FAILED,
+          httpStatus: mapped.httpStatus,
+          errorCode: sanitizeText(mapped.code, 100),
+          message: sanitizeText(mapped.message),
+          errorIdentifier: sanitizeText(mapped.identifier, 255),
+          errorDetails: sanitizeDetails(mapped.details),
+          durationMs: Date.now() - startedAt.getTime(),
+        };
+        integration = mapped.retryable
+          ? await this.repository.markRetryable(claimed.applicationId, mapped)
+          : await this.repository.markFailed(claimed.applicationId, mapped);
+      }
     }
 
     try {
@@ -512,9 +601,114 @@ function sanitizePersistedError(error: AssociateIntegrationError & { retryable: 
   };
 }
 
+class SieStateClassificationError extends Error {
+  constructor(readonly code: string, message: string) { super(message); this.name = "SieStateClassificationError"; }
+}
+
+type ReconciliationResult = "MATCH" | "ABSENT" | "AMBIGUOUS" | "CONFLICT";
+
+function isUncertainPostOutcome(error: unknown): boolean {
+  if (!(error instanceof AssociatesApiError) || error.operation !== "CREATE_ASSOCIATE") return false;
+  return error.kind === "TIMEOUT" || error.kind === "TRANSPORT_ERROR" || error.kind === "HTTP_409" || error.kind === "HTTP_5XX" || error.kind === "INVALID_RESPONSE";
+}
+
+/** Compares SIE only with the frozen payload, never current application data. */
+function reconcileSnapshot(snapshot: AssociateRequestPayloadSnapshot, state: SieAssociateState): ReconciliationResult {
+  if (state.status === false) return "ABSENT";
+  const expected = snapshot.servicios;
+  if (!expected.length || expected.some((service) => service.moneda !== "S/" || !Number.isSafeInteger(service.anno) || moneyMinor(service.monto) === null)) return "AMBIGUOUS";
+
+  const exact = expected.every((service) => state.cuotas.some((remote) => sameService(service, remote)));
+  if (exact) return "MATCH";
+
+  for (const service of expected) {
+    const samePeriod = state.cuotas.filter((remote) => remote.concepto === service.concepto && remote.anno === service.anno);
+    if (samePeriod.some((remote) => remote.estadoContable !== "Facturado" || !remote.fechaInicio || !remote.fechaFin)) return "AMBIGUOUS";
+    if (samePeriod.length) return "CONFLICT";
+    // An inscription is unique for a person. A different one means the remote
+    // identity/history contradicts this enrollment, not an absent operation.
+    if (service.concepto === "INSCRIPCION" && state.cuotas.some((remote) => remote.concepto === "INSCRIPCION")) return "CONFLICT";
+  }
+  return "ABSENT";
+}
+
+function sameService(expected: AssociateRequestPayloadSnapshot["servicios"][number], remote: SieAssociateStateQuota): boolean {
+  return remote.estadoContable === "Facturado" && expected.concepto === remote.concepto && expected.anno === remote.anno && expected.moneda === remote.moneda && moneyMinor(expected.monto) === moneyMinor(remote.monto);
+}
+
+function moneyMinor(value: number): number | null {
+  if (!Number.isFinite(value) || value < 0) return null;
+  const minor = Math.round(value * 100);
+  return Number.isSafeInteger(minor) && Math.abs(value * 100 - minor) < 1e-7 ? minor : null;
+}
+
+function determineRenewalPeriod(cuotas: SieAssociateStateQuota[], snapshot: AssociateRequestPayloadSnapshot): { anno: number } {
+  const localQuota = snapshot.servicios.filter((service) => service.concepto === "CUOTA");
+  if (localQuota.length !== 1 || localQuota[0].moneda !== "S/") {
+    throw new SieStateClassificationError("INVALID_LOCAL_RENEWAL_QUOTA", "La cuota local no permite clasificar una renovacion segura.");
+  }
+
+  const historical = cuotas.filter((quota) => quota.concepto === "CUOTA");
+  if (!historical.length) {
+    throw new SieStateClassificationError("SIE_RENEWAL_HISTORY_MISSING", "SIE identifica al asociado, pero no entrega una cuota utilizable para determinar su renovacion.");
+  }
+  if (historical.some((quota) => quota.estadoContable !== "Facturado" || !quota.fechaInicio || !quota.fechaFin)) {
+    throw new SieStateClassificationError("SIE_RENEWAL_HISTORY_AMBIGUOUS", "SIE contiene cuotas pendientes o sin periodo final utilizable.");
+  }
+  if (historical.some((quota) => quota.moneda !== localQuota[0].moneda)) {
+    throw new SieStateClassificationError("SIE_RENEWAL_CURRENCY_MISMATCH", "La moneda historica de SIE no coincide con la cuota local esperada.");
+  }
+
+  const periodKeys = new Set<string>();
+  const years = new Set<number>();
+  const numbers = new Set<number>();
+  for (const quota of historical) {
+    if (quota.fechaInicio > quota.fechaFin) {
+      throw new SieStateClassificationError("SIE_RENEWAL_HISTORY_AMBIGUOUS", "SIE contiene un periodo de cuota inconsistente.");
+    }
+    const periodKey = `${quota.fechaInicio}|${quota.fechaFin}`;
+    if (periodKeys.has(periodKey) || years.has(quota.anno) || numbers.has(quota.numero!)) {
+      throw new SieStateClassificationError("SIE_RENEWAL_HISTORY_AMBIGUOUS", "SIE contiene cuotas duplicadas o periodos incompatibles.");
+    }
+    periodKeys.add(periodKey);
+    years.add(quota.anno);
+    numbers.add(quota.numero!);
+  }
+
+  const latest = [...historical].sort((left, right) => right.fechaFin.localeCompare(left.fechaFin));
+  if (latest.length > 1 && latest[0].fechaFin === latest[1].fechaFin) {
+    throw new SieStateClassificationError("SIE_RENEWAL_HISTORY_AMBIGUOUS", "SIE no permite identificar un unico periodo final de cuota.");
+  }
+  const nextStartDate = nextCalendarDate(latest[0].fechaFin);
+  const anno = Number(nextStartDate.slice(0, 4));
+  // A matching contractual start date is enough to prohibit another automatic
+  // charge. We intentionally do not compare historical amounts: tariffs can
+  // legitimately change and the contract does not make that comparison safe.
+  if (historical.some((quota) => quota.fechaInicio === nextStartDate)) {
+    throw new SieStateClassificationError("SIE_RENEWAL_PERIOD_ALREADY_EXISTS", "SIE ya contiene una cuota para el periodo objetivo.");
+  }
+  return { anno };
+}
+
+function nextCalendarDate(value: string): string {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    throw new SieStateClassificationError("SIE_RENEWAL_HISTORY_AMBIGUOUS", "SIE no entrego una fecha final valida.");
+  }
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) {
+    throw new SieStateClassificationError("SIE_RENEWAL_HISTORY_AMBIGUOUS", "SIE no entrego una fecha final valida.");
+  }
+  date.setUTCDate(date.getUTCDate() + 1);
+  return date.toISOString().slice(0, 10);
+}
+
 function toPersistedError(
   error: unknown,
 ): AssociateIntegrationError & { retryable: boolean } {
+  if (error instanceof SieStateClassificationError) {
+    return { code: error.code, message: error.message, retryable: false };
+  }
   if (error instanceof AssociatesApiError) {
     return {
       httpStatus: error.httpStatus,

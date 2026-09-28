@@ -1,5 +1,5 @@
 import { getAssociatesApiConfig, type AssociatesApiConfig } from "../Config/AssociatesApiConfig";
-import type { AssociateRequestPayloadSnapshot } from "../Models/AssociateIntegration";
+import type { AssociateRequestPayloadSnapshot, SieAssociateState, SieAssociateStateQuota, SieAssociateStateRequest } from "../Models/AssociateIntegration";
 import { AssociatesApiError } from "./AssociatesApiError";
 
 type FetchLike = typeof fetch;
@@ -24,13 +24,39 @@ export class AssociatesApiClient {
     }
   }
 
+  /**
+   * Read-only SIE query. P0-A intentionally does not connect this operation to
+   * outbox processing, payments, application statuses, or timeline data.
+   */
+  async getAssociateState(input: SieAssociateStateRequest): Promise<SieAssociateState> {
+    assertStateRequest(input);
+    try { return await this.getAssociateStateOnce(input); }
+    catch (error) {
+      if (!(error instanceof AssociatesApiError) || error.httpStatus !== 401) throw error;
+      this.tokenCache = null;
+      try { return await this.getAssociateStateOnce(input); }
+      catch (retryError) {
+        if (retryError instanceof AssociatesApiError && retryError.httpStatus === 401) throw new AssociatesApiError(retryError.message, { ...retryError.options, retryable: false });
+        throw retryError;
+      }
+    }
+  }
+
   private async postAssociate(payload: AssociateRequestPayloadSnapshot): Promise<AssociatesCreateResult> {
     const token = await this.token();
     const response = await this.request("/asociados", { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${token}` }, body: JSON.stringify(payload) }, "CREATE_ASSOCIATE");
     if (!response.ok) throw await this.toError(response, "CREATE_ASSOCIATE");
     const body = await this.json(response, "CREATE_ASSOCIATE");
-    if (body?.estado !== true || !Number.isInteger(body.codigo)) throw new AssociatesApiError("La API de asociados devolvió una respuesta de éxito inválida.", { retryable: false, operation: "CREATE_ASSOCIATE" });
+    if (body?.estado !== true || !Number.isInteger(body.codigo)) throw new AssociatesApiError("La API de asociados devolvió una respuesta de éxito inválida.", { retryable: false, operation: "CREATE_ASSOCIATE", kind: "INVALID_RESPONSE" });
     return { externalAssociateCode: body.codigo, externalMessage: typeof body.msg === "string" ? body.msg : "Success", httpStatus: response.status, receipt: body.contable ? { type: stringOrUndefined(body.contable.tipoDocumento), serie: stringOrUndefined(body.contable.serie), number: stringOrUndefined(body.contable.numero), pdfReference: stringOrUndefined(body.contable.pdfUrl) } : undefined };
+  }
+
+  private async getAssociateStateOnce(input: SieAssociateStateRequest): Promise<SieAssociateState> {
+    const token = await this.token();
+    const query = new URLSearchParams({ tipo_documento: input.tipoDocumento, num_documento: input.numDocumento });
+    const response = await this.request(`/asociados/estado?${query.toString()}`, { method: "GET", headers: { authorization: `Bearer ${token}` } }, "GET_ASSOCIATE_STATE");
+    if (!response.ok) throw await this.toError(response, "GET_ASSOCIATE_STATE");
+    return parseAssociateState(await this.json(response, "GET_ASSOCIATE_STATE"));
   }
 
   private async token(): Promise<string> {
@@ -44,24 +70,89 @@ export class AssociatesApiClient {
     return body.token;
   }
 
-  private async request(path: string, init: RequestInit, operation: "LOGIN" | "CREATE_ASSOCIATE"): Promise<Response> {
+  private async request(path: string, init: RequestInit, operation: "LOGIN" | "CREATE_ASSOCIATE" | "GET_ASSOCIATE_STATE"): Promise<Response> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), this.config.timeoutMs);
     try { return await this.fetcher(`${this.config.baseUrl}${path}`, { ...init, signal: controller.signal }); }
-    catch (cause) { throw new AssociatesApiError(cause instanceof Error && cause.name === "AbortError" ? "Tiempo de espera agotado al comunicarse con la API de asociados." : "No se pudo comunicar con la API de asociados.", { retryable: true, operation, cause }); }
+    catch (cause) { const timeout = cause instanceof Error && cause.name === "AbortError"; throw new AssociatesApiError(timeout ? "Tiempo de espera agotado al comunicarse con la API de asociados." : "No se pudo comunicar con la API de asociados.", { retryable: true, operation, kind: timeout ? "TIMEOUT" : "TRANSPORT_ERROR", cause }); }
     finally { clearTimeout(timeout); }
   }
 
-  private async toError(response: Response, operation: "LOGIN" | "CREATE_ASSOCIATE"): Promise<AssociatesApiError> {
+  private async toError(response: Response, operation: "LOGIN" | "CREATE_ASSOCIATE" | "GET_ASSOCIATE_STATE"): Promise<AssociatesApiError> {
     const body = await this.json(response, operation, true) as ErrorBody | null;
     const retryable = operation === "LOGIN" ? response.status === 429 : response.status >= 500;
-    return new AssociatesApiError(body?.mensaje || `La API de asociados respondió HTTP ${response.status}.`, { httpStatus: response.status, code: body?.codigo, identifier: body?.identificador, details: Array.isArray(body?.detalles) ? body.detalles.filter((item): item is string => typeof item === "string") : undefined, retryable, operation });
+    return new AssociatesApiError(body?.mensaje || `La API de asociados respondió HTTP ${response.status}.`, { httpStatus: response.status, code: body?.codigo, identifier: body?.identificador, details: Array.isArray(body?.detalles) ? body.detalles.filter((item): item is string => typeof item === "string") : undefined, retryable, operation, kind: httpErrorKind(response.status) });
   }
 
-  private async json(response: Response, operation: "LOGIN" | "CREATE_ASSOCIATE", allowEmpty = false): Promise<any> {
+  private async json(response: Response, operation: "LOGIN" | "CREATE_ASSOCIATE" | "GET_ASSOCIATE_STATE", allowEmpty = false): Promise<any> {
     try { return await response.json(); }
     catch { if (allowEmpty) return null; throw new AssociatesApiError("La API de asociados devolvió JSON inválido.", { retryable: false, operation }); }
   }
 }
 
 function stringOrUndefined(value: unknown) { return typeof value === "string" && value.trim() ? value : undefined; }
+
+function assertStateRequest(input: SieAssociateStateRequest): void {
+  if (!input || !(input.tipoDocumento === "1" || input.tipoDocumento === "4" || input.tipoDocumento === "7") || typeof input.numDocumento !== "string" || !input.numDocumento.trim()) {
+    throw new AssociatesApiError("La consulta de estado requiere un tipo y número de documento válidos.", { retryable: false, operation: "GET_ASSOCIATE_STATE" });
+  }
+}
+
+function parseAssociateState(value: unknown): SieAssociateState {
+  if (!isRecord(value) || typeof value.status !== "boolean") throw invalidStateResponse("La API de asociados devolvió un estado inválido.");
+  if (value.status === false) {
+    if (typeof value.message !== "string") throw invalidStateResponse("La API de asociados devolvió un mensaje de estado inválido.");
+    return { status: false, message: value.message };
+  }
+  if (!Array.isArray(value.cuotas)) throw invalidStateResponse("La API de asociados devolvió cuotas inválidas.");
+  return { status: true, cuotas: value.cuotas.map(parseStateQuota) };
+}
+
+function parseStateQuota(value: unknown): SieAssociateStateQuota {
+  if (!isRecord(value)) throw invalidStateResponse("La API de asociados devolvió una cuota inválida.");
+  const concepto = oneOf(value.concepto, ["INSCRIPCION", "CUOTA"] as const);
+  const numero = value.numero === null ? null : finiteInteger(value.numero);
+  if ((concepto === "INSCRIPCION" && numero !== null) || (concepto === "CUOTA" && numero === null)) throw invalidStateResponse("La API de asociados devolvió un número de cuota inválido.");
+  const monto = finiteNumber(value.monto);
+  if (monto < 0) throw invalidStateResponse("La API de asociados devolvió un monto inválido.");
+  const anno = finiteInteger(value.anno);
+  const estadoContable = oneOf(value.estadoContable, ["Facturado", "Pendiente"] as const);
+  const fechaPago = dateField(value.fechaPago, estadoContable);
+  const fechaInicio = dateField(value.fechaInicio, estadoContable);
+  const fechaFin = dateField(value.fechaFin, estadoContable);
+  return {
+    concepto,
+    numero,
+    monto,
+    moneda: oneOf(value.moneda, ["S/", "US$"] as const),
+    anno,
+    tipo: oneOf(value.tipo, ["Activo", "Estudiante", "Adherente", "Vitalicio", "Honorario", "Fallecido", "Renunciante", "Separado", "Anulado"] as const),
+    estadoContable,
+    fechaPago,
+    fechaInicio,
+    fechaFin,
+    docGSer: stringField(value.docGSer),
+    docGNro: stringField(value.docGNro),
+  };
+}
+
+function dateField(value: unknown, estadoContable: "Facturado" | "Pendiente"): string {
+  if (typeof value !== "string") throw invalidStateResponse("La API de asociados devolvió una fecha inválida.");
+  if (!value) {
+    if (estadoContable === "Pendiente") return value;
+    throw invalidStateResponse("La API de asociados devolvió una fecha facturada vacía.");
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) throw invalidStateResponse("La API de asociados devolvió una fecha inválida.");
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) throw invalidStateResponse("La API de asociados devolvió una fecha inválida.");
+  return value;
+}
+
+function stringField(value: unknown): string { if (typeof value !== "string") throw invalidStateResponse("La API de asociados devolvió un texto inválido."); return value; }
+function finiteNumber(value: unknown): number { if (typeof value !== "number" || !Number.isFinite(value)) throw invalidStateResponse("La API de asociados devolvió un número inválido."); return value; }
+function finiteInteger(value: unknown): number { if (typeof value !== "number" || !Number.isSafeInteger(value)) throw invalidStateResponse("La API de asociados devolvió un entero inválido."); return value; }
+function oneOf<T extends string>(value: unknown, allowed: readonly T[]): T { if (typeof value !== "string" || !allowed.includes(value as T)) throw invalidStateResponse("La API de asociados devolvió un valor no soportado."); return value as T; }
+function isRecord(value: unknown): value is Record<string, unknown> { return typeof value === "object" && value !== null && !Array.isArray(value); }
+function invalidStateResponse(message: string): AssociatesApiError { return new AssociatesApiError(message, { retryable: false, operation: "GET_ASSOCIATE_STATE", kind: "INVALID_RESPONSE" }); }
+function httpErrorKind(status: number): import("./AssociatesApiError").AssociatesApiErrorKind { if (status === 400) return "HTTP_400"; if (status === 401) return "HTTP_401"; if (status === 403) return "HTTP_403"; if (status === 409) return "HTTP_409"; return "HTTP_5XX"; }

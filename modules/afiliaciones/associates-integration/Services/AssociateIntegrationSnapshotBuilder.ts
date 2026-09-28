@@ -58,6 +58,22 @@ export class AssociateIntegrationSnapshotBuilder {
     };
   }
 
+  /**
+   * The single permitted P0-B mutation of an active initial snapshot. Amounts,
+   * currency and billing remain persisted local values; SIE determines anno.
+   */
+  renewalFromInitialActiveSnapshot(snapshot: AssociateRequestPayloadSnapshot, anno: number): AssociateRequestPayloadSnapshot {
+    if (snapshot.Tipo !== "A" || !Number.isSafeInteger(anno) || anno < 2000 || anno > 9999) {
+      throw new AssociateSnapshotBuildError("INVALID_RENEWAL_SNAPSHOT", "No se pudo construir un snapshot de renovacion valido.");
+    }
+    const cuota = snapshot.servicios.filter((service) => service.concepto === "CUOTA");
+    const inscription = snapshot.servicios.filter((service) => service.concepto === "INSCRIPCION");
+    if (cuota.length !== 1 || inscription.length !== 1) {
+      throw new AssociateSnapshotBuildError("INVALID_RENEWAL_SNAPSHOT", "El snapshot activo inicial no contiene INSCRIPCION y CUOTA validas.");
+    }
+    return { ...snapshot, servicios: [{ ...cuota[0], anno }] };
+  }
+
   private identity(source: AssociateSnapshotSource, useBilling: boolean): Identity {
     const person = source.person;
     const billing = source.billing;

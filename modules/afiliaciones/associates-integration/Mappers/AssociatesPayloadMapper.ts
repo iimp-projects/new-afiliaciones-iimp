@@ -19,7 +19,10 @@ function affiliateType(value: unknown): "A" | "E" { const map: Record<string, "A
 function sex(value: unknown): "M" | "F" | undefined { return value === "MALE" || value === "M" ? "M" : value === "FEMALE" || value === "F" ? "F" : undefined; }
 function service(value: AssociateRequestPayloadSnapshot["servicios"][number]) { if (!(value.concepto === "INSCRIPCION" || value.concepto === "CUOTA") || !Number.isInteger(value.anno) || value.anno < 2000 || value.anno > 9999 || value.moneda !== "S/" || !Number.isFinite(value.monto) || value.monto < 0 || (value.monto === 0 && !value.cortesia)) throw new AssociatesPayloadValidationError("El snapshot contiene un servicio inválido."); return value; }
 function validateServices(payload: AssociateRequestPayloadSnapshot) {
-  if (payload.servicios.length !== 2 || new Set(payload.servicios.map((item) => item.concepto)).size !== 2) throw new AssociatesPayloadValidationError("V1 requiere exactamente INSCRIPCION y CUOTA.");
+  const concepts = new Set(payload.servicios.map((item) => item.concepto));
+  const activeRenewal = payload.Tipo === "A" && payload.servicios.length === 1 && concepts.has("CUOTA");
+  const standardEnrollment = payload.servicios.length === 2 && concepts.size === 2 && concepts.has("INSCRIPCION") && concepts.has("CUOTA");
+  if (!activeRenewal && !standardEnrollment) throw new AssociatesPayloadValidationError("V1 requiere services valid for enrollment or active renewal.");
   if (payload.Tipo === "E" && payload.servicios.some((item) => item.monto !== 0 || !item.cortesia)) throw new AssociatesPayloadValidationError("Estudiante V1 requiere servicios de cortesía con monto cero.");
 }
 function validateBilling(payload: AssociateRequestPayloadSnapshot) {
