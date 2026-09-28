@@ -228,8 +228,8 @@ export class ExpedienteMapper {
       case ApplicationStatus.READY_FOR_PAYMENT:
         badgeLabel = "Apto para Pago";
         badgeIcon = "check";
-        badgeColor = "bg-emerald-50 text-emerald-600";
-        topBorderColorClass = "bg-emerald-400";
+        badgeColor = "bg-[#fdfaf5] text-[#7f561e]";
+        topBorderColorClass = "bg-[#C5A059]";
         subStatus = "Postulación aprobada, aguardando pago";
         break;
       case ApplicationStatus.COMPLETED:
