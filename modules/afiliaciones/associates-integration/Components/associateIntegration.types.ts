@@ -39,6 +39,8 @@ export type AssociateIntegrationAttempt = {
 };
 
 export type AssociateIntegrationDetail = AssociateIntegrationRow & {
+  /** Server-computed preliminary hint only; the recovery endpoint remains authoritative. */
+  recoveryCandidate: boolean;
   createdAt?: string | null;
   syncedAt?: string | null;
   updatedAt?: string | null;

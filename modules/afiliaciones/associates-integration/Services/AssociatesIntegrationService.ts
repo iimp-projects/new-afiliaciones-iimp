@@ -251,6 +251,7 @@ export class AssociatesIntegrationService {
     const documentNumber = person?.documentNumber ?? snapshot.NumDocumento;
     const documentType = person?.documentType ?? null;
     const attemptHistory = item.attemptHistory ?? [];
+    const recoveryCandidate = this.isPreDispatchRecoveryCandidate(item, attemptHistory.length);
     return {
       integrationId: item.id,
       applicationId: item.applicationId,
@@ -259,6 +260,7 @@ export class AssociatesIntegrationService {
       affiliateType: item.application.affiliateType,
       trigger: item.trigger,
       status: item.status,
+      recoveryCandidate,
       attempts: item.attempts,
       lastAttemptAt: item.lastAttemptAt,
       syncedAt: item.syncedAt,
@@ -372,7 +374,19 @@ export class AssociatesIntegrationService {
     catch { throw recoveryError("No se pudo reconciliar el estado remoto; la recuperación fue bloqueada.", 409); }
     const recovered = await resolver.call(this.repository, { integrationId: integration.id, userId, originalErrorCode: integration.lastErrorCode, legacy, reconciliation });
     if (!recovered) throw recoveryError("La integración cambió durante la recuperación.", 409);
-    return recovered;
+    return { ...recovered, previousStatus: "FAILED" as const, reconciliation };
+  }
+
+  /** A local-only administrative hint. The recovery endpoint always validates again. */
+  private isPreDispatchRecoveryCandidate(integration: AssociateIntegrationRecord, attemptHistoryCount: number) {
+    const legacy = isLegacyConfigurationFailure(integration);
+    if (!isPreDispatchFailure(integration, attemptHistoryCount) || !(integration.lastErrorCode === "ASSOCIATES_API_CONFIGURATION_MISSING" || legacy)) return false;
+    try {
+      const payload = this.mapper.map(integration.requestPayloadSnapshot);
+      return !legacy || (payload.Tipo === "A" && hasEnrollmentServices(payload));
+    } catch {
+      return false;
+    }
   }
 
   private toAdminListItem(item: any) {

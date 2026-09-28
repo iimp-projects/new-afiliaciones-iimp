@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildAssociateIntegrationsQuery, canRetry } from "../Views/AssociateIntegrationsView";
+import { buildAssociateIntegrationsQuery, canRecover, canRetry } from "../Views/AssociateIntegrationsView";
 import { getSieTransmissionState } from "../Components/AssociateIntegrationDrawer";
 
 describe("AssociateIntegrationsView", () => {
@@ -10,6 +10,11 @@ describe("AssociateIntegrationsView", () => {
     it("allows retry only for RETRYABLE", () => {
         expect(canRetry("RETRYABLE")).toBe(true);
         ["PENDING", "PROCESSING", "SYNCED", "FAILED"].forEach((status) => expect(canRetry(status)).toBe(false));
+    });
+
+    it("uses only the server-provided recovery candidate hint", () => {
+        expect(canRecover(true)).toBe(true);
+        expect(canRecover(false)).toBe(false);
     });
 
     it("distinguishes pending, local failure, transport failure and successful transport", () => {

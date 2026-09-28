@@ -11,7 +11,7 @@ export async function POST(_: Request, { params }: { params: Promise<{ id: strin
     const id = Number((await params).id);
     if (!Number.isInteger(id) || id < 1) return NextResponse.json({ success: false, message: "No encontrado." }, { status: 404 });
     const data = await new AssociatesIntegrationService().recoverPreDispatchFailure(id, user.id);
-    return NextResponse.json({ success: true, data: { id: data.id, status: data.status } });
+    return NextResponse.json({ success: true, data: { id: data.id, previousStatus: data.previousStatus, status: data.status, reconciliation: data.reconciliation } });
   } catch (error) {
     const status = error instanceof Error && "status" in error ? Number((error as { status: number }).status) : 500;
     return NextResponse.json({ success: false, message: error instanceof Error ? error.message : "Error administrativo." }, { status });
