@@ -17,14 +17,15 @@ interface Props { data: ApplicationStatusData; onCancel: () => void; initialBill
 const initialBilling: BillingDataInput = { tipoDocumento: "DNI", numeroDocumento: "", razonSocial: "", direccionFiscal: "", responsable: "", emailFacturacion: "" };
 
 export const StatusPaymentReady: React.FC<Props> = ({ data, onCancel, initialBillingData, restoredPayment, failureMessage, failureCode }) => {
+  const hasRestoredFailedPayment = restoredPayment?.status === "FAILED";
   const [currentStep, setCurrentStep] = useState(restoredPayment ? 3 : 1);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [billingData, setBillingData] = useState<BillingDataInput>(initialBillingData ?? initialBilling);
   const [confirmed, setConfirmed] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<CreatePaymentResponse | null>(restoredPayment ? { success: true, paymentId: restoredPayment.id, status: restoredPayment.status, amount: restoredPayment.amount, registrationAmount: restoredPayment.registrationAmount, membershipFeeAmount: restoredPayment.membershipFeeAmount, currency: restoredPayment.currency, message: restoredPayment.status === "FAILED" ? "Pago no aprobado." : restoredPayment.status === "PAID" ? "Pago realizado correctamente." : "Estamos verificando tu pago." } : null);
+  const [result, setResult] = useState<CreatePaymentResponse | null>(restoredPayment && !hasRestoredFailedPayment ? { success: true, paymentId: restoredPayment.id, status: restoredPayment.status, amount: restoredPayment.amount, registrationAmount: restoredPayment.registrationAmount, membershipFeeAmount: restoredPayment.membershipFeeAmount, currency: restoredPayment.currency, message: restoredPayment.status === "PAID" ? "Pago realizado correctamente." : "Estamos verificando tu pago." } : null);
   const [error, setError] = useState<string | null>(null);
-  const [paymentUiState, setPaymentUiState] = useState<PaymentUiState>(restoredPayment?.status === "FAILED" ? "PAYMENT_FAILED" : restoredPayment?.status === "PAID" ? "PAYMENT_SUCCESS" : restoredPayment?.status === "PENDING" ? "PAYMENT_UNCERTAIN" : "IDLE");
+  const [paymentUiState, setPaymentUiState] = useState<PaymentUiState>(restoredPayment?.status === "PAID" ? "PAYMENT_SUCCESS" : restoredPayment?.status === "PENDING" ? "PAYMENT_UNCERTAIN" : "IDLE");
   const checkoutRequestInFlightRef = useRef(false);
   const billingValid = billingDataSchema.safeParse(billingData).success;
 
@@ -68,7 +69,7 @@ export const StatusPaymentReady: React.FC<Props> = ({ data, onCancel, initialBil
   const titles = ["Datos personales", "Información de facturación", "Proceso de pago"];
 
   return <div className="w-full min-h-screen bg-[#F7F8FA] pb-24"><div className="bg-center bg-cover bg-no-repeat text-white" style={{ backgroundImage: "linear-gradient(rgba(42, 23, 0, 0.68), rgba(42, 23, 0, 0.76)), url('/images/minero.jpg')" }}><nav className="w-full px-6 py-6 flex justify-between max-w-5xl mx-auto"><img src="/images/logo-iimp.png" alt="IIMP Logo" className="h-12 w-auto brightness-0 invert" /><button onClick={onCancel} className="px-5 py-2.5 rounded-xl bg-white/10 font-bold flex gap-2"><ArrowLeft size={18} />Volver</button></nav><div className="max-w-5xl mx-auto px-6 pb-10"><div className="mt-10 mb-14"><PaymentStepper currentStep={currentStep} completedSteps={completedSteps} onStepChange={setCurrentStep} /></div><h1 className="text-4xl font-extrabold">{titles[currentStep - 1]}</h1></div></div>
-    <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8">{currentStep === 1 && <PersonalDetailsStep data={data} />}{currentStep === 2 && <BillingDetailsStep data={data} billingData={billingData} setBillingData={setBillingData} />}{currentStep === 3 && <PaymentProcessStep billingData={billingData} confirmed={confirmed} onConfirmedChange={setConfirmed} result={result} loading={loading} error={error} onRetry={() => { setError(null); setResult(null); setPaymentUiState("IDLE"); }} paymentUiState={paymentUiState} onCheckoutStateChange={setPaymentUiState} failureMessage={failureMessage} failureCode={failureCode} restoredPayment={restoredPayment} affiliateType={data.affiliateType} onFinish={onCancel} />}</main>
+    <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8">{currentStep === 1 && <PersonalDetailsStep data={data} />}{currentStep === 2 && <BillingDetailsStep data={data} billingData={billingData} setBillingData={setBillingData} />}{currentStep === 3 && <PaymentProcessStep billingData={billingData} confirmed={confirmed} onConfirmedChange={setConfirmed} result={result} loading={loading} error={error} onRetry={() => { setError(null); setResult(null); setPaymentUiState("IDLE"); }} paymentUiState={paymentUiState} onCheckoutStateChange={setPaymentUiState} failureMessage={failureMessage} failureCode={failureCode} showRestoredFailure={hasRestoredFailedPayment} restoredPayment={restoredPayment} affiliateType={data.affiliateType} onFinish={onCancel} />}</main>
     <PaymentFooter currentStep={currentStep} onCancel={onCancel} onPrevious={previous} onNext={next} isNextDisabled={currentStep === 2 && !billingValid} loading={loading || paymentUiState === "PREPARING_CHECKOUT" || paymentUiState === "PROCESSING_PAYMENT"} />
   </div>;
 };
