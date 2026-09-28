@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { AssociatesApiClient } from "../Clients/AssociatesApiClient";
 import { AssociatesApiError } from "../Clients/AssociatesApiError";
+import { AssociatesApiConfigurationError } from "../Config/AssociatesApiConfig";
 import type { AssociateRequestPayloadSnapshot } from "../Models/AssociateIntegration";
 
 const config = { baseUrl: "https://associates.example", user: "technical", password: "secret", timeoutMs: 1_000 };
@@ -10,6 +11,17 @@ const stateQuota = (overrides: Record<string, unknown> = {}) => ({ concepto: "CU
 const associateState = (overrides: Record<string, unknown> = {}) => ({ status: true, cuotas: [stateQuota()], ...overrides });
 
 describe("AssociatesApiClient", () => {
+  it("fails closed only when a real client is constructed without private configuration", () => {
+    vi.stubEnv("ASSOCIATES_API_BASE_URL", "");
+    vi.stubEnv("ASSOCIATES_API_USER", "");
+    vi.stubEnv("ASSOCIATES_API_PASSWORD", "");
+    try {
+      expect(() => new AssociatesApiClient()).toThrow(AssociatesApiConfigurationError);
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
   it("loguea, reutiliza token y mapea éxito", async () => {
     const fetcher = vi.fn().mockResolvedValueOnce(response({ token: "token-1", expiraEnSegundos: 1800 })).mockResolvedValueOnce(response({ estado: true, codigo: 12563, msg: "Success", contable: { tipoDocumento: "03", serie: "B009", numero: "3298", pdfUrl: "B009.pdf" } })).mockResolvedValueOnce(response({ estado: true, codigo: 12564, msg: "Success" }));
     const client = new AssociatesApiClient(config, fetcher as typeof fetch);

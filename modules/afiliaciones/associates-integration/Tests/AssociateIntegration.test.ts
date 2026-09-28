@@ -4,6 +4,7 @@ import type { AssociateIntegrationRecord, AssociateRequestPayloadSnapshot } from
 import { AssociateIntegrationSnapshotBuilder } from "../Services/AssociateIntegrationSnapshotBuilder";
 import { AssociatesIntegrationService } from "../Services/AssociatesIntegrationService";
 import { AssociatesApiError } from "../Clients/AssociatesApiError";
+import { AssociatesApiConfigurationError } from "../Config/AssociatesApiConfig";
 import type { AssociateIntegrationError, IAssociateIntegrationRepository } from "../Repositories/Interfaces/IAssociateIntegrationRepository";
 
 const identity: Omit<AssociateRequestPayloadSnapshot, "Tipo" | "servicios"> = {
@@ -154,6 +155,40 @@ describe("Associate integration Phase A", () => {
     const created = await service.prepare({ applicationId: 33, trigger: AssociateIntegrationTrigger.ACTIVE_PAYMENT, requestPayloadSnapshot: builder.active(identity, effectiveAt, { registration: 150, monthlyFee: 150 }) });
     const result = await service.processIntegration(created.id);
     expect(result).toMatchObject({ status: AssociateIntegrationStatus.FAILED, attempts: 0, lastErrorCode: "SIE_RENEWAL_HISTORY_AMBIGUOUS" });
+    expect(client.createAssociate).not.toHaveBeenCalled();
+    expect(repository.attemptHistory).toHaveLength(0);
+  });
+
+  it("classifies missing SIE runtime configuration without claiming the snapshot is invalid", async () => {
+    const repository = new MemoryRepository();
+    const client = {
+      getAssociateState: vi.fn().mockRejectedValue(new AssociatesApiConfigurationError("ASSOCIATES_API_PASSWORD missing")),
+      createAssociate: vi.fn(),
+    };
+    const service = new AssociatesIntegrationService(repository, undefined, client as never);
+    const created = await service.prepare({ applicationId: 331, trigger: AssociateIntegrationTrigger.ACTIVE_PAYMENT, requestPayloadSnapshot: builder.active(identity, effectiveAt, { registration: 150, monthlyFee: 150 }) });
+
+    const result = await service.processIntegration(created.id);
+
+    expect(result).toMatchObject({
+      status: AssociateIntegrationStatus.FAILED,
+      attempts: 0,
+      lastErrorCode: "ASSOCIATES_API_CONFIGURATION_MISSING",
+      lastErrorMessage: "La integración de asociados no está configurada correctamente.",
+    });
+    expect(client.createAssociate).not.toHaveBeenCalled();
+    expect(repository.attemptHistory).toHaveLength(0);
+  });
+
+  it("keeps SNAPSHOT_INVALID for a real pre-transport snapshot validation failure", async () => {
+    const repository = new MemoryRepository();
+    const client = { getAssociateState: vi.fn().mockResolvedValue({ status: false, message: "No es asociado" }), createAssociate: vi.fn() };
+    const service = new AssociatesIntegrationService(repository, undefined, client as never);
+    const created = await service.prepare({ applicationId: 332, trigger: AssociateIntegrationTrigger.ACTIVE_PAYMENT, requestPayloadSnapshot: { ...builder.active(identity, effectiveAt, { registration: 150, monthlyFee: 150 }), Email: "" } });
+
+    const result = await service.processIntegration(created.id);
+
+    expect(result).toMatchObject({ status: AssociateIntegrationStatus.FAILED, lastErrorCode: "SNAPSHOT_INVALID" });
     expect(client.createAssociate).not.toHaveBeenCalled();
     expect(repository.attemptHistory).toHaveLength(0);
   });

@@ -14,6 +14,7 @@ import type {
 } from "../Repositories/Interfaces/IAssociateIntegrationRepository";
 import { AssociatesApiClient } from "../Clients/AssociatesApiClient";
 import { AssociatesApiError } from "../Clients/AssociatesApiError";
+import { AssociatesApiConfigurationError } from "../Config/AssociatesApiConfig";
 import { AssociatesPayloadMapper } from "../Mappers/AssociatesPayloadMapper";
 import {
   AssociateIntegrationSnapshotBuilder,
@@ -706,6 +707,15 @@ function nextCalendarDate(value: string): string {
 function toPersistedError(
   error: unknown,
 ): AssociateIntegrationError & { retryable: boolean } {
+  // Runtime configuration is neither a payload/snapshot validation failure nor
+  // a transport attempt. Keep the persisted diagnostic generic and secret-safe.
+  if (error instanceof AssociatesApiConfigurationError) {
+    return {
+      code: "ASSOCIATES_API_CONFIGURATION_MISSING",
+      message: "La integración de asociados no está configurada correctamente.",
+      retryable: false,
+    };
+  }
   if (error instanceof SieStateClassificationError) {
     return { code: error.code, message: error.message, retryable: false };
   }
