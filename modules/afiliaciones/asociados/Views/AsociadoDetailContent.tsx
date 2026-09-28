@@ -4,13 +4,42 @@
 
 import { BriefcaseBusiness, CalendarDays, CreditCard, FileText, GraduationCap, Info, Landmark, ShieldCheck, UserCircle2, WalletCards } from "lucide-react";
 import type { ReactNode } from "react";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SandboxPaymentResetButton } from "@/modules/afiliaciones/payments/Components/SandboxPaymentResetButton";
 import { getNiubizActionCode } from "@/modules/afiliaciones/payments/Services/Niubiz/NiubizActionCodes";
+import { AssociateSieProfileSection, type AssociateSieProfileViewState } from "../Components/AssociateSieProfileSection";
+import type { AssociateSieProfileResponse } from "../Services/AssociateSieProfileService";
 
 const formatDate = (value: string | Date | null | undefined, withTime = false) => value ? new Intl.DateTimeFormat("es-PE", withTime ? { dateStyle: "medium", timeStyle: "short" } : { dateStyle: "medium" }).format(new Date(value)) : "No registrado";
 const money = (value: unknown) => new Intl.NumberFormat("es-PE", { style: "currency", currency: "PEN" }).format(Number(value));
 const label = (value: string) => value.replaceAll("_", " ").toLowerCase().replace(/(^|\s)\S/g, (character) => character.toUpperCase());
+
+function useAssociateSieProfile(applicationId: number, isActive: boolean) {
+  const [state, setState] = useState<AssociateSieProfileViewState>({ kind: "idle" });
+  const stateRef = useRef(state);
+  const requestRef = useRef<{ id: number; controller: AbortController } | null>(null);
+  const requestSequence = useRef(0);
+  const replaceState = useCallback((next: AssociateSieProfileViewState) => { stateRef.current = next; setState(next); }, []);
+  const load = useCallback(async (force = false) => {
+    if (!force && stateRef.current.kind !== "idle") return;
+    if (requestRef.current) return;
+    const id = ++requestSequence.current;
+    const controller = new AbortController();
+    requestRef.current = { id, controller };
+    replaceState({ kind: "loading" });
+    try {
+      const response = await fetch(`/api/afiliaciones/asociados/${applicationId}/sie`, { cache: "no-store", signal: controller.signal });
+      const body = await response.json() as { success?: boolean; data?: AssociateSieProfileResponse; message?: string };
+      if (!response.ok || !body.success || !body.data) throw new Error(body.message || "No pudimos consultar SIE en este momento.");
+      if (requestRef.current?.id === id) replaceState({ kind: "loaded", data: body.data });
+    } catch (error) {
+      if (!(error instanceof DOMException && error.name === "AbortError") && requestRef.current?.id === id) replaceState({ kind: "error", message: error instanceof Error ? error.message : "No pudimos consultar SIE en este momento." });
+    } finally { if (requestRef.current?.id === id) requestRef.current = null; }
+  }, [applicationId, replaceState]);
+  useEffect(() => { if (isActive) void load(); }, [isActive, load]);
+  useEffect(() => () => { requestRef.current?.controller.abort(); requestRef.current = null; }, []);
+  return { state, refresh: () => { if (!requestRef.current) void load(true); } };
+}
 
 function PaymentsTabDetailed({ payments, canViewTechnical, canResetSandboxPayments }: { payments: any[]; canViewTechnical: boolean; canResetSandboxPayments: boolean }) {
   const [filter, setFilter] = useState("ALL");
@@ -22,6 +51,7 @@ function PaymentsTabDetailed({ payments, canViewTechnical, canResetSandboxPaymen
 }
 
 export function AsociadoDetailContent({ tab, user, canResetSandboxPayments = false }: { tab: string; user: any; canResetSandboxPayments?: boolean }) {
+  const { state: sieState, refresh: refreshSie } = useAssociateSieProfile(user.id, tab === "sie");
   const person = user.person ?? {};
   const applications = person.applications ?? [];
   const application = applications.find((item: any) => item.status === "COMPLETED") ?? applications[0];
@@ -41,6 +71,7 @@ export function AsociadoDetailContent({ tab, user, canResetSandboxPayments = fal
   if (tab === "informacion") return <div className="space-y-5"><InfoNotice text="Consulta los datos personales, académicos y laborales registrados durante su afiliación."/><Section icon={<UserCircle2/>} title="Datos personales"><div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"><Field label="Nombres" value={person.firstName}/><Field label="Apellido paterno" value={person.paternalLastName}/><Field label="Apellido materno" value={person.maternalLastName}/><Field label="Documento" value={person.documentType ? `${label(person.documentType)} ${person.documentNumber}` : person.documentNumber}/><Field label="Fecha de nacimiento" value={formatDate(person.birthDate)}/><Field label="Nacionalidad" value={person.nationality?.name}/><Field label="Correo principal" value={contact?.email ?? user.email}/><Field label="Teléfono" value={contact?.phoneNumber}/><Field label="Dirección" value={address?.street} full/></div></Section><Section icon={<GraduationCap/>} title="Formación académica"><div className="grid gap-5 sm:grid-cols-2"><Field label="Universidad" value={academic?.university?.name}/><Field label="Carrera o especialidad" value={academic?.specialty?.name}/><Field label="Grado" value={academic?.degree?.name ?? academic?.degreeTitle}/><Field label="Año de egreso" value={academic?.graduationYear}/><Field label="Colegiatura" value={academic?.professionalAssociation}/><Field label="Número de colegiatura" value={academic?.licenseNumber}/></div></Section><Section icon={<BriefcaseBusiness/>} title="Información laboral"><div className="grid gap-5 sm:grid-cols-2"><Field label="Empresa actual" value={employment?.company?.name}/><Field label="Cargo" value={employment?.position?.name}/><Field label="Área" value={employment?.area}/><Field label="Correo corporativo" value={employment?.workEmail}/><Field label="Teléfono de trabajo" value={employment?.workPhone}/><Field label="Dirección laboral" value={employment?.workingAddress}/></div></Section></div>;
   if (tab === "membresia") return <div className="space-y-5"><Section icon={<ShieldCheck/>} title="Membresía"><div className="grid gap-5 sm:grid-cols-2"><Field label="Categoría" value={category}/><Field label="Estado" value={user.status === "ACTIVE" ? "HÁBIL" : label(user.status ?? "INACTIVO")}/><Field label="Código" value={code}/><Field label="Fecha de afiliación" value={formatDate(memberSince)}/><Field label="Antigüedad" value={memberSince ? elapsed(memberSince) : null}/><Field label="Proceso de afiliación" value={application?.applicationCode}/></div></Section><p className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm leading-6 text-slate-500">El sistema actual no registra cambios de categoría ni estados institucionales como suspensión, baja o retiro. Esta ficha muestra únicamente el estado de cuenta realmente disponible.</p></div>;
   if (tab === "pagos") return <PaymentsTabDetailed payments={payments} canViewTechnical={canResetSandboxPayments} canResetSandboxPayments={canResetSandboxPayments}/>;
+  if (tab === "sie") return <AssociateSieProfileSection state={sieState} onRefresh={refreshSie}/>;
   if (tab === "cuenta") return <div className="space-y-5"><Section icon={<UserCircle2/>} title="Cuenta y acceso"><div className="grid gap-5 sm:grid-cols-2"><Field label="Estado de cuenta" value={label(user.status ?? "PENDING")}/><Field label="Usuario" value={user.email}/><Field label="Creada" value={formatDate(user.createdAt)}/><Field label="Último acceso" value={formatDate(user.lastLoginAt, true)}/><Field label="Rol" value={user.role?.name ?? user.role?.slug}/></div></Section><p className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm leading-6 text-slate-500">Esta ficha no muestra ni gestiona contraseñas. La creación automática de cuentas y enlaces seguros de acceso corresponde a una fase posterior.</p></div>;
   if (tab === "documentos") return <DocumentsTab documents={documents}/>;
   if (tab === "historial") return <HistoryTab user={user} applications={applications} payments={paidPayments}/>;
