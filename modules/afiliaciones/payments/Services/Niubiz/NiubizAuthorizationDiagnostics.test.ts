@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { describeNiubizAuthorizationResponse, logNiubizAuthorizationStructure } from "./NiubizAuthorizationDiagnostics";
+import { classifyNiubizYapeId, describeNiubizAuthorizationResponse, logNiubizAuthorizationStructure } from "./NiubizAuthorizationDiagnostics";
 import { NiubizAuthorizationService } from "./NiubizAuthorizationService";
 
 const response = {
@@ -36,14 +36,24 @@ describe("Niubiz authorization structure diagnostic", () => {
     logNiubizAuthorizationStructure(response, "PRODUCTION");
     expect(info).not.toHaveBeenCalled();
 
-    logNiubizAuthorizationStructure(response, "TEST");
-    expect(info).toHaveBeenCalledTimes(1);
-    const serialized = JSON.stringify(info.mock.calls[0][1]);
-    for (const sensitiveValue of ["transaction-token-secret", "session-token-secret", "4111111111111111", "order-token-secret", "authorization-secret", "nested-token-secret", "candidate-value", "yape"]) {
+    logNiubizAuthorizationStructure({ ...response, dataMap: { ...response.dataMap, YAPE_ID: "private-yape-id" } }, "TEST");
+    expect(info).toHaveBeenCalledTimes(2);
+    const serialized = JSON.stringify(info.mock.calls.map(([, diagnostic]) => diagnostic));
+    for (const sensitiveValue of ["transaction-token-secret", "session-token-secret", "4111111111111111", "order-token-secret", "authorization-secret", "nested-token-secret", "candidate-value", "yape", "private-yape-id"]) {
       expect(serialized).not.toContain(sensitiveValue);
     }
     expect(serialized).not.toContain("not-inspected");
     info.mockRestore();
+  });
+
+  it.each([
+    [{}, "ABSENT"],
+    [{ dataMap: {} }, "ABSENT"],
+    [{ dataMap: { YAPE_ID: null } }, "EMPTY"],
+    [{ dataMap: { YAPE_ID: "   " } }, "EMPTY"],
+    [{ dataMap: { YAPE_ID: "private-yape-id" } }, "PRESENT"],
+  ] as const)("classifies YAPE_ID safely as %s", (authorization, expected) => {
+    expect(classifyNiubizYapeId(authorization)).toBe(expected);
   });
 
   it("observes a valid Authorization response without changing it", async () => {
@@ -59,6 +69,8 @@ describe("Niubiz authorization structure diagnostic", () => {
     expect(result).toEqual({ response, status: 200 });
     const diagnostic = info.mock.calls.find(([event]) => event === "[NIUBIZ_AUTHORIZATION_STRUCTURE]");
     expect(diagnostic?.[1]).toEqual(describeNiubizAuthorizationResponse(response));
+    const yapeDiagnostic = info.mock.calls.find(([event]) => event === "[NIUBIZ_YAPE_DIAGNOSTIC]");
+    expect(yapeDiagnostic?.[1]).toEqual({ YAPE_ID_STATE: "ABSENT" });
     expect(JSON.stringify(diagnostic?.[1])).not.toContain("transaction-token-secret");
 
     vi.unstubAllGlobals();
