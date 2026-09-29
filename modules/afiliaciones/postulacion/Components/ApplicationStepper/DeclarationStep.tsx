@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, forwardRef, useImperativeHandle, ChangeEvent } from "react";
+import { useEffect, useState, useRef, forwardRef, useImperativeHandle, ChangeEvent } from "react";
 import { ShieldCheck, FileText, Download, UploadCloud, CheckCircle2, Info, XCircle, AlertTriangle } from "lucide-react";
 import type { ApplicationDraft } from "../../Models/ApplicationDraft";
 import type { Endorsements } from "../../Models/Endorsements";
@@ -33,6 +33,7 @@ const DeclarationStep = forwardRef<StepRef, DeclarationStepProps>(
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [globalError, setGlobalError] = useState<string | null>(null);
     const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+    const generationInFlightRef = useRef(false);
     
     const [declaracionFile, setDeclaracionFile] = useState<{ name: string; url: string; type: string } | null>(null);
     const [rawFile, setRawFile] = useState<File | null>(null);
@@ -60,7 +61,9 @@ const DeclarationStep = forwardRef<StepRef, DeclarationStepProps>(
     }, [value?.declarationDocumentId]);
 
     const handleGeneratePdf = async () => {
+      if (generationInFlightRef.current) return;
       if (!draftContext) return;
+      generationInFlightRef.current = true;
       setIsGeneratingPdf(true);
       setGlobalError(null);
       try {
@@ -88,6 +91,7 @@ const DeclarationStep = forwardRef<StepRef, DeclarationStepProps>(
         }
         window.scrollTo({ top: 0, behavior: "smooth" });
       } finally {
+        generationInFlightRef.current = false;
         setIsGeneratingPdf(false);
       }
     };
@@ -215,10 +219,20 @@ const DeclarationStep = forwardRef<StepRef, DeclarationStepProps>(
                   type="button" 
                   onClick={handleGeneratePdf}
                   disabled={isGeneratingPdf}
-                  className="w-full h-12 rounded-xl bg-gradient-to-r from-[#C5A059] to-[#9E7832] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-[0_8px_20px_-6px_rgba(197,160,89,0.6)] hover:-translate-y-0.5 transition-all disabled:opacity-70"
+                  className="w-full h-12 rounded-xl bg-gradient-to-r from-[#C5A059] to-[#9E7832] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-[0_8px_20px_-6px_rgba(197,160,89,0.6)] hover:-translate-y-0.5 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  {isGeneratingPdf ? "Generando Documento Oficial..." : <><Download size={18} /> Generar y Descargar Declaración</>}
+                  {isGeneratingPdf ? (
+                    <>
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" aria-hidden="true" />
+                      Generando documento...
+                    </>
+                  ) : (
+                    <><Download size={18} /> Generar y Descargar Declaración</>
+                  )}
                 </button>
+                {isGeneratingPdf && (
+                  <p className="mt-2 text-center text-[11px] text-slate-500">Esto puede tardar unos segundos.</p>
+                )}
               </div>
 
               <div className="w-full md:w-1/2">

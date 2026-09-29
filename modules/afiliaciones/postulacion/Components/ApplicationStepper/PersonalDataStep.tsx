@@ -1643,10 +1643,11 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
                         >
                           <iframe
                             key={previewVersion.identity}
-                            src={`${dniPreviewFinal.url}#toolbar=0&navpanes=0&scrollbar=0`}
+                            src={`${dniPreviewFinal.url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
                             onLoad={() => setPreviewState((previous) => (previous.identity === "idle" ? previous : { ...previous, identity: "idle" }))}
                             onError={() => setPreviewState((previous) => (previous.identity === "error" ? previous : { ...previous, identity: "error" }))}
-                            className="w-full h-full pointer-events-none"
+                            className="absolute inset-0 h-full w-full pointer-events-none"
+                            style={{ border: 0, display: "block" }}
                             title="DNI PDF Preview"
                           />
                         </DocumentPreviewLoader>
