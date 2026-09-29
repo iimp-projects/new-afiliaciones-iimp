@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { QUERY_COOKIE, queryAuthorization } from "@/modules/afiliaciones/consulta/Services/QueryAuthorizationService";
+import { APPLICATION_ACCESS_EXPIRED_CODE, QUERY_COOKIE, queryAuthorization } from "@/modules/afiliaciones/consulta/Services/QueryAuthorizationService";
+import { renewApplicationAccessCookie } from "@/modules/afiliaciones/consulta/Services/ApplicationAccessCookie";
 import { ApplicationAccessService } from "@/modules/afiliaciones/postulacion/Services/ApplicationAccessService";
 import { prisma } from "@/lib/prisma";
 import { EndorsementStatus } from "@prisma/client";
@@ -10,7 +11,14 @@ export async function GET(request: NextRequest) {
   try {
     // trackingCode identifies an application; it never verifies identity.
     const token = request.cookies.get(QUERY_COOKIE)?.value;
-    const allowed = queryAuthorization.allowedIds(token);
+    const resolution = queryAuthorization.resolveAccess(token);
+    if (resolution.status === "EXPIRED") {
+      return NextResponse.json(
+        { code: APPLICATION_ACCESS_EXPIRED_CODE, message: "Tu sesión de verificación expiró." },
+        { status: 401 }
+      );
+    }
+    const allowed = resolution.status === "VALID" ? resolution.applicationIds : [];
     const requestedId = request.nextUrl.searchParams.get("applicationId");
     const applicationId = requestedId ? Number(requestedId) : allowed[0];
     if (!applicationId || !allowed.includes(applicationId)) {
@@ -59,7 +67,8 @@ export async function GET(request: NextRequest) {
 
     const summary = (await new ApplicationAccessService().list(token)).find(item => item.id === application.id);
     if (application.status === "DRAFT") {
-      return NextResponse.json({ ...summary, applicationId: application.id, applicationCode: application.applicationCode, areas: {} }, { headers: { "Cache-Control": "no-store" } });
+      const draftResponse = NextResponse.json({ ...summary, applicationId: application.id, applicationCode: application.applicationCode, areas: {} }, { headers: { "Cache-Control": "no-store" } });
+      return renewApplicationAccessCookie(draftResponse, token);
     }
 
     const person = application.person as any;
@@ -204,7 +213,7 @@ export async function GET(request: NextRequest) {
     }
 
     response.headers.set("Cache-Control", "no-store");
-    return response;
+    return renewApplicationAccessCookie(response, token);
   } catch {
     return NextResponse.json(
       { error: "Error interno al consultar la solicitud" },

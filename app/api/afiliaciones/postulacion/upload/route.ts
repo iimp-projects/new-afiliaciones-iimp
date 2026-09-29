@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { S3StorageService } from "@/modules/shared/Services/S3StorageService";
-import { QUERY_COOKIE, queryAuthorization } from "@/modules/afiliaciones/consulta/Services/QueryAuthorizationService";
+import { QUERY_COOKIE, APPLICATION_ACCESS_EXPIRED_CODE, queryAuthorization } from "@/modules/afiliaciones/consulta/Services/QueryAuthorizationService";
+import { renewApplicationAccessCookie } from "@/modules/afiliaciones/consulta/Services/ApplicationAccessCookie";
 import { contextService } from "@/modules/auth/context/service";
 import { getInternalApiUser } from "@/modules/auth/context/api-authorization";
 import { AVATAR_DESTINATION_PREFIX, isAvatarUploadFolder, resolveApplicationFolderKind } from "@/modules/afiliaciones/postulacion/Services/UploadDestinationResolver";
@@ -58,7 +59,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, data: { url: avatarUrl, name: candidate.name, type: candidate.type } });
     }
 
-    const applicantApplicationId = queryAuthorization.allowedIds(request.cookies.get(QUERY_COOKIE)?.value)[0];
+    const token = request.cookies.get(QUERY_COOKIE)?.value;
+    const resolution = queryAuthorization.resolveAccess(token);
+    if (resolution.status === "EXPIRED") {
+      return NextResponse.json({ code: APPLICATION_ACCESS_EXPIRED_CODE, message: "Tu sesión de verificación expiró." }, { status: 401 });
+    }
+    const applicantApplicationId = resolution.status === "VALID" ? resolution.applicationIds[0] : undefined;
     const requestedApplicationId = Number(formData.get("applicationId"));
 
     const kind = resolveApplicationFolderKind(requestedFolder);
@@ -83,10 +89,11 @@ export async function POST(request: NextRequest) {
     const s3Service = new S3StorageService();
     const fileUrl = await s3Service.uploadFile(buffer, candidate.name, candidate.type, folder);
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       data: { url: fileUrl, name: candidate.name, type: candidate.type },
     });
+    return renewApplicationAccessCookie(response, token);
   } catch (error: unknown) {
     console.error("[Upload] No se pudo almacenar el archivo:", error);
     return NextResponse.json({ message: "No se pudo subir el archivo." }, { status: 500 });

@@ -123,7 +123,7 @@ export class ApplicationApi {
 
     const result = await response.json();
     if (!response.ok || !result.success)
-      throw new Error(result.message ?? "Error subiendo archivo.");
+      throw new ApplicationApiError(result.message ?? "Error subiendo archivo.", result.code ?? "UPLOAD_FAILED", response.status);
     
     return result.data;
   }
@@ -138,7 +138,7 @@ export class ApplicationApi {
       method: "GET",
     });
     const result = await response.json();
-    if (!response.ok || !result.success) throw new Error("Error obteniendo archivo seguro.");
+    if (!response.ok || !result.success) throw new ApplicationApiError("Error obteniendo archivo seguro.", result.code ?? "FILE_FETCH_FAILED", response.status);
     return result.data.url;
   }
 
@@ -199,7 +199,12 @@ export class ApplicationApi {
     });
 
     if (!response.ok) {
-      throw new Error("No se pudo generar el documento PDF.");
+      const data = await response.json().catch(() => null);
+      throw new ApplicationApiError(
+        data?.message ?? "No se pudo generar el documento PDF.",
+        data?.code ?? (response.status === 429 ? "PDF_GENERATION_RATE_LIMITED" : "PDF_GENERATION_FAILED"),
+        response.status,
+      );
     }
 
     // Retornamos un Blob nativo porque el backend devuelve los bytes (Uint8Array) del PDF

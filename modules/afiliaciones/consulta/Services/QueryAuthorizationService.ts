@@ -5,6 +5,8 @@ import type { DocumentType } from "@prisma/client";
 import { getAuthSecret } from "@/lib/config/env";
 
 export const QUERY_COOKIE = "iimp_application_access";
+export const QUERY_ACCESS_TTL_SECONDS = 900;
+export const APPLICATION_ACCESS_EXPIRED_CODE = "APPLICATION_ACCESS_EXPIRED";
 
 const CHALLENGE_TTL_MS = 15 * 60 * 1000;
 
@@ -17,6 +19,12 @@ const CHALLENGE_TTL_MS = 15 * 60 * 1000;
 export type QueryChallenge =
   | { kind: "application"; applicationId: number; expiresAt: number }
   | { kind: "document"; documentType: DocumentType; documentNumber: string; expiresAt: number };
+
+export type QueryAccessStatus = "VALID" | "EXPIRED" | "INVALID" | "MISSING";
+
+export type QueryAccessResolution =
+  | { status: "VALID"; applicationIds: number[]; applicationId: number }
+  | { status: "EXPIRED" | "INVALID" | "MISSING" };
 
 export class QueryAuthorizationService {
   private secret() {
@@ -41,15 +49,46 @@ export class QueryAuthorizationService {
   }
   createAccess(applicationIds: number[], applicationId = applicationIds[0]) {
     applicationIds = [applicationId, ...applicationIds.filter(id => id !== applicationId)];
-    return jwt.sign({ applicationId, applicationIds, purpose: "QUERY_ACCESS" }, this.secret(), { algorithm: "HS256", expiresIn: "15m", audience: "iimp-consulta" });
+    return jwt.sign({ applicationId, applicationIds, purpose: "QUERY_ACCESS" }, this.secret(), { algorithm: "HS256", expiresIn: QUERY_ACCESS_TTL_SECONDS, audience: "iimp-consulta" });
   }
-  allowedIds(token: string | undefined): number[] {
-    if (!token) return [];
+
+  /**
+   * Distingue internamente el estado del token de acceso, sin exponer firma,
+   * JWT ni detalles criptográficos. Únicamente un token firmado y no expirado
+   * se clasifica como VALID; cualquier otra condición es MISSING/EXPIRED/INVALID.
+   */
+  resolveAccess(token: string | undefined): QueryAccessResolution {
+    if (!token || !token.trim()) return { status: "MISSING" };
     try {
       const payload = jwt.verify(token, this.secret(), { algorithms: ["HS256"], audience: "iimp-consulta" });
-      if (typeof payload === "string" || payload.purpose !== "QUERY_ACCESS" || !Array.isArray(payload.applicationIds)) return [];
-      return payload.applicationIds.filter((id: unknown): id is number => typeof id === "number" && Number.isSafeInteger(id) && id > 0);
-    } catch { return []; }
+      if (typeof payload === "string" || payload.purpose !== "QUERY_ACCESS" || !Array.isArray(payload.applicationIds)) {
+        return { status: "INVALID" };
+      }
+      const applicationIds = payload.applicationIds.filter((id: unknown): id is number => typeof id === "number" && Number.isSafeInteger(id) && id > 0);
+      if (applicationIds.length === 0) return { status: "INVALID" };
+      const applicationId = typeof payload.applicationId === "number" && Number.isSafeInteger(payload.applicationId) && payload.applicationId > 0
+        ? payload.applicationId
+        : applicationIds[0];
+      return { status: "VALID", applicationIds, applicationId };
+    } catch (error) {
+      if (error instanceof Error && error.name === "TokenExpiredError") return { status: "EXPIRED" };
+      return { status: "INVALID" };
+    }
+  }
+
+  /**
+   * Renovación deslizante: solo re-firma cuando el token sigue siendo VÁLIDO.
+   * Un token expirado, inválido o ausente nunca se revive (devuelve null).
+   */
+  renewAccess(token: string | undefined): string | null {
+    const resolution = this.resolveAccess(token);
+    if (resolution.status !== "VALID") return null;
+    return this.createAccess(resolution.applicationIds, resolution.applicationId);
+  }
+
+  allowedIds(token: string | undefined): number[] {
+    const resolution = this.resolveAccess(token);
+    return resolution.status === "VALID" ? resolution.applicationIds : [];
   }
   resolveChallenge(token: string | undefined): QueryChallenge | null {
     if (!token) return null;

@@ -45,4 +45,21 @@ export const verificationTokenRateLimiter = {
 
     return false;
   },
+
+  /**
+   * Segundos hasta que el sujeto vuelve a estar habilitado (fin de la ventana
+   * deslizante), a partir del intento activo más antiguo. Devuelve null si no
+   * hay intentos activos (p. ej. cuando consume() acaba de permitir el acceso).
+   */
+  async retryAfterSeconds(scope: string, subject: string): Promise<number | null> {
+    const identifier = identifierFor(scope, subject);
+    const now = new Date();
+    const earliest = await prisma.verificationToken.findFirst({
+      where: { identifier, expires: { gte: now } },
+      orderBy: { expires: "asc" },
+      select: { expires: true },
+    });
+    if (!earliest) return null;
+    return Math.max(1, Math.ceil((earliest.expires.getTime() - now.getTime()) / 1000));
+  },
 };

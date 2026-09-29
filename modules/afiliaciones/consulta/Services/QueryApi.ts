@@ -4,10 +4,18 @@ import type { ValidationResponseDTO } from "@/modules/afiliaciones/postulacion/D
 import type { AuthorizedApplicationSummary } from "@/modules/afiliaciones/postulacion/Models/ApplicationAction";
 
 export type QueryChallenge = ValidationResponseDTO;
+
+export class QueryApiError extends Error {
+  constructor(message: string, readonly status: number, readonly code?: string) {
+    super(message);
+    this.name = "QueryApiError";
+  }
+}
+
 async function request(url: string, body?: unknown) {
   const response = await fetch(url, { method: body ? "POST" : "GET", credentials: "same-origin", cache: "no-store", ...(body ? { headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : {}) });
   const data = await response.json();
-  if (!response.ok) throw new Error(data.message || data.error || "No se pudo procesar la consulta.");
+  if (!response.ok) throw new QueryApiError(data.message || data.error || "No se pudo procesar la consulta.", response.status, typeof data.code === "string" ? data.code : undefined);
   return data;
 }
 export const queryApi = {

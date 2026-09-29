@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
+import jwt from "jsonwebtoken";
 const mocks = vi.hoisted(() => ({ findFirst: vi.fn(), findMany: vi.fn(), verify: vi.fn() }));
 vi.mock("@/lib/prisma", () => ({ prisma: { membershipApplication: { findFirst: mocks.findFirst, findMany: mocks.findMany } } }));
 vi.mock("@/modules/afiliaciones/postulacion/Services/OtpRecoveryService", () => ({ OtpRecoveryService: class { verifyOtp = mocks.verify; } }));
@@ -18,6 +19,17 @@ describe("query HTTP access", () => {
   it("the pre-verification challenge cannot be used as an access cookie", async () => {
     const response = await GET(new NextRequest("http://localhost/api/consulta", { headers: { cookie: `${QUERY_COOKIE}=${queryAuthorization.create(7, "QUERY_CHALLENGE")}` } }));
     expect(response.status).toBe(401);
+    expect(mocks.findFirst).not.toHaveBeenCalled();
+  });
+  it("returns APPLICATION_ACCESS_EXPIRED when the access token expired", async () => {
+    const expired = jwt.sign(
+      { applicationId: 7, applicationIds: [7], purpose: "QUERY_ACCESS" },
+      "test-only-query-secret",
+      { algorithm: "HS256", expiresIn: -60, audience: "iimp-consulta" },
+    );
+    const response = await GET(new NextRequest("http://localhost/api/consulta?applicationId=7", { headers: { cookie: `${QUERY_COOKIE}=${expired}` } }));
+    expect(response.status).toBe(401);
+    expect((await response.json()).code).toBe("APPLICATION_ACCESS_EXPIRED");
     expect(mocks.findFirst).not.toHaveBeenCalled();
   });
   it("issues the access cookie only after OTP validation and loads only that application", async () => {

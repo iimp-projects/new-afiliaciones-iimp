@@ -6,6 +6,7 @@ import type { ApplicationDraft } from "../../Models/ApplicationDraft";
 import type { Endorsements } from "../../Models/Endorsements";
 import { EndorsementsValidator } from "../../Validators/EndorsementsValidator";
 import { applicationApi } from "../../Services/ApplicationApi";
+import { ApplicationApiError } from "../../Services/ApplicationApiError";
 import { ProcessLoadingOverlay } from "@/modules/shared/Components/ProcessLoadingOverlay";
 import { GlobalModalRoot } from "@/modules/shared/Components/GlobalModalRoot";
 
@@ -74,7 +75,17 @@ const DeclarationStep = forwardRef<StepRef, DeclarationStepProps>(
         a.remove();
         window.URL.revokeObjectURL(url);
       } catch (error: any) {
-        setGlobalError("Hubo un error al generar su documento PDF.");
+        if (error instanceof ApplicationApiError) {
+          if (error.code === "APPLICATION_ACCESS_EXPIRED") {
+            setGlobalError("Tu sesión de verificación expiró. Verifica nuevamente tu identidad para continuar.");
+          } else if (error.status === 429 || error.code === "PDF_GENERATION_RATE_LIMITED") {
+            setGlobalError("Has realizado varios intentos. Espera unos minutos e inténtalo nuevamente.");
+          } else {
+            setGlobalError("Hubo un error al generar su documento PDF.");
+          }
+        } else {
+          setGlobalError("Hubo un error al generar su documento PDF.");
+        }
         window.scrollTo({ top: 0, behavior: "smooth" });
       } finally {
         setIsGeneratingPdf(false);

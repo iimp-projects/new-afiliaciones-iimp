@@ -1,4 +1,5 @@
 import { QUERY_COOKIE } from "@/modules/afiliaciones/consulta/Services/QueryAuthorizationService";
+import { renewApplicationAccessCookie } from "@/modules/afiliaciones/consulta/Services/ApplicationAccessCookie";
 import { applicationHttpError } from "@/modules/afiliaciones/postulacion/Services/ApplicationHttpError";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -25,10 +26,12 @@ export async function GET(
         const service =
             new GetApplicationByTrackingService(repository);
 
+        const token = request.cookies.get(QUERY_COOKIE)?.value;
         const application =
-            await service.execute(trackingCode, request.cookies.get(QUERY_COOKIE)?.value);
+            await service.execute(trackingCode, token);
 
-        return NextResponse.json(application);
+        const response = NextResponse.json(application);
+        return renewApplicationAccessCookie(response, token);
 
     } catch (error) {
 
@@ -56,21 +59,23 @@ export async function PATCH(
 
         const repository =
             new ApplicationRepository();
-
         const service =
             new UpdateDraftService(repository);
 
+        const token = request.cookies.get(QUERY_COOKIE)?.value;
         const application =
             await service.execute(
                 trackingCode,
-                body, request.cookies.get(QUERY_COOKIE)?.value
+                body, token
             );
 
-        return NextResponse.json(application);
+        const response = NextResponse.json(application);
+        return renewApplicationAccessCookie(response, token);
 
     } catch (error) {
 
         return applicationHttpError(error);
 
     }
+
 }

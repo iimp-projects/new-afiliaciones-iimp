@@ -65,6 +65,7 @@ describe("POST /api/afiliaciones/postulacion/upload authorization", () => {
     );
     const response = await POST(uploadRequest({ token: expired }));
     expect(response.status).toBe(401);
+    expect((await response.json()).code).toBe("APPLICATION_ACCESS_EXPIRED");
     expect(mocks.uploadFile).not.toHaveBeenCalled();
   });
 
@@ -81,6 +82,15 @@ describe("POST /api/afiliaciones/postulacion/upload authorization", () => {
     expect(response.status).toBe(200);
     expect(mocks.uploadFile).toHaveBeenCalledTimes(1);
     expect(mocks.uploadFile).toHaveBeenCalledWith(PNG, "foto.png", "image/png", "afiliaciones/applications/7/photos");
+  });
+
+  it("renueva la cookie de acceso en una subida autorizada", async () => {
+    const token = queryAuthorization.createAccess([7], 7);
+    const response = await POST(uploadRequest({ token }));
+    expect(response.status).toBe(200);
+    const renewed = response.cookies.get(QUERY_COOKIE);
+    expect(renewed?.value).toBeTruthy();
+    expect(queryAuthorization.allowedIds(renewed?.value)).toEqual([7]);
   });
 
   it("rechaza 400 un destino no permitido sin invocar S3", async () => {
