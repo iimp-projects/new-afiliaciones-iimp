@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     const result = await paymentService.initiate(parsed.data, authorization, getClientIp(request));
     return NextResponse.json(result, { status: result.status === "FAILED" ? 422 : 200 });
   } catch (error) {
-    if (error instanceof PaymentServiceError) return NextResponse.json({ message: error.message }, { status: error.status });
+    if (error instanceof PaymentServiceError) return NextResponse.json({ message: error.message, ...(error.code ? { code: error.code } : {}) }, { status: error.status });
     console.error("[PAYMENTS] Error iniciando pago:", error);
     return NextResponse.json({ message: "Error interno al iniciar el pago." }, { status: 500 });
   }

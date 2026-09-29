@@ -22,7 +22,7 @@ import { AssociatesIntegrationService } from "../../associates-integration/Servi
 import { AssociateProvisioningService } from "../../asociados/Services/AssociateProvisioningService";
 
 export class PaymentServiceError extends Error {
-  constructor(message: string, readonly status: number) { super(message); }
+  constructor(message: string, readonly status: number, readonly code?: string) { super(message); }
 }
 
 export class PaymentService {
@@ -40,7 +40,7 @@ export class PaymentService {
   ) {}
 
   async initiate(input: CreatePaymentInput, authorization: string | undefined, clientIp?: string): Promise<CreatePaymentResponse> {
-    if (!this.authorizationService.verify(authorization, input.applicationId)) throw new PaymentServiceError("La autorización temporal de pago no es válida o expiró.", 403);
+    if (!this.authorizationService.verify(authorization, input.applicationId)) throw new PaymentServiceError("La autorización temporal de pago no es válida o expiró.", 403, "PAYMENT_AUTH_INVALID_OR_EXPIRED");
     const applicationForBilling = await this.repository.findApplicationById(input.applicationId);
     const resolvedBilling = await this.resolveBillingData(input.billingData, applicationForBilling?.documentNumber);
     const billingData = resolvedBilling.billingData;

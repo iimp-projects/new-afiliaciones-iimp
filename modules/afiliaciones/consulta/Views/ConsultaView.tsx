@@ -108,7 +108,7 @@ export function ConsultaView({ initialPaymentCallback }: ConsultaViewProps) {
       : <main className="min-h-screen grid place-items-center bg-slate-50 p-6"><ApplicationStateNotice status="COMPLETED" context="CONSULTA" onClose={() => setStatusData(null)} /></main>;
   }
   if (notice.action === "CONTINUE_PAYMENT" || Boolean(restored)) {
-    return <StatusPaymentReady data={statusData} onCancel={() => setStatusData(null)} initialBillingData={restored?.billingData} restoredPayment={restored?.payment} failureMessage={restored?.failure?.message} failureCode={restored?.failure?.code} />;
+    return <StatusPaymentReady data={statusData} onCancel={() => setStatusData(null)} onApplicationRefreshed={setStatusData} initialBillingData={restored?.billingData} restoredPayment={restored?.payment} failureMessage={restored?.failure?.message} failureCode={restored?.failure?.code} />;
   }
 
   // ESTADO 3: RESULTADOS NORMALES (En evaluación, Observado, Rechazado)

@@ -3,7 +3,9 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { billingDataSchema, type BillingDataInput } from "@/modules/afiliaciones/payments/DTOs/billing.schema";
-import { paymentApi } from "@/modules/afiliaciones/payments/Services/PaymentApi";
+import { PAYMENT_AUTH_INVALID_OR_EXPIRED, PaymentApiError, paymentApi } from "@/modules/afiliaciones/payments/Services/PaymentApi";
+import { createPaymentWithAuthorizationRecovery } from "@/modules/afiliaciones/payments/Services/PaymentAuthorizationRecovery";
+import { queryApi } from "../Services/QueryApi";
 import type { CreatePaymentResponse } from "@/modules/afiliaciones/payments/Models/PaymentResponse";
 import type { ApplicationStatusData } from "../Models/ApplicationStatus";
 import PaymentStepper from "./PaymentStepper/PaymentStepper";
@@ -13,10 +15,10 @@ import PaymentProcessStep, { type PaymentUiState } from "./PaymentStepper/Paymen
 import PaymentFooter from "./PaymentStepper/PaymentFooter";
 
 interface RestoredPayment { id: number; status: "PAID" | "FAILED" | "PENDING"; amount: number; registrationAmount?: number | null; membershipFeeAmount?: number | null; currency: "PEN"; paymentDate?: string; transactionId?: string; authorizationCode?: string; cardBrand?: string; cardType?: string; maskedCard?: string; traceNumber?: string; }
-interface Props { data: ApplicationStatusData; onCancel: () => void; initialBillingData?: BillingDataInput | null; restoredPayment?: RestoredPayment | null; failureMessage?: string | null; failureCode?: string | null; }
+interface Props { data: ApplicationStatusData; onCancel: () => void; onApplicationRefreshed: (application: ApplicationStatusData) => void; initialBillingData?: BillingDataInput | null; restoredPayment?: RestoredPayment | null; failureMessage?: string | null; failureCode?: string | null; }
 const initialBilling: BillingDataInput = { tipoDocumento: "DNI", numeroDocumento: "", razonSocial: "", direccionFiscal: "", responsable: "", emailFacturacion: "" };
 
-export const StatusPaymentReady: React.FC<Props> = ({ data, onCancel, initialBillingData, restoredPayment, failureMessage, failureCode }) => {
+export const StatusPaymentReady: React.FC<Props> = ({ data, onCancel, onApplicationRefreshed, initialBillingData, restoredPayment, failureMessage, failureCode }) => {
   const hasRestoredFailedPayment = restoredPayment?.status === "FAILED";
   const [currentStep, setCurrentStep] = useState(restoredPayment ? 3 : 1);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
@@ -25,26 +27,38 @@ export const StatusPaymentReady: React.FC<Props> = ({ data, onCancel, initialBil
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<CreatePaymentResponse | null>(restoredPayment && !hasRestoredFailedPayment ? { success: true, paymentId: restoredPayment.id, status: restoredPayment.status, amount: restoredPayment.amount, registrationAmount: restoredPayment.registrationAmount, membershipFeeAmount: restoredPayment.membershipFeeAmount, currency: restoredPayment.currency, message: restoredPayment.status === "PAID" ? "Pago realizado correctamente." : "Estamos verificando tu pago." } : null);
   const [error, setError] = useState<string | null>(null);
+  const [authorizationRefreshRequired, setAuthorizationRefreshRequired] = useState(false);
   const [paymentUiState, setPaymentUiState] = useState<PaymentUiState>(restoredPayment?.status === "PAID" ? "PAYMENT_SUCCESS" : restoredPayment?.status === "PENDING" ? "PAYMENT_UNCERTAIN" : "IDLE");
   const checkoutRequestInFlightRef = useRef(false);
+  const paymentOperationInFlightRef = useRef(false);
   const billingValid = billingDataSchema.safeParse(billingData).success;
 
   const startCheckout = useCallback(async () => {
-    if (!data.applicationId || !billingValid || loading) return;
+    if (!data.applicationId || !billingValid || loading || paymentOperationInFlightRef.current) return;
+    paymentOperationInFlightRef.current = true;
     setLoading(true);
     setPaymentUiState("PREPARING_CHECKOUT");
     setError(null);
     try {
-      const paymentResult = await paymentApi.createPayment({ applicationId: data.applicationId, billingData });
+      const paymentResult = await createPaymentWithAuthorizationRecovery({
+        payload: { applicationId: data.applicationId, billingData },
+        createPayment: paymentApi.createPayment,
+        refreshAuthorization: () => queryApi.detail(data.applicationId),
+        onApplicationRefreshed,
+        refreshBeforePost: authorizationRefreshRequired,
+      });
+      setAuthorizationRefreshRequired(false);
       setResult(paymentResult);
       setPaymentUiState(paymentResult.status === "PENDING" ? "IDLE" : paymentResult.status === "PAID" ? "PAYMENT_SUCCESS" : "PAYMENT_FAILED");
     } catch (paymentError) {
+      if (paymentError instanceof PaymentApiError && paymentError.status === 403 && paymentError.code === PAYMENT_AUTH_INVALID_OR_EXPIRED) setAuthorizationRefreshRequired(true);
       setError(paymentError instanceof Error ? paymentError.message : "No se pudo preparar el formulario de pago.");
       setPaymentUiState("INIT_FAILED");
     } finally {
+      paymentOperationInFlightRef.current = false;
       setLoading(false);
     }
-  }, [billingData, billingValid, data.applicationId, loading]);
+  }, [authorizationRefreshRequired, billingData, billingValid, data.applicationId, loading, onApplicationRefreshed]);
 
   useEffect(() => {
     if (currentStep !== 3 || !billingValid || loading || result || error || checkoutRequestInFlightRef.current) return;

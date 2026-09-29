@@ -138,6 +138,14 @@ describe("PaymentService", () => {
     provisionCompletedApplication.mockResolvedValue(null);
   });
 
+  it("identifica de forma segura la autorización temporal inválida al iniciar un pago", async () => {
+    const authorization = { ...authorizedPayment, verify: () => false };
+    const service = new PaymentService(undefined, new MockPaymentProvider("PAID"), new PaymentRepositoryFake(), undefined, authorization);
+
+    await expect(service.initiate(input, "expired-token"))
+      .rejects.toMatchObject({ status: 403, code: "PAYMENT_AUTH_INVALID_OR_EXPIRED" } satisfies Partial<PaymentServiceError>);
+  });
+
   it("provisiona la cuenta del asociado tras un pago PAID", async () => {
     const repository = new PaymentRepositoryFake();
     const statusCalculator = { recalculate: vi.fn(async (_applicationId: number, _tx: Prisma.TransactionClient, onIntegrationPrepared?: (id: number) => void) => { onIntegrationPrepared?.(701); return ApplicationStatus.COMPLETED; }) };
