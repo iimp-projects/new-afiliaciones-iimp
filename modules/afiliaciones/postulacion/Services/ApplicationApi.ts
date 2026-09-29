@@ -200,10 +200,13 @@ export class ApplicationApi {
 
     if (!response.ok) {
       const data = await response.json().catch(() => null);
+      const retryAfter = response.headers.get("Retry-After");
       throw new ApplicationApiError(
         data?.message ?? "No se pudo generar el documento PDF.",
         data?.code ?? (response.status === 429 ? "PDF_GENERATION_RATE_LIMITED" : "PDF_GENERATION_FAILED"),
         response.status,
+        undefined,
+        retryAfter && Number.isFinite(Number(retryAfter)) ? Number(retryAfter) : undefined,
       );
     }
 

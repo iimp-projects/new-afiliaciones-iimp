@@ -10,6 +10,25 @@ import { ApplicationApiError } from "../../Services/ApplicationApiError";
 import { ProcessLoadingOverlay } from "@/modules/shared/Components/ProcessLoadingOverlay";
 import { GlobalModalRoot } from "@/modules/shared/Components/GlobalModalRoot";
 
+const DECLARACION_FILENAME = "Declaracion_Jurada_IIMP.pdf";
+
+function triggerPdfDownload(blob: Blob): void {
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = DECLARACION_FILENAME;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
+}
+
+function formatRetryAfter(seconds: number): string {
+  if (seconds < 60) return `${seconds} segundo${seconds === 1 ? "" : "s"}`;
+  const minutes = Math.ceil(seconds / 60);
+  return `${minutes} minuto${minutes === 1 ? "" : "s"}`;
+}
+
 export interface StepRef {
   submit: () => Promise<void>;
 }
@@ -34,6 +53,9 @@ const DeclarationStep = forwardRef<StepRef, DeclarationStepProps>(
     const [globalError, setGlobalError] = useState<string | null>(null);
     const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
     const generationInFlightRef = useRef(false);
+    const [generatedPdfBlob, setGeneratedPdfBlob] = useState<Blob | null>(null);
+    const [downloadCooldownActive, setDownloadCooldownActive] = useState(false);
+    const downloadCooldownTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     
     const [declaracionFile, setDeclaracionFile] = useState<{ name: string; url: string; type: string } | null>(null);
     const [rawFile, setRawFile] = useState<File | null>(null);
@@ -60,6 +82,12 @@ const DeclarationStep = forwardRef<StepRef, DeclarationStepProps>(
       fetchSecureUrl();
     }, [value?.declarationDocumentId]);
 
+    useEffect(() => {
+      return () => {
+        if (downloadCooldownTimerRef.current) clearTimeout(downloadCooldownTimerRef.current);
+      };
+    }, []);
+
     const handleGeneratePdf = async () => {
       if (generationInFlightRef.current) return;
       if (!draftContext) return;
@@ -69,20 +97,20 @@ const DeclarationStep = forwardRef<StepRef, DeclarationStepProps>(
       try {
         const payloadToPrint = { ...draftContext, endorsements: form };
         const blob = await applicationApi.generatePdf(payloadToPrint);
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `Declaracion_Jurada_IIMP.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(url);
+        setGeneratedPdfBlob(blob);
+        triggerPdfDownload(blob);
+        setDownloadCooldownActive(true);
+        if (downloadCooldownTimerRef.current) clearTimeout(downloadCooldownTimerRef.current);
+        downloadCooldownTimerRef.current = setTimeout(() => setDownloadCooldownActive(false), 9000);
       } catch (error: any) {
         if (error instanceof ApplicationApiError) {
           if (error.code === "APPLICATION_ACCESS_EXPIRED") {
             setGlobalError("Tu sesión de verificación expiró. Verifica nuevamente tu identidad para continuar.");
           } else if (error.status === 429 || error.code === "PDF_GENERATION_RATE_LIMITED") {
-            setGlobalError("Has realizado varios intentos. Espera unos minutos e inténtalo nuevamente.");
+            const retryAfter = typeof error.retryAfterSeconds === "number" ? error.retryAfterSeconds : undefined;
+            setGlobalError(retryAfter != null
+              ? `Has realizado varios intentos de generación. Podrás intentarlo nuevamente en ${formatRetryAfter(retryAfter)}.`
+              : "Has realizado varios intentos de generación. Espera unos minutos e inténtalo nuevamente.");
           } else {
             setGlobalError("Hubo un error al generar su documento PDF.");
           }
@@ -93,6 +121,12 @@ const DeclarationStep = forwardRef<StepRef, DeclarationStepProps>(
       } finally {
         generationInFlightRef.current = false;
         setIsGeneratingPdf(false);
+      }
+    };
+
+    const handleRedownload = () => {
+      if (generatedPdfBlob) {
+        triggerPdfDownload(generatedPdfBlob);
       }
     };
 
@@ -217,8 +251,8 @@ const DeclarationStep = forwardRef<StepRef, DeclarationStepProps>(
               <div className="w-full md:w-1/2">
                 <button 
                   type="button" 
-                  onClick={handleGeneratePdf}
-                  disabled={isGeneratingPdf}
+                  onClick={generatedPdfBlob ? handleRedownload : handleGeneratePdf}
+                  disabled={isGeneratingPdf || (generatedPdfBlob !== null && downloadCooldownActive)}
                   className="w-full h-12 rounded-xl bg-gradient-to-r from-[#C5A059] to-[#9E7832] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-[0_8px_20px_-6px_rgba(197,160,89,0.6)] hover:-translate-y-0.5 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   {isGeneratingPdf ? (
@@ -226,8 +260,18 @@ const DeclarationStep = forwardRef<StepRef, DeclarationStepProps>(
                       <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" aria-hidden="true" />
                       Generando documento...
                     </>
+                  ) : generatedPdfBlob && downloadCooldownActive ? (
+                    <>
+                      <CheckCircle2 size={18} /> Documento descargado
+                    </>
+                  ) : generatedPdfBlob ? (
+                    <>
+                      <Download size={18} /> Descargar nuevamente
+                    </>
                   ) : (
-                    <><Download size={18} /> Generar y Descargar Declaración</>
+                    <>
+                      <Download size={18} /> Generar y Descargar Declaración
+                    </>
                   )}
                 </button>
                 {isGeneratingPdf && (
@@ -252,6 +296,18 @@ const DeclarationStep = forwardRef<StepRef, DeclarationStepProps>(
                 )}
               </div>
             </div>
+
+            {generatedPdfBlob && (
+              <div className="mb-8 flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 animate-in zoom-in duration-300">
+                <CheckCircle2 className="h-6 w-6 shrink-0 text-emerald-600" />
+                <div>
+                  <p className="text-sm font-bold text-emerald-800">¡Declaración descargada correctamente!</p>
+                  <p className="mt-1 text-xs text-emerald-700">El documento fue descargado en tu computadora.</p>
+                  <p className="text-xs text-emerald-700">Revisa la carpeta Descargas de tu navegador o computadora.</p>
+                  <p className="mt-2 text-xs font-mono font-bold text-emerald-800">{DECLARACION_FILENAME}</p>
+                </div>
+              </div>
+            )}
 
             <div>
               <label className={`group cursor-pointer relative overflow-hidden h-[260px] w-full border-2 border-dashed rounded-2xl p-6 transition-all duration-300 flex flex-col items-center justify-center text-center ${touched.declarationDocumentId && errors.declarationDocumentId ? "border-red-400 bg-red-50/30" : "border-gray-300 hover:border-[#C5A059] hover:bg-gray-50"}`}>
