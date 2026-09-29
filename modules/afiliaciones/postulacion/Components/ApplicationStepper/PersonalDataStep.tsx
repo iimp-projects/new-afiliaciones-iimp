@@ -598,6 +598,27 @@ const SearchableSelect = ({
   );
 };
 
+/**
+ * Genera UNA blob URL estable por archivo y la revoca al cambiar o desmontar.
+ * Evita llamar URL.createObjectURL durante el render (que producía una URL
+ * nueva en cada render y provocaba el loop de recarga del preview).
+ */
+function useStableObjectUrl(file: File | null | undefined): string | null {
+  const [url, setUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!file) {
+      setUrl(null);
+      return;
+    }
+    const objectUrl = URL.createObjectURL(file);
+    setUrl(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [file]);
+
+  return url;
+}
+
 const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
   ({ value, saving = false, onSave, onNext, onValidityChange, affiliateType = "ACTIVE" }, ref) => {
 
@@ -1030,22 +1051,26 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
       }`;
     };
 
-    let fotoPreviewFinal: string | null = null;
-    if (typeof window !== "undefined" && form.photo instanceof window.File) {
-      fotoPreviewFinal = URL.createObjectURL(form.photo as File);
-    } else if (securePhotoUrl) {
-      fotoPreviewFinal = securePhotoUrl;
-    }
+    const photoFile =
+      typeof window !== "undefined" && form.photo instanceof window.File
+        ? (form.photo as File)
+        : null;
+    const fotoObjectUrl = useStableObjectUrl(photoFile);
+    const fotoPreviewFinal: string | null = fotoObjectUrl ?? securePhotoUrl;
+
+    const dniFile =
+      typeof window !== "undefined" &&
+      form.identityDocument instanceof window.File
+        ? (form.identityDocument as File)
+        : null;
+    const dniObjectUrl = useStableObjectUrl(dniFile);
 
     let dniPreviewFinal: { name: string; url: string; type: string } | null =
       null;
-    if (
-      typeof window !== "undefined" &&
-      form.identityDocument instanceof window.File
-    ) {
+    if (dniObjectUrl) {
       dniPreviewFinal = {
         name: (form.identityDocument as File).name,
-        url: URL.createObjectURL(form.identityDocument as File),
+        url: dniObjectUrl,
         type: (form.identityDocument as File).type,
       };
     } else if (secureDniUrl && form.identityDocument) {
@@ -1525,8 +1550,8 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
                           key={previewVersion.photo}
                           src={fotoPreviewFinal}
                           alt="Preview"
-                          onLoad={() => setPreviewState((previous) => ({ ...previous, photo: "idle" }))}
-                          onError={() => setPreviewState((previous) => ({ ...previous, photo: "error" }))}
+                          onLoad={() => setPreviewState((previous) => (previous.photo === "idle" ? previous : { ...previous, photo: "idle" }))}
+                          onError={() => setPreviewState((previous) => (previous.photo === "error" ? previous : { ...previous, photo: "error" }))}
                           className="w-full h-full object-cover opacity-90 group-hover:opacity-60 transition-opacity"
                         />
                         {isFormEnabled && (
@@ -1593,8 +1618,8 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
                             key={previewVersion.identity}
                             src={dniPreviewFinal.url}
                             alt="DNI Preview"
-                            onLoad={() => setPreviewState((previous) => ({ ...previous, identity: "idle" }))}
-                            onError={() => setPreviewState((previous) => ({ ...previous, identity: "error" }))}
+                            onLoad={() => setPreviewState((previous) => (previous.identity === "idle" ? previous : { ...previous, identity: "idle" }))}
+                            onError={() => setPreviewState((previous) => (previous.identity === "error" ? previous : { ...previous, identity: "error" }))}
                             className="w-full h-full object-cover opacity-90 group-hover:opacity-60 transition-opacity"
                           />
                           {isFormEnabled && (
@@ -1619,7 +1644,8 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
                           <iframe
                             key={previewVersion.identity}
                             src={`${dniPreviewFinal.url}#toolbar=0&navpanes=0&scrollbar=0`}
-                            onLoad={() => setPreviewState((previous) => ({ ...previous, identity: "idle" }))}
+                            onLoad={() => setPreviewState((previous) => (previous.identity === "idle" ? previous : { ...previous, identity: "idle" }))}
+                            onError={() => setPreviewState((previous) => (previous.identity === "error" ? previous : { ...previous, identity: "error" }))}
                             className="w-full h-full pointer-events-none"
                             title="DNI PDF Preview"
                           />
