@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { contextService } from "@/modules/auth/context/service";
+import { getSmtpConfig } from "@/lib/config/env";
 import { CampaignService } from "@/modules/communications/Services/CampaignService";
 import { EmailDeliveryRepository } from "@/modules/communications/Repositories/EmailDeliveryRepository";
 import { CampaignWorkspace } from "@/modules/communications/Views/CampaignWorkspace";
@@ -23,5 +24,12 @@ export default async function CampanaPage({ params }: { params: Promise<{ id: st
   ]);
   if (!campaign) notFound();
 
-  return <CampaignWorkspace campaign={campaign} selection={selection} previewRecipients={previewRecipients} campaignRecipients={campaignRecipients} stats={stats} />;
+  let senderEmail: string | null = null;
+  try {
+    senderEmail = getSmtpConfig(process.env, "PROV").from;
+  } catch {
+    senderEmail = campaign.senderEmail;
+  }
+
+  return <CampaignWorkspace campaign={campaign} selection={selection} previewRecipients={previewRecipients} campaignRecipients={campaignRecipients} stats={stats} senderEmail={senderEmail} />;
 }

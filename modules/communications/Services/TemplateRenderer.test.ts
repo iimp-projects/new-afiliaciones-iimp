@@ -26,4 +26,13 @@ describe("renderTemplate", () => {
   it("deja literales las variables desconocidas", () => {
     expect(renderTemplate("Hola {{desconocida}}", { name: "X" })).toBe("Hola {{desconocida}}");
   });
+
+  it("cambiar de destinatario produce una salida distinta", () => {
+    const template = "Hola {{nombre}}, de {{empresa}}";
+    const first = renderTemplate(template, { name: "Luis Santivañez", company: "Antamina" });
+    const second = renderTemplate(template, { name: "Ana Torres", company: "Buenaventura" });
+    expect(first).toBe("Hola Luis Santivañez, de Antamina");
+    expect(second).toBe("Hola Ana Torres, de Buenaventura");
+    expect(first).not.toBe(second);
+  });
 });

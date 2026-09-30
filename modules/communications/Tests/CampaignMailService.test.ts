@@ -45,7 +45,7 @@ function setup(overrides: {
   sendMail?: () => Promise<{ messageId?: string }>;
 } = {}) {
   const getCampaign = vi.fn().mockResolvedValue(overrides.getCampaign ?? campaign());
-  const getCampaignRecipient = vi.fn().mockResolvedValue(overrides.membership ?? { recipientId: 7, status: EmailSendStatus.PENDING, sendCount: 0 });
+  const getCampaignRecipient = vi.fn().mockResolvedValue(overrides.membership === undefined ? { recipientId: 7, status: EmailSendStatus.PENDING, sendCount: 0 } : overrides.membership);
   const getRecipient = vi.fn().mockResolvedValue({ id: 7, email: "juan@empresa.com", name: "Juan Pérez", company: "Empresa A", position: "Gerente" });
   const recoverStaleDeliveries = vi.fn().mockResolvedValue(overrides.staleRecovered ?? 0);
   const hasInFlightDelivery = vi.fn().mockResolvedValue(overrides.inFlight ?? false);
@@ -101,6 +101,43 @@ describe("CampaignMailService.sendTest", () => {
     expect(mocks.createPendingDelivery).not.toHaveBeenCalled();
     expect(mocks.markRecipientSent).not.toHaveBeenCalled();
     expect(mocks.writeAudit).toHaveBeenCalledWith(ACTOR, "EMAIL_TEST_SENT", expect.objectContaining({ campaignId: 1 }));
+  });
+
+  it("usa el destinatario de referencia para personalizar (TemplateRenderer)", async () => {
+    const { service, mailService } = setup();
+    await service.sendTest(1, "prueba@iimp.org.pe", 7, ACTOR);
+    expect(mailService.sendMail).toHaveBeenCalledWith(expect.objectContaining({
+      subject: "Hola Juan Pérez",
+      html: expect.stringContaining("Juan Pérez"),
+    }));
+  });
+
+  it("sin destinatario de referencia no personaliza (envía a email manual)", async () => {
+    const { service, mailService } = setup();
+    await service.sendTest(1, "prueba@iimp.org.pe", null, ACTOR);
+    expect(mailService.sendMail).toHaveBeenCalledWith(expect.objectContaining({ to: "prueba@iimp.org.pe", subject: "Hola " }));
+  });
+
+  it("destinatario de referencia ajeno a la campaña es rechazado", async () => {
+    const { service, mocks } = setup({ membership: null });
+    await expect(service.sendTest(1, "prueba@iimp.org.pe", 999, ACTOR)).rejects.toBeInstanceOf(CampaignMailError);
+    expect(mocks.sendMail).not.toHaveBeenCalled();
+  });
+
+  it("fallo SMTP no altera la campaña (sin delivery, sin estado, sin sendCount)", async () => {
+    const { service, mocks } = setup({ sendMail: async () => { throw new MailServiceError("Conexión SMTP no disponible."); } });
+    await expect(service.sendTest(1, "prueba@iimp.org.pe", null, ACTOR)).rejects.toBeInstanceOf(MailServiceError);
+    expect(mocks.createPendingDelivery).not.toHaveBeenCalled();
+    expect(mocks.markRecipientSending).not.toHaveBeenCalled();
+    expect(mocks.markRecipientSent).not.toHaveBeenCalled();
+    expect(mocks.markRecipientError).not.toHaveBeenCalled();
+    expect(mocks.writeAudit).not.toHaveBeenCalled();
+  });
+
+  it("no cambia el estado de la campaña (solo lectura)", async () => {
+    const { service, campaignRepository } = setup();
+    await service.sendTest(1, "prueba@iimp.org.pe", null, ACTOR);
+    expect(campaignRepository.getCampaign).toHaveBeenCalledWith(1);
   });
 });
 

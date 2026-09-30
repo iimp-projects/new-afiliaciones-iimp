@@ -2,11 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, CheckCircle2, Loader2, Send } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Eye, Loader2, Send } from "lucide-react";
 import { CampaignForm } from "./CampaignForm";
-import { renderTemplate } from "../Services/TemplateRenderer";
+import { CampaignPreviewModal } from "./CampaignPreviewModal";
 import { backToDraftAction, cancelCampaignAction, markCampaignReadyAction, setCampaignRecipientsAction } from "../Actions/campaign.actions";
-import { fetchDeliveryHistoryAction, processCampaignBatchAction, retryCampaignFailedAction, sendIndividualEmailAction, sendTestEmailAction, startCampaignSendAction } from "../Actions/send.actions";
+import { fetchDeliveryHistoryAction, processCampaignBatchAction, retryCampaignFailedAction, sendIndividualEmailAction, startCampaignSendAction } from "../Actions/send.actions";
 import { formatDateTimeEsPe } from "@/modules/shared/Utils/formatDateTime";
 import { CAMPAIGN_POLL_INTERVAL_MS } from "../Config/campaignSend";
 import type { CampaignDetail, CampaignRecipientPreview, CampaignRecipientSelection } from "../Models/Campaign";
@@ -42,18 +42,20 @@ export function CampaignWorkspace({
   previewRecipients,
   campaignRecipients,
   stats,
+  senderEmail,
 }: {
   campaign: CampaignDetail;
   selection: CampaignRecipientSelection;
   previewRecipients: CampaignRecipientPreview[];
   campaignRecipients: CampaignRecipientView[];
   stats: CampaignSendStats;
+  senderEmail: string | null;
 }) {
   const router = useRouter();
-  const [tab, setTab] = useState<"resumen" | "contenido" | "destinatarios" | "preview">("resumen");
+  const [tab, setTab] = useState<"resumen" | "contenido" | "destinatarios">("resumen");
   const [confirmReady, setConfirmReady] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
-  const [testModal, setTestModal] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [confirmSend, setConfirmSend] = useState(false);
   const [confirmRetry, setConfirmRetry] = useState(false);
   const [liveProgress, setLiveProgress] = useState<CampaignSendProgress | null>(null);
@@ -135,9 +137,9 @@ export function CampaignWorkspace({
           <span className="mt-2 inline-block rounded-full bg-slate-100 px-3 py-1 text-[11px] font-black uppercase text-slate-600">{statusLabel[campaign.status] ?? campaign.status}</span>
         </div>
         <div className="flex flex-wrap gap-2">
-          {(isDraft || isReady) && (
-            <button onClick={() => setTestModal(true)} className="inline-flex items-center gap-2 rounded-xl border border-[#C5A059] px-5 py-2.5 text-sm font-black text-[#7f561e]">
-              <Send size={16} /> Enviar prueba
+          {campaign.htmlContent.trim() !== "" && (
+            <button onClick={() => setPreviewOpen(true)} className="inline-flex items-center gap-2 rounded-xl border border-[#C5A059] px-5 py-2.5 text-sm font-black text-[#7f561e]">
+              <Eye size={16} /> Vista previa
             </button>
           )}
           {isDraft && (
@@ -175,9 +177,9 @@ export function CampaignWorkspace({
       )}
 
       <div className="mt-6 flex w-fit rounded-xl bg-slate-100 p-1">
-        {(["resumen", "contenido", "destinatarios", "preview"] as const).map((item) => (
+        {(["resumen", "contenido", "destinatarios"] as const).map((item) => (
           <button key={item} onClick={() => setTab(item)} className={`rounded-lg px-4 py-2 text-sm font-bold capitalize ${tab === item ? "bg-white shadow-sm text-slate-800" : "text-slate-500"}`}>
-            {item === "preview" ? "Vista previa" : item}
+            {item}
           </button>
         ))}
       </div>
@@ -229,8 +231,6 @@ export function CampaignWorkspace({
             <SendTab campaignId={campaign.id} isReady={isReady} campaignRecipients={campaignRecipients} />
           )
         )}
-
-        {tab === "preview" && <PreviewTab campaign={campaign} previewRecipients={previewRecipients} />}
       </div>
 
       {confirmReady && (
@@ -247,7 +247,7 @@ export function CampaignWorkspace({
         </ConfirmModal>
       )}
 
-      {testModal && <TestEmailModal campaign={campaign} previewRecipients={previewRecipients} onClose={() => setTestModal(false)} />}
+      {previewOpen && <CampaignPreviewModal campaign={campaign} previewRecipients={previewRecipients} senderEmail={senderEmail} onClose={() => setPreviewOpen(false)} />}
 
       {confirmSend && <MassSendModal campaign={campaign} stats={stats} onClose={() => setConfirmSend(false)} onConfirmed={() => { setConfirmSend(false); router.refresh(); }} />}
 
@@ -482,99 +482,6 @@ function HistoryModal({ campaignId, recipient, onClose }: { campaignId: number; 
         )}
       </div>
     </div>
-  );
-}
-
-function TestEmailModal({ campaign, previewRecipients, onClose }: { campaign: CampaignDetail; previewRecipients: CampaignRecipientPreview[]; onClose: () => void }) {
-  const [toEmail, setToEmail] = useState("");
-  const [referenceId, setReferenceId] = useState<number | null>(previewRecipients[0]?.id ?? null);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [done, setDone] = useState(false);
-
-  const reference = previewRecipients.find((r) => r.id === referenceId) ?? null;
-
-  const send = async () => {
-    setBusy(true);
-    setError(null);
-    const response = await sendTestEmailAction(campaign.id, toEmail, referenceId);
-    setBusy(false);
-    if (!response.success) setError(response.message);
-    else setDone(true);
-  };
-
-  return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" onClick={onClose}>
-      <div className="w-full max-w-md rounded-[24px] bg-white p-6 shadow-2xl" onClick={(event) => event.stopPropagation()}>
-        <div className="flex items-center gap-2">
-          <Send size={18} className="text-[#C5A059]" />
-          <h3 className="text-lg font-black text-slate-800">Enviar correo de prueba</h3>
-        </div>
-
-        {done ? (
-          <p className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-700">Correo de prueba enviado correctamente.</p>
-        ) : (
-          <div className="mt-5 space-y-4">
-            <label className="block">
-              <span className="text-xs font-bold uppercase text-slate-500">Correo destinatario</span>
-              <input value={toEmail} onChange={(event) => setToEmail(event.target.value)} placeholder="prueba@iimp.org.pe" className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#C5A059]" />
-            </label>
-            <label className="block">
-              <span className="text-xs font-bold uppercase text-slate-500">Destinatario de referencia para personalización</span>
-              <select value={referenceId ?? ""} onChange={(event) => setReferenceId(Number(event.target.value) || null)} className="mt-1 h-10 w-full rounded-xl border border-slate-200 px-3 text-sm font-semibold">
-                <option value="">Sin personalización</option>
-                {previewRecipients.map((r) => <option key={r.id} value={r.id}>{r.name || r.email} &lt;{r.email}&gt;</option>)}
-              </select>
-            </label>
-            <p className="rounded-xl bg-slate-50 p-3 text-xs text-slate-600">
-              El correo será enviado a: <strong>{toEmail || "—"}</strong><br />
-              La personalización utilizará: <strong>{reference ? `${reference.name || ""} / ${reference.company || ""}` : "—"}</strong>
-            </p>
-            {error && <p className="text-sm font-semibold text-red-600">{error}</p>}
-            <div className="flex justify-end gap-3">
-              <button onClick={onClose} className="rounded-xl px-5 py-2.5 text-sm font-bold text-slate-600">Cancelar</button>
-              <button onClick={() => void send()} disabled={busy || !toEmail.trim()} className="rounded-xl bg-[#C5A059] px-6 py-2.5 text-sm font-black text-white shadow-md disabled:opacity-50">
-                {busy && <Loader2 size={15} className="mr-1 inline animate-spin" />} Enviar prueba
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function PreviewTab({ campaign, previewRecipients }: { campaign: CampaignDetail; previewRecipients: CampaignRecipientPreview[] }) {
-  const [recipientId, setRecipientId] = useState<number | null>(previewRecipients[0]?.id ?? null);
-  const recipient = previewRecipients.find((r) => r.id === recipientId) ?? null;
-
-  const renderedSubject = renderTemplate(campaign.subject, recipient ?? {});
-  const renderedHtml = renderTemplate(campaign.htmlContent, recipient ?? {});
-
-  return (
-    <section className="space-y-5">
-      <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-        <h3 className="mb-4 text-sm font-black uppercase tracking-wide text-slate-700">Vista previa para</h3>
-        {previewRecipients.length === 0 ? (
-          <p className="text-sm text-slate-500">La campaña no tiene destinatarios asociados.</p>
-        ) : (
-          <select value={recipientId ?? ""} onChange={(event) => setRecipientId(Number(event.target.value))} className="h-10 rounded-xl border border-slate-200 px-3 text-sm font-semibold">
-            {previewRecipients.map((r) => <option key={r.id} value={r.id}>{r.name || r.email} &lt;{r.email}&gt;</option>)}
-          </select>
-        )}
-      </div>
-
-      <div className="mx-auto w-full max-w-[680px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-100 bg-slate-50 px-5 py-3 text-xs">
-          <p><span className="font-bold text-slate-400">DE:</span> <span className="text-slate-700">{campaign.senderName || "Instituto de Ingenieros de Minas del Perú"}</span></p>
-          <p><span className="font-bold text-slate-400">PARA:</span> <span className="text-slate-700">{recipient?.name || ""} &lt;{recipient?.email || ""}&gt;</span></p>
-          <p><span className="font-bold text-slate-400">ASUNTO:</span> <span className="text-slate-700">{renderedSubject}</span></p>
-        </div>
-        <div className="p-5">
-          <iframe title="Vista previa" sandbox="" srcDoc={renderedHtml} className="min-h-[420px] w-full border-0 bg-white" />
-        </div>
-      </div>
-    </section>
   );
 }
 
