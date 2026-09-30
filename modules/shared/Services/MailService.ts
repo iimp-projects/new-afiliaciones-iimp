@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import type { Transporter } from "nodemailer";
 import { getSmtpConfig, type SmtpAccount } from "@/lib/config/env";
 
 interface SendMailAttachment {
@@ -37,7 +38,7 @@ function sanitizeMailError(error: unknown): string {
 }
 
 export class MailService {
-  private transporter?: nodemailer.Transporter;
+  private transporter?: Transporter;
   private from?: string;
 
   constructor(private readonly account: SmtpAccount = "DEFAULT") {}
@@ -47,7 +48,7 @@ export class MailService {
    * una integración incompleta no bloquea el arranque ni la construcción de
    * otros servicios que instancian MailService por defecto.
    */
-  private getTransporter(): nodemailer.Transporter {
+  private getTransporter(): Transporter {
     if (!this.transporter) {
       const config = getSmtpConfig(process.env, this.account);
       this.transporter = nodemailer.createTransport({
