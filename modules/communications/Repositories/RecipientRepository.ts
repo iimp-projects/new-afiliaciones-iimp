@@ -61,6 +61,30 @@ export class RecipientRepository {
     return this.db.emailRecipientList.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } });
   }
 
+  async getList(id: number): Promise<{ id: number; name: string } | null> {
+    return this.db.emailRecipientList.findUnique({ where: { id }, select: { id: true, name: true } });
+  }
+
+  async renameList(id: number, name: string): Promise<void> {
+    await this.db.emailRecipientList.update({ where: { id }, data: { name } });
+  }
+
+  async deleteList(id: number): Promise<void> {
+    await this.db.emailRecipientList.delete({ where: { id } });
+  }
+
+  async writeListAudit(actor: { userId: number; email: string }, action: string, listId: number, metadata: Record<string, unknown>): Promise<void> {
+    await this.db.auditLog.create({
+      data: {
+        userId: actor.userId,
+        action,
+        entity: "EmailRecipientList",
+        entityId: String(listId),
+        newValues: { actorEmail: actor.email, ...metadata } as Prisma.InputJsonValue,
+      },
+    });
+  }
+
   async getRecipientDetail(id: number) {
     const row = await this.db.emailRecipient.findUnique({
       where: { id },

@@ -2,10 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, CheckCircle2, Eye, Loader2, Send } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Eye, Loader2, MoreVertical, Pencil, Plus, Send, Trash2, Users } from "lucide-react";
 import { CampaignForm } from "./CampaignForm";
 import { CampaignPreviewModal } from "./CampaignPreviewModal";
+import { ImportRecipientsWizard } from "./ImportRecipientsWizard";
 import { backToDraftAction, cancelCampaignAction, markCampaignReadyAction, setCampaignRecipientsAction } from "../Actions/campaign.actions";
+import { deleteRecipientListAction, renameRecipientListAction } from "../Actions/recipient.actions";
 import { fetchDeliveryHistoryAction, processCampaignBatchAction, retryCampaignFailedAction, sendIndividualEmailAction, startCampaignSendAction } from "../Actions/send.actions";
 import { formatDateTimeEsPe } from "@/modules/shared/Utils/formatDateTime";
 import { CAMPAIGN_POLL_INTERVAL_MS } from "../Config/campaignSend";
@@ -274,11 +276,17 @@ export function CampaignWorkspace({
 }
 
 function RecipientsTab({ campaignId, isDraft, selection }: { campaignId: number; isDraft: boolean; selection: CampaignRecipientSelection }) {
+  const router = useRouter();
   const [selectedLists, setSelectedLists] = useState<number[]>([]);
   const [individuals, setIndividuals] = useState<number[]>(selection.selectedRecipientIds);
   const [search, setSearch] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
+  const [menuListId, setMenuListId] = useState<number | null>(null);
+  const [viewList, setViewList] = useState<{ id: number; name: string } | null>(null);
+  const [renameList, setRenameList] = useState<{ id: number; name: string } | null>(null);
+  const [deleteList, setDeleteList] = useState<{ id: number; name: string } | null>(null);
 
   const uniqueCount = useMemo(() => {
     const set = new Set<number>();
@@ -309,18 +317,49 @@ function RecipientsTab({ campaignId, isDraft, selection }: { campaignId: number;
   return (
     <section className="space-y-5">
       <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-        <h3 className="mb-4 text-sm font-black uppercase tracking-wide text-slate-700">Listas disponibles</h3>
-        <div className="grid gap-2 sm:grid-cols-2">
-          {selection.lists.map((list) => (
-            <label key={list.id} className="flex cursor-pointer items-center justify-between rounded-xl border border-slate-200 p-3 hover:bg-slate-50">
-              <span className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-                <input type="checkbox" disabled={!isDraft} checked={selectedLists.includes(list.id)} onChange={() => toggleList(list.id)} className="h-4 w-4 accent-[#C5A059]" />
-                {list.name}
-              </span>
-              <span className="text-xs font-bold text-slate-400">{list.memberCount} destinatarios</span>
-            </label>
-          ))}
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-sm font-black uppercase tracking-wide text-slate-700">Listas disponibles</h3>
+          {isDraft && (
+            <button onClick={() => setImportOpen(true)} className="inline-flex items-center gap-1.5 text-xs font-bold text-[#7f561e] hover:text-[#C5A059]">
+              <Plus size={15} /> Importar nueva lista
+            </button>
+          )}
         </div>
+        {selection.lists.length === 0 ? (
+          <p className="text-sm text-slate-500">No hay listas disponibles. Importa un Excel para crear una lista.</p>
+        ) : (
+          <div className="grid gap-2 sm:grid-cols-2">
+            {selection.lists.map((list) => (
+              <div key={list.id} className="relative flex items-center justify-between rounded-xl border border-slate-200 p-3 hover:bg-slate-50">
+                <label className="flex min-w-0 cursor-pointer items-center gap-2 text-sm font-semibold text-slate-700">
+                  <input type="checkbox" disabled={!isDraft} checked={selectedLists.includes(list.id)} onChange={() => toggleList(list.id)} className="h-4 w-4 shrink-0 accent-[#C5A059]" />
+                  <span className="truncate">{list.name}</span>
+                </label>
+                <div className="flex shrink-0 items-center gap-2">
+                  <span className="text-xs font-bold text-slate-400">{list.memberCount} destinatarios</span>
+                  <div className="relative">
+                    <button onClick={() => setMenuListId(menuListId === list.id ? null : list.id)} aria-label="Acciones de lista" className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
+                      <MoreVertical size={16} />
+                    </button>
+                    {menuListId === list.id && (
+                      <div className="absolute right-0 top-8 z-20 w-44 rounded-xl border border-slate-200 bg-white py-1 shadow-lg">
+                        <button onClick={() => { setViewList(list); setMenuListId(null); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-semibold text-slate-600 hover:bg-slate-50">
+                          <Users size={14} /> Ver destinatarios
+                        </button>
+                        <button onClick={() => { setRenameList(list); setMenuListId(null); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-semibold text-slate-600 hover:bg-slate-50">
+                          <Pencil size={14} /> Renombrar lista
+                        </button>
+                        <button onClick={() => { setDeleteList(list); setMenuListId(null); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-semibold text-red-600 hover:bg-red-50">
+                          <Trash2 size={14} /> Eliminar lista
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
@@ -348,7 +387,107 @@ function RecipientsTab({ campaignId, isDraft, selection }: { campaignId: number;
         )}
       </div>
       {message && <p className="text-sm font-semibold text-emerald-700">{message}</p>}
+
+      {importOpen && (
+        <ImportRecipientsWizard onClose={() => setImportOpen(false)} onImported={() => { setImportOpen(false); router.refresh(); }} />
+      )}
+      {viewList && <ListMembersModal list={viewList} recipients={selection.recipients} onClose={() => setViewList(null)} />}
+      {renameList && <RenameListModal list={renameList} onClose={() => setRenameList(null)} onRenamed={() => { setRenameList(null); router.refresh(); }} />}
+      {deleteList && <DeleteListModal list={deleteList} onClose={() => setDeleteList(null)} onDeleted={() => { setDeleteList(null); router.refresh(); }} />}
     </section>
+  );
+}
+
+function ListMembersModal({ list, recipients, onClose }: { list: { id: number; name: string }; recipients: CampaignRecipientSelection["recipients"]; onClose: () => void }) {
+  const members = recipients.filter((recipient) => recipient.listIds.includes(list.id));
+  return (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" onClick={onClose}>
+      <div className="flex max-h-[80vh] w-full max-w-lg flex-col rounded-[24px] bg-white p-6 shadow-2xl" onClick={(event) => event.stopPropagation()}>
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-black text-slate-800">Destinatarios — {list.name}</h3>
+          <button onClick={onClose} className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100">✕</button>
+        </div>
+        <p className="mt-1 text-xs text-slate-500">{members.length} destinatarios</p>
+        <div className="mt-4 min-h-0 flex-1 space-y-1 overflow-y-auto">
+          {members.length === 0 ? (
+            <p className="text-sm text-slate-500">Sin destinatarios.</p>
+          ) : (
+            members.map((recipient) => (
+              <div key={recipient.id} className="flex items-center justify-between rounded-lg px-2 py-1.5 text-sm">
+                <span className="font-semibold text-slate-700">{recipient.name || "—"}</span>
+                <span className="text-slate-400">{recipient.email}</span>
+              </div>
+            ))
+          )}
+        </div>
+        <div className="mt-6 flex justify-end">
+          <button onClick={onClose} className="rounded-xl px-5 py-2.5 text-sm font-bold text-slate-600">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RenameListModal({ list, onClose, onRenamed }: { list: { id: number; name: string }; onClose: () => void; onRenamed: () => void }) {
+  const [name, setName] = useState(list.name);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const submit = async () => {
+    setBusy(true);
+    setError(null);
+    const response = await renameRecipientListAction(list.id, name);
+    setBusy(false);
+    if (!response.success) setError(response.message);
+    else onRenamed();
+  };
+
+  return (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" onClick={onClose}>
+      <div className="w-full max-w-md rounded-[24px] bg-white p-6 shadow-2xl" onClick={(event) => event.stopPropagation()}>
+        <h3 className="text-lg font-black text-slate-800">Renombrar lista</h3>
+        <label className="mt-4 block">
+          <span className="text-xs font-bold uppercase text-slate-500">Nombre de la lista</span>
+          <input value={name} onChange={(event) => setName(event.target.value)} className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#C5A059]" />
+        </label>
+        {error && <p className="mt-2 text-sm font-semibold text-red-600">{error}</p>}
+        <div className="mt-6 flex justify-end gap-3">
+          <button onClick={onClose} disabled={busy} className="rounded-xl px-5 py-2.5 text-sm font-bold text-slate-600">Cancelar</button>
+          <button onClick={() => void submit()} disabled={busy || !name.trim()} className="rounded-xl bg-[#C5A059] px-6 py-2.5 text-sm font-black text-white shadow-md disabled:opacity-50">Guardar</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DeleteListModal({ list, onClose, onDeleted }: { list: { id: number; name: string }; onClose: () => void; onDeleted: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const submit = async () => {
+    setBusy(true);
+    setError(null);
+    const response = await deleteRecipientListAction(list.id);
+    setBusy(false);
+    if (!response.success) setError(response.message);
+    else onDeleted();
+  };
+
+  return (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" onClick={onClose}>
+      <div className="w-full max-w-md rounded-[24px] bg-white p-6 shadow-2xl" onClick={(event) => event.stopPropagation()}>
+        <div className="flex items-center gap-2">
+          <Trash2 size={18} className="text-red-500" />
+          <h3 className="text-lg font-black text-slate-800">¿Eliminar esta lista?</h3>
+        </div>
+        <p className="mt-3 text-sm text-slate-600">La lista <strong>&quot;{list.name}&quot;</strong> y sus asociaciones serán eliminadas. Esta acción no enviará ningún correo.</p>
+        {error && <p className="mt-2 text-sm font-semibold text-red-600">{error}</p>}
+        <div className="mt-6 flex justify-end gap-3">
+          <button onClick={onClose} disabled={busy} className="rounded-xl px-5 py-2.5 text-sm font-bold text-slate-600">Cancelar</button>
+          <button onClick={() => void submit()} disabled={busy} className="rounded-xl bg-red-600 px-6 py-2.5 text-sm font-black text-white shadow-md disabled:opacity-50">Eliminar lista</button>
+        </div>
+      </div>
+    </div>
   );
 }
 
