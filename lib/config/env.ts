@@ -245,26 +245,39 @@ export interface SmtpConfig {
   readonly from: string;
 }
 
-export function getSmtpConfig(env: EnvSource = process.env): SmtpConfig {
+export type SmtpAccount = "DEFAULT" | "PROV";
+
+/**
+ * Resuelve la configuración SMTP de una cuenta. La cuenta DEFAULT usa el
+ * prefijo `SMTP_*` (comportamiento histórico). La cuenta PROV usa el prefijo
+ * `PROV_MAIL_*` (usuario/clave institucional independiente). Nunca expone las
+ * credenciales; solo las lee del entorno server-side.
+ */
+export function getSmtpConfig(env: EnvSource = process.env, account: SmtpAccount = "DEFAULT"): SmtpConfig {
+  const isProv = account === "PROV";
+  const prefix = isProv ? "PROV_MAIL" : "SMTP";
+  const usernameKey = isProv ? "PROV_MAIL_USERNAME" : "SMTP_USER";
+  const passwordKey = isProv ? "PROV_MAIL_PASSWORD" : "SMTP_PASS";
+
   const issues: ConfigIssue[] = [];
-  const host = env.SMTP_HOST?.trim();
-  const user = env.SMTP_USER?.trim();
-  const pass = env.SMTP_PASS;
-  const port = Number(env.SMTP_PORT);
-  if (!host) issues.push({ variable: "SMTP_HOST", reason: "es obligatorio" });
-  if (!user) issues.push({ variable: "SMTP_USER", reason: "es obligatorio" });
-  if (!pass) issues.push({ variable: "SMTP_PASS", reason: "es obligatorio" });
+  const host = env[`${prefix}_HOST`]?.trim();
+  const user = env[usernameKey]?.trim();
+  const pass = env[passwordKey];
+  const port = Number(env[`${prefix}_PORT`]);
+  if (!host) issues.push({ variable: `${prefix}_HOST`, reason: "es obligatorio" });
+  if (!user) issues.push({ variable: usernameKey, reason: "es obligatorio" });
+  if (!pass) issues.push({ variable: passwordKey, reason: "es obligatorio" });
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
-    issues.push({ variable: "SMTP_PORT", reason: "debe ser un puerto válido" });
+    issues.push({ variable: `${prefix}_PORT`, reason: "debe ser un puerto válido" });
   }
   if (issues.length) throw new ConfigurationError(issues);
   return {
     host: host as string,
     port,
-    secure: env.SMTP_SECURE === "true",
+    secure: env[`${prefix}_SECURE`] === "true",
     user: user as string,
     pass: pass as string,
-    from: env.SMTP_FROM?.trim() || (user as string),
+    from: env[`${prefix}_FROM`]?.trim() || (user as string),
   };
 }
 

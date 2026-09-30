@@ -40,6 +40,8 @@ model User {
   operationalAlertsAssigned  OperationalAlertTracking[]    @relation("OperationalAlertAssignedUser")
   operationalAlertsResolved  OperationalAlertTracking[]    @relation("OperationalAlertResolvedByUser")
   operationalAlertNotes      OperationalAlertNote[]        @relation("OperationalAlertNoteAuthor")
+  emailCampaignsCreated      EmailCampaign[]              @relation("EmailCampaignCreator")
+  emailRecipientListsCreated EmailRecipientList[]         @relation("EmailRecipientListCreator")
 
   @@index([email])
   @@index([status])
@@ -1344,4 +1346,134 @@ enum VerificationPurpose {
   START_APPLICATION
   RESUME_APPLICATION
   SUBMIT_APPLICATION
+}
+
+enum EmailCampaignStatus {
+  DRAFT
+  READY
+  SENDING
+  COMPLETED
+  PARTIAL
+  CANCELLED
+}
+
+enum EmailSendStatus {
+  PENDING
+  SENDING
+  SENT
+  ERROR
+}
+
+model EmailCampaign {
+  id          Int                 @id @default(autoincrement())
+  name        String              @db.VarChar(200)
+  subject     String              @db.VarChar(500)
+  htmlContent String              @db.Text @map("html_content")
+  textContent String?             @db.Text @map("text_content")
+  senderName  String?             @db.VarChar(200) @map("sender_name")
+  senderEmail String?             @db.VarChar(200) @map("sender_email")
+  replyTo     String?             @db.VarChar(200) @map("reply_to")
+  status      EmailCampaignStatus @default(DRAFT)
+  createdBy   Int?                @map("created_by")
+  createdAt   DateTime            @default(now()) @map("created_at")
+  updatedAt   DateTime            @updatedAt @map("updated_at")
+
+  recipients EmailCampaignRecipient[]
+  deliveries EmailDelivery[]
+  creator    User?                @relation("EmailCampaignCreator", fields: [createdBy], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([createdBy])
+  @@map("email_campaigns")
+}
+
+model EmailRecipient {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique @db.VarChar(320)
+  name      String?  @db.VarChar(200)
+  company   String?  @db.VarChar(200)
+  position  String?  @db.VarChar(200)
+  phone     String?  @db.VarChar(50)
+  ruc       String?  @db.VarChar(20)
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  listMembers        EmailRecipientListMember[]
+  campaignRecipients EmailCampaignRecipient[]
+  deliveries         EmailDelivery[]
+
+  @@map("email_recipients")
+}
+
+model EmailRecipientList {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(200)
+  description String?  @db.Text
+  sourceFile  String?  @db.VarChar(500) @map("source_file")
+  sourceSheet String?  @db.VarChar(200) @map("source_sheet")
+  createdBy   Int?     @map("created_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  members EmailRecipientListMember[]
+  creator User?      @relation("EmailRecipientListCreator", fields: [createdBy], references: [id], onDelete: SetNull)
+
+  @@index([createdBy])
+  @@map("email_recipient_lists")
+}
+
+model EmailRecipientListMember {
+  listId      Int      @map("list_id")
+  recipientId Int      @map("recipient_id")
+  metadata    Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  list      EmailRecipientList @relation(fields: [listId], references: [id], onDelete: Cascade)
+  recipient EmailRecipient     @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@id([listId, recipientId])
+  @@index([recipientId])
+  @@map("email_recipient_list_members")
+}
+
+model EmailCampaignRecipient {
+  campaignId  Int             @map("campaign_id")
+  recipientId Int             @map("recipient_id")
+  status      EmailSendStatus @default(PENDING)
+  lastSentAt  DateTime?       @map("last_sent_at")
+  sendCount   Int             @default(0) @map("send_count")
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+
+  campaign  EmailCampaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  recipient EmailRecipient @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@id([campaignId, recipientId])
+  @@index([recipientId])
+  @@index([status])
+  @@map("email_campaign_recipients")
+}
+
+model EmailDelivery {
+  id            Int             @id @default(autoincrement())
+  campaignId    Int?            @map("campaign_id")
+  recipientId   Int?            @map("recipient_id")
+  email         String          @db.VarChar(320)
+  status        EmailSendStatus @default(PENDING)
+  attemptNumber Int             @default(1) @map("attempt_number")
+  messageId     String?         @db.VarChar(500) @map("message_id")
+  errorMessage  String?         @db.Text @map("error_message")
+  sentAt        DateTime?       @map("sent_at")
+  createdAt     DateTime        @default(now()) @map("created_at")
+
+  campaign  EmailCampaign?  @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  recipient EmailRecipient? @relation(fields: [recipientId], references: [id], onDelete: SetNull)
+
+  @@index([campaignId])
+  @@index([recipientId])
+  @@index([status])
+  @@index([createdAt])
+  @@unique([campaignId, recipientId, attemptNumber])
+  @@map("email_deliveries")
 }

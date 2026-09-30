@@ -139,6 +139,30 @@ describe("feature configuration (lazy)", () => {
     expect(config.port).toBe(587);
   });
 
+  it("getSmtpConfig PROV NO hace fallback silencioso a DEFAULT", () => {
+    expect(() =>
+      getSmtpConfig({
+        SMTP_HOST: "smtp.default",
+        SMTP_PORT: "587",
+        SMTP_USER: "default@example",
+        SMTP_PASS: "pass",
+      }, "PROV"),
+    ).toThrow(ConfigurationError);
+  });
+
+  it("getSmtpConfig PROV resuelve desde PROV_MAIL_*", () => {
+    const config = getSmtpConfig({
+      PROV_MAIL_HOST: "smtp.prov",
+      PROV_MAIL_PORT: "465",
+      PROV_MAIL_SECURE: "true",
+      PROV_MAIL_USERNAME: "prov@example",
+      PROV_MAIL_PASSWORD: "provpass",
+      PROV_MAIL_FROM: "boletin@iimp.org.pe",
+    }, "PROV");
+    expect(config.from).toBe("boletin@iimp.org.pe");
+    expect(config.secure).toBe(true);
+  });
+
   it("getSapConfig falla sin configuración (sin fallback silencioso)", () => {
     expect(() => getSapConfig({})).toThrow(ConfigurationError);
   });

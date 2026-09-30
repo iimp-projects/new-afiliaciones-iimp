@@ -1,5 +1,5 @@
 import nodemailer from "nodemailer";
-import { getSmtpConfig } from "@/lib/config/env";
+import { getSmtpConfig, type SmtpAccount } from "@/lib/config/env";
 
 interface SendMailAttachment {
   filename: string;
@@ -11,12 +11,36 @@ interface SendMailOptions {
   to: string;
   subject: string;
   html: string;
+  text?: string;
+  fromName?: string;
+  replyTo?: string;
   attachments?: SendMailAttachment[];
+}
+
+export interface SendMailResult {
+  messageId?: string;
+}
+
+/** Error de envío sanitizado: nunca expone credenciales ni configuración SMTP. */
+export class MailServiceError extends Error {
+  constructor(message: string) { super(message); this.name = "MailServiceError"; }
+}
+
+function sanitizeMailError(error: unknown): string {
+  const code = (error as { code?: string })?.code;
+  const responseCode = (error as { responseCode?: number })?.responseCode;
+  if (code === "EAUTH" || responseCode === 535) return "Error de autenticación SMTP.";
+  if (code === "ECONNECTION" || code === "ESOCKET" || code === "ETIMEDOUT" || code === "ENOTFOUND" || code === "ECONNREFUSED") {
+    return "Conexión SMTP no disponible.";
+  }
+  return "No se pudo enviar el correo.";
 }
 
 export class MailService {
   private transporter?: nodemailer.Transporter;
   private from?: string;
+
+  constructor(private readonly account: SmtpAccount = "DEFAULT") {}
 
   /**
    * La configuración SMTP se valida al enviar (no al construir), de modo que
@@ -25,7 +49,7 @@ export class MailService {
    */
   private getTransporter(): nodemailer.Transporter {
     if (!this.transporter) {
-      const config = getSmtpConfig();
+      const config = getSmtpConfig(process.env, this.account);
       this.transporter = nodemailer.createTransport({
         host: config.host,
         port: config.port,
@@ -40,20 +64,30 @@ export class MailService {
     return this.transporter;
   }
 
-  public async sendMail(options: SendMailOptions): Promise<void> {
+  public async sendMail(options: SendMailOptions): Promise<SendMailResult> {
     const transporter = this.getTransporter();
     try {
-      await transporter.sendMail({
-        from: `"IIMP Portal de Afiliaciones" <${this.from}>`,
+      const info = await transporter.sendMail({
+        from: `"${options.fromName ?? "IIMP Portal de Afiliaciones"}" <${this.from}>`,
         to: options.to,
         subject: options.subject,
         html: options.html,
+        text: options.text,
+        replyTo: options.replyTo,
         attachments: options.attachments,
       });
-      console.log(`[MailService] Correo enviado exitosamente a: ${options.to}`);
+      return { messageId: info.messageId };
     } catch (error) {
-      console.error("[MailService] Error enviando correo:", error);
-      throw new Error("No se pudo enviar el correo de verificación. Por favor, intente más tarde.");
+      throw new MailServiceError(sanitizeMailError(error));
     }
+  }
+
+  /**
+   * Valida únicamente la PRESENCIA/configuración SMTP de la cuenta, sin abrir
+   * conexión ni construir transporter. Lanza ConfigurationError si faltan
+   * variables requeridas. Sirve como fail-fast previo a iniciar envíos.
+   */
+  public validateConfiguration(): void {
+    getSmtpConfig(process.env, this.account);
   }
 }
