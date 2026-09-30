@@ -1,5 +1,6 @@
 import React from "react";
 import { Send, Clock, UserCheck, ShieldCheck, MailWarning } from "lucide-react";
+import { formatPeruDate, formatPeruTime } from "@/modules/shared/Utils/formatPeruDateTime";
 
 export function ComiteTab({ payload }: { payload: any }) {
   // Buscamos el área del comité y su historial
@@ -31,8 +32,8 @@ export function ComiteTab({ payload }: { payload: any }) {
           <div className="space-y-3">
             {notificationHistory.map((record: any) => {
               const date = new Date(record.createdAt);
-              const dateStr = date.toLocaleDateString("es-PE", { day: "2-digit", month: "short", year: "numeric" });
-              const timeStr = date.toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" });
+              const dateStr = formatPeruDate(date);
+              const timeStr = formatPeruTime(date);
 
               return (
                 <div key={record.id} className="bg-white border border-indigo-100 rounded-xl p-3.5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">

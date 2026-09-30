@@ -18,6 +18,7 @@ import {
   ShieldAlert,
   UserMinus,
 } from "lucide-react";
+import { formatPeruDate, formatPeruDateTime, formatPeruTime } from "@/modules/shared/Utils/formatPeruDateTime";
 
 interface AvalesTabProps {
   payload: any;
@@ -234,20 +235,12 @@ export function AvalesTab({
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return null;
-    return new Date(dateString).toLocaleDateString("es-PE", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
+    return formatPeruDate(dateString);
   };
 
   const formatTime = (dateString?: string) => {
     if (!dateString) return null;
-    return new Date(dateString).toLocaleTimeString("es-PE", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    });
+    return formatPeruTime(dateString);
   };
 
   return (
@@ -630,10 +623,7 @@ export function AvalesTab({
                           <div key={i} className="flex justify-between items-center text-[10px] text-slate-500 bg-white border border-blue-50/50 px-2.5 py-1.5 rounded-lg shadow-sm">
                             <span className="truncate pr-2">Por: <strong className="text-slate-700">{record.actor}</strong></span>
                             <span className="shrink-0 text-blue-400 font-medium">
-                              {new Date(record.date).toLocaleString('es-PE', { 
-                                day: '2-digit', month: '2-digit', year: 'numeric', 
-                                hour: '2-digit', minute: '2-digit' 
-                              })}
+                              {formatPeruDateTime(record.date)}
                             </span>
                           </div>
                         ))}

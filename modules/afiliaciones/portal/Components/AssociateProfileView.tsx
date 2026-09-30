@@ -29,6 +29,7 @@ import { ProfileCard as Card, ProfileReadField as Read } from "@/modules/shared/
 import { PROFILE_CONTENT } from "../Config/ProfileContent";
 import type { AssociateProfileDTO } from "../Services/AssociateProfileService";
 import { formatCalendarDate } from "../Utils/calendarDate";
+import { formatPeruDate } from "@/modules/shared/Utils/formatPeruDateTime";
 
 type Item = {
   id: number;
@@ -67,10 +68,7 @@ const genderLabel = (value: string | null) =>
   genderOptions.find((option) => option.value === value)?.label ?? missing;
 
 const date = (value: string | null) => formatCalendarDate(value) ?? missing;
-const dateTime = (value: string | null) =>
-  value
-    ? new Intl.DateTimeFormat("es-PE", { dateStyle: "medium" }).format(new Date(value))
-    : missing;
+const dateTime = (value: string | null) => value ? formatPeruDate(value) : missing;
 const membershipStatusLabels: Record<string, string> = {
   ACTIVE: "Activa",
   INACTIVE: "Inactiva",

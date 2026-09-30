@@ -33,6 +33,7 @@ import {
   User,
   X,
 } from "lucide-react";
+import { formatPeruDateTime } from "@/modules/shared/Utils/formatPeruDateTime";
 
 interface ObservacionesTabProps {
   payload: any;
@@ -301,14 +302,7 @@ function ObservationCard({
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "Fecha no registrada";
 
-    return new Intl.DateTimeFormat("es-PE", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    }).format(new Date(dateString));
+    return formatPeruDateTime(dateString);
   };
 
   const getSecureUrl = async (rawUrl: string) => {

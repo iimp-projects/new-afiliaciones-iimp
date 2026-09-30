@@ -6,12 +6,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { paymentMethodLabel } from "@/modules/afiliaciones/payments/Models/PaymentMethod";
+import { formatPeruDateTime } from "@/modules/shared/Utils/formatPeruDateTime";
 import type { ApplicationStatusData } from "../Models/ApplicationStatus";
 
 interface Props { data: ApplicationStatusData; onFinish?: () => void; }
 
 const formatDate = (value?: string | Date | null) => value
-  ? new Intl.DateTimeFormat("es-PE", { dateStyle: "long", timeStyle: "short" }).format(new Date(value))
+  ? formatPeruDateTime(value)
   : "No disponible";
 const formatMoney = (amount: number, currency: string) => new Intl.NumberFormat("es-PE", { style: "currency", currency, minimumFractionDigits: 2 }).format(amount);
 const membershipLabel = (type?: string) => type === "STUDENT" ? "Asociado Estudiante" : type === "ACTIVE" ? "Asociado Activo" : "No disponible";

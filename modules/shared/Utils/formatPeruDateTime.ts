@@ -49,3 +49,32 @@ export function formatPeruDateTime(value: Date | string): string {
   if (!date) return "No disponible";
   return `${formatPeruDate(date)} ${formatPeruTime(date)}`;
 }
+
+/**
+ * Formatea una fecha de calendario (DATE-only, p. ej. fecha de nacimiento)
+ * como DD/MM/YYYY SIN aplicar conversión de zona horaria, de modo que no se
+ * desplace el día. Acepta "YYYY-MM-DD", un ISO timestamp o un Date.
+ */
+export function formatCalendarDate(value: Date | string | null | undefined): string {
+  if (value == null || value === "") return "No disponible";
+
+  let year: number;
+  let month: number;
+  let day: number;
+
+  if (value instanceof Date) {
+    if (Number.isNaN(value.getTime())) return "No disponible";
+    year = value.getUTCFullYear();
+    month = value.getUTCMonth() + 1;
+    day = value.getUTCDate();
+  } else {
+    const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value.trim());
+    if (!match) return value.trim();
+    year = Number(match[1]);
+    month = Number(match[2]);
+    day = Number(match[3]);
+  }
+
+  const pad = (part: number): string => String(part).padStart(2, "0");
+  return `${pad(day)}/${pad(month)}/${year}`;
+}

@@ -8,6 +8,7 @@ import { DataActionMenu, DataEmptyState, DataFilterBar, DataManagementShell, Dat
 import { OperationalAlertDrawer } from "../Components/OperationalAlertDrawer";
 import { OperationalAlertSeverityBadge, OperationalAlertStatusBadge } from "../Components/OperationalAlertBadges";
 import { getOperationalAlertPresentation, getOperationalAlertStatusLabel, OPERATIONAL_ALERT_CATALOG } from "../Config/OperationalAlertCatalog";
+import { formatPeruDateTime } from "@/modules/shared/Utils/formatPeruDateTime";
 
 type Filters = { search: string; status: string; severity: string; type: string; assignedUserId: string };
 type Row = { id: number; alertKey: string; type: string; severity: string; status: string; applicationId: number; firstDetectedAt: string; lastDetectedAt: string; application: { applicationCode: string; person: { firstName: string; paternalLastName: string; documentNumber: string } | null }; assignedUser: { id: number; name: string | null; image: string | null } | null };
@@ -16,7 +17,7 @@ type Assignee = { id: number; name: string };
 const emptyFilters: Filters = { search: "", status: "", severity: "", type: "", assignedUserId: "" };
 const primaryFilters: DataFilterDefinition[] = [{ key: "search", type: "search", label: "Buscar", placeholder: "Expediente, postulante, documento o alertKey" }, { key: "status", type: "select", label: "Estado", placeholder: "Todos los estados", options: [{ value: "ACTIVE", label: getOperationalAlertStatusLabel("ACTIVE") }, { value: "IN_PROGRESS", label: getOperationalAlertStatusLabel("IN_PROGRESS") }, { value: "RESOLVED", label: getOperationalAlertStatusLabel("RESOLVED") }] }, { key: "severity", type: "select", label: "Severidad", placeholder: "Todas las severidades", options: [{ value: "CRITICAL", label: "Crítica" }, { value: "WARNING", label: "Advertencia" }] }];
 const types = Object.entries(OPERATIONAL_ALERT_CATALOG).map(([value, presentation]) => ({ value, label: presentation.label }));
-const formatDate = (value: string) => new Intl.DateTimeFormat("es-PE", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
+const formatDate = (value: string) => formatPeruDateTime(value);
 const personName = (row: Row) => row.application.person ? `${row.application.person.firstName} ${row.application.person.paternalLastName}`.trim() : "Postulante no registrado";
 
 export function OperationalAlertsWorkspace() {

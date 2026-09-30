@@ -2,6 +2,7 @@
 
 import { Activity, CheckCircle2, AlertCircle } from "lucide-react";
 import { formatStatusName } from "../../../Utils/expedientes.utils";
+import { formatPeruDateTime } from "@/modules/shared/Utils/formatPeruDateTime";
 
 export function HistorialTab({ payload }: { payload: any }) {
   const generateTimeline = () => {
@@ -63,7 +64,7 @@ export function HistorialTab({ payload }: { payload: any }) {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1.5">
               <h4 className="text-sm font-bold text-slate-800">{event.title}</h4>
               <span className="text-[11px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-md w-max">
-                {event.date.toLocaleString("es-PE", { dateStyle: "long", timeStyle: "short" })}
+                {formatPeruDateTime(event.date)}
               </span>
             </div>
 
