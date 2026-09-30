@@ -96,7 +96,7 @@
 //         <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-[#c39254]/10 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/3 pointer-events-none"></div>
 
 //         <div className="max-w-[1280px] mx-auto relative z-10">
-          
+
 //           {/* Cabecera Descriptiva */}
 //           <div className="text-center mb-20">
 //             <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-primary/20 text-primary text-sm font-extrabold uppercase tracking-widest mb-6 shadow-sm">
@@ -115,7 +115,7 @@
 
 //           {/* FEATURE 1: El Video Cinemático (Sin recortes, formato panorámico) */}
 //           <div className="w-full bg-white rounded-[32px] border border-gray-200 shadow-xl overflow-hidden mb-10 flex flex-col xl:flex-row group hover:shadow-2xl hover:border-primary/40 transition-all duration-500">
-            
+
 //             {/* Contenedor del Video (Proporción perfecta 16:9) */}
 //             <div className="w-full xl:w-[60%] bg-black relative aspect-video xl:aspect-auto">
 //               <video
@@ -129,7 +129,7 @@
 //                 <source src="/videos/jueves_minero.mp4" type="video/mp4" />
 //                 Tu navegador no soporta videos.
 //               </video>
-              
+
 //               {/* Overlay y Botón Play visual */}
 //               <div className="absolute inset-0 bg-gradient-to-t xl:bg-gradient-to-r from-black/80 via-black/20 to-transparent"></div>
 //               <div className="absolute bottom-8 left-8 xl:bottom-12 xl:left-12 flex items-center gap-4">
@@ -165,7 +165,7 @@
 
 //           {/* GRID INFERIOR (3 Tarjetas de alto nivel y muy descriptivas) */}
 //           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            
+
 //             {/* Tarjeta OneMine */}
 //             <div className="bg-white p-8 lg:p-10 rounded-[32px] border border-gray-200 shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 relative overflow-hidden group">
 //               <div className="absolute top-0 right-0 w-40 h-40 bg-[#D6A84A]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-[#D6A84A]/20 transition-colors"></div>
@@ -255,10 +255,10 @@
 
 //           {/* Grid de Testimonios Estilo Card-in-Card */}
 //           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            
+
 //             {/* Testimonio 1: Enfoque Senior / OneMine */}
 //             <div className="bg-surface-container-lowest p-6 rounded-3xl border border-secondary/10 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.05)] hover:-translate-y-1 transition-transform flex flex-col">
-              
+
 //               {/* Avatares apilados estilo "Accede a cursos..." */}
 //               <div className="flex items-center gap-4 mb-8 bg-surface p-3 rounded-2xl border border-secondary/5">
 //                 <div className="flex -space-x-2 shrink-0">
@@ -273,7 +273,7 @@
 
 //               {/* Contenedor Anidado (Borde interno) */}
 //               <div className="relative border-2 border-outline-variant/50 rounded-2xl p-6 pt-8 mt-2 flex-grow flex flex-col bg-surface/50">
-                
+
 //                 {/* Badge superpuesto en el borde superior */}
 //                 <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-surface border-2 border-outline-variant/50 text-secondary text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full whitespace-nowrap shadow-sm">
 //                   Geólogo Senior
@@ -308,7 +308,7 @@
 //             {/* Testimonio 2: Tarjeta Invertida Premium */}
 //             <div className="bg-primary p-6 rounded-3xl shadow-[0_20px_40px_-15px_rgba(127,86,30,0.3)] hover:-translate-y-1 transition-transform relative overflow-hidden flex flex-col">
 //               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
-              
+
 //               {/* Avatares apilados */}
 //               <div className="relative z-10 flex items-center gap-4 mb-8 bg-white/5 p-3 rounded-2xl border border-white/10 backdrop-blur-sm">
 //                 <div className="flex -space-x-2 shrink-0">
@@ -323,7 +323,7 @@
 
 //               {/* Contenedor Anidado (Borde interno) */}
 //               <div className="relative z-10 border-2 border-white/20 rounded-2xl p-6 pt-8 mt-2 flex-grow flex flex-col bg-black/10 backdrop-blur-sm">
-                
+
 //                 {/* Badge superpuesto en el borde superior */}
 //                 <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-primary border-2 border-white/20 text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full whitespace-nowrap shadow-md">
 //                   Desarrollador de Software
@@ -357,7 +357,7 @@
 
 //             {/* Testimonio 3: Enfoque Estudiantes */}
 //             <div className="bg-surface-container-lowest p-6 rounded-3xl border border-secondary/10 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.05)] hover:-translate-y-1 transition-transform flex flex-col">
-              
+
 //               {/* Avatares apilados */}
 //               <div className="flex items-center gap-4 mb-8 bg-surface p-3 rounded-2xl border border-secondary/5">
 //                 <div className="flex -space-x-2 shrink-0">
@@ -372,7 +372,7 @@
 
 //               {/* Contenedor Anidado */}
 //               <div className="relative border-2 border-outline-variant/50 rounded-2xl p-6 pt-8 mt-2 flex-grow flex flex-col bg-surface/50">
-                
+
 //                 {/* Badge superpuesto en el borde superior */}
 //                 <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-surface border-2 border-outline-variant/50 text-secondary text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full whitespace-nowrap shadow-sm">
 //                   Estudiante Pre-grado
@@ -572,7 +572,7 @@
 
 "use client";
 
-import { useEffect } from "react"
+import { useEffect, useState, useRef } from "react"
 import Link from "next/link";
 import {
   ArrowRight,
@@ -584,11 +584,29 @@ import {
   Award,
   ChevronDown,
   FileText,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { PublicFooter } from "@/modules/shared/Components/PublicFooter";
 
 
 export default function PostulacionLandingPage() {
+  const [isVideoMuted, setIsVideoMuted] = useState(true);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  const toggleSound = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (videoRef.current) {
+      const nextMuted = !videoRef.current.muted;
+      videoRef.current.muted = nextMuted;
+      setIsVideoMuted(nextMuted);
+      if (!nextMuted) {
+        videoRef.current.play().catch(() => {});
+      }
+    }
+  };
+
   // Manejar el scroll si vienen desde otra página con el hash #planes-afiliacion
   useEffect(() => {
     if (window.location.hash === "#planes-afiliacion") {
@@ -676,14 +694,14 @@ export default function PostulacionLandingPage() {
 
       {/* =========================================
         2. BENEFICIOS PREMIUM (Showcase Tecnológico)
-      ========================================= */}   
+      ========================================= */}
       <section className="py-24 px-6 lg:px-12 bg-[#F8F9FA] relative z-20 overflow-hidden">
         {/* Decoraciones de fondo (Tech Vibe) */}
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-[#c39254]/10 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/3 pointer-events-none"></div>
 
         <div className="max-w-[1280px] mx-auto relative z-10">
-          
+
           {/* Cabecera Descriptiva */}
           <div className="text-center mb-20">
             <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-primary/20 text-primary text-sm font-extrabold uppercase tracking-widest mb-6 shadow-sm">
@@ -701,53 +719,77 @@ export default function PostulacionLandingPage() {
           </div>
 
           {/* FEATURE 1: El Video Cinemático (Convertido en Link) */}
-          <Link 
+          <Link
             href="/beneficios/networking-alto-nivel"
-            className="w-full bg-white rounded-[32px] border border-gray-200 shadow-xl overflow-hidden mb-10 flex flex-col xl:flex-row group hover:shadow-2xl hover:border-primary/40 transition-all duration-500 cursor-pointer block"
+            className="max-w-3xl mx-auto bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mb-10 flex flex-col sm:flex-row items-stretch group hover:shadow-lg hover:border-primary/40 transition-all duration-300 cursor-pointer block"
           >
-            {/* Contenedor del Video */}
-            <div className="w-full xl:w-[60%] bg-black relative aspect-video xl:aspect-auto">
+            {/* Contenedor del Video mucho más compacto */}
+            <div className="w-full sm:w-[220px] md:w-[240px] shrink-0 bg-black relative h-[220px] sm:h-auto overflow-hidden flex items-center justify-center">
               <video
+                ref={videoRef}
+                src="/videos/afiliaciones.mp4"
                 autoPlay
                 loop
-                muted
+                muted={isVideoMuted}
                 playsInline
-                className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-700"
+                preload="auto"
+                className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-500"
               >
-                <source src="/videos/jueves_minero.mp4" type="video/mp4" />
+                <source src="/videos/afiliaciones.mp4" type="video/mp4" />
               </video>
-              <div className="absolute inset-0 bg-gradient-to-t xl:bg-gradient-to-r from-black/80 via-black/20 to-transparent"></div>
-              <div className="absolute bottom-8 left-8 xl:bottom-12 xl:left-12 flex items-center gap-4">
-                <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center text-white shadow-[0_0_30px_rgba(197,160,89,0.8)] animate-pulse">
-                  <svg className="w-6 h-6 ml-1" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4l12 6-12 6z"/></svg>
+
+              {/* Botón flotante para Activar / Desactivar Sonido */}
+              <button
+                type="button"
+                onClick={toggleSound}
+                className="absolute top-2.5 right-2.5 z-40 bg-black/75 hover:bg-black/95 text-white backdrop-blur-md px-2.5 py-1 rounded-full flex items-center gap-1.5 text-[11px] font-bold shadow transition-all transform hover:scale-105 border border-white/20"
+                title={isVideoMuted ? "Activar sonido" : "Silenciar video"}
+              >
+                {isVideoMuted ? (
+                  <>
+                    <VolumeX size={13} className="text-amber-400" />
+                    <span>Activar audio</span>
+                  </>
+                ) : (
+                  <>
+                    <Volume2 size={13} className="text-emerald-400 animate-pulse" />
+                    <span>Audio activo</span>
+                  </>
+                )}
+              </button>
+
+              <div className="absolute inset-0 bg-gradient-to-t sm:bg-gradient-to-r from-black/70 via-transparent to-transparent pointer-events-none z-20"></div>
+              <div className="absolute bottom-3 left-3 flex items-center gap-2.5 pointer-events-none z-30">
+                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white shadow-sm">
+                  <svg className="w-3.5 h-3.5 ml-0.5" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4l12 6-12 6z" /></svg>
                 </div>
                 <div>
-                  <span className="block text-white font-black tracking-widest uppercase text-sm">Experiencia IIMP</span>
-                  <span className="block text-white/70 text-xs mt-1">Conecta con los líderes</span>
+                  <span className="block text-white font-bold tracking-wider uppercase text-[11px]">Experiencia IIMP</span>
+                  <span className="block text-white/70 text-[10px]">Conecta con los líderes</span>
                 </div>
               </div>
             </div>
 
-            {/* Contenido Descriptivo */}
-            <div className="w-full xl:w-[40%] p-8 lg:p-12 flex flex-col justify-center bg-white">
-              <div className="w-16 h-16 rounded-2xl bg-[#D6A84A]/10 text-[#D6A84A] flex items-center justify-center mb-6">
-                <Coffee size={32} strokeWidth={1.5} />
+            {/* Contenido Descriptivo ajustado y compacto */}
+            <div className="flex-1 p-5 sm:p-6 md:p-7 flex flex-col justify-center bg-white">
+              <div className="w-10 h-10 rounded-xl bg-[#D6A84A]/10 text-[#D6A84A] flex items-center justify-center mb-3">
+                <Coffee size={20} strokeWidth={1.5} />
               </div>
-              <h3 className="text-3xl font-extrabold text-[#1E293B] mb-4">Networking de Alto Nivel</h3>
-              <p className="text-lg text-slate-500 leading-relaxed mb-8">
+              <h3 className="text-xl sm:text-2xl font-black text-[#1E293B] mb-2">Networking de Alto Nivel</h3>
+              <p className="text-xs sm:text-sm text-slate-500 leading-relaxed mb-4">
                 Construye relaciones que transforman carreras. Disfruta de participación preferencial en los <strong className="text-[#1E293B]">Jueves Mineros presenciales</strong>, y accede junto a tus invitados al exclusivo Restobar Minero.
               </p>
-              <span className="inline-flex items-center gap-2 text-sm font-bold text-[#D6A84A] group-hover:gap-3 transition-all">
-                Ver detalles de Networking <ArrowRight size={16} />
+              <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-[#D6A84A] group-hover:gap-2.5 transition-all">
+                Ver detalles de Networking <ArrowRight size={14} />
               </span>
             </div>
           </Link>
 
           {/* GRID INFERIOR (3 Tarjetas envueltas en Link) */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            
+
             {/* Tarjeta Recursos Digitales */}
-            <Link 
+            <Link
               href="/beneficios/recursos-digitales"
               className="bg-white p-8 lg:p-10 rounded-[32px] border border-gray-200 shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 relative overflow-hidden group block"
             >
@@ -765,7 +807,7 @@ export default function PostulacionLandingPage() {
             </Link>
 
             {/* Tarjeta Eventos */}
-            <Link 
+            <Link
               href="/beneficios/eventos-top"
               className="bg-white p-8 lg:p-10 rounded-[32px] border border-gray-200 shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 relative overflow-hidden group block"
             >
@@ -783,7 +825,7 @@ export default function PostulacionLandingPage() {
             </Link>
 
             {/* Tarjeta Desarrollo / Mentoring */}
-            <Link 
+            <Link
               href="/beneficios/desarrollo-profesional"
               className="bg-white p-8 lg:p-10 rounded-[32px] border border-gray-200 shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 relative overflow-hidden group block"
             >
@@ -804,7 +846,7 @@ export default function PostulacionLandingPage() {
         </div>
       </section>
 
-    
+
 
       {/* =========================================
           3. PRUEBA SOCIAL (Testimonios y Stats)
@@ -814,7 +856,7 @@ export default function PostulacionLandingPage() {
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#C39254]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
 
         <div className="max-w-[1280px] mx-auto px-6 lg:px-12 relative z-10">
-          
+
           {/* Header y Stats */}
           <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-16">
             <div className="max-w-xl text-center md:text-left">
@@ -849,7 +891,7 @@ export default function PostulacionLandingPage() {
 
           {/* Grid de Testimonios Estilo Ejecutivo */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
-            
+
             {/* Testimonio 1: Geólogo / Senior */}
             <div className="bg-white p-8 rounded-3xl border border-gray-200/80 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
               <div>

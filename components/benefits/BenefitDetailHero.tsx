@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
-import { ArrowLeft, Play, MapPin, Calendar, Sparkles, ExternalLink, CheckCircle2, GraduationCap, Briefcase, ArrowRight } from "lucide-react";
+import { ArrowLeft, Play, MapPin, Calendar, Sparkles, ExternalLink, CheckCircle2, GraduationCap, Briefcase, ArrowRight, Volume2, VolumeX } from "lucide-react";
 import { PublicFooter } from "@/modules/shared/Components/PublicFooter";
 
 interface BenefitData {
@@ -83,11 +83,27 @@ const benefitsBySlug: Record<string, BenefitItemsByType> = {
 
 export default function BenefitDetailHero({ benefit }: { benefit: BenefitData }) {
   const [activeTab, setActiveTab] = useState<"asociado" | "estudiante">("asociado");
+  const [isVideoMuted, setIsVideoMuted] = useState(true);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  const toggleSound = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (videoRef.current) {
+      const nextMuted = !videoRef.current.muted;
+      videoRef.current.muted = nextMuted;
+      setIsVideoMuted(nextMuted);
+      if (!nextMuted) {
+        videoRef.current.play().catch(() => {});
+      }
+    }
+  };
 
   // 1. Identificar el tipo de beneficio actual
   const isRecursos = benefit.slug === "recursos-digitales";
   const isEventos = benefit.slug === "eventos-top";
   const isDesarrollo = benefit.slug === "desarrollo-profesional";
+  const isNetworking = benefit.slug === "networking-alto-nivel";
 
   // 2. Obtener beneficios para el slug actual
   const currentBenefits = benefitsBySlug[benefit.slug] || { asociado: [], estudiante: [] };
@@ -270,20 +286,92 @@ export default function BenefitDetailHero({ benefit }: { benefit: BenefitData })
         <div className="lg:col-span-5 relative z-10">
           <div className="relative group rounded-3xl overflow-hidden border border-gray-200 bg-white p-2 shadow-xl transform lg:rotate-2 hover:rotate-0 transition-all duration-500">
             <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-gray-900">
-              <img
-                src={
-                  isRecursos
-                    ? "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&q=80"
-                    : isEventos
-                    ? "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80"
-                    : "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&q=80"
-                }
-                alt={benefit.title}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-80"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent"></div>
+              {isDesarrollo ? (
+                <>
+                  <video
+                    ref={videoRef}
+                    src="/videos/cantera.mp4"
+                    autoPlay
+                    loop
+                    muted={isVideoMuted}
+                    playsInline
+                    preload="auto"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-90"
+                  >
+                    <source src="/videos/cantera.mp4" type="video/mp4" />
+                    <source src="https://iimp.org.pe/publicaciones/cantera.mp4" type="video/mp4" />
+                  </video>
 
-              {!isRecursos && (
+                  {/* Botón flotante para Activar / Desactivar Sonido */}
+                  <button
+                    type="button"
+                    onClick={toggleSound}
+                    className="absolute top-3 right-3 z-30 bg-black/75 hover:bg-black/95 text-white backdrop-blur-md px-3 py-1.5 rounded-full flex items-center gap-1.5 text-xs font-bold shadow-lg transition-all transform hover:scale-105 border border-white/20"
+                    title={isVideoMuted ? "Activar sonido" : "Silenciar video"}
+                  >
+                    {isVideoMuted ? (
+                      <>
+                        <VolumeX size={14} className="text-amber-400" />
+                        <span>Activar audio</span>
+                      </>
+                    ) : (
+                      <>
+                        <Volume2 size={14} className="text-emerald-400 animate-pulse" />
+                        <span>Audio activo</span>
+                      </>
+                    )}
+                  </button>
+                </>
+              ) : isNetworking ? (
+                <>
+                  <video
+                    ref={videoRef}
+                    src="/videos/afiliaciones.mp4"
+                    autoPlay
+                    loop
+                    muted={isVideoMuted}
+                    playsInline
+                    preload="auto"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-90"
+                  >
+                    <source src="/videos/afiliaciones.mp4" type="video/mp4" />
+                  </video>
+
+                  {/* Botón flotante para Activar / Desactivar Sonido */}
+                  <button
+                    type="button"
+                    onClick={toggleSound}
+                    className="absolute top-3 right-3 z-30 bg-black/75 hover:bg-black/95 text-white backdrop-blur-md px-3 py-1.5 rounded-full flex items-center gap-1.5 text-xs font-bold shadow-lg transition-all transform hover:scale-105 border border-white/20"
+                    title={isVideoMuted ? "Activar sonido" : "Silenciar video"}
+                  >
+                    {isVideoMuted ? (
+                      <>
+                        <VolumeX size={14} className="text-amber-400" />
+                        <span>Activar audio</span>
+                      </>
+                    ) : (
+                      <>
+                        <Volume2 size={14} className="text-emerald-400 animate-pulse" />
+                        <span>Audio activo</span>
+                      </>
+                    )}
+                  </button>
+                </>
+              ) : (
+                <img
+                  src={
+                    isRecursos
+                      ? "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&q=80"
+                      : "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80"
+                  }
+                  alt={benefit.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-80"
+                />
+              )}
+
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent pointer-events-none"></div>
+
+              {!isRecursos && !isDesarrollo && !isNetworking && (
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-20 h-20 rounded-full bg-[#C39254] flex items-center justify-center text-white shadow-xl cursor-pointer hover:scale-110 transition-transform">
                     <Play size={32} className="ml-1 fill-white" />
@@ -291,25 +379,45 @@ export default function BenefitDetailHero({ benefit }: { benefit: BenefitData })
                 </div>
               )}
 
-              <div className="absolute bottom-6 left-6 right-6 text-white">
+              <div className="absolute bottom-6 left-6 right-6 text-white pointer-events-none z-20">
                 <span className="text-xs font-black uppercase tracking-widest text-[#C39254] mb-1 block">
-                  {isRecursos ? "Acceso Digital" : isEventos ? "Tarifas Preferenciales" : "Revive la Experiencia"}
+                  {isRecursos
+                    ? "Acceso Digital"
+                    : isEventos
+                    ? "Tarifas Preferenciales"
+                    : isDesarrollo
+                    ? "Cantera & Mentoring"
+                    : "Revive la Experiencia"}
                 </span>
                 <h3 className="text-xl font-bold text-white mb-2">
                   {isRecursos
                     ? "Biblioteca Digital Minera"
                     : isEventos
                     ? "PERUMIN, proEXPLO & Congresos VIP"
+                    : isDesarrollo
+                    ? "Cantera de Talentos & Cursos IIMP"
                     : "Networking Presencial & Restobar Minero"}
                 </h3>
                 <div className="flex items-center gap-4 text-xs text-gray-300 font-medium">
                   <span className="flex items-center gap-1">
                     <MapPin size={14} className="text-[#C39254]" />
-                    {isRecursos ? "Plataforma Online" : isEventos ? "Sedes Variadas & Arequipa" : "Sede IIMP"}
+                    {isRecursos
+                      ? "Plataforma Online"
+                      : isEventos
+                      ? "Sedes Variadas & Arequipa"
+                      : isDesarrollo
+                      ? "Sede IIMP & Modalidad Híbrida"
+                      : "Sede IIMP"}
                   </span>
                   <span className="flex items-center gap-1">
                     <Calendar size={14} className="text-[#C39254]" />
-                    {isRecursos ? "Acceso 24/7" : isEventos ? "Calendario Anual" : "Todos los Jueves"}
+                    {isRecursos
+                      ? "Acceso 24/7"
+                      : isEventos
+                      ? "Calendario Anual"
+                      : isDesarrollo
+                      ? "Convocatorias Anuales"
+                      : "Todos los Jueves"}
                   </span>
                 </div>
               </div>
