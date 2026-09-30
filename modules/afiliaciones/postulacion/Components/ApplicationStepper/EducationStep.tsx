@@ -57,7 +57,7 @@ const SearchableSelect = ({ options, value, onChange, onBlur, disabled, placehol
     const handleOutsideClick = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         if (isOpen && onBlur) {
-            onBlur();
+          onBlur();
         }
         setIsOpen(false);
       }
@@ -105,7 +105,7 @@ const SearchableSelect = ({ options, value, onChange, onBlur, disabled, placehol
 
 const EducationStep = forwardRef<StepRef, EducationStepProps>(
   ({ membershipType, value, saving = false, onSave, onNext, onBack, onValidityChange, onFinalSubmit }, ref) => {
-    
+
     const [form, setForm] = useState<AcademicStudy>(value && value.length > 0 ? value[0] : emptyStudy);
     const [touched, setTouched] = useState<Record<string, boolean>>({});
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -133,11 +133,11 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
     }, []);
 
     // Cargar preview de S3 si ya existía
-   // Cargar preview de S3 si ya existía
+    // Cargar preview de S3 si ya existía
     useEffect(() => {
       const fetchSecureUrl = async () => {
         const fileUrl = (form.universityLetter as any)?.url;
-        
+
         // 👇 SOLUCIÓN: Solo consultar S3 si la URL empieza con http (ignorando "PENDIENTE")
         if (form.universityLetter && !(form.universityLetter instanceof File) && fileUrl && fileUrl.startsWith("http")) {
           try {
@@ -153,7 +153,7 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
       fetchSecureUrl();
     }, [form.universityLetter]);
 
-    
+
     useEffect(() => {
       const validator = new AcademicStudyValidator();
       const result = validator.validate(form, membershipType);
@@ -185,7 +185,7 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
       }
 
       if (field === "institutionId" && rawValue !== 0) newForm.otherInstitution = "";
-      
+
       if (field === "professionalAssociation" && (!sanitizedValue || sanitizedValue.trim() === "")) {
         newForm.registrationNumber = "";
       }
@@ -201,7 +201,7 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
     }
 
     function handleBlur(field: keyof AcademicStudy) {
-        setTouched((prev) => ({ ...prev, [field]: true }));
+      setTouched((prev) => ({ ...prev, [field]: true }));
     }
 
     const handleCartaChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -252,7 +252,7 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
 
         if (rawFile) {
           const uploaded = await applicationApi.uploadFile(rawFile, "afiliaciones/estudiantes");
-          updatedForm.universityLetter = uploaded as any; 
+          updatedForm.universityLetter = uploaded as any;
         }
 
         await onSave([updatedForm]);
@@ -266,7 +266,7 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
 
     const getInputClass = (field: keyof AcademicStudy) => {
       const hasError = touched[field] && errors[field];
-      
+
       // Condición de deshabilitado específica para "otherInstitution"
       const isDisabled = field === "otherInstitution" && form.institutionId !== 0;
 
@@ -287,7 +287,7 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
 
     return (
       <div className="space-y-8">
-        
+
         {showConfirmModal && (
           <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
             <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl animate-in zoom-in-95">
@@ -367,7 +367,7 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
                 {getErrorText("otherInstitution")}
               </div>
 
-              {!isStudent && <div className="xl:col-span-2"><label className="text-xs font-bold text-slate-700 mb-1.5 block uppercase tracking-wide">Grado académico <span className="text-red-500">*</span><FieldHelp title="Grado académico" description="Indica el nivel académico alcanzado. Seleccione Otro únicamente si su grado no aparece en la lista." examples={["Técnico", "Bachiller", "Título profesional", "Maestría", "Doctorado"]} /></label><SearchableSelect options={degrees} placeholder="Seleccione grado" value={form.degreeId ?? ""} onChange={(val: number)=>updateField("degreeId",Number(val))} onBlur={()=>handleBlur("degreeId")} hasError={touched.degreeId && !!errors.degreeId}/>{getErrorText("degreeId")}{degrees.find((item) => item.id === form.degreeId)?.name?.toLowerCase() === "otro" ? <p className="mt-1 text-xs text-[#8b6a2b]">Seleccione esta opción únicamente si su grado académico no aparece en el catálogo.</p> : null}</div>}
+              {!isStudent && <div className="xl:col-span-2"><label className="text-xs font-bold text-slate-700 mb-1.5 block uppercase tracking-wide">Grado académico <span className="text-red-500">*</span><FieldHelp title="Grado académico" description="Indica el nivel académico alcanzado. Seleccione Otro únicamente si su grado no aparece en la lista." examples={["Técnico", "Bachiller", "Título profesional", "Maestría", "Doctorado"]} /></label><SearchableSelect options={degrees} placeholder="Seleccione grado" value={form.degreeId ?? ""} onChange={(val: number) => updateField("degreeId", Number(val))} onBlur={() => handleBlur("degreeId")} hasError={touched.degreeId && !!errors.degreeId} />{getErrorText("degreeId")}{degrees.find((item) => item.id === form.degreeId)?.name?.toLowerCase() === "otro" ? <p className="mt-1 text-xs text-[#8b6a2b]">Seleccione esta opción únicamente si su grado académico no aparece en el catálogo.</p> : null}</div>}
 
               <div className="xl:col-span-2">
                 <label className="text-xs font-bold text-slate-700 mb-1.5 block uppercase tracking-wide">
@@ -393,13 +393,13 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
                 <>
                   <div>
                     <label className="text-xs font-bold text-slate-700 mb-1.5 block uppercase tracking-wide">Colegio Profesional<FieldHelp title="Colegio profesional" description="Complete este campo solo si pertenece a un colegio profesional." examples={["CIP", "Colegio de Abogados", "Colegio de Economistas"]} /></label>
-                    <input 
-                    type="text" 
-                    placeholder="Ej. CIP" 
-                    value={form.professionalAssociation || ""} 
-                    onChange={(e) => updateField("professionalAssociation", e.target.value)} 
-                    onBlur={() => handleBlur("professionalAssociation")} 
-                    className={getInputClass("professionalAssociation")} />
+                    <input
+                      type="text"
+                      placeholder="Ej. CIP"
+                      value={form.professionalAssociation || ""}
+                      onChange={(e) => updateField("professionalAssociation", e.target.value)}
+                      onBlur={() => handleBlur("professionalAssociation")}
+                      className={getInputClass("professionalAssociation")} />
                     {getErrorText("professionalAssociation")}
                   </div>
                   <div>
@@ -412,18 +412,18 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
                         <span className="text-gray-400 font-normal lowercase"> (opcional)</span>
                       )}
                     </label>
-                    <input 
-                      type="text" 
-                      placeholder="N° de Registro" 
-                      value={form.registrationNumber || ""} 
+                    <input
+                      type="text"
+                      placeholder="N° de Registro"
+                      value={form.registrationNumber || ""}
                       disabled={!form.professionalAssociation || form.professionalAssociation.trim() === ""}
-                      onChange={(e) => updateField("registrationNumber", e.target.value)} 
-                      onBlur={() => handleBlur("registrationNumber")} 
+                      onChange={(e) => updateField("registrationNumber", e.target.value)}
+                      onBlur={() => handleBlur("registrationNumber")}
                       className={
                         !form.professionalAssociation || form.professionalAssociation.trim() === ""
                           ? "w-full h-11 px-3 rounded-xl border border-gray-200 bg-gray-100 text-gray-400 placeholder:text-gray-400 font-medium text-sm cursor-not-allowed select-none transition-colors"
                           : getInputClass("registrationNumber")
-                      } 
+                      }
                     />
                     {getErrorText("registrationNumber")}
                   </div>
@@ -433,7 +433,7 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
               {/* Años (Común, pero adaptado visualmente) */}
               <div>
                 <label className="text-xs font-bold text-slate-700 mb-1.5 block uppercase tracking-wide">
-                    Año de Ingreso <FieldHelp title="Año de ingreso" description="Año en que inició sus estudios." /> <span className="text-red-500">*</span>
+                  Año de Ingreso <FieldHelp title="Año de ingreso" description="Año en que inició sus estudios." /> <span className="text-red-500">*</span>
                 </label>
                 <input type="text" placeholder="YYYY" value={form.admissionYear ?? ""} onChange={(e) => updateField("admissionYear", e.target.value as any)} onBlur={() => handleBlur("admissionYear")} className={getInputClass("admissionYear")} />
                 {getErrorText("admissionYear")}
@@ -472,15 +472,18 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
                 <div>
                   <h4 className="text-sm font-bold text-[#4a2d00] mb-1">Sobre la Membresía Estudiantil</h4>
                   <p className="text-sm text-[#7f561e] leading-relaxed">
-                    La afiliación estudiantil es <strong>gratuita durante su periodo de pregrado</strong>. Para renovar su membresía anual, deberá presentar una constancia emitida por su centro de estudios.
+                    La afiliación estudiantil es <strong>gratuita durante su periodo de pregrado</strong>.
+                    Para renovar su membresía anual, deberá presentar una constancia emitida por su centro
+                    de estudios. Al culminar su condición de estudiante, pasará a la categoría de Asociado Activo,
+                    con una cuota anual de S/ 150.00
                   </p>
                 </div>
               </div>
 
               <div className="mb-8 pl-1">
                 <label className="flex items-start gap-3 cursor-pointer group">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     checked={form.studentTermsAccepted || false}
                     onChange={(e) => updateField("studentTermsAccepted", e.target.checked as any)}
                     className="mt-0.5 w-5 h-5 rounded border-gray-300 text-[#C5A059] focus:ring-[#C5A059]"
@@ -498,7 +501,7 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
                 </label>
                 <label className={`group cursor-pointer relative overflow-hidden h-[260px] w-full border-2 border-dashed rounded-2xl p-6 transition-all duration-300 flex flex-col items-center justify-center text-center ${touched.universityLetter && errors.universityLetter ? "border-red-400 bg-red-50/30" : "border-gray-300 hover:border-[#C5A059] hover:bg-gray-50"}`}>
                   <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleCartaChange} className="hidden" />
-                  
+
                   {cartaFilePreview ? (
                     cartaFilePreview.type.startsWith('image/') ? (
                       <div className="w-full h-full absolute inset-0 bg-black/5 flex items-center justify-center">

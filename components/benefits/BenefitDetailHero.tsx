@@ -94,7 +94,7 @@ export default function BenefitDetailHero({ benefit }: { benefit: BenefitData })
       videoRef.current.muted = nextMuted;
       setIsVideoMuted(nextMuted);
       if (!nextMuted) {
-        videoRef.current.play().catch(() => {});
+        videoRef.current.play().catch(() => { });
       }
     }
   };
@@ -111,59 +111,59 @@ export default function BenefitDetailHero({ benefit }: { benefit: BenefitData })
   // 3. Ticker / Marquee dinámico
   const marqueeItems = isRecursos
     ? [
-        "◆ MÁS DE 150,000 ARTÍCULOS TÉCNICOS",
-        "◆ ACCESO ILIMITADO 24/7",
-        "◆ REVISTA MINERÍA Y BIBLIOTECA IIMP",
-        "◆ DOCUMENTOS E INVESTIGACIONES GLOBALES",
-      ]
+      "◆ MÁS DE 150,000 ARTÍCULOS TÉCNICOS",
+      "◆ ACCESO ILIMITADO 24/7",
+      "◆ REVISTA MINERÍA Y BIBLIOTECA IIMP",
+      "◆ DOCUMENTOS E INVESTIGACIONES GLOBALES",
+    ]
     : isEventos
-    ? [
+      ? [
         "◆ DESCUENTOS EXCLUSIVOS EN PERUMIN",
         "◆ TARIFAS PREFERENCIALES EN PROEXPLO",
         "◆ CONGRESOS Y SIMPOSIOS INTERNACIONALES",
         "◆ ACCESO PREFERENCIAL A EVENTOS VIP",
       ]
       : isDesarrollo
-    ? [
-        "◆ MENTORING Y CANTERA DE TALENTOS",
-        "◆ CURSOS Y DIPLOMADOS ESPECIALIZADOS",
-        "◆ TALLERES DE LIDERAZGO Y HABILIDADES BLANDAS",
-        "◆ CERTIFICACIONES CON VALOR ACADÉMICO",
-      ]
-    : [
-        "◆ RED DE PROFESIONALES DEL RUBRO",
-        "◆ MÁS DE 5,000 ASOCIADOS ACTIVOS",
-        "◆ ACCESO AL RESTOBAR MINERO",
-        "◆ JUEVES MINEROS CON EXPOSITORES VIP",
-      ];
+        ? [
+          "◆ MENTORING Y CANTERA DE TALENTOS",
+          "◆ CURSOS Y DIPLOMADOS ESPECIALIZADOS",
+          "◆ TALLERES DE LIDERAZGO Y HABILIDADES BLANDAS",
+          "◆ CERTIFICACIONES CON VALOR ACADÉMICO",
+        ]
+        : [
+          "◆ RED DE PROFESIONALES DEL RUBRO",
+          "◆ MÁS DE 6,600 ASOCIADOS ACTIVOS",
+          "◆ ACCESO AL RESTOBAR MINERO",
+          "◆ JUEVES MINEROS CON EXPOSITORES VIP",
+        ];
 
   // 4. Galería de eventos o recursos destacados (3 Cards)
   const highlights = isRecursos
     ? [
-        {
-          year: "GLOBAL",
-          title: "Base de Datos OneMine",
-          author: "Más de 150,000 papers y artículos técnicos",
-          image: "https://s3-iimp-gestor-de-archivos-v3.s3.sa-east-1.amazonaws.com/boletines/noticias/images/imagenes/IMG20260731_114810.png",
-          link: "https://onemine.org",
-        },
-        {
-          year: "IIMP DIGITAL",
-          title: "Revista Minería Web",
-          author: "Ediciones semanales y mensuales digitales",
-          image: "https://s3-iimp-gestor-de-archivos-v3.s3.sa-east-1.amazonaws.com/boletines/images/IMG20260622_104655.jpg",
-          link: "https://revistamineria.com.pe/",
-        },
-        {
-          year: "SEDE IIMP",
-          title: "Biblioteca del IIMP",
-          author: "Acervo bibliográfico especializado y sala de lectura",
-          image: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&q=80",
-          link: "https://iimp.org.pe",
-        },
-      ]
+      {
+        year: "GLOBAL",
+        title: "Base de Datos OneMine",
+        author: "Más de 150,000 papers y artículos técnicos",
+        image: "https://iimp.org.pe/img/ONEMINE.png",
+        link: "https://onemine.org",
+      },
+      {
+        year: "IIMP DIGITAL",
+        title: "Revista Minería Web",
+        author: "Ediciones semanales y mensuales digitales",
+        image: "https://iimp.org.pe/img/REVISTAMINERIA-2.jpeg",
+        link: "https://revistamineria.com.pe/",
+      },
+      {
+        year: "SEDE IIMP",
+        title: "Biblioteca del IIMP",
+        author: "Acervo bibliográfico especializado y sala de lectura",
+        image: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&q=80",
+        link: "https://iimp.org.pe",
+      },
+    ]
     : isEventos
-    ? [
+      ? [
         {
           year: "CONVENCION MINERA",
           title: "PERUMIN 37",
@@ -187,56 +187,56 @@ export default function BenefitDetailHero({ benefit }: { benefit: BenefitData })
         },
       ]
       : isDesarrollo
-    ? [
-        {
-          year: "PROGRAMA VIP",
-          title: "Cantera de Talentos",
-          author: "Programa de desarrollo integral para jóvenes profesionales",
-          image: "https://s3-iimp-gestor-de-archivos-v3.s3.sa-east-1.amazonaws.com/boletines/noticias/images/imagenes/IMG20260731_141036.jpg",
-          link: "https://iimp.org.pe/cantera-de-talentos",
-        },
-        {
-          year: "CAPACITACIÓN",
-          title: "Cursos Especializados",
-          author: "Descuentos preferenciales en cursos y programas",
-          image: "https://s3-iimp-gestor-de-archivos-v3.s3.sa-east-1.amazonaws.com/perumin/38/img/IMG20260731_141813.jpg",
-          link: "https://iimp.org.pe/desarrollo-profesional",
-        },
-        {
-          year: "FORMACIÓN",
-          title: "Mentoring & Foros",
-          author: "Acompañamiento y orientación de líderes senior del sector",
-          image: "https://s3-iimp-gestor-de-archivos-v3.s3.sa-east-1.amazonaws.com/boletines/noticias/images/imagenes/IMG20260731_144603.jpg",
-          link: "https://iimp.org.pe/mentoring",
-        },
-      ]
-    : [
-        {
-          year: "2025",
-          title: "Bienvenida Asociados IIMP",
-          author: "Socios Activos",
-          image: "https://s3-iimp-gestor-de-archivos-v3.s3.sa-east-1.amazonaws.com/boletines/noticias/images/imagenes/IMG20260731_092505.jpg",
-          link: "https://www.flickr.com/photos/198943747@N06/albums/72177720334747919/with/55401134825",
-        },
-        {
-          year: "2026",
-          title: "Jueves Minero",
-          author: "Expositores VIP",
-          image: "https://s3-iimp-gestor-de-archivos-v3.s3.sa-east-1.amazonaws.com/boletines/noticias/images/imagenes/IMG20260731_091145.jpg",
-          link: "https://www.flickr.com/photos/198943747@N06/albums/72177720334734068/",
-        },
-        {
-          year: "2026",
-          title: "Desayuno Empresarial",
-          author: "Sede IIMP",
-          image: "https://s3-iimp-gestor-de-archivos-v3.s3.sa-east-1.amazonaws.com/boletines/noticias/images/imagenes/IMG20260731_091919.jpg",
-          link: "https://www.flickr.com/photos/198943747@N06/albums/72177720334610044/",
-        },
-      ];
+        ? [
+          {
+            year: "PROGRAMA VIP",
+            title: "Cantera de Talentos",
+            author: "Programa de desarrollo integral para jóvenes profesionales",
+            image: "https://s3-iimp-gestor-de-archivos-v3.s3.sa-east-1.amazonaws.com/boletines/noticias/images/imagenes/IMG20260731_141036.jpg",
+            link: "https://iimp.org.pe/cantera-de-talentos",
+          },
+          {
+            year: "CAPACITACIÓN",
+            title: "Cursos Especializados",
+            author: "Descuentos preferenciales en cursos y programas",
+            image: "https://s3-iimp-gestor-de-archivos-v3.s3.sa-east-1.amazonaws.com/perumin/38/img/IMG20260731_141813.jpg",
+            link: "https://iimp.org.pe/desarrollo-profesional",
+          },
+          {
+            year: "FORMACIÓN",
+            title: "Mentoring & Foros",
+            author: "Acompañamiento y orientación de líderes senior del sector",
+            image: "https://s3-iimp-gestor-de-archivos-v3.s3.sa-east-1.amazonaws.com/boletines/noticias/images/imagenes/IMG20260731_144603.jpg",
+            link: "https://iimp.org.pe/mentoring",
+          },
+        ]
+        : [
+          {
+            year: "2025",
+            title: "Bienvenida Asociados IIMP",
+            author: "Socios Activos",
+            image: "https://s3-iimp-gestor-de-archivos-v3.s3.sa-east-1.amazonaws.com/boletines/noticias/images/imagenes/IMG20260731_092505.jpg",
+            link: "https://www.flickr.com/photos/198943747@N06/albums/72177720334747919/with/55401134825",
+          },
+          {
+            year: "2026",
+            title: "Jueves Minero",
+            author: "Expositores VIP",
+            image: "https://s3-iimp-gestor-de-archivos-v3.s3.sa-east-1.amazonaws.com/boletines/noticias/images/imagenes/IMG20260731_091145.jpg",
+            link: "https://www.flickr.com/photos/198943747@N06/albums/72177720334734068/",
+          },
+          {
+            year: "2026",
+            title: "Desayuno Empresarial",
+            author: "Sede IIMP",
+            image: "https://s3-iimp-gestor-de-archivos-v3.s3.sa-east-1.amazonaws.com/boletines/noticias/images/imagenes/IMG20260731_091919.jpg",
+            link: "https://www.flickr.com/photos/198943747@N06/albums/72177720334610044/",
+          },
+        ];
 
   return (
     <div className="min-h-screen bg-[#F4F5F7] text-[#3E3E3D] selection:bg-[#C39254] selection:text-white font-sans relative overflow-x-hidden">
-      
+
       {/* 1. TOP BAR */}
       <nav className="border-b border-gray-200 bg-white/80 backdrop-blur-md sticky top-0 z-50 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -361,7 +361,7 @@ export default function BenefitDetailHero({ benefit }: { benefit: BenefitData })
                 <img
                   src={
                     isRecursos
-                      ? "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&q=80"
+                      ? "https://iimp.org.pe/img/BIBLIOTECAIIMP-3.jpeg"
                       : "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80"
                   }
                   alt={benefit.title}
@@ -384,19 +384,19 @@ export default function BenefitDetailHero({ benefit }: { benefit: BenefitData })
                   {isRecursos
                     ? "Acceso Digital"
                     : isEventos
-                    ? "Tarifas Preferenciales"
-                    : isDesarrollo
-                    ? "Cantera & Mentoring"
-                    : "Revive la Experiencia"}
+                      ? "Tarifas Preferenciales"
+                      : isDesarrollo
+                        ? "Cantera & Mentoring"
+                        : "Revive la Experiencia"}
                 </span>
                 <h3 className="text-xl font-bold text-white mb-2">
                   {isRecursos
                     ? "Biblioteca Digital Minera"
                     : isEventos
-                    ? "PERUMIN, proEXPLO & Congresos VIP"
-                    : isDesarrollo
-                    ? "Cantera de Talentos & Cursos IIMP"
-                    : "Networking Presencial & Restobar Minero"}
+                      ? "PERUMIN, proEXPLO & Congresos VIP"
+                      : isDesarrollo
+                        ? "Cantera de Talentos & Cursos IIMP"
+                        : "Networking Presencial & Restobar Minero"}
                 </h3>
                 <div className="flex items-center gap-4 text-xs text-gray-300 font-medium">
                   <span className="flex items-center gap-1">
@@ -404,20 +404,20 @@ export default function BenefitDetailHero({ benefit }: { benefit: BenefitData })
                     {isRecursos
                       ? "Plataforma Online"
                       : isEventos
-                      ? "Sedes Variadas & Arequipa"
-                      : isDesarrollo
-                      ? "Sede IIMP & Modalidad Híbrida"
-                      : "Sede IIMP"}
+                        ? "Sedes Variadas & Arequipa"
+                        : isDesarrollo
+                          ? "Sede IIMP & Modalidad Híbrida"
+                          : "Sede IIMP"}
                   </span>
                   <span className="flex items-center gap-1">
                     <Calendar size={14} className="text-[#C39254]" />
                     {isRecursos
                       ? "Acceso 24/7"
                       : isEventos
-                      ? "Calendario Anual"
-                      : isDesarrollo
-                      ? "Convocatorias Anuales"
-                      : "Todos los Jueves"}
+                        ? "Calendario Anual"
+                        : isDesarrollo
+                          ? "Convocatorias Anuales"
+                          : "Todos los Jueves"}
                   </span>
                 </div>
               </div>
@@ -455,18 +455,18 @@ export default function BenefitDetailHero({ benefit }: { benefit: BenefitData })
             <span className="text-[#C39254]">
               {isRecursos ? "Explora" : isEventos ? "Descubre" : "Revive"}
             </span>{" "}
-            {isRecursos 
-              ? "el conocimiento exclusivo" 
-              : isEventos 
-              ? "los eventos destacados del sector" 
-              : "cómo se vive este beneficio"}
+            {isRecursos
+              ? "el conocimiento exclusivo"
+              : isEventos
+                ? "los eventos destacados del sector"
+                : "cómo se vive este beneficio"}
           </h2>
           <p className="text-gray-600 font-medium text-lg">
             {isRecursos
               ? "Accede a miles de documentos técnicos, investigaciones e información clave del sector."
               : isEventos
-              ? "Disfruta de beneficios económicos directo en las inscripciones de nuestros principales congresos."
-              : "Imágenes y testimonios de nuestras ediciones recientes con la comunidad de asociados."}
+                ? "Disfruta de beneficios económicos directo en las inscripciones de nuestros principales congresos."
+                : "Imágenes y testimonios de nuestras ediciones recientes con la comunidad de asociados."}
           </p>
         </div>
 
@@ -488,10 +488,10 @@ export default function BenefitDetailHero({ benefit }: { benefit: BenefitData })
                 <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white font-black text-xs px-2.5 py-1 rounded-md">
                   {item.year}
                 </div>
-                
+
                 <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                   <span className="bg-[#C39254] text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg flex items-center gap-1.5">
-                    {isRecursos ? "Ver recurso" : isEventos ? "Más información": isDesarrollo ? "Más información" : "Ver fotos"} <ExternalLink size={14} />
+                    {isRecursos ? "Ver recurso" : isEventos ? "Más información" : isDesarrollo ? "Más información" : "Ver fotos"} <ExternalLink size={14} />
                   </span>
                 </div>
               </div>
@@ -561,8 +561,8 @@ export default function BenefitDetailHero({ benefit }: { benefit: BenefitData })
           {/* Header contextual del tab */}
           <div className={`
             rounded-t-3xl px-8 py-6 border border-b-0
-            ${activeTab === "asociado" 
-              ? "bg-gradient-to-r from-[#C39254] to-[#D6A84A] border-[#C39254]/30" 
+            ${activeTab === "asociado"
+              ? "bg-gradient-to-r from-[#C39254] to-[#D6A84A] border-[#C39254]/30"
               : "bg-gradient-to-r from-[#3E3E3D] to-[#5a5a59] border-[#3E3E3D]/30"
             }
           `}>
@@ -614,11 +614,10 @@ export default function BenefitDetailHero({ benefit }: { benefit: BenefitData })
                   >
                     <CheckCircle2
                       size={22}
-                      className={`shrink-0 mt-0.5 transition-colors ${
-                        activeTab === "asociado"
-                          ? "text-[#C39254]"
-                          : "text-[#3E3E3D]"
-                      }`}
+                      className={`shrink-0 mt-0.5 transition-colors ${activeTab === "asociado"
+                        ? "text-[#C39254]"
+                        : "text-[#3E3E3D]"
+                        }`}
                     />
                     <span className="text-[#3E3E3D] font-medium leading-relaxed text-[15px] group-hover:text-[#C39254] transition-colors">
                       {item}

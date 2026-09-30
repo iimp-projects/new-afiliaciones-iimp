@@ -438,7 +438,7 @@ export default function ApplicationView({
                         </span>
                         <p className="text-sm text-gray-600 font-medium leading-relaxed">
                           El tiempo estimado de evaluación es de{" "}
-                          <strong>3 a 5 días hábiles</strong>.
+                          <strong>3 a 5 días hábiles, contados a partir de la aprobación de ambos avales</strong>.
                         </p>
                       </li>
                       <li className="flex items-start gap-3">
@@ -492,6 +492,8 @@ export default function ApplicationView({
                           <strong>Correo:</strong>
                           <br />
                           asociados@iimp.org.pe
+                          <br />
+                          liset.otoya@iimp.org.pe
                         </span>
                       </li>
                       <li className="flex items-start gap-3">
@@ -587,7 +589,7 @@ export default function ApplicationView({
             onSave={saveAcademicStudies}
             // Si es estudiante no hay paso 3, le pasamos una función vacía al onNext porque onFinalSubmit toma el control
             onNext={
-              membershipType === MembershipType.STUDENT ? () => {} : nextStep
+              membershipType === MembershipType.STUDENT ? () => { } : nextStep
             }
             onValidityChange={setIsStepValid}
             // 👇 Pasamos onFinalSubmit si es estudiante
@@ -632,7 +634,7 @@ export default function ApplicationView({
             saving={saving}
             onBack={previousStep}
             onSave={saveEndorsements}
-            onNext={() => {}}
+            onNext={() => { }}
             onValidityChange={setIsStepValid}
             onFinalSubmit={submitFinalApplication}
           />
