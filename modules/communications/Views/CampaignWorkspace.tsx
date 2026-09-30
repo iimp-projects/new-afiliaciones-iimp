@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, CheckCircle2, ChevronLeft, ChevronRight, Eye, Loader2, MoreVertical, Pencil, Plus, Send, Trash2, Users } from "lucide-react";
 import { CampaignForm } from "./CampaignForm";
@@ -14,6 +15,10 @@ import { CAMPAIGN_POLL_INTERVAL_MS } from "../Config/campaignSend";
 import type { CampaignDetail, CampaignRecipientPreview, CampaignRecipientSelection } from "../Models/Campaign";
 import type { CampaignSendProgress } from "../Models/CampaignSend";
 import type { CampaignRecipientView, CampaignSendStats, DeliveryView } from "../Repositories/EmailDeliveryRepository";
+
+const subscribe = () => () => {};
+const clientSnapshot = () => true;
+const serverSnapshot = () => false;
 
 const statusLabel: Record<string, string> = {
   DRAFT: "BORRADOR",
@@ -780,7 +785,19 @@ function HistoryModal({ campaignId, recipient, onClose }: { campaignId: number; 
 }
 
 function ConfirmModal({ title, children, onClose, onConfirm, busy, disabled = false }: { title: string; children: React.ReactNode; onClose: () => void; onConfirm: () => void; busy: boolean; disabled?: boolean }) {
-  return (
+  const mounted = useSyncExternalStore(subscribe, clientSnapshot, serverSnapshot);
+
+  useEffect(() => {
+    const bodyOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = bodyOverflow;
+    };
+  }, []);
+
+  if (!mounted) return null;
+
+  return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" onClick={onClose}>
       <div className="w-full max-w-md rounded-[24px] bg-white p-6 shadow-2xl" onClick={(event) => event.stopPropagation()}>
         <div className="flex items-center gap-2">
@@ -795,7 +812,8 @@ function ConfirmModal({ title, children, onClose, onConfirm, busy, disabled = fa
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
