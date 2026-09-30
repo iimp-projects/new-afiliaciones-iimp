@@ -5,6 +5,7 @@ import { paymentMethodLabel } from "../Models/PaymentMethod";
 import { PaymentSettingsResolver } from "../../../security/system-settings/Services/PaymentSettingsResolver";
 import { emailLayout } from "@/modules/shared/Email/EmailLayout";
 import { emailInfoBox } from "@/modules/shared/Email/EmailComponents";
+import { LIMA_TIME_ZONE } from "@/modules/shared/Utils/formatPeruDateTime";
 
 const IIMP_LOGO_URL = "https://s3-iimp-gestor-de-archivos-v3.s3.sa-east-1.amazonaws.com/boletines/images/IMG20260817_120138.png";
 
@@ -95,7 +96,7 @@ function highlightedRows(items: Array<[string, string | null | undefined]>): str
 }
 
 function documentLink(url: string, label: string): string { return '<a href="' + escapeHtml(url) + '" target="_blank" rel="noreferrer" style="display:inline-block;margin:3px;padding:9px 12px;border:1px solid #e6c982;border-radius:7px;color:#936b2e;font-size:11px;font-weight:bold;text-decoration:none;">' + escapeHtml(label) + "</a>"; }
-function formatDate(value?: Date | null): string | undefined { return value ? new Intl.DateTimeFormat("es-PE", { dateStyle: "long", timeStyle: "short" }).format(value) : undefined; }
+function formatDate(value?: Date | null): string | undefined { return value ? new Intl.DateTimeFormat("es-PE", { dateStyle: "long", timeStyle: "short", timeZone: LIMA_TIME_ZONE }).format(value) : undefined; }
 function formatMoney(amount: number, currency: string): string { return new Intl.NumberFormat("es-PE", { style: "currency", currency, minimumFractionDigits: 2 }).format(amount); }
 function affiliateTypeLabel(value: string): string { return value === "ACTIVE" ? "Asociado Activo" : value === "STUDENT" ? "Asociado Estudiante" : value; }
 function cardTypeLabel(value?: string): string | undefined { return value === "C" ? "Crédito" : value === "D" ? "Débito" : value; }

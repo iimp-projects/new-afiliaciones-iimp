@@ -5,6 +5,7 @@ import {
   ValidationStatus,
 } from "@prisma/client";
 import { S3StorageService } from "@/modules/shared/Services/S3StorageService";
+import { LIMA_TIME_ZONE } from "@/modules/shared/Utils/formatPeruDateTime";
 import type {
   SmartCaseCardData,
   AtomicValidation,
@@ -71,11 +72,13 @@ export class ExpedienteMapper {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
+        timeZone: LIMA_TIME_ZONE,
       });
       const timePart = d.toLocaleTimeString("es-PE", {
         hour: "2-digit",
         minute: "2-digit",
         hour12: true,
+        timeZone: LIMA_TIME_ZONE,
       });
       return `${datePart} · ${timePart}`;
     };

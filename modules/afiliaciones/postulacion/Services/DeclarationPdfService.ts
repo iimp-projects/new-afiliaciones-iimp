@@ -5,6 +5,7 @@ import { resolveEmploymentStatus } from "../Models/EmploymentInformation";
 import { prisma } from "@/lib/prisma";
 import { S3StorageService } from "@/modules/shared/Services/S3StorageService";
 import { getAppBaseUrl } from "@/lib/config/env";
+import { formatPeruDate, formatPeruTime } from "@/modules/shared/Utils/formatPeruDateTime";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -144,11 +145,9 @@ export class DeclarationPdfService {
     // ==========================================
     const trackingCode = (safeDraft as any).trackingCode || "demo";
     const validationUrl = `${getAppBaseUrl()}/verificar/${encodeURIComponent(trackingCode)}`;
-    const fechaActual = new Date().toLocaleDateString("es-PE");
-    const horaActual = new Date().toLocaleTimeString("es-PE", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    const now = new Date();
+    const fechaActual = formatPeruDate(now);
+    const horaActual = formatPeruTime(now);
     const codigoExpediente = `EXP-${Math.floor(1000 + Math.random() * 9000)}`;
     const categoria =
       (safeDraft as any).category || safeDraft.membershipType || "ASOCIADO ACTIVO";
