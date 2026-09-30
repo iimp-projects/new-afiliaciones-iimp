@@ -20,6 +20,19 @@ const subscribe = () => () => {};
 const clientSnapshot = () => true;
 const serverSnapshot = () => false;
 
+function useGlobalModal(): boolean {
+  const mounted = useSyncExternalStore(subscribe, clientSnapshot, serverSnapshot);
+  useEffect(() => {
+    if (!mounted) return;
+    const bodyOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = bodyOverflow;
+    };
+  }, [mounted]);
+  return mounted;
+}
+
 const statusLabel: Record<string, string> = {
   DRAFT: "BORRADOR",
   READY: "LISTA",
@@ -248,7 +261,7 @@ export function CampaignWorkspace({
           isDraft ? (
             <RecipientsTab campaignId={campaign.id} isDraft={isDraft} selection={selection} onDirtyChange={setRecipientsDirty} />
           ) : (
-            <SendTab campaignId={campaign.id} isReady={isReady} campaignRecipients={campaignRecipients} />
+            <SendTab campaignId={campaign.id} isReady={isReady} campaignRecipients={campaignRecipients} progress={progress} />
           )
         )}
       </div>
@@ -542,9 +555,11 @@ function RecipientsTab({ campaignId, isDraft, selection, onDirtyChange }: { camp
 }
 
 function ListMembersModal({ list, recipients, onClose }: { list: { id: number; name: string }; recipients: CampaignRecipientSelection["recipients"]; onClose: () => void }) {
+  const mounted = useGlobalModal();
   const members = recipients.filter((recipient) => recipient.listIds.includes(list.id));
-  return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" onClick={onClose}>
+  if (!mounted) return null;
+  return createPortal(
+    <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" onClick={onClose}>
       <div className="flex max-h-[80vh] w-full max-w-lg flex-col rounded-[24px] bg-white p-6 shadow-2xl" onClick={(event) => event.stopPropagation()}>
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-black text-slate-800">Destinatarios — {list.name}</h3>
@@ -567,11 +582,13 @@ function ListMembersModal({ list, recipients, onClose }: { list: { id: number; n
           <button onClick={onClose} className="rounded-xl px-5 py-2.5 text-sm font-bold text-slate-600">Cerrar</button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
 function RenameListModal({ list, onClose, onRenamed }: { list: { id: number; name: string }; onClose: () => void; onRenamed: () => void }) {
+  const mounted = useGlobalModal();
   const [name, setName] = useState(list.name);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -585,8 +602,10 @@ function RenameListModal({ list, onClose, onRenamed }: { list: { id: number; nam
     else onRenamed();
   };
 
-  return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" onClick={onClose}>
+  if (!mounted) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" onClick={onClose}>
       <div className="w-full max-w-md rounded-[24px] bg-white p-6 shadow-2xl" onClick={(event) => event.stopPropagation()}>
         <h3 className="text-lg font-black text-slate-800">Renombrar lista</h3>
         <label className="mt-4 block">
@@ -599,11 +618,13 @@ function RenameListModal({ list, onClose, onRenamed }: { list: { id: number; nam
           <button onClick={() => void submit()} disabled={busy || !name.trim()} className="rounded-xl bg-[#C5A059] px-6 py-2.5 text-sm font-black text-white shadow-md disabled:opacity-50">Guardar</button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
 function DeleteListModal({ list, onClose, onDeleted }: { list: { id: number; name: string }; onClose: () => void; onDeleted: () => void }) {
+  const mounted = useGlobalModal();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -616,8 +637,10 @@ function DeleteListModal({ list, onClose, onDeleted }: { list: { id: number; nam
     else onDeleted();
   };
 
-  return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" onClick={onClose}>
+  if (!mounted) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" onClick={onClose}>
       <div className="w-full max-w-md rounded-[24px] bg-white p-6 shadow-2xl" onClick={(event) => event.stopPropagation()}>
         <div className="flex items-center gap-2">
           <Trash2 size={18} className="text-red-500" />
@@ -630,11 +653,12 @@ function DeleteListModal({ list, onClose, onDeleted }: { list: { id: number; nam
           <button onClick={() => void submit()} disabled={busy} className="rounded-xl bg-red-600 px-6 py-2.5 text-sm font-black text-white shadow-md disabled:opacity-50">Eliminar lista</button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
-function SendTab({ campaignId, isReady, campaignRecipients }: { campaignId: number; isReady: boolean; campaignRecipients: CampaignRecipientView[] }) {
+function SendTab({ campaignId, isReady, campaignRecipients, progress }: { campaignId: number; isReady: boolean; campaignRecipients: CampaignRecipientView[]; progress: CampaignSendProgress }) {
   const [sendTarget, setSendTarget] = useState<CampaignRecipientView | null>(null);
   const [history, setHistory] = useState<CampaignRecipientView | null>(null);
 
@@ -643,6 +667,42 @@ function SendTab({ campaignId, isReady, campaignRecipients }: { campaignId: numb
       <header className="flex items-center gap-2 border-b border-slate-100 px-6 py-4">
         <h3 className="text-sm font-black uppercase tracking-wide text-slate-700">Destinatarios</h3>
       </header>
+
+      {(progress.status === "SENDING" || progress.status === "COMPLETED" || progress.status === "PARTIAL") && (
+        <div className="border-b border-slate-100 px-6 py-5">
+          {progress.status === "SENDING" ? (
+            <>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="inline-flex items-center gap-2 text-sm font-black text-slate-800">
+                  <Loader2 size={15} className="animate-spin text-[#C5A059]" /> Enviando campaña
+                </span>
+                <span className="text-xs font-bold text-slate-500">{progress.processed} de {progress.total} procesados · {progress.percent}%</span>
+              </div>
+              <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-100">
+                <div className="h-full rounded-full bg-[#C5A059] transition-all" style={{ width: `${progress.percent}%` }} />
+              </div>
+              <p className="mt-2 text-xs font-semibold text-slate-500">{progress.sent} enviados · {progress.error} fallidos · {progress.pending} pendientes</p>
+            </>
+          ) : progress.status === "COMPLETED" ? (
+            <div className="flex items-start gap-2">
+              <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-emerald-600" />
+              <div>
+                <p className="text-sm font-black text-emerald-800">Envío completado</p>
+                <p className="text-xs font-semibold text-slate-500">{progress.processed} de {progress.total} procesados · {progress.sent} enviados · {progress.error} fallidos</p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-start gap-2">
+              <AlertTriangle size={18} className="mt-0.5 shrink-0 text-amber-600" />
+              <div>
+                <p className="text-sm font-black text-amber-800">Envío completado con incidencias</p>
+                <p className="text-xs font-semibold text-slate-500">{progress.processed} de {progress.total} procesados · {progress.sent} enviados · {progress.error} fallidos</p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {campaignRecipients.length === 0 ? (
         <div className="px-6 py-14 text-center text-sm font-semibold text-slate-500">No hay destinatarios asociados.</div>
       ) : (
@@ -695,6 +755,7 @@ function SendTab({ campaignId, isReady, campaignRecipients }: { campaignId: numb
 }
 
 function SendConfirmModal({ campaignId, recipient, onClose }: { campaignId: number; recipient: CampaignRecipientView; onClose: () => void }) {
+  const mounted = useGlobalModal();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const resend = recipient.sendCount > 0;
@@ -708,8 +769,10 @@ function SendConfirmModal({ campaignId, recipient, onClose }: { campaignId: numb
     else onClose();
   };
 
-  return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" onClick={onClose}>
+  if (!mounted) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" onClick={onClose}>
       <div className="w-full max-w-md rounded-[24px] bg-white p-6 shadow-2xl" onClick={(event) => event.stopPropagation()}>
         <div className="flex items-center gap-2">
           <Send size={18} className="text-[#C5A059]" />
@@ -734,19 +797,23 @@ function SendConfirmModal({ campaignId, recipient, onClose }: { campaignId: numb
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
 function HistoryModal({ campaignId, recipient, onClose }: { campaignId: number; recipient: CampaignRecipientView; onClose: () => void }) {
+  const mounted = useGlobalModal();
   const [deliveries, setDeliveries] = useState<DeliveryView[] | null>(null);
 
   useEffect(() => {
     void fetchDeliveryHistoryAction(campaignId, recipient.recipientId).then(setDeliveries);
   }, [campaignId, recipient.recipientId]);
 
-  return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" onClick={onClose}>
+  if (!mounted) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" onClick={onClose}>
       <div className="w-full max-w-2xl rounded-[24px] bg-white p-6 shadow-2xl" onClick={(event) => event.stopPropagation()}>
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-black text-slate-800">Historial de envíos — {recipient.email}</h3>
@@ -780,7 +847,8 @@ function HistoryModal({ campaignId, recipient, onClose }: { campaignId: number; 
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -818,6 +886,7 @@ function ConfirmModal({ title, children, onClose, onConfirm, busy, disabled = fa
 }
 
 function MassSendModal({ campaign, stats, onClose, onConfirmed }: { campaign: CampaignDetail; stats: CampaignSendStats; onClose: () => void; onConfirmed: () => void }) {
+  const mounted = useGlobalModal();
   const [confirmation, setConfirmation] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -832,8 +901,10 @@ function MassSendModal({ campaign, stats, onClose, onConfirmed }: { campaign: Ca
     else onConfirmed();
   };
 
-  return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" onClick={onClose}>
+  if (!mounted) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" onClick={onClose}>
       <div className="w-full max-w-md rounded-[24px] bg-white p-6 shadow-2xl" onClick={(event) => event.stopPropagation()}>
         <div className="flex items-center gap-2">
           <Send size={18} className="text-[#C5A059]" />
@@ -860,11 +931,13 @@ function MassSendModal({ campaign, stats, onClose, onConfirmed }: { campaign: Ca
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
 function RetryModal({ campaign, errorCount, onClose, onConfirmed }: { campaign: CampaignDetail; errorCount: number; onClose: () => void; onConfirmed: () => void }) {
+  const mounted = useGlobalModal();
   const [confirmation, setConfirmation] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -879,8 +952,10 @@ function RetryModal({ campaign, errorCount, onClose, onConfirmed }: { campaign: 
     else onConfirmed();
   };
 
-  return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" onClick={onClose}>
+  if (!mounted) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" onClick={onClose}>
       <div className="w-full max-w-md rounded-[24px] bg-white p-6 shadow-2xl" onClick={(event) => event.stopPropagation()}>
         <div className="flex items-center gap-2">
           <Send size={18} className="text-[#C5A059]" />
@@ -899,6 +974,7 @@ function RetryModal({ campaign, errorCount, onClose, onConfirmed }: { campaign: 
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
