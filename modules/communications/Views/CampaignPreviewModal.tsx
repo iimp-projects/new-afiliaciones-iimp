@@ -3,11 +3,12 @@
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { Monitor, Send, Smartphone, X } from "lucide-react";
-import { renderTemplate } from "../Services/TemplateRenderer";
+import { renderTemplate, type TemplateRecipient } from "../Services/TemplateRenderer";
 import { isValidEmail } from "../Services/Import/EmailProcessing";
 import { sendTestEmailAction } from "../Actions/send.actions";
 import { ProcessLoadingOverlay } from "@/modules/shared/Components/ProcessLoadingOverlay";
-import type { CampaignDetail, CampaignRecipientPreview } from "../Models/Campaign";
+import type { CampaignRecipientPreview } from "../Models/Campaign";
+import type { EmailCampaignStatus } from "@prisma/client";
 
 const subscribe = () => () => {};
 const clientSnapshot = () => true;
@@ -15,15 +16,37 @@ const serverSnapshot = () => false;
 
 type PreviewDevice = "desktop" | "mobile";
 
+export interface CampaignPreviewData {
+  subject: string;
+  htmlContent: string;
+  textContent: string | null;
+  senderName: string | null;
+  senderEmail: string | null;
+  replyTo: string | null;
+}
+
+const DEMO_RECIPIENT: TemplateRecipient = {
+  name: "Juan Pérez",
+  company: "Empresa Minera Demo",
+  position: "Ingeniero de Minas",
+  email: "ejemplo@correo.com",
+};
+
 export function CampaignPreviewModal({
-  campaign,
+  data,
+  campaignId,
+  status,
   previewRecipients,
-  senderEmail,
+  fromEmail,
+  demo,
   onClose,
 }: {
-  campaign: CampaignDetail;
+  data: CampaignPreviewData;
+  campaignId: number | null;
+  status: EmailCampaignStatus | null;
   previewRecipients: CampaignRecipientPreview[];
-  senderEmail: string | null;
+  fromEmail: string | null;
+  demo: boolean;
   onClose: () => void;
 }) {
   const mounted = useSyncExternalStore(subscribe, clientSnapshot, serverSnapshot);
@@ -36,7 +59,7 @@ export function CampaignPreviewModal({
   const [testSentTo, setTestSentTo] = useState<string | null>(null);
 
   const busy = testBusy;
-  const canTestEmail = campaign.status === "DRAFT" || campaign.status === "READY";
+  const canTestEmail = campaignId != null && (status === "DRAFT" || status === "READY");
   const emailValid = isValidEmail(toEmail.trim());
 
   const recipient = useMemo(
@@ -44,8 +67,10 @@ export function CampaignPreviewModal({
     [previewRecipients, recipientId],
   );
 
-  const renderedSubject = useMemo(() => renderTemplate(campaign.subject, recipient ?? {}), [campaign.subject, recipient]);
-  const renderedHtml = useMemo(() => renderTemplate(campaign.htmlContent, recipient ?? {}), [campaign.htmlContent, recipient]);
+  const activeRecipient: TemplateRecipient = demo ? DEMO_RECIPIENT : (recipient ?? {});
+
+  const renderedSubject = useMemo(() => renderTemplate(data.subject, activeRecipient), [data.subject, activeRecipient]);
+  const renderedHtml = useMemo(() => renderTemplate(data.htmlContent, activeRecipient), [data.htmlContent, activeRecipient]);
 
   useEffect(() => {
     const bodyOverflow = document.body.style.overflow;
@@ -67,17 +92,23 @@ export function CampaignPreviewModal({
   }, [busy, onClose]);
 
   const sendTest = async () => {
+    if (campaignId == null) return;
     setTestBusy(true);
     setTestError(null);
-    const response = await sendTestEmailAction(campaign.id, toEmail.trim(), recipientId);
+    const response = await sendTestEmailAction(campaignId, toEmail.trim(), recipientId);
     setTestBusy(false);
     setConfirmTest(false);
     if (!response.success) setTestError(response.message);
     else setTestSentTo(toEmail.trim());
   };
 
-  const fromName = campaign.senderName || "Instituto de Ingenieros de Minas del Perú";
-  const fromLabel = senderEmail ? `${fromName} <${senderEmail}>` : fromName;
+  const fromName = data.senderName || "Instituto de Ingenieros de Minas del Perú";
+  const fromLabel = fromEmail ? `${fromName} <${fromEmail}>` : fromName;
+  const toLabel = demo
+    ? `${DEMO_RECIPIENT.name} <${DEMO_RECIPIENT.email}>`
+    : recipient
+      ? `${recipient.name || ""} <${recipient.email}>`
+      : "—";
 
   if (!mounted) return null;
 
@@ -95,9 +126,10 @@ export function CampaignPreviewModal({
             <h2 id="campaign-preview-title" className="mt-1 text-xl font-black text-slate-800">Vista previa del correo</h2>
             <p className="mt-1 text-xs text-slate-500">Revisa cómo se visualizará el mensaje antes de realizar cualquier envío.</p>
             <div className="mt-3 space-y-1 rounded-2xl border border-slate-200 bg-white p-3 text-xs text-slate-600">
-              <p className="truncate"><span className="font-bold text-slate-400">De:</span> {fromLabel}</p>
-              <p className="truncate"><span className="font-bold text-slate-400">Para:</span> {recipient ? `${recipient.name || ""} <${recipient.email}>` : "—"}</p>
               <p className="truncate"><span className="font-bold text-slate-400">Asunto:</span> {renderedSubject}</p>
+              <p className="truncate"><span className="font-bold text-slate-400">De:</span> {fromLabel}</p>
+              <p className="truncate"><span className="font-bold text-slate-400">Para:</span> {toLabel}</p>
+              {data.replyTo ? <p className="truncate"><span className="font-bold text-slate-400">Reply-To:</span> {data.replyTo}</p> : null}
             </div>
           </div>
           <button onClick={onClose} disabled={busy} aria-label="Cerrar" className="rounded-full p-2 text-slate-400 hover:bg-red-50 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-40">
@@ -107,20 +139,26 @@ export function CampaignPreviewModal({
 
         <div className="min-h-0 flex-1 overflow-y-auto p-8" aria-busy={busy}>
           <div className="mb-5 flex flex-wrap items-center gap-4">
-            <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-slate-500">
-              Previsualizar como
-              <select
-                value={recipientId ?? ""}
-                onChange={(event) => setRecipientId(Number(event.target.value) || null)}
-                className="h-10 min-w-[240px] rounded-xl border border-slate-200 px-3 text-sm font-semibold normal-case tracking-normal outline-none focus:border-[#C5A059]"
-              >
-                {previewRecipients.length === 0 ? (
-                  <option value="">Sin destinatarios</option>
-                ) : (
-                  previewRecipients.map((r) => <option key={r.id} value={r.id}>{r.name || r.email} &lt;{r.email}&gt;</option>)
-                )}
-              </select>
-            </label>
+            {demo ? (
+              <span className="inline-flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-xs font-bold text-amber-800">
+                Vista previa con datos de ejemplo
+              </span>
+            ) : (
+              <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-slate-500">
+                Previsualizar como
+                <select
+                  value={recipientId ?? ""}
+                  onChange={(event) => setRecipientId(Number(event.target.value) || null)}
+                  className="h-10 min-w-[240px] rounded-xl border border-slate-200 px-3 text-sm font-semibold normal-case tracking-normal outline-none focus:border-[#C5A059]"
+                >
+                  {previewRecipients.length === 0 ? (
+                    <option value="">Sin destinatarios</option>
+                  ) : (
+                    previewRecipients.map((r) => <option key={r.id} value={r.id}>{r.name || r.email} &lt;{r.email}&gt;</option>)
+                  )}
+                </select>
+              </label>
+            )}
             <div className="flex rounded-xl bg-slate-100 p-1">
               <button onClick={() => setDevice("desktop")} className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold ${device === "desktop" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500"}`}>
                 <Monitor size={14} /> Escritorio

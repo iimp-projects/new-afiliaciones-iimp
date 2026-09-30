@@ -247,7 +247,24 @@ export function CampaignWorkspace({
         </ConfirmModal>
       )}
 
-      {previewOpen && <CampaignPreviewModal campaign={campaign} previewRecipients={previewRecipients} senderEmail={senderEmail} onClose={() => setPreviewOpen(false)} />}
+      {previewOpen && (
+        <CampaignPreviewModal
+          data={{
+            subject: campaign.subject,
+            htmlContent: campaign.htmlContent,
+            textContent: campaign.textContent,
+            senderName: campaign.senderName,
+            senderEmail: campaign.senderEmail,
+            replyTo: campaign.replyTo,
+          }}
+          campaignId={campaign.id}
+          status={campaign.status}
+          previewRecipients={previewRecipients}
+          fromEmail={senderEmail}
+          demo={false}
+          onClose={() => setPreviewOpen(false)}
+        />
+      )}
 
       {confirmSend && <MassSendModal campaign={campaign} stats={stats} onClose={() => setConfirmSend(false)} onConfirmed={() => { setConfirmSend(false); router.refresh(); }} />}
 

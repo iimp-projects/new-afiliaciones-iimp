@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Save } from "lucide-react";
+import { Eye, Loader2, Save } from "lucide-react";
 import { createCampaignAction, updateCampaignAction } from "../Actions/campaign.actions";
+import { CampaignPreviewModal } from "./CampaignPreviewModal";
 import type { CampaignDetail } from "../Models/Campaign";
 
 const EMPTY = {
@@ -29,6 +30,7 @@ export function CampaignForm({ campaignId, initial }: { campaignId?: number; ini
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const set = (key: keyof typeof EMPTY) => (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm((prev) => ({ ...prev, [key]: event.target.value }));
@@ -92,6 +94,17 @@ export function CampaignForm({ campaignId, initial }: { campaignId?: number; ini
         <textarea value={form.htmlContent} onChange={set("htmlContent")} rows={12} className={`${field} font-mono text-xs`} />
       </label>
 
+      <div>
+        <button
+          onClick={() => setPreviewOpen(true)}
+          disabled={!form.htmlContent.trim()}
+          title={!form.htmlContent.trim() ? "Agrega contenido HTML para generar la vista previa." : undefined}
+          className="inline-flex items-center gap-2 rounded-xl border border-[#C5A059] px-5 py-2.5 text-sm font-black text-[#7f561e] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Eye size={16} /> Previsualizar correo
+        </button>
+      </div>
+
       <label className="block">
         <span className="text-xs font-bold uppercase text-slate-500">Contenido texto</span>
         <textarea value={form.textContent} onChange={set("textContent")} rows={6} className={`${field} font-mono text-xs`} />
@@ -106,6 +119,25 @@ export function CampaignForm({ campaignId, initial }: { campaignId?: number; ini
           <Save size={16} /> Guardar campaña
         </button>
       </div>
+
+      {previewOpen && (
+        <CampaignPreviewModal
+          data={{
+            subject: form.subject,
+            htmlContent: form.htmlContent,
+            textContent: form.textContent || null,
+            senderName: form.senderName || null,
+            senderEmail: form.senderEmail || null,
+            replyTo: form.replyTo || null,
+          }}
+          campaignId={null}
+          status={null}
+          previewRecipients={[]}
+          fromEmail={form.senderEmail || null}
+          demo={true}
+          onClose={() => setPreviewOpen(false)}
+        />
+      )}
     </div>
   );
 }
