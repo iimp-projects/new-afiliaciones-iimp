@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, forwardRef, useImperativeHandle, useRef, ChangeEvent } from "react";
-import { GraduationCap, PlusCircle, CheckCircle2, Search, ChevronDown, FileText, Info, UploadCloud, AlertTriangle, XCircle } from "lucide-react";
+import { GraduationCap, PlusCircle, CheckCircle2, Search, ChevronDown, FileText, Info, UploadCloud, XCircle } from "lucide-react";
 import type { ApplicationDraft } from "../../Models/ApplicationDraft";
 import type { AcademicStudy } from "../../Models/AcademicStudy";
 import { AcademicStudyValidator } from "../../Validators/AcademicStudyValidator";
@@ -22,7 +22,6 @@ interface EducationStepProps {
   onNext(): void;
   onBack(): void;
   onValidityChange?: (isValid: boolean) => void;
-  onFinalSubmit?: () => Promise<void>; // 👈 Se agrega para el envío del estudiante
 }
 
 interface CatalogItem {
@@ -104,7 +103,7 @@ const SearchableSelect = ({ options, value, onChange, onBlur, disabled, placehol
 };
 
 const EducationStep = forwardRef<StepRef, EducationStepProps>(
-  ({ membershipType, value, saving = false, onSave, onNext, onBack, onValidityChange, onFinalSubmit }, ref) => {
+  ({ membershipType, value, saving = false, onSave, onNext, onBack, onValidityChange }, ref) => {
     
     const [form, setForm] = useState<AcademicStudy>(value && value.length > 0 ? value[0] : emptyStudy);
     const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -120,7 +119,6 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
     const [cartaFilePreview, setCartaFilePreview] = useState<{ name: string; url: string; type: string } | null>(null);
     const [rawFile, setRawFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
-    const [showConfirmModal, setShowConfirmModal] = useState(false);
 
     useEffect(() => {
       if (value && value.length > 0) setForm(value[0]);
@@ -231,38 +229,22 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
           return;
         }
 
-        if (isStudent && onFinalSubmit) {
-          setShowConfirmModal(true);
-        } else {
-          try {
-            await onSave([form]);
-            onNext();
-          } catch (error: any) {
-            setGlobalError(error.message || "Error al guardar los datos.");
+        try {
+          const updatedForm = { ...form };
+          if (rawFile) {
+            setIsUploading(true);
+            const uploaded = await applicationApi.uploadFile(rawFile, "afiliaciones/estudiantes");
+            updatedForm.universityLetter = uploaded as any;
           }
+          await onSave([updatedForm]);
+          onNext();
+        } catch (error: any) {
+          setGlobalError(error.message || "Error al guardar los datos.");
+        } finally {
+          setIsUploading(false);
         }
       },
     }));
-
-    const handleConfirmSubmit = async () => {
-      setShowConfirmModal(false);
-      try {
-        setIsUploading(true);
-        const updatedForm = { ...form };
-
-        if (rawFile) {
-          const uploaded = await applicationApi.uploadFile(rawFile, "afiliaciones/estudiantes");
-          updatedForm.universityLetter = uploaded as any; 
-        }
-
-        await onSave([updatedForm]);
-        if (onFinalSubmit) await onFinalSubmit();
-      } catch (error: any) {
-        setGlobalError(error.message || "Error al enviar la solicitud.");
-      } finally {
-        setIsUploading(false);
-      }
-    };
 
     const getInputClass = (field: keyof AcademicStudy) => {
       const hasError = touched[field] && errors[field];
@@ -287,28 +269,6 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
 
     return (
       <div className="space-y-8">
-        
-        {showConfirmModal && (
-          <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl animate-in zoom-in-95">
-              <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mb-6 mx-auto">
-                <AlertTriangle className="w-8 h-8 text-amber-600" />
-              </div>
-              <h3 className="text-xl font-bold text-center text-[#2F3136] mb-3">¿Enviar Postulación?</h3>
-              <p className="text-sm text-gray-500 text-center mb-8 leading-relaxed">
-                Está a punto de enviar su solicitud como Estudiante para que sea revisada. <strong>Ya no podrá realizar modificaciones.</strong>
-              </p>
-              <div className="flex flex-col gap-3">
-                <button onClick={handleConfirmSubmit} className="w-full h-12 bg-gradient-to-r from-[#C5A059] to-[#9E7832] text-white rounded-xl font-bold text-sm shadow-md hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2">
-                  Sí, enviar solicitud
-                </button>
-                <button onClick={() => setShowConfirmModal(false)} className="w-full h-12 bg-white border border-gray-200 text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-50 transition-colors">
-                  Cancelar y revisar
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
 
         <ProcessLoadingOverlay
           open={isUploading}

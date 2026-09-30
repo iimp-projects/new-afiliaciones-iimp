@@ -25,10 +25,6 @@ export class EndorsementsValidator extends BaseValidator {
 
         this.validateDifferentEndorsements(endorsements);
 
-        this.validateDeclaration(endorsements);
-
-        this.validateDeclarationDocument(endorsements);
-
         return this.getResult();
 
     }
@@ -93,42 +89,6 @@ export class EndorsementsValidator extends BaseValidator {
             );
 
         }
-
-    }
-
-    /**
-     * Valida la aceptación de la Declaración Jurada.
-     */
-    private validateDeclaration(
-        endorsements: Endorsements
-    ): void {
-
-        if (!endorsements.declarationAccepted) {
-
-            this.addError(
-                "declarationAccepted",
-                "DECLARATION_ACCEPTANCE_REQUIRED",
-                "Debe aceptar la Declaración Jurada."
-            );
-
-        }
-
-    }
-
-    /**
-     * Valida que exista la Declaración Jurada firmada.
-     */
-    private validateDeclarationDocument(
-        endorsements: Endorsements
-    ): void {
-
-        ValidationRules.required(
-            endorsements.declarationDocumentId,
-            "declarationDocumentId",
-            this,
-            "DECLARATION_DOCUMENT_REQUIRED",
-            "Debe adjuntar la Declaración Jurada firmada."
-        );
 
     }
 

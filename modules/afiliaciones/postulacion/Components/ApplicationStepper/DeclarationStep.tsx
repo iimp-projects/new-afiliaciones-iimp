@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, forwardRef, useImperativeHandle, ChangeEve
 import { ShieldCheck, FileText, Download, UploadCloud, CheckCircle2, Info, XCircle, AlertTriangle } from "lucide-react";
 import type { ApplicationDraft } from "../../Models/ApplicationDraft";
 import type { Endorsements } from "../../Models/Endorsements";
-import { EndorsementsValidator } from "../../Validators/EndorsementsValidator";
+import { DeclarationValidator } from "../../Validators/DeclarationValidator";
 import { applicationApi } from "../../Services/ApplicationApi";
 import { ApplicationApiError } from "../../Services/ApplicationApiError";
 import { ProcessLoadingOverlay } from "@/modules/shared/Components/ProcessLoadingOverlay";
@@ -65,7 +65,7 @@ const DeclarationStep = forwardRef<StepRef, DeclarationStepProps>(
     const [showConfirmModal, setShowConfirmModal] = useState(false);
 
     useEffect(() => {
-      const validator = new EndorsementsValidator();
+      const validator = new DeclarationValidator();
       const result = validator.validate(form);
       onValidityChange?.(result.valid);
     }, [form, onValidityChange]);
@@ -146,7 +146,7 @@ const DeclarationStep = forwardRef<StepRef, DeclarationStepProps>(
         setGlobalError(null);
         setTouched({ declarationAccepted: true, declarationDocumentId: true });
 
-        const validator = new EndorsementsValidator();
+        const validator = new DeclarationValidator();
         const result = validator.validate(form);
 
         if (!result.valid) {

@@ -288,10 +288,15 @@ export default function ApplicationView({
           description: "Registre sus grados académicos...",
         };
       case 3:
-        return {
-          title: "Experiencia Laboral",
-          description: "Registre su centro de trabajo...",
-        };
+        return membershipType === MembershipType.STUDENT
+          ? {
+              title: "Ficha y Declaración Jurada",
+              description: "Genere y adjunte su solicitud firmada.",
+            }
+          : {
+              title: "Experiencia Laboral",
+              description: "Registre su centro de trabajo...",
+            };
       case 4:
         return {
           title: "Avales Institucionales",
@@ -569,21 +574,12 @@ export default function ApplicationView({
             saving={saving}
             onBack={previousStep}
             onSave={saveAcademicStudies}
-            // Si es estudiante no hay paso 3, le pasamos una función vacía al onNext porque onFinalSubmit toma el control
-            onNext={
-              membershipType === MembershipType.STUDENT ? () => {} : nextStep
-            }
+            onNext={nextStep}
             onValidityChange={setIsStepValid}
-            // 👇 Pasamos onFinalSubmit si es estudiante
-            onFinalSubmit={
-              membershipType === MembershipType.STUDENT
-                ? submitFinalApplication
-                : undefined
-            }
           />
         )}
 
-        {currentStep === 3 && (
+        {currentStep === 3 && membershipType === MembershipType.ACTIVE && (
           <ExperienceStep
             ref={stepRef}
             value={draft.employmentInformation}
@@ -595,7 +591,7 @@ export default function ApplicationView({
           />
         )}
 
-        {currentStep === 4 && (
+        {currentStep === 4 && membershipType === MembershipType.ACTIVE && (
           applicationId && <EndorsementsStep
             applicationId={applicationId}
             ref={stepRef}
@@ -608,7 +604,7 @@ export default function ApplicationView({
           />
         )}
 
-        {currentStep === 5 && (
+        {currentStep === getTotalApplicationSteps(membershipType) && (
           <DeclarationStep
             ref={stepRef}
             value={draft.endorsements}

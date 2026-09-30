@@ -5,6 +5,7 @@ import { PersonalInformationValidator } from "./PersonalInformationValidator";
 import { ValidationResult } from "./ValidationResult";
 import { EmploymentInformationValidator } from "./EmploymentInformationValidator";
 import { EndorsementsValidator } from "./EndorsementsValidator";
+import { DeclarationValidator } from "./DeclarationValidator";
 import { MembershipType } from "../Types/MembershipType";
 
 export class ApplicationValidator extends BaseValidator {
@@ -15,6 +16,8 @@ export class ApplicationValidator extends BaseValidator {
   private readonly employmentValidator = new EmploymentInformationValidator();
 
   private readonly endorsementsValidator = new EndorsementsValidator();
+
+  private readonly declarationValidator = new DeclarationValidator();
 
   public validate(draft: ApplicationDraft): ValidationResult {
     this.reset();
@@ -29,6 +32,10 @@ export class ApplicationValidator extends BaseValidator {
       
       this.validateEndorsements(draft);
     }
+
+    // La declaración jurada (aceptación + documento firmado) es obligatoria
+    // para ACTIVE y STUDENT.
+    this.validateDeclaration(draft);
 
     return this.getResult();
   }
@@ -87,7 +94,7 @@ export class ApplicationValidator extends BaseValidator {
   }
 
   /**
-   * Valida el Paso 4: Avales y Declaración Jurada.
+   * Valida el Paso 4: Avales.
    */
   private validateEndorsements(draft: ApplicationDraft): void {
     if (!draft.endorsements) {
@@ -101,5 +108,13 @@ export class ApplicationValidator extends BaseValidator {
     }
 
     this.merge(this.endorsementsValidator.validate(draft.endorsements));
+  }
+
+  /**
+   * Valida la Declaración Jurada (aceptación + documento firmado), común a
+   * ACTIVE y STUDENT.
+   */
+  private validateDeclaration(draft: ApplicationDraft): void {
+    this.merge(this.declarationValidator.validate(draft.endorsements));
   }
 }

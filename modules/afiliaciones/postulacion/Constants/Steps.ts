@@ -78,12 +78,12 @@ export const APPLICATION_STEPS: Record<
             icon: GraduationCap,
         },
 
-        // {
-        //     id: 3,
-        //     title: "FINALIZACIÓN",
-        //     path: "finish",
-        //     icon: CheckCircle2,
-        // },
+        {
+            id: 3,
+            title: "FICHA Y DECLARACIÓN JURADA",
+            path: "declaration",
+            icon: FileSignature,
+        },
 
     ],
 

@@ -153,6 +153,8 @@ export class DeclarationPdfService {
     const categoria =
       (safeDraft as any).category || safeDraft.membershipType || "ASOCIADO ACTIVO";
 
+    const isStudent = safeDraft.membershipType === "STUDENT";
+
     const qrCodeDataUrl = await QRCode.toDataURL(validationUrl, {
       errorCorrectionLevel: "H",
       margin: 1,
@@ -178,7 +180,8 @@ export class DeclarationPdfService {
       aval2,
       fechaActual,
       categoria,
-      employmentStatus
+      employmentStatus,
+      isStudent
     );
 
     // ==========================================
@@ -280,7 +283,8 @@ export class DeclarationPdfService {
     aval2: any,
     fechaActual: string,
     categoria: string,
-    employmentStatus: ReturnType<typeof resolveEmploymentStatus>
+    employmentStatus: ReturnType<typeof resolveEmploymentStatus>,
+    isStudent: boolean
   ): string {
     const nombres = personal.names || "";
     const apellidos = `${personal.fatherLastName || ""} ${personal.motherLastName || ""}`.trim();
@@ -575,6 +579,7 @@ export class DeclarationPdfService {
       </div>
     </div>
 
+    ${isStudent ? "" : `
     <!-- SECCIÓN 3: INFORMACIÓN LABORAL -->
     <div class="section">
       <div class="section-title">3. ${employmentStatus === "NOT_WORKING" ? "Situación Laboral" : employmentStatus === "SELF_EMPLOYED" ? "Actividad Profesional Independiente" : "Información Laboral"}</div>
@@ -642,6 +647,7 @@ export class DeclarationPdfService {
         </div>
       </div>
     </div>
+    `}
 
     <!-- ============================================== -->
     <!-- NUEVA PÁGINA: DECLARACIÓN JURADA -->
