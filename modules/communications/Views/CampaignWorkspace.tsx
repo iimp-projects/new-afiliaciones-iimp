@@ -75,6 +75,7 @@ export function CampaignWorkspace({
   const [liveProgress, setLiveProgress] = useState<CampaignSendProgress | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [recipientsDirty, setRecipientsDirty] = useState(false);
 
   const isDraft = campaign.status === "DRAFT";
   const isReady = campaign.status === "READY";
@@ -240,7 +241,7 @@ export function CampaignWorkspace({
 
         {tab === "destinatarios" && (
           isDraft ? (
-            <RecipientsTab campaignId={campaign.id} isDraft={isDraft} selection={selection} />
+            <RecipientsTab campaignId={campaign.id} isDraft={isDraft} selection={selection} onDirtyChange={setRecipientsDirty} />
           ) : (
             <SendTab campaignId={campaign.id} isReady={isReady} campaignRecipients={campaignRecipients} />
           )
@@ -248,10 +249,22 @@ export function CampaignWorkspace({
       </div>
 
       {confirmReady && (
-        <ConfirmModal title="Preparar campaña" onClose={() => setConfirmReady(false)} onConfirm={() => void action(() => markCampaignReadyAction(campaign.id).then((r) => ({ success: r.success, message: r.success ? undefined : r.message })))} busy={busy}>
+        <ConfirmModal
+          title="Preparar campaña"
+          onClose={() => setConfirmReady(false)}
+          onConfirm={() => void action(() => markCampaignReadyAction(campaign.id).then((r) => ({ success: r.success, message: r.success ? undefined : r.message })))}
+          busy={busy}
+          disabled={recipientsDirty || campaign.recipientCount === 0}
+        >
           <p className="text-sm text-slate-600">Destinatarios únicos: <strong>{campaign.recipientCount}</strong></p>
           <p className="mt-2 text-sm text-slate-600">Asunto: <strong>{campaign.subject}</strong></p>
-          <p className="mt-3 rounded-xl bg-amber-50 p-3 text-xs font-semibold text-amber-800">¿Confirmas que la campaña está lista? Esto <strong>NO</strong> enviará ningún correo.</p>
+          {recipientsDirty ? (
+            <p className="mt-3 rounded-xl bg-amber-50 p-3 text-xs font-semibold text-amber-800">Tienes cambios de destinatarios sin guardar. Usa &quot;Guardar destinatarios&quot; antes de preparar la campaña.</p>
+          ) : campaign.recipientCount === 0 ? (
+            <p className="mt-3 rounded-xl bg-amber-50 p-3 text-xs font-semibold text-amber-800">Agrega y guarda al menos un destinatario antes de preparar la campaña.</p>
+          ) : (
+            <p className="mt-3 rounded-xl bg-amber-50 p-3 text-xs font-semibold text-amber-800">¿Confirmas que la campaña está lista? Esto <strong>NO</strong> enviará ningún correo.</p>
+          )}
         </ConfirmModal>
       )}
 
@@ -287,7 +300,7 @@ export function CampaignWorkspace({
   );
 }
 
-function RecipientsTab({ campaignId, isDraft, selection }: { campaignId: number; isDraft: boolean; selection: CampaignRecipientSelection }) {
+function RecipientsTab({ campaignId, isDraft, selection, onDirtyChange }: { campaignId: number; isDraft: boolean; selection: CampaignRecipientSelection; onDirtyChange: (dirty: boolean) => void }) {
   const router = useRouter();
   const [selectedLists, setSelectedLists] = useState<number[]>([]);
   const [individuals, setIndividuals] = useState<number[]>(selection.selectedRecipientIds);
@@ -311,6 +324,26 @@ function RecipientsTab({ campaignId, isDraft, selection }: { campaignId: number;
     for (const id of individuals) set.add(id);
     return set.size;
   }, [selectedLists, individuals, selection.recipients]);
+
+  const persistedSet = useMemo(() => new Set(selection.selectedRecipientIds), [selection.selectedRecipientIds]);
+  const currentSelection = useMemo(() => {
+    const set = new Set<number>();
+    for (const recipient of selection.recipients) {
+      if (recipient.listIds.some((id) => selectedLists.includes(id))) set.add(recipient.id);
+    }
+    for (const id of individuals) set.add(id);
+    return set;
+  }, [selectedLists, individuals, selection.recipients]);
+
+  const dirty = useMemo(() => {
+    if (currentSelection.size !== persistedSet.size) return true;
+    for (const id of currentSelection) if (!persistedSet.has(id)) return true;
+    return false;
+  }, [currentSelection, persistedSet]);
+
+  useEffect(() => {
+    onDirtyChange(dirty);
+  }, [dirty, onDirtyChange]);
 
   const toggleList = (id: number) => setSelectedLists((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   const toggleIndividual = (id: number) => setIndividuals((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
@@ -354,7 +387,11 @@ function RecipientsTab({ campaignId, isDraft, selection }: { campaignId: number;
     setMessage(null);
     const response = await setCampaignRecipientsAction(campaignId, { listIds: selectedLists, recipientIds: individuals });
     setBusy(false);
-    setMessage(response.success ? `Se guardaron ${response.count} destinatarios únicos.` : response.message);
+    if (!response.success) setMessage(response.message);
+    else {
+      setMessage(`Se guardaron ${response.count} destinatarios únicos.`);
+      router.refresh();
+    }
   };
 
   return (
@@ -477,7 +514,10 @@ function RecipientsTab({ campaignId, isDraft, selection }: { campaignId: number;
       </div>
 
       <div className="flex items-center justify-between rounded-2xl bg-[#fdfaf5] p-4">
-        <p className="text-sm font-bold text-slate-700">Seleccionados: <span className="text-[#C5A059]">{uniqueCount} destinatarios únicos</span></p>
+        <div className="flex flex-wrap items-center gap-3">
+          <p className="text-sm font-bold text-slate-700">Seleccionados: <span className="text-[#C5A059]">{uniqueCount} destinatarios únicos</span></p>
+          {dirty && <span className="rounded-full bg-amber-100 px-3 py-1 text-[11px] font-black text-amber-700">Cambios sin guardar</span>}
+        </div>
         {isDraft && (
           <button onClick={() => void save()} disabled={busy} className="inline-flex items-center gap-2 rounded-xl bg-[#C5A059] px-6 py-2.5 text-sm font-black text-white shadow-md disabled:opacity-50">
             {busy && <Loader2 size={16} className="animate-spin" />} Guardar destinatarios
@@ -739,7 +779,7 @@ function HistoryModal({ campaignId, recipient, onClose }: { campaignId: number; 
   );
 }
 
-function ConfirmModal({ title, children, onClose, onConfirm, busy }: { title: string; children: React.ReactNode; onClose: () => void; onConfirm: () => void; busy: boolean }) {
+function ConfirmModal({ title, children, onClose, onConfirm, busy, disabled = false }: { title: string; children: React.ReactNode; onClose: () => void; onConfirm: () => void; busy: boolean; disabled?: boolean }) {
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" onClick={onClose}>
       <div className="w-full max-w-md rounded-[24px] bg-white p-6 shadow-2xl" onClick={(event) => event.stopPropagation()}>
@@ -750,7 +790,7 @@ function ConfirmModal({ title, children, onClose, onConfirm, busy }: { title: st
         <div className="mt-4">{children}</div>
         <div className="mt-6 flex justify-end gap-3">
           <button onClick={onClose} className="rounded-xl px-5 py-2.5 text-sm font-bold text-slate-600">Cancelar</button>
-          <button onClick={onConfirm} disabled={busy} className="rounded-xl bg-[#C5A059] px-6 py-2.5 text-sm font-black text-white shadow-md disabled:opacity-50">
+          <button onClick={onConfirm} disabled={busy || disabled} className="rounded-xl bg-[#C5A059] px-6 py-2.5 text-sm font-black text-white shadow-md disabled:opacity-50">
             {busy && <Loader2 size={15} className="mr-1 inline animate-spin" />} Confirmar
           </button>
         </div>
