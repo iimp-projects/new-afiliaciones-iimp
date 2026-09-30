@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, CheckCircle2, Eye, Loader2, MoreVertical, Pencil, Plus, Send, Trash2, Users } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ChevronLeft, ChevronRight, Eye, Loader2, MoreVertical, Pencil, Plus, Send, Trash2, Users } from "lucide-react";
 import { CampaignForm } from "./CampaignForm";
 import { CampaignPreviewModal } from "./CampaignPreviewModal";
 import { ImportRecipientsWizard } from "./ImportRecipientsWizard";
@@ -36,6 +36,18 @@ function formatDate(value?: string | null): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "-";
   return formatDateTimeEsPe(date);
+}
+
+function getPageNumbers(current: number, total: number): Array<number | "..."> {
+  if (total <= 5) return Array.from({ length: total }, (_, index) => index + 1);
+  const pages: Array<number | "..."> = [1];
+  if (current > 3) pages.push("...");
+  const start = Math.max(2, current - 1);
+  const end = Math.min(total - 1, current + 1);
+  for (let page = start; page <= end; page++) pages.push(page);
+  if (current < total - 2) pages.push("...");
+  pages.push(total);
+  return pages;
 }
 
 export function CampaignWorkspace({
@@ -280,6 +292,8 @@ function RecipientsTab({ campaignId, isDraft, selection }: { campaignId: number;
   const [selectedLists, setSelectedLists] = useState<number[]>([]);
   const [individuals, setIndividuals] = useState<number[]>(selection.selectedRecipientIds);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [importOpen, setImportOpen] = useState(false);
@@ -287,6 +301,7 @@ function RecipientsTab({ campaignId, isDraft, selection }: { campaignId: number;
   const [viewList, setViewList] = useState<{ id: number; name: string } | null>(null);
   const [renameList, setRenameList] = useState<{ id: number; name: string } | null>(null);
   const [deleteList, setDeleteList] = useState<{ id: number; name: string } | null>(null);
+  const selectAllRef = useRef<HTMLInputElement>(null);
 
   const uniqueCount = useMemo(() => {
     const set = new Set<number>();
@@ -300,12 +315,10 @@ function RecipientsTab({ campaignId, isDraft, selection }: { campaignId: number;
   const toggleList = (id: number) => setSelectedLists((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   const toggleIndividual = (id: number) => setIndividuals((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
 
-  const save = async () => {
-    setBusy(true);
-    setMessage(null);
-    const response = await setCampaignRecipientsAction(campaignId, { listIds: selectedLists, recipientIds: individuals });
-    setBusy(false);
-    setMessage(response.success ? `Se guardaron ${response.count} destinatarios únicos.` : response.message);
+  const allListsSelected = selection.lists.length > 0 && selection.lists.every((list) => selectedLists.includes(list.id));
+  const toggleSelectAllLists = () => {
+    if (allListsSelected) setSelectedLists([]);
+    else setSelectedLists(selection.lists.map((list) => list.id));
   };
 
   const filtered = selection.recipients.filter((recipient) => {
@@ -314,16 +327,53 @@ function RecipientsTab({ campaignId, isDraft, selection }: { campaignId: number;
     return haystack.includes(search.toLowerCase());
   });
 
+  const filteredIds = useMemo(() => new Set(filtered.map((recipient) => recipient.id)), [filtered]);
+  const selectedFilteredCount = filtered.filter((recipient) => individuals.includes(recipient.id)).length;
+  const allFilteredSelected = filtered.length > 0 && selectedFilteredCount === filtered.length;
+  const someFilteredSelected = selectedFilteredCount > 0 && selectedFilteredCount < filtered.length;
+
+  const toggleSelectAllFiltered = () => {
+    if (allFilteredSelected) {
+      setIndividuals((prev) => prev.filter((id) => !filteredIds.has(id)));
+    } else {
+      setIndividuals((prev) => Array.from(new Set([...prev, ...filteredIds])));
+    }
+  };
+
+  useEffect(() => {
+    if (selectAllRef.current) selectAllRef.current.indeterminate = someFilteredSelected;
+  }, [someFilteredSelected]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const startIndex = (currentPage - 1) * pageSize;
+  const paged = filtered.slice(startIndex, startIndex + pageSize);
+
+  const save = async () => {
+    setBusy(true);
+    setMessage(null);
+    const response = await setCampaignRecipientsAction(campaignId, { listIds: selectedLists, recipientIds: individuals });
+    setBusy(false);
+    setMessage(response.success ? `Se guardaron ${response.count} destinatarios únicos.` : response.message);
+  };
+
   return (
     <section className="space-y-5">
       <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h3 className="text-sm font-black uppercase tracking-wide text-slate-700">Listas disponibles</h3>
-          {isDraft && (
-            <button onClick={() => setImportOpen(true)} className="inline-flex items-center gap-1.5 text-xs font-bold text-[#7f561e] hover:text-[#C5A059]">
-              <Plus size={15} /> Importar nueva lista
-            </button>
-          )}
+          <div className="flex items-center gap-3">
+            {isDraft && selection.lists.length > 0 && (
+              <button onClick={toggleSelectAllLists} className="text-xs font-bold text-[#7f561e] hover:text-[#C5A059]">
+                {allListsSelected ? "Deseleccionar todas" : "Seleccionar todas"}
+              </button>
+            )}
+            {isDraft && (
+              <button onClick={() => setImportOpen(true)} className="inline-flex items-center gap-1.5 text-xs font-bold text-[#7f561e] hover:text-[#C5A059]">
+                <Plus size={15} /> Importar nueva lista
+              </button>
+            )}
+          </div>
         </div>
         {selection.lists.length === 0 ? (
           <p className="text-sm text-slate-500">No hay listas disponibles. Importa un Excel para crear una lista.</p>
@@ -364,18 +414,66 @@ function RecipientsTab({ campaignId, isDraft, selection }: { campaignId: number;
 
       <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h3 className="text-sm font-black uppercase tracking-wide text-slate-700">Destinatarios individuales</h3>
-          <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar nombre, empresa, email" className="h-9 w-64 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#C5A059]" />
+          <div className="flex items-center gap-2">
+            <input
+              ref={selectAllRef}
+              type="checkbox"
+              disabled={!isDraft || filtered.length === 0}
+              checked={allFilteredSelected}
+              onChange={toggleSelectAllFiltered}
+              className="h-4 w-4 accent-[#C5A059]"
+            />
+            <h3 className="text-sm font-black uppercase tracking-wide text-slate-700">Destinatarios individuales</h3>
+          </div>
+          <input value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Buscar nombre, empresa, email" className="h-9 w-64 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#C5A059]" />
         </div>
-        <div className="mt-4 max-h-72 space-y-1 overflow-y-auto">
-          {filtered.map((recipient) => (
-            <label key={recipient.id} className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-sm hover:bg-slate-50">
-              <input type="checkbox" disabled={!isDraft} checked={individuals.includes(recipient.id)} onChange={() => toggleIndividual(recipient.id)} className="h-4 w-4 accent-[#C5A059]" />
-              <span className="font-semibold text-slate-700">{recipient.name || "—"}</span>
-              <span className="text-slate-400">({recipient.email})</span>
-            </label>
-          ))}
+
+        <div className="mt-4 space-y-1">
+          {paged.length === 0 ? (
+            <p className="text-sm text-slate-500">Sin resultados.</p>
+          ) : (
+            paged.map((recipient) => (
+              <label key={recipient.id} className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-sm hover:bg-slate-50">
+                <input type="checkbox" disabled={!isDraft} checked={individuals.includes(recipient.id)} onChange={() => toggleIndividual(recipient.id)} className="h-4 w-4 accent-[#C5A059]" />
+                <span className="font-semibold text-slate-700">{recipient.name || "—"}</span>
+                <span className="text-slate-400">({recipient.email})</span>
+              </label>
+            ))
+          )}
         </div>
+
+        {filtered.length > 0 && (
+          <div className="mt-4 flex flex-col gap-3 border-t border-slate-100 pt-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+              <span>Mostrando {startIndex + 1}–{Math.min(startIndex + pageSize, filtered.length)} de {filtered.length}</span>
+              <span className="hidden sm:inline">·</span>
+              <select value={pageSize} onChange={(event) => { setPageSize(Number(event.target.value)); setPage(1); }} className="h-8 rounded-lg border border-slate-200 bg-slate-50 px-2 text-xs font-bold text-slate-700 outline-none focus:border-[#C5A059]">
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+              <span className="hidden sm:inline">por página</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <button onClick={() => setPage(Math.max(1, currentPage - 1))} disabled={currentPage === 1} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-40">
+                <ChevronLeft size={16} />
+              </button>
+              {getPageNumbers(currentPage, totalPages).map((item, index) => (
+                <button
+                  key={index}
+                  onClick={() => typeof item === "number" && setPage(item)}
+                  disabled={item === "..."}
+                  className={`min-w-[32px] h-8 flex items-center justify-center rounded-lg text-xs font-bold ${item === currentPage ? "bg-[#C5A059] text-white" : item === "..." ? "text-slate-400" : "text-slate-600 hover:bg-slate-100"}`}
+                >
+                  {item}
+                </button>
+              ))}
+              <button onClick={() => setPage(Math.min(totalPages, currentPage + 1))} disabled={currentPage === totalPages} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-40">
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex items-center justify-between rounded-2xl bg-[#fdfaf5] p-4">
