@@ -1,10 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import { AlertTriangle, ArrowLeft, Check, CheckCircle2, FileSpreadsheet, RefreshCw, Search, Trash2, X } from "lucide-react";
 import { processRecipientsExcelAction, confirmRecipientsImportAction } from "../Actions/recipientImport.actions";
 import { ProcessLoadingOverlay } from "@/modules/shared/Components/ProcessLoadingOverlay";
 import type { ImportConfirmInput, ImportPreview, ImportResult } from "../Models/RecipientImport";
+
+const subscribe = () => () => {};
+const clientSnapshot = () => true;
+const serverSnapshot = () => false;
 
 type Step = "select" | "review" | "result";
 type PreviewFilter = "all" | "valid" | "invalid" | "duplicate" | "existing";
@@ -44,6 +49,15 @@ export function ImportRecipientsWizard({ onClose, onImported }: { onClose: () =>
   const [search, setSearch] = useState("");
 
   const busy = processing || importing;
+  const mounted = useSyncExternalStore(subscribe, clientSnapshot, serverSnapshot);
+
+  useEffect(() => {
+    const bodyOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = bodyOverflow;
+    };
+  }, []);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -172,8 +186,10 @@ export function ImportRecipientsWizard({ onClose, onImported }: { onClose: () =>
     ? "Estamos registrando los contactos y sus listas. No cierres esta ventana."
     : "Estamos revisando las hojas y validando los destinatarios. Esto puede tomar unos segundos.";
 
-  return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
+  if (!mounted) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
       <div
         role="dialog"
         aria-modal="true"
@@ -475,6 +491,7 @@ export function ImportRecipientsWizard({ onClose, onImported }: { onClose: () =>
       </div>
 
       <ProcessLoadingOverlay open={busy} title={loadingTitle} description={loadingDescription} />
-    </div>
+    </div>,
+    document.body,
   );
 }
