@@ -40,6 +40,12 @@ export class AcademicStudyValidator extends BaseValidator {
             if (!data.studentTermsAccepted) {
                 this.addError("studentTermsAccepted", "REQ", "Debe aceptar las condiciones de afiliación.");
             }
+            const cycle = data.cycle;
+            if (typeof cycle !== "number" || !Number.isInteger(cycle)) {
+                this.addError("cycle", "REQ", "Seleccione el ciclo que está cursando.");
+            } else if (![7, 8, 9, 10].includes(cycle)) {
+                this.addError("cycle", "INV_CYCLE", "El ciclo debe ser 7, 8, 9 o 10.");
+            }
             return; // Si es estudiante, validamos esto y salimos para no pedirle título ni especialidad obligatoria (o quita el return si quieres que también se lo pida).
         }
 

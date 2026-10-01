@@ -38,11 +38,19 @@ const emptyStudy: AcademicStudy = {
   registrationNumber: "",
   admissionYear: undefined,
   graduationYear: undefined,
+  cycle: undefined,
   sectorExperience: "",
   observations: "",
   universityLetter: null,
   studentTermsAccepted: false,
 };
+
+const cycleOptions: CatalogItem[] = [
+  { id: 7, name: "7" },
+  { id: 8, name: "8" },
+  { id: 9, name: "9" },
+  { id: 10, name: "10" },
+];
 
 // ========================================================
 // COMPONENTE: SELECT CON BÚSQUEDA INTEGRADA 
@@ -336,6 +344,16 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
                 <SearchableSelect options={specialties} placeholder="Seleccione especialidad" value={form.specialtyId ?? ""} onChange={(val: number) => updateField("specialtyId", Number(val))} onBlur={() => handleBlur("specialty")} hasError={touched.specialty && !!errors.specialty} />
                 {getErrorText("specialty")}{specialties.find((item) => item.id === form.specialtyId)?.name?.toLowerCase().startsWith("otra") ? <p className="mt-1 text-xs text-[#8b6a2b]">No encontró su especialidad en el catálogo. Especifique el nombre exacto.</p> : null}
               </div>
+
+              {isStudent && (
+                <div className="xl:col-span-2">
+                  <label className="text-xs font-bold text-slate-700 mb-1.5 block uppercase tracking-wide">
+                    Ciclo <span className="text-red-500">*</span><FieldHelp title="Ciclo" description="Indique el ciclo académico que se encuentra cursando actualmente." />
+                  </label>
+                  <SearchableSelect options={cycleOptions} placeholder="Seleccione un ciclo" value={form.cycle ?? ""} onChange={(val: number) => updateField("cycle", Number(val))} onBlur={() => handleBlur("cycle")} hasError={touched.cycle && !!errors.cycle} />
+                  {getErrorText("cycle")}
+                </div>
+              )}
 
               {/* Título obtenido (Solo para Activos) */}
               {!isStudent && (

@@ -43,6 +43,11 @@ export interface AcademicStudy {
     graduationYear?: number;
 
     /**
+     * Ciclo académico que cursa el estudiante (7, 8, 9 o 10).
+     */
+    cycle?: number;
+
+    /**
      * Tiempo laborando en el sector.
      */
     sectorExperience?: string;

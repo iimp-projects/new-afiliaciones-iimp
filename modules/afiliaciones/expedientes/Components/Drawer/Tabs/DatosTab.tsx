@@ -213,6 +213,7 @@ export function DatosTab({ payload }: DatosTabProps) {
           <DataField label="Grado / Título" value={academicStudy.degreeTitle} />
           <DataField label="Especialidad" value={academicStudy.specialty} />
           <DataField label="Año de Ingreso" value={academicStudy.admissionYear} />
+          {isStudent && <DataField label="Ciclo" value={academicStudy.cycle} />}
           <DataField label="Año de Egreso" value={academicStudy.graduationYear} />
 
           {!isStudent && (

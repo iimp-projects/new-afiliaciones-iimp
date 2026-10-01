@@ -58,17 +58,17 @@ try {
   console.log("PASS browser: six selectable degrees; save preserves degreeId, independent specialtyId and degreeTitle");
 } finally { await browser.close(); }
 
-const server = await build({stdin: {resolveDir: cwd, loader: "ts", contents: 'export {ApplicationRepository} from "./modules/afiliaciones/postulacion/Repositories/ApplicationRepository"; export {prisma} from "./lib/prisma";'}, bundle: true, write: false, platform: "node", format: "cjs", packages: "external"});
+const server = await build({stdin: {resolveDir: cwd, loader: "ts", contents: 'export {persistAcademicInfos} from "./modules/afiliaciones/postulacion/Repositories/AcademicInfoPersistence"; export {prisma} from "./lib/prisma";'}, bundle: true, write: false, platform: "node", format: "cjs", packages: "external"});
 const moduleContainer = {exports: {}};
 new Function("require", "module", "exports", server.outputFiles[0].text)(require, moduleContainer, moduleContainer.exports);
-const {ApplicationRepository, prisma} = moduleContainer.exports;
+const {persistAcademicInfos, prisma} = moduleContainer.exports;
 try {
   const persisted = [];
   const tx = {
     academicDegree: {findUnique: async ({where}) => ({...degrees.find(degree => degree.id === where.id), isActive: true})},
     academicInfo: {deleteMany: async () => {}, create: async ({data}) => {persisted.push(data);}},
   };
-  await new ApplicationRepository().persistAcademicInfos(tx, 1, {draftData: {academicStudies: saved}});
+  await persistAcademicInfos(tx, 1, {academicStudies: saved}, "ACTIVE");
   for (const row of persisted) {
     assert.equal(row.studyLevel, degrees.find(degree => degree.id === row.degreeId).studyLevel);
     assert.equal(row.specialtyId, 77);

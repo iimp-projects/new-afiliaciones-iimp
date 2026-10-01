@@ -10,6 +10,8 @@ import { ApplicationAccessService } from "./ApplicationAccessService";
 import { ApplicationFlowError } from "./Exceptions/ApplicationFlowError";
 import { AssociatesIntegrationService } from "../../associates-integration/Services/AssociatesIntegrationService";
 import { PersonalInformation } from "../Models/PersonalInformation";
+import { ApplicationDraft } from "../Models/ApplicationDraft";
+import { persistAcademicInfos } from "../Repositories/AcademicInfoPersistence";
 
 export class UpdateDraftService {
 
@@ -28,6 +30,10 @@ export class UpdateDraftService {
 
         new ApplicationAccessService().require(Number(application.id), token);
         await this.ensureEditable(application, dto);
+
+        if (application.status === "OBSERVED") {
+            this.validateAcademicSync(dto, application);
+        }
 
         const updatedApplication = await this.updateDraft(
             trackingCode,
@@ -201,6 +207,7 @@ export class UpdateDraftService {
             degreeId: "Grado Académico",
             degreeTitle: "Título obtenido",
             specialty: "Especialidad",
+            cycle: "Ciclo",
             professionalAssociation: "Colegio profesional",
             registrationNumber: "Número de colegiatura",
             declarationDocumentId: "Declaración jurada",
@@ -222,6 +229,27 @@ export class UpdateDraftService {
         }
         // ─────────────────────────────────────────────────────────────────────────
 
+    }
+
+    /**
+     * Valida el ciclo académico antes de persistir la subsanación, para evitar
+     * que un valor inválido quede en `draftData` o se sincronice a `academic_info`.
+     */
+    private validateAcademicSync(dto: UpdateDraftDTO, application: Application): void {
+        if (application.affiliateType !== "STUDENT") return;
+
+        const studies = (dto.draftData as ApplicationDraft | undefined)?.academicStudies;
+        if (!studies?.length) return;
+
+        for (const study of studies) {
+            const cycle = study.cycle;
+            if (
+                cycle != null &&
+                (typeof cycle !== "number" || !Number.isInteger(cycle) || ![7, 8, 9, 10].includes(cycle))
+            ) {
+                throw new ApplicationFlowError("INVALID_INPUT", "El ciclo debe ser 7, 8, 9 o 10.", 422);
+            }
+        }
     }
 
     /**
@@ -325,6 +353,13 @@ export class UpdateDraftService {
                     },
                 });
                 await this.persistPrimaryAddress(tx, app.personId, personal);
+            }
+
+            // 3. Sincronizar la formación académica (academic_info) desde el draft
+            // persistido, para que `cycle` y el resto de campos académicos queden
+            // alineados con draftData después de una subsanación.
+            if (app.personId) {
+                await persistAcademicInfos(tx, app.personId, app.draftData, app.affiliateType);
             }
         });
     }

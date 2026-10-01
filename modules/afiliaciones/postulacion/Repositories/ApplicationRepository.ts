@@ -8,6 +8,7 @@ import { blocksNewApplication, canEditApplication, canSubmitApplication, current
 import { ApplicationFlowError } from "../Services/Exceptions/ApplicationFlowError";
 import { normalizeEmploymentInformation } from "../Models/EmploymentInformation";
 import { ContactUniquenessService } from "../Services/ContactUniquenessService";
+import { persistAcademicInfos } from "./AcademicInfoPersistence";
 
 export class ApplicationRepository implements IApplicationRepository {
   constructor(private readonly db = prisma) {}
@@ -190,7 +191,7 @@ export class ApplicationRepository implements IApplicationRepository {
       const personId = await this.upsertPerson(tx, application);
       await this.persistPrimaryAddress(tx, personId, application);
 
-      await this.persistAcademicInfos(tx, personId, application);
+      await persistAcademicInfos(tx, personId, application.draftData, application.affiliateType);
       await this.persistEmploymentInfos(tx, personId, application);
       await this.persistApprovals(tx, application);
       await this.persistDocuments(tx, application);
@@ -517,54 +518,6 @@ export class ApplicationRepository implements IApplicationRepository {
     }
 
     await tx.address.create({ data: { personId, ...data } });
-  }
-
-  private async persistAcademicInfos(
-    tx: Prisma.TransactionClient,
-    personId: number,
-    application: Prisma.MembershipApplicationGetPayload<Record<string, never>>,
-  ): Promise<void> {
-    if (!application.draftData) {
-      return;
-    }
-
-    const draft = application.draftData as unknown as ApplicationDraft;
-
-    if (!draft.academicStudies?.length) {
-      return;
-    }
-
-    await tx.academicInfo.deleteMany({
-      where: {
-        personId,
-      },
-    });
-
-    for (const study of draft.academicStudies) {
-      const degree = study.degreeId
-        ? await tx.academicDegree.findUnique({ where: { id: study.degreeId }, select: { studyLevel: true, isActive: true } })
-        : null;
-      if (study.degreeId && (!degree || !degree.isActive)) {
-        throw new Error("El grado académico seleccionado no está disponible.");
-      }
-      await tx.academicInfo.create({
-        data: {
-          personId,
-          studyLevel: degree?.studyLevel ?? "OTHER",
-          degreeId: study.degreeId ?? null,
-          universityId:
-            study.institutionId && study.institutionId > 0
-              ? study.institutionId
-              : null,
-          specialtyId: study.specialtyId ?? null,
-          degreeTitle: study.degreeTitle,
-          professionalAssociation: study.professionalAssociation ?? null,
-          licenseNumber: study.registrationNumber ?? null,
-          graduationYear: study.graduationYear ?? null,
-          termOrSemester: null,
-        },
-      });
-    }
   }
 
   private async persistEmploymentInfos(

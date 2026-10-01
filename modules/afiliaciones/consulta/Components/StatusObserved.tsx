@@ -96,6 +96,7 @@ const fieldLabels: Record<string, string> = {
   degreeId: "Grado Académico",
   degreeTitle: "Título obtenido",
   specialty: "Especialidad",
+  cycle: "Ciclo",
   professionalAssociation: "Colegio profesional",
   registrationNumber: "Número de colegiatura",
   sponsorDocumentNumber: "DNI del aval",
@@ -740,6 +741,31 @@ export const StatusObserved: React.FC<Props> = ({ data, onUploadSuccess }) => {
                         {degrees.map((deg) => (
                           <option key={deg.id} value={deg.id}>
                             {deg.name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  );
+                }
+
+                // ── Campo de ciclo académico (select 7-10) ──
+                if (fieldKey === "cycle") {
+                  const currentVal = readPath(correctionDraft, path);
+                  return (
+                    <label key={path} className="text-xs font-semibold text-slate-700 col-span-1">
+                      <span className="block mb-1.5">{label}</span>
+                      <select
+                        value={currentVal ?? ""}
+                        onChange={(e) => {
+                          const val = e.target.value ? Number(e.target.value) : null;
+                          setCorrectionDraft((prev) => writePath(prev, path, val));
+                        }}
+                        className="w-full h-10 px-3 rounded-xl border border-slate-300 bg-white text-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-[#C5A059]"
+                      >
+                        <option value="">Seleccione un ciclo...</option>
+                        {[7, 8, 9, 10].map((cycle) => (
+                          <option key={cycle} value={cycle}>
+                            {cycle}
                           </option>
                         ))}
                       </select>
