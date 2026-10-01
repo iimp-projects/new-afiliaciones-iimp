@@ -17,7 +17,7 @@ interface FetchAsociadosParams {
 
 export async function fetchAsociadosAction(params: FetchAsociadosParams) {
   try {
-    await contextService.requirePermission("read", "memberships");
+    await contextService.requirePermission("read", "associates");
 
     const { page = 1, pageSize = 12, search, membershipType, sort = "desc" } = params;
     const skip = (page - 1) * pageSize;

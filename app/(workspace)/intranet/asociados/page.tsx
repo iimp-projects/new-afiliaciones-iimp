@@ -12,7 +12,7 @@ export default async function AsociadosPage({
 }: {
   searchParams: Promise<{ page?: string; q?: string; type?: string; sort?: string }>;
 }) {
-  await contextService.requirePermission("read", "memberships");
+  await contextService.requirePermission("read", "associates");
   const currentUser = await contextService.requireAuth();
 
   const resolvedParams = await searchParams;

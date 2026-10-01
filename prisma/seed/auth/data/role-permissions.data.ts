@@ -62,6 +62,7 @@ export const rolePermissionsData: RolePermissionMatrix = {
     ["read", "documents"],
     ["validate", "documents"],
     ["download", "documents"],
+    ["read", "associates"],
   ],
 
   VALIDADOR: [
@@ -102,6 +103,7 @@ export const rolePermissionsData: RolePermissionMatrix = {
     ["upload", "documents"],
     ["read", "documents"],
     ["read", "memberships"],
+    ["read", "associates"],
     ["read", "alerts"],
   ],
 
@@ -115,6 +117,7 @@ export const rolePermissionsData: RolePermissionMatrix = {
     ["read", "documents"],
     ["validate", "documents"],
     ["read", "memberships"],
+    ["read", "associates"],
   ],
 
   MESA_PARTES: [

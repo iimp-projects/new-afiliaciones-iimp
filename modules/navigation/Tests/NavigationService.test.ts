@@ -2,6 +2,7 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { NavigationService } from "../Services/NavigationService";
 import type { IAuthorizationProvider } from "../Ports/IAuthorizationProvider";
+import type { NavigationNode } from "../Models/NavigationNode";
 import { bootstrapNavigationModules } from "../Registry/Root.registry";
 
 // 1. MOCK: Simulamos el ContextService
@@ -79,5 +80,28 @@ describe("NavigationService - Application Service", () => {
 
         expect(tree.map((node) => node.id).indexOf("group-account"))
             .toBeLessThan(tree.map((node) => node.id).indexOf("group-main"));
+    });
+});
+
+describe("NavigationService - Directorio de Asociados (read:associates)", () => {
+    const findAsociados = (tree: NavigationNode[]): NavigationNode | undefined =>
+        tree.flatMap((node) => node.children ?? []).find((node) => node.id === "nav-afiliaciones-asociados");
+
+    it("muestra el ítem Asociados a un rol con read:associates (COMITÉ)", async () => {
+        const service = new NavigationService(new MockAuthProvider(new Set(["read:associates"])));
+        const tree = await service.getAuthorizedTree();
+        expect(findAsociados(tree)).toBeDefined();
+    });
+
+    it("NO muestra el ítem Asociados con solo read:memberships", async () => {
+        const service = new NavigationService(new MockAuthProvider(new Set(["read:memberships"])));
+        const tree = await service.getAuthorizedTree();
+        expect(findAsociados(tree)).toBeUndefined();
+    });
+
+    it("SUPER_ADMIN ve Asociados por manage:all", async () => {
+        const service = new NavigationService(new MockAuthProvider(new Set(["manage:all"])));
+        const tree = await service.getAuthorizedTree();
+        expect(findAsociados(tree)).toBeDefined();
     });
 });

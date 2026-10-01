@@ -43,8 +43,8 @@ export const securityModuleDefinition: ModuleDefinition = {
                     href: "/intranet/asociados", // Ajusta la ruta seg n tu proyecto
                     icon: "UserCheck", // Icono est tico de Lucide
                     order: 2,
-                    // Filtro exacto para ATENCION_ASOCIADO basado en tus seeds
-                    permission: { action: "read", subject: "memberships" } 
+                    // Filtro por permiso dedicado de lectura del directorio de asociados
+                    permission: { action: "read", subject: "associates" }
                 }
             ]
         },

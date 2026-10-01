@@ -101,6 +101,11 @@ export const permissionsData: Prisma.PermissionCreateManyInput[] = [
   { action: "reactivate", subject: "memberships", description: "Reactivar membresías." },
 
   // ===========================================================================
+  // ASSOCIATES (directorio)
+  // ===========================================================================
+  { action: "read", subject: "associates", description: "Consultar el directorio de asociados." },
+
+  // ===========================================================================
   // CATALOGS
   // ===========================================================================
   { action: "create", subject: "catalogs", description: "Crear catálogos." },
