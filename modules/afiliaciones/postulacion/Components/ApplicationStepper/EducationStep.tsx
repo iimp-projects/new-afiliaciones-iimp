@@ -322,7 +322,7 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
               <div className="xl:col-span-2">
                 <label className="text-xs font-bold text-slate-700 mb-1.5 block uppercase tracking-wide">
-                  Universidad / Instituto <span className="text-red-500">*</span><FieldHelp title="Universidad o instituto" description="Seleccione la institución donde realizó estos estudios. Si no aparece en la lista, seleccione la opción Otra institución y especifique el nombre." />
+                  {isStudent ? "Universidad" : "Universidad / Instituto"} <span className="text-red-500">*</span><FieldHelp title="Universidad o instituto" description="Seleccione la institución donde realizó estos estudios. Si no aparece en la lista, seleccione la opción Otra institución y especifique el nombre." />
                 </label>
                 <SearchableSelect options={universities} placeholder="Seleccione institución" value={form.institutionId} onChange={(val: any) => updateField("institutionId", val === "" ? undefined : Number(val))} onBlur={() => handleBlur("institutionId")} hasError={touched.institutionId && !!errors.institutionId} />
                 {getErrorText("institutionId")}
