@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, forwardRef, useImperativeHandle, useRef, ChangeEvent } from "react";
+import { useEffect, useMemo, useState, forwardRef, useImperativeHandle, useRef, ChangeEvent } from "react";
 import { GraduationCap, PlusCircle, CheckCircle2, Search, ChevronDown, FileText, Info, UploadCloud, XCircle } from "lucide-react";
 import type { ApplicationDraft } from "../../Models/ApplicationDraft";
 import type { AcademicStudy } from "../../Models/AcademicStudy";
@@ -124,6 +124,14 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
 
     // Estados para Estudiantes
     const isStudent = membershipType === MembershipType.STUDENT;
+    const admissionYearOptions = useMemo<CatalogItem[]>(() => {
+      const currentYear = new Date().getFullYear();
+      const years: CatalogItem[] = [];
+      for (let year = 2015; year <= currentYear; year++) {
+        years.push({ id: year, name: String(year) });
+      }
+      return years;
+    }, []);
     const [cartaFilePreview, setCartaFilePreview] = useState<{ name: string; url: string; type: string } | null>(null);
     const [rawFile, setRawFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
@@ -133,10 +141,11 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
     }, [value]);
 
     useEffect(() => {
-      fetch("/api/catalogs/universities").then(res => res.json()).then(data => setUniversities([...data, { id: 0, name: "Otra" }]));
-      fetch("/api/catalogs/specialties").then(res => res.json()).then(data => setSpecialties(data));
+      const studentQuery = isStudent ? "?student=true" : "";
+      fetch(`/api/catalogs/universities${studentQuery}`).then(res => res.json()).then(data => setUniversities([...data, { id: 0, name: "Otra" }]));
+      fetch(`/api/catalogs/specialties${studentQuery}`).then(res => res.json()).then(data => setSpecialties(data));
       fetch("/api/catalogs/degrees").then(res => res.json()).then(data => setDegrees(data.data ?? []));
-    }, []);
+    }, [isStudent]);
 
     // Cargar preview de S3 si ya existía
    // Cargar preview de S3 si ya existía
@@ -413,7 +422,11 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
                 <label className="text-xs font-bold text-slate-700 mb-1.5 block uppercase tracking-wide">
                     Año de Ingreso <FieldHelp title="Año de ingreso" description="Año en que inició sus estudios." /> <span className="text-red-500">*</span>
                 </label>
-                <input type="text" placeholder="YYYY" value={form.admissionYear ?? ""} onChange={(e) => updateField("admissionYear", e.target.value as any)} onBlur={() => handleBlur("admissionYear")} className={getInputClass("admissionYear")} />
+                {isStudent ? (
+                  <SearchableSelect options={admissionYearOptions} placeholder="Seleccione año de ingreso" value={form.admissionYear ?? ""} onChange={(val: number) => updateField("admissionYear", Number(val))} onBlur={() => handleBlur("admissionYear")} hasError={touched.admissionYear && !!errors.admissionYear} />
+                ) : (
+                  <input type="text" placeholder="YYYY" value={form.admissionYear ?? ""} onChange={(e) => updateField("admissionYear", e.target.value as any)} onBlur={() => handleBlur("admissionYear")} className={getInputClass("admissionYear")} />
+                )}
                 {getErrorText("admissionYear")}
               </div>
 
@@ -472,7 +485,7 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
 
               <div>
                 <label className="text-xs font-bold text-slate-700 mb-3 block uppercase tracking-wide">
-                  Adjuntar constancia o carta de la universidad <span className="text-red-500">*</span>
+                  Adjuntar carta de presentación de su universidad <span className="text-red-500">*</span>
                 </label>
                 <label className={`group cursor-pointer relative overflow-hidden h-[260px] w-full border-2 border-dashed rounded-2xl p-6 transition-all duration-300 flex flex-col items-center justify-center text-center ${touched.universityLetter && errors.universityLetter ? "border-red-400 bg-red-50/30" : "border-gray-300 hover:border-[#C5A059] hover:bg-gray-50"}`}>
                   <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleCartaChange} className="hidden" />
@@ -502,7 +515,7 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
                       <div className="w-14 h-14 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center mb-4 group-hover:bg-[#C5A059]/10 group-hover:text-[#C5A059] transition-colors">
                         <FileText className="w-6 h-6" />
                       </div>
-                      <h3 className="text-sm font-bold text-[#2F3136] mb-1">Adjuntar Constancia</h3>
+                      <h3 className="text-sm font-bold text-[#2F3136] mb-1">CARTA DE PRESENTACIÓN</h3>
                       <p className="text-xs text-gray-500 mb-4 max-w-[200px]">Archivos PDF, JPG o PNG. Peso máximo: 3MB.</p>
                       <div className="inline-flex items-center gap-2 text-[#C5A059] font-bold text-xs uppercase tracking-wider">
                         <UploadCloud size={16} /> Seleccionar Archivo

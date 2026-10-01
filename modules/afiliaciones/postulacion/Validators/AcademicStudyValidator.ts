@@ -11,7 +11,7 @@ export class AcademicStudyValidator extends BaseValidator {
         this.validateInstitution(data);
         this.validateAcademicInformation(data, membershipType);
         this.validateProfessionalInformation(data, membershipType);
-        this.validateDates(data);
+        this.validateDates(data, membershipType);
         return this.getResult();
     }
 
@@ -39,7 +39,7 @@ export class AcademicStudyValidator extends BaseValidator {
         // Reglas para Estudiante
         if (membershipType === MembershipType.STUDENT) {
             if (!data.universityLetter) {
-                this.addError("universityLetter", "REQ", "La constancia de estudios es obligatoria.");
+                this.addError("universityLetter", "REQ", "La carta de presentación de su universidad es obligatoria.");
             }
             if (!data.studentTermsAccepted) {
                 this.addError("studentTermsAccepted", "REQ", "Debe aceptar las condiciones de afiliación.");
@@ -106,12 +106,13 @@ export class AcademicStudyValidator extends BaseValidator {
         }
     }
 
-    private validateDates(data: AcademicStudy): void {
+    private validateDates(data: AcademicStudy, membershipType: MembershipType): void {
         const currentYear = new Date().getFullYear();
+        const minAdmissionYear = membershipType === MembershipType.STUDENT ? 2015 : 1950;
 
         if (data.admissionYear !== undefined && data.admissionYear !== null) {
-            if (data.admissionYear < 1950 || data.admissionYear > currentYear) {
-                this.addError("admissionYear", "INV_YEAR", `El año debe estar entre 1950 y ${currentYear}.`);
+            if (data.admissionYear < minAdmissionYear || data.admissionYear > currentYear) {
+                this.addError("admissionYear", "INV_YEAR", `El año debe estar entre ${minAdmissionYear} y ${currentYear}.`);
             }
         }
 

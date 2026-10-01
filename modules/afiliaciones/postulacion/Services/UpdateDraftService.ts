@@ -11,9 +11,10 @@ import { ApplicationFlowError } from "./Exceptions/ApplicationFlowError";
 import { AssociatesIntegrationService } from "../../associates-integration/Services/AssociatesIntegrationService";
 import { PersonalInformation } from "../Models/PersonalInformation";
 import { ApplicationDraft } from "../Models/ApplicationDraft";
+import { AcademicStudy } from "../Models/AcademicStudy";
 import { MembershipType } from "../Types/MembershipType";
 import { AcademicStudyValidator } from "../Validators/AcademicStudyValidator";
-import { persistAcademicInfos } from "../Repositories/AcademicInfoPersistence";
+import { assertStudentAcademicAllowed, persistAcademicInfos } from "../Repositories/AcademicInfoPersistence";
 
 export class UpdateDraftService {
 
@@ -32,6 +33,8 @@ export class UpdateDraftService {
 
         new ApplicationAccessService().require(Number(application.id), token);
         await this.ensureEditable(application, dto);
+
+        await this.validateStudentAcademicCatalog(dto, application);
 
         if (application.status === "OBSERVED") {
             this.validateAcademicSync(dto, application);
@@ -252,6 +255,23 @@ export class UpdateDraftService {
                 const error = result.errors[0];
                 throw new ApplicationFlowError("INVALID_INPUT", error.message, 422);
             }
+        }
+    }
+
+    /**
+     * Valida en backend las restricciones de catálogo del flujo ESTUDIANTE
+     * (especialidades canónicas y filtro provisional de universidad) cada vez
+     * que se guarda información académica, para que la restricción no dependa
+     * únicamente del filtro visual del frontend.
+     */
+    private async validateStudentAcademicCatalog(dto: UpdateDraftDTO, application: Application): Promise<void> {
+        if (application.affiliateType !== "STUDENT") return;
+
+        const studies = (dto.draftData as ApplicationDraft | undefined)?.academicStudies;
+        if (!studies?.length) return;
+
+        for (const study of studies as AcademicStudy[]) {
+            await assertStudentAcademicAllowed(prisma, study);
         }
     }
 

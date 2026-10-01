@@ -168,7 +168,8 @@ export class DeclarationPdfService {
       qrCodeDataUrl,
       fechaActual,
       horaActual,
-      codigoExpediente
+      codigoExpediente,
+      isStudent
     );
     const footerHtml = this.buildFooterTemplate();
     const bodyHtml = this.buildBodyTemplate(
@@ -226,7 +227,8 @@ export class DeclarationPdfService {
     qrCodeDataUrl: string,
     fechaActual: string,
     horaActual: string,
-    codigoExpediente: string
+    codigoExpediente: string,
+    isStudent: boolean
   ): string {
     return `
       <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; width: 100%; padding: 0 15mm; padding-top: 5mm; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #7f561e; padding-bottom: 10px; background-color: white;">
@@ -236,7 +238,7 @@ export class DeclarationPdfService {
         </div>
         
         <div style="width: 50%; text-align: center;">
-          <h1 style="margin: 0; font-size: 15pt; font-weight: 900; letter-spacing: 0.5px; color: #1a1c1c;">SOLICITUD DE ASOCIADO</h1>
+          <h1 style="margin: 0; font-size: 15pt; font-weight: 900; letter-spacing: 0.5px; color: #1a1c1c;">${isStudent ? "SOLICITUD DE ASOCIADO ESTUDIANTE" : "SOLICITUD DE ASOCIADO"}</h1>
           <div style="font-size: 8.5pt; color: #7f561e; font-weight: bold; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 3px;">Registro Oficial Institucional</div>
         </div>
         
@@ -473,6 +475,17 @@ export class DeclarationPdfService {
               </div>
             </div>
 
+            ${isStudent ? `
+            <div class="row">
+              <div class="col w-50">
+                <div class="label">DOCUMENTO (${documentType})</div>
+                <div class="value">${personal.documentNumber || "----------------"}</div>
+              </div>
+              <div class="col w-50">
+                <div class="label">Fecha de Nacimiento</div>
+                <div class="value">${personal.birthDate || "----------------"}</div>
+              </div>
+            </div>` : `
             <div class="row">
               <div class="col w-33">
                 <div class="label">DOCUMENTO (${documentType})</div>
@@ -486,7 +499,7 @@ export class DeclarationPdfService {
                 <div class="label">Lugar de Nacimiento</div>
                 <div class="value">${personal.birthPlace || "----------------"}</div>
               </div>
-            </div>
+            </div>`}
 
             <div class="row">
               <div class="col w-100">
@@ -546,6 +559,28 @@ export class DeclarationPdfService {
     <div class="section">
       <div class="section-title">2. Formación Académica</div>
       <div class="data-container">
+        ${isStudent ? `
+        <div class="row">
+          <div class="col w-50">
+            <div class="label">Universidad</div>
+            <div class="value">${academic.resolvedInstitution}</div>
+          </div>
+          <div class="col w-50">
+            <div class="label">Año de Ingreso</div>
+            <div class="value">${academic.admissionYear || "----------------"}</div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col w-50">
+            <div class="label">Especialidad</div>
+            <div class="value">${academic.specialty || "----------------"}</div>
+          </div>
+          <div class="col w-50">
+            <div class="label">Ciclo</div>
+            <div class="value">${academic.cycle ?? "----------------"}</div>
+          </div>
+        </div>` : `
         <div class="row">
           <div class="col w-50">
             <div class="label">Universidad / Instituto</div>
@@ -574,7 +609,7 @@ export class DeclarationPdfService {
             <div class="label">Tiempo en el Sector</div>
             <div class="value">${academic.sectorExperience || "----------------"}</div>
           </div>
-        </div>
+        </div>`}
       </div>
     </div>
 

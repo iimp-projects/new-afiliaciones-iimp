@@ -109,6 +109,20 @@ describe("AcademicStudyValidator — Estudiante (campos obligatorios)", () => {
     expect(validator.validate(validStudent, MembershipType.STUDENT).valid).toBe(true);
   });
 
+  it("acepta año de ingreso 2015 (límite inferior)", () => {
+    expect(validator.validate({ ...validStudent, admissionYear: 2015 }, MembershipType.STUDENT).valid).toBe(true);
+  });
+
+  it("acepta año de ingreso igual al año actual", () => {
+    const currentYear = new Date().getFullYear();
+    expect(validator.validate({ ...validStudent, admissionYear: currentYear }, MembershipType.STUDENT).valid).toBe(true);
+  });
+
+  it("rechaza año de ingreso anterior a 2015", () => {
+    const result = validator.validate({ ...validStudent, admissionYear: 2014 }, MembershipType.STUDENT);
+    expect(result.errors.some((error) => error.field === "admissionYear")).toBe(true);
+  });
+
   it("acepta especialidad + ciclo + año de ingreso válidos", () => {
     expect(validator.validate(validStudent, MembershipType.STUDENT).valid).toBe(true);
   });

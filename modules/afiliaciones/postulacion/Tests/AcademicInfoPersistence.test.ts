@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { persistAcademicInfos } from "../Repositories/AcademicInfoPersistence";
+import { assertStudentAcademicAllowed, persistAcademicInfos } from "../Repositories/AcademicInfoPersistence";
 import { UpdateDraftService } from "../Services/UpdateDraftService";
 import { UpdateDraftDTO } from "../DTOs/update-draft.dto";
 
@@ -11,6 +11,12 @@ function transaction() {
     },
     academicDegree: {
       findUnique: vi.fn().mockResolvedValue({ studyLevel: "BACHELOR", isActive: true }),
+    },
+    specialty: {
+      findUnique: vi.fn().mockResolvedValue({ code: "ESP-GEO" }),
+    },
+    university: {
+      findUnique: vi.fn().mockResolvedValue({ name: "Universidad Nacional de Ingeniería" }),
     },
   };
 }
@@ -161,5 +167,96 @@ describe("validateAcademicSync — validación académica en subsanación (Estud
 
   it("no falla cuando no hay estudios académicos", () => {
     expect(() => validate({ academicStudies: [] })).not.toThrow();
+  });
+});
+
+describe("assertStudentAcademicAllowed — catálogo Estudiante (backend)", () => {
+  const catalogDb = (overrides: { specialtyCode?: string | null; universityName?: string | null }) => ({
+    specialty: {
+      findUnique: vi.fn().mockResolvedValue(
+        overrides.specialtyCode === undefined ? { code: "ESP-MIN" } : overrides.specialtyCode === null ? null : { code: overrides.specialtyCode },
+      ),
+    },
+    university: {
+      findUnique: vi.fn().mockResolvedValue(
+        overrides.universityName === undefined ? { name: "Universidad Nacional de Ingeniería" } : overrides.universityName === null ? null : { name: overrides.universityName },
+      ),
+    },
+  });
+
+  const study = (patch: Record<string, unknown>) => ({
+    institutionId: 2,
+    specialtyId: 1,
+    ...patch,
+  });
+
+  it.each(["ESP-MIN", "ESP-GEO", "ESP-MET"])("acepta la especialidad canónica %s", async (code) => {
+    await expect(assertStudentAcademicAllowed(catalogDb({ specialtyCode: code }) as never, study({}) as never)).resolves.toBeUndefined();
+  });
+
+  it("rechaza una especialidad distinta de las tres permitidas", async () => {
+    await expect(assertStudentAcademicAllowed(catalogDb({ specialtyCode: "ESP-CIVIL" }) as never, study({}) as never)).rejects.toThrow("especialidad");
+  });
+
+  it("rechaza una especialidad inexistente", async () => {
+    await expect(assertStudentAcademicAllowed(catalogDb({ specialtyCode: null }) as never, study({}) as never)).rejects.toThrow("especialidad");
+  });
+
+  it("acepta una universidad válida", async () => {
+    await expect(assertStudentAcademicAllowed(catalogDb({ universityName: "Pontificia Universidad Católica del Perú" }) as never, study({}) as never)).resolves.toBeUndefined();
+  });
+
+  it.each(["SENATI", "TECSUP", "CIBERTEC", "Instituto Superior Tecnológico Público Espinar", "IESTP República Federal de Alemania"])(
+    "rechaza la institución no universitaria %s",
+    async (name) => {
+      await expect(assertStudentAcademicAllowed(catalogDb({ universityName: name }) as never, study({}) as never)).rejects.toThrow("institución");
+    },
+  );
+
+  it("rechaza la institución libre (Otra) cuando no es una universidad", async () => {
+    await expect(
+      assertStudentAcademicAllowed(catalogDb({}) as never, study({ institutionId: 0, otherInstitution: "SENATI" }) as never),
+    ).rejects.toThrow("institución");
+  });
+
+  it("acepta la institución libre (Otra) cuando es una universidad", async () => {
+    await expect(
+      assertStudentAcademicAllowed(catalogDb({}) as never, study({ institutionId: 0, otherInstitution: "Universidad Nacional de Ingeniería" }) as never),
+    ).resolves.toBeUndefined();
+  });
+});
+
+describe("persistAcademicInfos — catálogo Estudiante en la persistencia", () => {
+  it("rechaza especialidad no permitida antes de crear academic_info", async () => {
+    const tx = transaction();
+    tx.specialty.findUnique.mockResolvedValue({ code: "ESP-CIVIL" });
+
+    await expect(
+      persistAcademicInfos(tx as never, 42, { academicStudies: [{ ...fullStudy, cycle: 7 }] }, "STUDENT"),
+    ).rejects.toThrow("especialidad");
+    expect(tx.academicInfo.create).not.toHaveBeenCalled();
+  });
+
+  it("rechaza institución no universitaria (SENATI) antes de crear academic_info", async () => {
+    const tx = transaction();
+    tx.university.findUnique.mockResolvedValue({ name: "SENATI" });
+
+    await expect(
+      persistAcademicInfos(tx as never, 42, { academicStudies: [{ ...fullStudy, cycle: 7 }] }, "STUDENT"),
+    ).rejects.toThrow("institución");
+    expect(tx.academicInfo.create).not.toHaveBeenCalled();
+  });
+
+  it("Asociado Activo no aplica las restricciones de Estudiante", async () => {
+    const tx = transaction();
+    tx.specialty.findUnique.mockResolvedValue({ code: "ESP-CIVIL" });
+    tx.university.findUnique.mockResolvedValue({ name: "SENATI" });
+
+    await expect(
+      persistAcademicInfos(tx as never, 42, { academicStudies: [{ ...fullStudy }] }, "ACTIVE"),
+    ).resolves.toBeUndefined();
+    expect(tx.specialty.findUnique).not.toHaveBeenCalled();
+    expect(tx.university.findUnique).not.toHaveBeenCalled();
+    expect(tx.academicInfo.create).toHaveBeenCalledTimes(1);
   });
 });
