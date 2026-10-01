@@ -427,7 +427,7 @@ export default function ApplicationView({
                         </span>
                         <p className="text-sm text-gray-600 font-medium leading-relaxed">
                           El tiempo estimado de evaluación es de{" "}
-                          <strong>3 a 5 días hábiles, contados a partir de la aprobación de ambos avales</strong>.
+                          <strong>3 a 5 días hábiles</strong>.
                         </p>
                       </li>
                       <li className="flex items-start gap-3">
