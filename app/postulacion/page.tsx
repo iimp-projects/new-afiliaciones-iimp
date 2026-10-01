@@ -874,7 +874,7 @@ export default function PostulacionLandingPage() {
             {/* Stats integrados */}
             <div className="flex items-center gap-8 bg-white px-8 py-4 rounded-2xl border border-gray-200 shadow-sm">
               <div className="flex flex-col text-center md:text-left">
-                <span className="text-3xl font-black text-[#3E3E3D]">+5,000</span>
+                <span className="text-3xl font-black text-[#3E3E3D]">+6,600</span>
                 <span className="text-[11px] font-bold text-[#C39254] uppercase tracking-wider">
                   Asociados Activos
                 </span>
@@ -1048,8 +1048,8 @@ export default function PostulacionLandingPage() {
                   Asociado Activo
                 </h3>
                 <p className="text-sm text-secondary mb-6 h-10">
-                  Para ingenieros, geólogos y metalurgistas con título
-                  profesional o colegiatura.
+                  Para profesionales y técnicos de carreras relacionadas con la actividad
+                  minera.
                 </p>
 
                 {/* El Precio Desglosado */}
@@ -1104,16 +1104,16 @@ export default function PostulacionLandingPage() {
               <div className="p-10 flex-grow flex flex-col">
                 <div className="flex justify-between items-start mb-6">
                   <span className="bg-secondary/10 text-[#6b5c4b] border border-[#6b5c4b]/20 text-xs font-extrabold px-3.5 py-1.5 rounded-full uppercase tracking-widest">
-                    Académico
+                    Estudiante
                   </span>
                 </div>
 
                 <h3 className="text-3xl font-extrabold text-on-surface mb-2">
-                  Estudiante
+                  Asociado Estudiante
                 </h3>
                 <p className="text-sm text-secondary mb-6 h-10">
-                  Exclusivo para estudiantes de Pre-grado de carreras vinculadas
-                  a la industria.
+                  Para estudiantes de pregrado del 7º al 10º ciclo de las carreras de Ingeniería de Minas,
+                  Ingeniería Metalúrgica e Ingeniería Geológica.
                 </p>
 
                 {/* Precio Estudiante */}
@@ -1124,8 +1124,10 @@ export default function PostulacionLandingPage() {
                     </span>
                   </div>
                   <p className="text-xs text-secondary font-medium">
-                    Cuota preferencial exclusiva. Requiere constancia de
-                    matrícula vigente.
+                    Requisito: Carta de presentación firmada por el Decano de la Facultad, indicando el ciclo que cursa actualmente.
+                  </p>
+                  <p className="text-xs text-secondary font-medium">
+                    Al culminar su condición de estudiante, pasará a la categoría de Asociado Activo, con una cuota anual de S/ 150.00.
                   </p>
                 </div>
 

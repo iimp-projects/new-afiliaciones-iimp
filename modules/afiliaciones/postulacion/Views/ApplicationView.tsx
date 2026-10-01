@@ -427,7 +427,7 @@ export default function ApplicationView({
                         </span>
                         <p className="text-sm text-gray-600 font-medium leading-relaxed">
                           El tiempo estimado de evaluación es de{" "}
-                          <strong>3 a 5 días hábiles</strong>.
+                          <strong>3 a 5 días hábiles, contados a partir de la aprobación de ambos avales</strong>.
                         </p>
                       </li>
                       <li className="flex items-start gap-3">
@@ -481,6 +481,8 @@ export default function ApplicationView({
                           <strong>Correo:</strong>
                           <br />
                           asociados@iimp.org.pe
+                          <br />
+                          liset.otoya@iimp.org.pe
                         </span>
                       </li>
                       <li className="flex items-start gap-3">

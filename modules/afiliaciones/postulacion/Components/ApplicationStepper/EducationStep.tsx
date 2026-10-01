@@ -432,7 +432,7 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
                 <div>
                   <h4 className="text-sm font-bold text-[#4a2d00] mb-1">Sobre la Membresía Estudiantil</h4>
                   <p className="text-sm text-[#7f561e] leading-relaxed">
-                    La afiliación estudiantil es <strong>gratuita durante su periodo de pregrado</strong>. Para renovar su membresía anual, deberá presentar una constancia emitida por su centro de estudios.
+                    La afiliación estudiantil es <strong>gratuita durante su periodo de pregrado</strong>. Para renovar su membresía anual, deberá presentar una constancia emitida por su centro de estudios. Al culminar su condición de estudiante, pasará a la categoría de Asociado Activo, con una cuota anual de S/ 150.00.
                   </p>
                 </div>
               </div>

@@ -132,7 +132,7 @@ export default function BenefitDetailHero({ benefit }: { benefit: BenefitData })
       ]
     : [
         "◆ RED DE PROFESIONALES DEL RUBRO",
-        "◆ MÁS DE 5,000 ASOCIADOS ACTIVOS",
+        "◆ MÁS DE 6,600 ASOCIADOS ACTIVOS",
         "◆ ACCESO AL RESTOBAR MINERO",
         "◆ JUEVES MINEROS CON EXPOSITORES VIP",
       ];
@@ -144,14 +144,14 @@ export default function BenefitDetailHero({ benefit }: { benefit: BenefitData })
           year: "GLOBAL",
           title: "Base de Datos OneMine",
           author: "Más de 150,000 papers y artículos técnicos",
-          image: "https://s3-iimp-gestor-de-archivos-v3.s3.sa-east-1.amazonaws.com/boletines/noticias/images/imagenes/IMG20260731_114810.png",
+          image: "https://iimp.org.pe/img/ONEMINE.png",
           link: "https://onemine.org",
         },
         {
           year: "IIMP DIGITAL",
           title: "Revista Minería Web",
           author: "Ediciones semanales y mensuales digitales",
-          image: "https://s3-iimp-gestor-de-archivos-v3.s3.sa-east-1.amazonaws.com/boletines/images/IMG20260622_104655.jpg",
+          image: "https://iimp.org.pe/img/REVISTAMINERIA-2.jpeg",
           link: "https://revistamineria.com.pe/",
         },
         {
@@ -361,7 +361,7 @@ export default function BenefitDetailHero({ benefit }: { benefit: BenefitData })
                 <img
                   src={
                     isRecursos
-                      ? "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&q=80"
+                      ? "https://iimp.org.pe/img/BIBLIOTECAIIMP-3.jpeg"
                       : "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80"
                   }
                   alt={benefit.title}
