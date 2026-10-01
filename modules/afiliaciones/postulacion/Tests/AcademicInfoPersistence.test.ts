@@ -107,7 +107,18 @@ describe("persistAcademicInfos — sincronización academic_info", () => {
   });
 });
 
-describe("validateAcademicSync — validación de ciclo en subsanación", () => {
+describe("validateAcademicSync — validación académica en subsanación (Estudiante)", () => {
+  const fullStudentStudy = {
+    institutionId: 5,
+    specialtyId: 2,
+    specialty: "",
+    degreeTitle: "",
+    admissionYear: 2020,
+    cycle: 7,
+    universityLetter: { name: "constancia.pdf", type: "application/pdf", url: "http://x" },
+    studentTermsAccepted: true,
+  };
+
   const validate = (draftData: unknown, affiliateType = "STUDENT") =>
     (
       new UpdateDraftService({} as never) as unknown as {
@@ -115,15 +126,36 @@ describe("validateAcademicSync — validación de ciclo en subsanación", () => 
       }
     ).validateAcademicSync({ draftData } as unknown as UpdateDraftDTO, { affiliateType } as never);
 
+  it("acepta especialidad + ciclo + año de ingreso válidos", () => {
+    expect(() => validate(draftWith(fullStudentStudy))).not.toThrow();
+  });
+
   it.each([7, 8, 9, 10])("acepta el ciclo válido %i", (cycle) => {
-    expect(() => validate(draftWith({ ...fullStudy, cycle }))).not.toThrow();
+    expect(() => validate(draftWith({ ...fullStudentStudy, cycle }))).not.toThrow();
   });
 
   it.each([6, 11, 1.5, "8"])("rechaza el ciclo inválido %s", (cycle) => {
-    expect(() => validate(draftWith({ ...fullStudy, cycle }))).toThrow();
+    expect(() => validate(draftWith({ ...fullStudentStudy, cycle }))).toThrow();
   });
 
-  it("no valida ciclo para Asociado Activo", () => {
+  it("rechaza especialidad vacía", () => {
+    expect(() => validate(draftWith({ ...fullStudentStudy, specialtyId: undefined, specialty: "" }))).toThrow();
+  });
+
+  it("rechaza ciclo vacío", () => {
+    expect(() => validate(draftWith({ ...fullStudentStudy, cycle: undefined }))).toThrow();
+  });
+
+  it("rechaza año de ingreso vacío", () => {
+    expect(() => validate(draftWith({ ...fullStudentStudy, admissionYear: undefined }))).toThrow();
+  });
+
+  it("rechaza año de ingreso inválido (futuro)", () => {
+    const futureYear = new Date().getFullYear() + 1;
+    expect(() => validate(draftWith({ ...fullStudentStudy, admissionYear: futureYear }))).toThrow();
+  });
+
+  it("no valida para Asociado Activo", () => {
     expect(() => validate(draftWith({ ...fullStudy, cycle: 6 }), "ACTIVE")).not.toThrow();
   });
 

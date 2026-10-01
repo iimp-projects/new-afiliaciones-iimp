@@ -31,8 +31,12 @@ export class AcademicStudyValidator extends BaseValidator {
             this.addError("degreeId", "REQ", "Seleccione un grado académico.");
         }
 
-        // 👇 REGLAS PARA ESTUDIANTE
-       // 👇 REGLAS PARA ESTUDIANTE
+        // Reglas compartidas: especialidad y año de ingreso son obligatorios
+        // tanto para Asociado Activo como para Estudiante.
+        this.validateSpecialty(data);
+        this.validateAdmissionYear(data);
+
+        // Reglas para Estudiante
         if (membershipType === MembershipType.STUDENT) {
             if (!data.universityLetter) {
                 this.addError("universityLetter", "REQ", "La constancia de estudios es obligatoria.");
@@ -40,13 +44,8 @@ export class AcademicStudyValidator extends BaseValidator {
             if (!data.studentTermsAccepted) {
                 this.addError("studentTermsAccepted", "REQ", "Debe aceptar las condiciones de afiliación.");
             }
-            const cycle = data.cycle;
-            if (typeof cycle !== "number" || !Number.isInteger(cycle)) {
-                this.addError("cycle", "REQ", "Seleccione el ciclo que está cursando.");
-            } else if (![7, 8, 9, 10].includes(cycle)) {
-                this.addError("cycle", "INV_CYCLE", "El ciclo debe ser 7, 8, 9 o 10.");
-            }
-            return; // Si es estudiante, validamos esto y salimos para no pedirle título ni especialidad obligatoria (o quita el return si quieres que también se lo pida).
+            this.validateCycle(data);
+            return;
         }
 
         if (ValidationRules.required(data.degreeTitle, "degreeTitle", this, "REQ", "El título o grado es obligatorio.")) {
@@ -54,17 +53,30 @@ export class AcademicStudyValidator extends BaseValidator {
             ValidationRules.maxLength(data.degreeTitle, 200, "degreeTitle", this, "MAX", "Máximo 200 caracteres.");
         }
 
+        if (data.graduationYear === undefined || data.graduationYear === null) {
+            this.addError("graduationYear", "REQ", "El año de egreso es obligatorio.");
+        }
+    }
+
+    private validateSpecialty(data: AcademicStudy): void {
         if (!data.specialtyId && ValidationRules.required(data.specialty, "specialty", this, "REQ", "Seleccione o ingrese una especialidad.")) {
             ValidationRules.minLength(data.specialty, 4, "specialty", this, "MIN", "Mínimo 4 caracteres.");
             ValidationRules.maxLength(data.specialty, 150, "specialty", this, "MAX", "Máximo 150 caracteres.");
         }
+    }
 
-        // Año de ingreso y año de egreso son obligatorios para Asociado Activo.
+    private validateAdmissionYear(data: AcademicStudy): void {
         if (data.admissionYear === undefined || data.admissionYear === null) {
             this.addError("admissionYear", "REQ", "El año de ingreso es obligatorio.");
         }
-        if (data.graduationYear === undefined || data.graduationYear === null) {
-            this.addError("graduationYear", "REQ", "El año de egreso es obligatorio.");
+    }
+
+    private validateCycle(data: AcademicStudy): void {
+        const cycle = data.cycle;
+        if (typeof cycle !== "number" || !Number.isInteger(cycle)) {
+            this.addError("cycle", "REQ", "Seleccione el ciclo que está cursando.");
+        } else if (![7, 8, 9, 10].includes(cycle)) {
+            this.addError("cycle", "INV_CYCLE", "El ciclo debe ser 7, 8, 9 o 10.");
         }
     }
 

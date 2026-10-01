@@ -11,6 +11,8 @@ import { ApplicationFlowError } from "./Exceptions/ApplicationFlowError";
 import { AssociatesIntegrationService } from "../../associates-integration/Services/AssociatesIntegrationService";
 import { PersonalInformation } from "../Models/PersonalInformation";
 import { ApplicationDraft } from "../Models/ApplicationDraft";
+import { MembershipType } from "../Types/MembershipType";
+import { AcademicStudyValidator } from "../Validators/AcademicStudyValidator";
 import { persistAcademicInfos } from "../Repositories/AcademicInfoPersistence";
 
 export class UpdateDraftService {
@@ -232,8 +234,10 @@ export class UpdateDraftService {
     }
 
     /**
-     * Valida el ciclo académico antes de persistir la subsanación, para evitar
-     * que un valor inválido quede en `draftData` o se sincronice a `academic_info`.
+     * Valida la formación académica antes de persistir la subsanación, reutilizando
+     * el mismo validador del envío inicial para no duplicar las reglas. Para
+     * estudiantes exige especialidad, ciclo y año de ingreso, además de los campos
+     * ya obligatorios del flujo estudiantil.
      */
     private validateAcademicSync(dto: UpdateDraftDTO, application: Application): void {
         if (application.affiliateType !== "STUDENT") return;
@@ -241,13 +245,12 @@ export class UpdateDraftService {
         const studies = (dto.draftData as ApplicationDraft | undefined)?.academicStudies;
         if (!studies?.length) return;
 
+        const validator = new AcademicStudyValidator();
         for (const study of studies) {
-            const cycle = study.cycle;
-            if (
-                cycle != null &&
-                (typeof cycle !== "number" || !Number.isInteger(cycle) || ![7, 8, 9, 10].includes(cycle))
-            ) {
-                throw new ApplicationFlowError("INVALID_INPUT", "El ciclo debe ser 7, 8, 9 o 10.", 422);
+            const result = validator.validate(study, MembershipType.STUDENT);
+            if (!result.valid) {
+                const error = result.errors[0];
+                throw new ApplicationFlowError("INVALID_INPUT", error.message, 422);
             }
         }
     }

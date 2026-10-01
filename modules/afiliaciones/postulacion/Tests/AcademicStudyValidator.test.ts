@@ -48,55 +48,81 @@ describe("AcademicStudyValidator — Asociado Activo", () => {
   });
 });
 
-describe("AcademicStudyValidator — Asociado Estudiante (regresión)", () => {
-  const studentStudy: AcademicStudy = {
+describe("AcademicStudyValidator — Estudiante (campos obligatorios)", () => {
+  const validStudent: AcademicStudy = {
     institutionId: 5,
-    degreeTitle: "",
+    specialtyId: 2,
     specialty: "",
+    degreeTitle: "",
+    admissionYear: 2020,
     cycle: 7,
     universityLetter: { name: "constancia.pdf", type: "application/pdf", url: "http://x" } as unknown as File,
     studentTermsAccepted: true,
   };
 
-  it("no exige grado, título, especialidad ni años", () => {
-    expect(validator.validate(studentStudy, MembershipType.STUDENT).valid).toBe(true);
+  it("acepta una formación académica completa de estudiante", () => {
+    expect(validator.validate(validStudent, MembershipType.STUDENT).valid).toBe(true);
   });
 
-  it("no exige año de ingreso ni de egreso", () => {
-    const result = validator.validate(studentStudy, MembershipType.STUDENT);
-    expect(result.errors.some((error) => error.field === "admissionYear")).toBe(false);
+  it("no exige grado, título ni año de egreso", () => {
+    const result = validator.validate(validStudent, MembershipType.STUDENT);
+    expect(result.errors.some((error) => error.field === "degreeId")).toBe(false);
+    expect(result.errors.some((error) => error.field === "degreeTitle")).toBe(false);
     expect(result.errors.some((error) => error.field === "graduationYear")).toBe(false);
   });
-});
 
-describe("AcademicStudyValidator — Ciclo (solo Estudiante)", () => {
-  const baseStudent: AcademicStudy = {
-    institutionId: 5,
-    degreeTitle: "",
-    specialty: "",
-    universityLetter: { name: "constancia.pdf", type: "application/pdf", url: "http://x" } as unknown as File,
-    studentTermsAccepted: true,
-  };
+  it("rechaza especialidad vacía", () => {
+    const result = validator.validate({ ...validStudent, specialtyId: undefined, specialty: "" }, MembershipType.STUDENT);
+    expect(result.errors.some((error) => error.field === "specialty")).toBe(true);
+  });
+
+  it("acepta especialidad válida", () => {
+    expect(validator.validate(validStudent, MembershipType.STUDENT).valid).toBe(true);
+  });
 
   it("rechaza ciclo vacío", () => {
-    const result = validator.validate(baseStudent, MembershipType.STUDENT);
+    const result = validator.validate({ ...validStudent, cycle: undefined }, MembershipType.STUDENT);
     expect(result.errors.some((error) => error.field === "cycle" && error.code === "REQ")).toBe(true);
   });
 
   it.each([7, 8, 9, 10])("acepta el ciclo %i", (cycle) => {
-    const result = validator.validate({ ...baseStudent, cycle }, MembershipType.STUDENT);
-    expect(result.valid).toBe(true);
+    expect(validator.validate({ ...validStudent, cycle }, MembershipType.STUDENT).valid).toBe(true);
   });
 
-  it.each([0, 5, 6, 11, -1, 1.5, "8"])("rechaza el ciclo fuera de 7, 8, 9 y 10 (%s)", (cycle) => {
-    const result = validator.validate({ ...baseStudent, cycle: cycle as unknown as number }, MembershipType.STUDENT);
+  it.each([0, 5, 6, 11, -1, 1.5, "8"])("rechaza el ciclo inválido %s", (cycle) => {
+    const result = validator.validate({ ...validStudent, cycle: cycle as unknown as number }, MembershipType.STUDENT);
     expect(result.errors.some((error) => error.field === "cycle")).toBe(true);
   });
 
+  it("rechaza año de ingreso vacío", () => {
+    const result = validator.validate({ ...validStudent, admissionYear: undefined }, MembershipType.STUDENT);
+    expect(result.errors.some((error) => error.field === "admissionYear" && error.code === "REQ")).toBe(true);
+  });
+
+  it("rechaza año de ingreso inválido (futuro)", () => {
+    const futureYear = new Date().getFullYear() + 1;
+    const result = validator.validate({ ...validStudent, admissionYear: futureYear }, MembershipType.STUDENT);
+    expect(result.errors.some((error) => error.field === "admissionYear")).toBe(true);
+  });
+
+  it("acepta año de ingreso válido", () => {
+    expect(validator.validate(validStudent, MembershipType.STUDENT).valid).toBe(true);
+  });
+
+  it("acepta especialidad + ciclo + año de ingreso válidos", () => {
+    expect(validator.validate(validStudent, MembershipType.STUDENT).valid).toBe(true);
+  });
+});
+
+describe("AcademicStudyValidator — Asociado Activo (sin regresión)", () => {
   it("no exige ciclo para Asociado Activo", () => {
     const activeWithCycle = { ...activeStudy, cycle: 9 };
     const result = validator.validate(activeWithCycle, MembershipType.ACTIVE);
     expect(result.errors.some((error) => error.field === "cycle")).toBe(false);
     expect(result.valid).toBe(true);
+  });
+
+  it("mantiene especialidad y año de ingreso obligatorios para Asociado Activo", () => {
+    expect(validator.validate(activeStudy, MembershipType.ACTIVE).valid).toBe(true);
   });
 });
