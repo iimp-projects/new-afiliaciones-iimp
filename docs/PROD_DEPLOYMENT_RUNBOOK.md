@@ -89,8 +89,9 @@ inocuo, porque todavía no hay tráfico y el go-live está gated por DNS + valid
   - SecureString: `auth-secret`, `payment-auth-secret`, `jwt-secret`, `database-url`, `smtp-pass`,
     `sap-password`, `apis-net-pe-token`, `whatsapp-access-token`, `associates-api-password`,
     `niubiz-prod-username`, `niubiz-prod-password`.
-  - `database-url` = `postgresql://afiliaciones_admin:<master>@<rds-endpoint>:5432/afiliaciones`
-    (master desde Secrets Manager `rds_master_secret_arn`, NO imprimir).
+  - `database-url` = cadena de conexión PostgreSQL compuesta por: endpoint RDS + usuario maestro
+    + password (recuperado de Secrets Manager `rds_master_secret_arn`) + puerto 5432 + database `afiliaciones`.
+    No escribir la URL literal ni imprimir credenciales.
   - String (no secretos, ya creados por Terraform con create_dns=true): `AUTH_URL`, `NEXT_PUBLIC_APP_URL`.
 - **EXPECTED_RESULT:** 11 SecureString + 2 String presentes; EC2 solo puede LEERLOS.
 - **VALIDATION:** `aws ssm get-parameters-by-path --path /afiliaciones/prod --recursive` (solo nombres).
