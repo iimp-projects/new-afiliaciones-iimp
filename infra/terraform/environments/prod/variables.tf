@@ -62,21 +62,21 @@ variable "root_volume_size_gb" {
 }
 
 variable "asg_min_size" {
-  description = "Número mínimo de instancias del ASG."
+  description = "Número mínimo de instancias del ASG. Opción 2: 1 EC2 normalmente activa; el ASG reemplaza ante fallo."
   type        = number
-  default     = 2
+  default     = 1
 }
 
 variable "asg_max_size" {
-  description = "Número máximo de instancias del ASG."
+  description = "Número máximo de instancias del ASG. 1 para no mantener EC2 adicionales (sin autoscaling por demanda)."
   type        = number
-  default     = 2
+  default     = 1
 }
 
 variable "asg_desired_capacity" {
-  description = "Número deseado de instancias del ASG."
+  description = "Número deseado de instancias del ASG (1 EC2 activa)."
   type        = number
-  default     = 2
+  default     = 1
 }
 
 variable "app_image_tag" {

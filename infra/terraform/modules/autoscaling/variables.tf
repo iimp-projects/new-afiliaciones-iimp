@@ -54,19 +54,19 @@ variable "user_data" {
 variable "min_size" {
   description = "Número mínimo de instancias."
   type        = number
-  default     = 2
+  default     = 1
 }
 
 variable "max_size" {
   description = "Número máximo de instancias."
   type        = number
-  default     = 2
+  default     = 1
 }
 
 variable "desired_capacity" {
   description = "Número deseado de instancias."
   type        = number
-  default     = 2
+  default     = 1
 }
 
 variable "health_check_type" {

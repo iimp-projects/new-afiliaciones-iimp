@@ -7,8 +7,8 @@
 ## Requisitos obligatorios (revisión con líder técnico)
 
 ```text
-HIGH_AVAILABILITY_APP = REQUIRED
-EC2_MIRROR_INSTANCES = 2
+HIGH_AVAILABILITY_APP = NOT_REQUIRED (self-healing con 1 EC2 + ASG; tolerancia 2–6 min)
+EC2_MIRROR_INSTANCES = 1  (una EC2 normalmente activa; ASG reemplaza ante fallo)
 
 CLOUDFRONT = REQUIRED
 AWS_WAF = REQUIRED
@@ -60,7 +60,7 @@ TARGET_RTO_APPLICATION    <= 6 minutes
 
 Prioridades de la arquitectura (en orden):
 
-1. Disponibilidad (alta disponibilidad de aplicación, 2 instancias espejo).
+1. Disponibilidad (recuperación automática con 1 EC2 activa + ASG self-healing).
 2. Seguridad (CloudFront + WAF + least privilege).
 3. Simplicidad operativa.
 4. Costo razonable.
@@ -83,20 +83,15 @@ Prioridades de la arquitectura (en orden):
                            │
                            ▼
                      ALB + ACM
-                    HTTPS / TLS
-                           │
-               ┌───────────┴───────────┐
-               │                       │
-               ▼                       ▼
-           EC2 PROD A              EC2 PROD B
-             AZ-A                    AZ-B
-               │                       │
-               └───────────┬───────────┘
-                           │
-                     Auto Scaling Group
-                    min     = 2
-                    desired = 2
-                    max     = 2
+                     HTTPS / TLS
+                            │
+                            ▼
+                      EC2 PROD (una activa)
+                            │
+                      Auto Scaling Group
+                     min     = 1
+                     desired = 1
+                     max     = 1
                            │
                     Launch Template
                            │
@@ -132,7 +127,7 @@ SMTP · Niubiz · APIS.net.pe · SAP · SIE · WhatsApp
 | AWS WAF | APPROVED (REQUIRED) | Reglas gestionadas (COUNT) + rate-based (BLOCK) sobre CloudFront |
 | ALB | APPROVED | Health checks, TLS, distribución, único origen detrás de CloudFront |
 | ACM | APPROVED | TLS gratuito y renovación automática (ALB en us-east-2, CloudFront en us-east-1) |
-| ASG desired=2 (min=2, max=2) | APPROVED | Alta disponibilidad: 2 instancias espejo en 2 AZ; reemplazo sin downtime |
+| ASG desired=1 (min=1, max=1) | APPROVED | Self-healing: 1 EC2 activa; ASG reemplaza ante fallo (recuperación 2–6 min aceptada) |
 | RDS Single-AZ | APPROVED | Costo razonable; failover de base diferido |
 | S3 PROD separado | APPROVED | Aislamiento QA/PROD |
 | Caddy PROD | REMOVE / REDUNDANT | ALB+ACM resuelve TLS/headers/redirect |
@@ -226,7 +221,7 @@ Baseline inicial:
 ```text
 CloudFront + WAF → edge global (us-east-1 para WAF/certificado)
 ALB       → public subnets (AZ-A, AZ-B)
-EC2 / ASG → public subnets (AZ-A, AZ-B), 2 instancias espejo
+EC2 / ASG → public subnets (AZ-A, AZ-B), 1 instancia activa (self-healing)
 RDS       → private DB subnets
 ```
 
@@ -661,7 +656,7 @@ EXTERNAL            = Niubiz, WhatsApp, SMTP/SES, SAP, APIS.net.pe, SIE, SNS/SMS
 ### ESCENARIO A — Esperado
 
 ```text
-20–30 usuarios/día · 2 instancias espejo · bajo almacenamiento/logs · caché deshabilitada
+20–30 usuarios/día · 1 instancia activa · bajo almacenamiento/logs · caché deshabilitada
 ```
 
 ```text
@@ -864,7 +859,7 @@ FASE 12 Future HA                    FUTURE
 - **Checkpoint humano:** por cambio.
 
 ### FASE 12 — Future HA
-- **Objetivo:** desired=2, RDS Multi-AZ, WAF (si métricas lo justifican).
+- **Objetivo:** desired=2 (si métricas lo justifican), RDS Multi-AZ, WAF en BLOCK.
 - **Terraform:** ASG desired, RDS multi_az, WAF. **Código:** no aplica.
 - **Recursos AWS:** +1 EC2, standby RDS, WAF.
 - **Riesgos:** costo. **Pruebas:** failover AZ, RDS failover.
@@ -1010,7 +1005,7 @@ DNS_ROLLBACK            = devolver alias al endpoint anterior
 
 ```text
 CURRENT:
-CloudFront + WAF → ALB → ASG desired=2 (EC2 AZ-A / AZ-B) → RDS Single-AZ
+CloudFront + WAF → ALB → ASG desired=1 (self-healing) → RDS Single-AZ
 ```
 
 Evolución:
