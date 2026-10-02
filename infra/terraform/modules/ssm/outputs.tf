@@ -15,5 +15,5 @@ output "secure_parameter_names" {
 
 output "parameter_path_arn" {
   description = "ARN con wildcard del namespace SSM (para permisos IAM de lectura por path de la instancia)."
-  value       = "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter${var.parameter_namespace}/*"
+  value       = "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter${var.parameter_namespace}*"
 }
