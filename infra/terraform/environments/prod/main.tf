@@ -1,6 +1,7 @@
 locals {
   resource_prefix     = "${var.project_name}-${var.environment}"
   parameter_namespace = "/${var.project_name}/${var.environment}"
+  origin_domain_name  = "origin-${var.prod_domain_name}"
 
   common_tags = merge(
     {
@@ -170,6 +171,57 @@ resource "aws_acm_certificate_validation" "cloudfront" {
   validation_record_fqdns = [aws_route53_record.cloudfront_validation[0].fqdn]
 }
 
+# --- ACM origin (us-east-2): hostname dedicado para el origen CloudFront → ALB ---
+# CloudFront valida el TLS del origen contra el hostname de origen. El ALB solo
+# presentaba un certificado para afiliaciones.iimp.org.pe, por lo que usar el DNS
+# nativo del ALB (*.elb.amazonaws.com) como origen producía mismatch TLS → 502.
+# Se crea origin-<dominio> con certificado propio (secundario, vía SNI) y se
+# apunta a ese hostname desde CloudFront, manteniendo HTTPS end-to-end.
+
+resource "aws_acm_certificate" "alb_origin" {
+  count             = var.create_dns ? 1 : 0
+  domain_name       = local.origin_domain_name
+  validation_method = "DNS"
+
+  tags = local.common_tags
+}
+
+resource "aws_route53_record" "alb_origin_validation" {
+  count   = var.create_dns ? 1 : 0
+  zone_id = var.hosted_zone_id
+  name    = tolist(aws_acm_certificate.alb_origin[0].domain_validation_options)[0].resource_record_name
+  type    = tolist(aws_acm_certificate.alb_origin[0].domain_validation_options)[0].resource_record_type
+  records = [tolist(aws_acm_certificate.alb_origin[0].domain_validation_options)[0].resource_record_value]
+  ttl     = 60
+}
+
+resource "aws_acm_certificate_validation" "alb_origin" {
+  count                   = var.create_dns ? 1 : 0
+  certificate_arn         = aws_acm_certificate.alb_origin[0].arn
+  validation_record_fqdns = [aws_route53_record.alb_origin_validation[0].fqdn]
+}
+
+# Certificado secundario del listener HTTPS (SNI) para el hostname de origen.
+resource "aws_lb_listener_certificate" "alb_origin" {
+  count           = var.create_dns ? 1 : 0
+  listener_arn    = module.alb.https_listener_arn
+  certificate_arn = aws_acm_certificate.alb_origin[0].arn
+}
+
+# Registro DNS del hostname de origen → ALB.
+resource "aws_route53_record" "alb_origin" {
+  count   = var.create_dns ? 1 : 0
+  zone_id = var.hosted_zone_id
+  name    = local.origin_domain_name
+  type    = "A"
+
+  alias {
+    name                   = module.alb.alb_dns_name
+    zone_id                = module.alb.alb_zone_id
+    evaluate_target_health = true
+  }
+}
+
 # --- ALB + ACM + protección de origen (CloudFront) ---
 
 module "alb" {
@@ -209,7 +261,7 @@ module "cloudfront" {
   source = "../../modules/cloudfront"
 
   resource_prefix             = local.resource_prefix
-  alb_dns_name                = module.alb.alb_dns_name
+  alb_dns_name                = var.create_dns ? local.origin_domain_name : module.alb.alb_dns_name
   origin_protect_header_name  = "x-origin-verify"
   origin_protect_header_value = var.origin_protect_header_value
   origin_protocol_policy      = var.create_dns ? "https-only" : "http-only"
