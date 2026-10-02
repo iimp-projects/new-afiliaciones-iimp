@@ -11,7 +11,9 @@ resource "aws_lb" "this" {
 }
 
 resource "aws_lb_target_group" "app" {
-  name        = "${var.resource_prefix}-tg"
+  # name_prefix (máx 6 chars por límite AWS) permite reemplazo create-before-destroy
+  # sin colisión de nombre al cambiar target_type.
+  name_prefix = "afprd-"
   port        = var.app_port
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
