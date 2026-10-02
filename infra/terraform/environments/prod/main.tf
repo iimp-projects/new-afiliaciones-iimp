@@ -134,19 +134,13 @@ resource "aws_acm_certificate" "alb" {
   tags = local.common_tags
 }
 
-resource "aws_route53_record" "alb_validation" {
-  count   = var.create_dns ? 1 : 0
-  zone_id = var.hosted_zone_id
-  name    = tolist(aws_acm_certificate.alb[0].domain_validation_options)[0].resource_record_name
-  type    = tolist(aws_acm_certificate.alb[0].domain_validation_options)[0].resource_record_type
-  records = [tolist(aws_acm_certificate.alb[0].domain_validation_options)[0].resource_record_value]
-  ttl     = 60
-}
-
+# Ambos certificados (ALB us-east-2 y CloudFront us-east-1) comparten el MISMO
+# token de validación DNS para afiliaciones.iimp.org.pe. Se usa un ÚNICO
+# aws_route53_record de validación (cloudfront_validation, ya gestionado en state).
 resource "aws_acm_certificate_validation" "alb" {
   count                   = var.create_dns ? 1 : 0
   certificate_arn         = aws_acm_certificate.alb[0].arn
-  validation_record_fqdns = [aws_route53_record.alb_validation[0].fqdn]
+  validation_record_fqdns = [aws_route53_record.cloudfront_validation[0].fqdn]
 }
 
 # --- ACM CloudFront (us-east-1) ---

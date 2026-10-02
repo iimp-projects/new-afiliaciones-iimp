@@ -122,7 +122,7 @@ resource "aws_launch_template" "this" {
   name_prefix   = "${var.resource_prefix}-lt-"
   image_id      = var.ami_id != null ? var.ami_id : data.aws_ssm_parameter.al2023.value
   instance_type = var.instance_type
-  user_data     = var.user_data
+  user_data     = base64encode(var.user_data)
 
   iam_instance_profile {
     name = aws_iam_instance_profile.this.name

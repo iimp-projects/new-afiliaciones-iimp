@@ -7,7 +7,7 @@ locals {
 # (falsos positivos primero) + una regla rate-based en BLOCK.
 resource "aws_wafv2_web_acl" "this" {
   name        = "${var.resource_prefix}-waf"
-  description = "WAF de producción (scope CLOUDFRONT)"
+  description = "WAF production scope CLOUDFRONT"
   scope       = "CLOUDFRONT"
 
   default_action {
