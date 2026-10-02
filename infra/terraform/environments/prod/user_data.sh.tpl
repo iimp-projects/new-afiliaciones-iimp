@@ -37,7 +37,7 @@ log "Bootstrap PROD iniciado (region=$REGION namespace=$NAMESPACE bucket=$BUCKET
 
 # 1) Dependencias mínimas + Docker habilitado
 dnf update -y
-dnf install -y docker awscli jq curl
+dnf install -y docker awscli jq
 systemctl enable --now docker
 
 mkdir -p "$APP_DIR"
