@@ -48,6 +48,19 @@ variable "create_dns_record" {
   default     = false
 }
 
+variable "origin_protect_header_name" {
+  description = "Header personalizado que CloudFront envía al ALB. Si se define, el listener HTTPS rechaza por defecto y solo enruta si el header coincide."
+  type        = string
+  default     = null
+}
+
+variable "origin_protect_header_value" {
+  description = "Valor secreto del header de protección del origen (coincide con el configurado en CloudFront)."
+  type        = string
+  default     = null
+  sensitive   = true
+}
+
 variable "hosted_zone_id" {
   description = "ID de la hosted zone para el registro DNS (opcional)."
   type        = string

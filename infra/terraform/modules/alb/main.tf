@@ -43,7 +43,7 @@ resource "aws_lb_listener" "http" {
   protocol          = "HTTP"
 
   default_action {
-    type = var.enable_https ? "redirect" : "forward"
+    type = var.enable_https ? "redirect" : "fixed-response"
 
     dynamic "redirect" {
       for_each = var.enable_https ? [1] : []
@@ -55,7 +55,15 @@ resource "aws_lb_listener" "http" {
       }
     }
 
-    target_group_arn = var.enable_https ? null : aws_lb_target_group.app.arn
+    dynamic "fixed_response" {
+      for_each = var.enable_https ? [] : [1]
+
+      content {
+        content_type = "text/plain"
+        message_body = "Forbidden"
+        status_code  = "403"
+      }
+    }
   }
 
   tags = merge(var.tags, {
@@ -72,14 +80,46 @@ resource "aws_lb_listener" "https" {
   ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
   certificate_arn   = var.certificate_arn
 
+  # Protección de origen (CloudFront → ALB): si hay header de protección,
+  # la acción por defecto rechaza y solo la regla con el header correcto enruta.
   default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.app.arn
+    type             = var.origin_protect_header_name != null ? "fixed-response" : "forward"
+    target_group_arn = var.origin_protect_header_name != null ? null : aws_lb_target_group.app.arn
+
+    dynamic "fixed_response" {
+      for_each = var.origin_protect_header_name != null ? [1] : []
+
+      content {
+        content_type = "text/plain"
+        message_body = "Forbidden"
+        status_code  = "403"
+      }
+    }
   }
 
   tags = merge(var.tags, {
     Name = "${var.resource_prefix}-https"
   })
+}
+
+# Solo enruta cuando CloudFront envía el header de protección correcto.
+resource "aws_lb_listener_rule" "origin_protect" {
+  count = var.enable_https && var.origin_protect_header_name != null ? 1 : 0
+
+  listener_arn = aws_lb_listener.https[0].arn
+  priority     = 1
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.app.arn
+  }
+
+  condition {
+    http_header {
+      http_header_name = var.origin_protect_header_name
+      values           = [var.origin_protect_header_value]
+    }
+  }
 }
 
 # Registro DNS opcional. Deshabilitado por defecto: QA usa el DNS nativo del ALB.
