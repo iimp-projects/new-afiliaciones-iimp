@@ -15,7 +15,11 @@ export async function GET(request: NextRequest) {
     const key = s3Service.getObjectKey(url);
 
     const user = await getInternalApiUser();
-    const canReadAll = Boolean(user && await contextService.hasPermission("read", "memberships"));
+    const canReadAll = Boolean(
+      user
+      && user.type !== "APPLICANT"
+      && await contextService.hasPermission("read", "documents"),
+    );
     const applicationIds = queryAuthorization.allowedIds(request.cookies.get(QUERY_COOKIE)?.value);
     const scope = resolveApplicationDocumentScope({ isInternal: canReadAll, applicantApplicationIds: applicationIds });
     if (!scope) {
