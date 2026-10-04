@@ -4,6 +4,7 @@
 import { prisma } from "@/lib/prisma";
 import { contextService } from "@/modules/auth/context/service";
 import { S3StorageService } from "@/modules/shared/Services/S3StorageService";
+import { APPLICATION_KEY_PREFIX, LEGACY_DOCUMENT_KEY_PREFIX } from "@/modules/afiliaciones/postulacion/Services/ApplicationDocumentAccess";
 import { ApplicationStatus } from "@prisma/client";
 
 interface FetchAsociadosParams {
@@ -113,7 +114,7 @@ async function resolveAffiliatePhoto(user: { image: string | null; person: { app
   const photo = application?.documents.find((document) => document.mimeType.startsWith("image/") && (document.category === "OTHER" || document.fileName.toLowerCase().includes("foto")));
   if (!application || !photo?.fileUrl) return user.image;
   try {
-    return await new S3StorageService().getPresignedApplicationDocumentUrl(photo.fileUrl, [`afiliaciones/applications/${application.id}`]);
+    return await new S3StorageService().getPresignedApplicationDocumentUrl(photo.fileUrl, [APPLICATION_KEY_PREFIX, LEGACY_DOCUMENT_KEY_PREFIX]);
   } catch {
     return user.image;
   }
