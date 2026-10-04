@@ -5,6 +5,7 @@ import {
   ValidationStatus,
 } from "@prisma/client";
 import { S3StorageService } from "@/modules/shared/Services/S3StorageService";
+import { APPLICATION_KEY_PREFIX, LEGACY_DOCUMENT_KEY_PREFIX } from "@/modules/afiliaciones/postulacion/Services/ApplicationDocumentAccess";
 import { LIMA_TIME_ZONE } from "@/modules/shared/Utils/formatPeruDateTime";
 import type {
   SmartCaseCardData,
@@ -37,7 +38,7 @@ export class ExpedienteMapper {
     if (photoDoc && photoDoc.fileUrl) {
       try {
         const s3Service = new S3StorageService();
-        avatarUrl = await s3Service.getPresignedApplicationDocumentUrl(photoDoc.fileUrl, [`afiliaciones/applications/${app.id}`]);
+        avatarUrl = await s3Service.getPresignedApplicationDocumentUrl(photoDoc.fileUrl, [APPLICATION_KEY_PREFIX, LEGACY_DOCUMENT_KEY_PREFIX]);
       } catch (error) {
         console.error("Error al firmar URL de S3");
       }

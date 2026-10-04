@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveApplicationDocumentScope } from "../Services/ApplicationDocumentAccess";
+import { APPLICATION_KEY_PREFIX, LEGACY_DOCUMENT_KEY_PREFIX, resolveApplicationDocumentScope } from "../Services/ApplicationDocumentAccess";
 import { isObjectKeyAllowed } from "@/modules/shared/Services/S3StorageService";
 
 describe("resolveApplicationDocumentScope", () => {
@@ -84,5 +84,14 @@ describe("legacy document read authorization (R43)", () => {
   it("path traversal '../' = DENY", () => {
     const scope = internal();
     expect(isObjectKeyAllowed("../afiliaciones/legacy/documents/abc.jpg", scope.allowedPrefixes)).toBe(false);
+  });
+
+  it("constantes del mapper de avatar coinciden con el scope interno (R44)", () => {
+    const internalScope = resolveApplicationDocumentScope({ isInternal: true, applicantApplicationIds: [] })!;
+    const mapperPrefixes = [APPLICATION_KEY_PREFIX, LEGACY_DOCUMENT_KEY_PREFIX];
+    expect(internalScope.allowedPrefixes).toEqual(mapperPrefixes);
+    expect(isObjectKeyAllowed("afiliaciones/legacy/documents/abc.jpg", mapperPrefixes)).toBe(true);
+    expect(isObjectKeyAllowed("afiliaciones/applications/5/photos/x.jpg", mapperPrefixes)).toBe(true);
+    expect(isObjectKeyAllowed("afiliaciones/legacy/documents-evil/x.jpg", mapperPrefixes)).toBe(false);
   });
 });
