@@ -1,4 +1,5 @@
 export const APPLICATION_KEY_PREFIX = "afiliaciones/applications";
+export const LEGACY_DOCUMENT_KEY_PREFIX = "afiliaciones/legacy/documents";
 
 export interface ApplicationDocumentScope {
   readonly allowedPrefixes: readonly string[];
@@ -8,7 +9,8 @@ export interface ApplicationDocumentScope {
  * Resuelve el alcance de lectura de documentos S3.
  *
  * - Una identidad interna autorizada puede leer documentos de expedientes
- *   (`afiliaciones/applications/...`), nunca el resto del bucket.
+ *   (`afiliaciones/applications/...`) y los documentos históricos migrados
+ *   (`afiliaciones/legacy/documents/...`), nunca el resto del bucket.
  * - Un postulante solo puede leer los documentos de sus propias solicitudes
  *   (`afiliaciones/applications/<applicationId>`).
  * - Un afiliado externo no obtiene alcance interno: cae en la rama de
@@ -19,7 +21,7 @@ export function resolveApplicationDocumentScope(params: {
   applicantApplicationIds: readonly number[];
 }): ApplicationDocumentScope | null {
   if (params.isInternal) {
-    return { allowedPrefixes: [APPLICATION_KEY_PREFIX] };
+    return { allowedPrefixes: [APPLICATION_KEY_PREFIX, LEGACY_DOCUMENT_KEY_PREFIX] };
   }
 
   const applicationIds = params.applicantApplicationIds.filter(

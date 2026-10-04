@@ -3,9 +3,9 @@ import { resolveApplicationDocumentScope } from "../Services/ApplicationDocument
 import { isObjectKeyAllowed } from "@/modules/shared/Services/S3StorageService";
 
 describe("resolveApplicationDocumentScope", () => {
-  it("limita a un usuario interno a documentos de expedientes", () => {
+  it("limita a un usuario interno a documentos de expedientes y documentos legacy", () => {
     const scope = resolveApplicationDocumentScope({ isInternal: true, applicantApplicationIds: [] });
-    expect(scope?.allowedPrefixes).toEqual(["afiliaciones/applications"]);
+    expect(scope?.allowedPrefixes).toEqual(["afiliaciones/applications", "afiliaciones/legacy/documents"]);
   });
 
   it("limita a un postulante a sus propias solicitudes", () => {
@@ -23,6 +23,11 @@ describe("resolveApplicationDocumentScope", () => {
   it("ignora identificadores de solicitud inválidos", () => {
     expect(resolveApplicationDocumentScope({ isInternal: false, applicantApplicationIds: [0, -1, 1.5, Number.NaN] })).toBeNull();
   });
+
+  it("no expone el prefijo global afiliaciones/*", () => {
+    const internal = resolveApplicationDocumentScope({ isInternal: true, applicantApplicationIds: [] })!;
+    expect(internal.allowedPrefixes).not.toContain("afiliaciones");
+  });
 });
 
 describe("application document authorization boundary", () => {
@@ -38,13 +43,46 @@ describe("application document authorization boundary", () => {
 
   it("no mezcla el dominio de avatares con el de expedientes", () => {
     const internal = resolveApplicationDocumentScope({ isInternal: true, applicantApplicationIds: [] })!;
-    expect(internal.allowedPrefixes).toEqual(["afiliaciones/applications"]);
     expect(isObjectKeyAllowed("afiliaciones/perfiles/foto.png", internal.allowedPrefixes)).toBe(false);
     expect(isObjectKeyAllowed("users/avatars/legacy.jpg", internal.allowedPrefixes)).toBe(false);
   });
+});
 
-  it("no expone el prefijo global afiliaciones/*", () => {
-    const internal = resolveApplicationDocumentScope({ isInternal: true, applicantApplicationIds: [] })!;
-    expect(internal.allowedPrefixes).not.toContain("afiliaciones");
+describe("legacy document read authorization (R43)", () => {
+  const internal = () => resolveApplicationDocumentScope({ isInternal: true, applicantApplicationIds: [] })!;
+
+  it("INTERNAL + legacy = ALLOW", () => {
+    const scope = internal();
+    expect(isObjectKeyAllowed("afiliaciones/legacy/documents/abc.jpg", scope.allowedPrefixes)).toBe(true);
+  });
+
+  it("INTERNAL + applications = ALLOW", () => {
+    const scope = internal();
+    expect(isObjectKeyAllowed("afiliaciones/applications/5/photos/foto.jpg", scope.allowedPrefixes)).toBe(true);
+  });
+
+  it("EXTERNAL + legacy = DENY", () => {
+    const scope = resolveApplicationDocumentScope({ isInternal: false, applicantApplicationIds: [5] })!;
+    expect(isObjectKeyAllowed("afiliaciones/legacy/documents/abc.jpg", scope.allowedPrefixes)).toBe(false);
+  });
+
+  it("ANONYMOUS + legacy = DENY", () => {
+    const scope = resolveApplicationDocumentScope({ isInternal: false, applicantApplicationIds: [] });
+    expect(scope).toBeNull();
+  });
+
+  it("prefijo similar malicioso 'legacy/documents-evil' = DENY", () => {
+    const scope = internal();
+    expect(isObjectKeyAllowed("afiliaciones/legacy/documents-evil/x.jpg", scope.allowedPrefixes)).toBe(false);
+  });
+
+  it("prefijo superior 'legacy' = DENY", () => {
+    const scope = internal();
+    expect(isObjectKeyAllowed("afiliaciones/legacy/x.jpg", scope.allowedPrefixes)).toBe(false);
+  });
+
+  it("path traversal '../' = DENY", () => {
+    const scope = internal();
+    expect(isObjectKeyAllowed("../afiliaciones/legacy/documents/abc.jpg", scope.allowedPrefixes)).toBe(false);
   });
 });
