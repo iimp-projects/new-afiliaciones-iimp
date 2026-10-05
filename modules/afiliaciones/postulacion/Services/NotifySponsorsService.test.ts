@@ -57,7 +57,7 @@ describe("NotifySponsorsService — no expone el código de seguimiento", () => 
     expect(html).not.toContain(UUID);
     expect(html).not.toContain("Código de Seguimiento");
     expect(html).toContain("Aval Ejemplo");
-    expect(html).toContain("Revisar y Validar Postulación");
+    expect(html).toContain("REVISAR SOLICITUD");
   });
 });
 
