@@ -8,6 +8,7 @@ import { blocksNewApplication, canEditApplication, canSubmitApplication, current
 import { ApplicationFlowError } from "../Services/Exceptions/ApplicationFlowError";
 import { normalizeEmploymentInformation } from "../Models/EmploymentInformation";
 import { ContactUniquenessService } from "../Services/ContactUniquenessService";
+import { sponsorEligibilityWhere } from "../Services/SponsorEligibility";
 import { persistAcademicInfos } from "./AcademicInfoPersistence";
 
 export class ApplicationRepository implements IApplicationRepository {
@@ -595,10 +596,7 @@ export class ApplicationRepository implements IApplicationRepository {
       }
 
       const sponsor = await tx.person.findFirst({
-        where: {
-          documentNumber: endorsement.sponsorDocumentNumber,
-          user: { type: "AFFILIATE", status: "ACTIVE", role: { slug: "ASOCIADO_ACTIVO" } },
-        },
+        where: sponsorEligibilityWhere(endorsement.sponsorDocumentNumber),
         select: { id: true },
       });
       if (!sponsor) throw new ApplicationFlowError("INVALID_INPUT", "Uno de los avales ya no se encuentra hábil.", 422);
