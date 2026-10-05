@@ -93,7 +93,7 @@ function activationEmailTemplate(name: string, email: string, role: string, acti
     : role === "ASOCIADO_ACTIVO"
       ? "Tu proceso de afiliación como Asociado Activo ha sido completado correctamente."
       : "Se ha creado una cuenta institucional para ti.";
-  return emailLayout({ title: "¡Bienvenido(a) al IIMP!", summary: completion, variant: "success", content: `<p>Hola, ${escapeHtml(name)}:</p><p>Ya puedes activar tu cuenta para ingresar al Portal de Asociados.</p>${emailInfoBox(`Tu usuario de acceso es:<br><strong>${escapeHtml(email)}</strong>`, "success")}<p>Para proteger tu cuenta, crea tu contraseña mediante el siguiente botón. El enlace tiene una vigencia limitada.</p>${emailCta("ACTIVAR MI CUENTA", activationUrl)}` });
+  return emailLayout({ category: "Cuenta de Asociado", title: "¡Bienvenido(a) al IIMP!", summary: completion, variant: "success", content: `<p>Hola, ${escapeHtml(name)}:</p><p>Ya puedes activar tu cuenta para ingresar al Portal de Asociados.</p>${emailInfoBox(`Tu usuario de acceso es:<br><strong>${escapeHtml(email)}</strong>`, "success")}<p>Para proteger tu cuenta, crea tu contraseña mediante el siguiente botón. El enlace tiene una vigencia limitada.</p>${emailCta("ACTIVAR MI CUENTA", activationUrl)}` });
 }
 
 export const accountActivationService = new AccountActivationService();

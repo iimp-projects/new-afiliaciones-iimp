@@ -1,19 +1,26 @@
 import { getAppBaseUrl } from "@/lib/config/env";
 import { escapeHtml, safeUrl } from "./EmailEscaping";
 import type { EmailVariant } from "./EmailComponents";
-import { emailStatus } from "./EmailComponents";
 
-export interface EmailLayoutOptions { title: string; summary?: string; variant?: EmailVariant; content: string; }
+export interface EmailLayoutOptions {
+  title: string;
+  summary?: string;
+  /** Etiqueta superior en mayúsculas que describe el contexto del correo. */
+  category?: string;
+  /** Se conserva por compatibilidad; la presentación ya no lo utiliza. */
+  variant?: EmailVariant;
+  content: string;
+}
 
 export function emailLogoUrl(): string | null {
   try { return `${getAppBaseUrl(process.env, { allowDevDefault: false })}/images/logo-iimp.png`; }
   catch { return null; }
 }
 
-export function emailLayout({ title, summary, variant = "neutral", content }: EmailLayoutOptions): string {
+export function emailLayout({ title, summary, category = "PORTAL DE AFILIACIONES", content }: EmailLayoutOptions): string {
   const logo = emailLogoUrl();
-  const logoCell = logo ? `<img src="${safeUrl(logo)}" alt="Instituto de Ingenieros de Minas del Perú" width="76" style="display:block;width:76px;max-width:76px;height:auto;">` : "";
-  return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body style="margin:0;padding:0;background:#F5F5F3;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#F5F5F3;"><tr><td align="center" style="padding:24px 10px;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:640px;background:#ffffff;border:1px solid #E7E2D9;border-radius:12px;overflow:hidden;"><tr><td style="padding:19px 24px;background:#9A681F;background-color:#9A681F;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td width="94" valign="middle">${logoCell}</td><td valign="middle" style="border-left:1px solid #D4A653;padding-left:16px;color:#ffffff;font-family:Arial,Helvetica,sans-serif;"><div style="font-size:12px;font-weight:bold;letter-spacing:1px;">PORTAL DE AFILIACIONES</div><div style="font-size:11px;line-height:16px;color:#F8ECD2;">Instituto de Ingenieros de Minas del Perú</div></td></tr></table></td></tr>${emailStatus(title, summary, variant)}<tr><td style="padding:10px 28px 28px;color:#344054;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:22px;">${content}</td></tr>${emailFooter()}</table></td></tr></table></body></html>`;
+  const logoCell = logo ? `<img src="${safeUrl(logo)}" alt="Instituto de Ingenieros de Minas del Perú" width="180" style="display:block;width:180px;max-width:100%;height:auto;margin:0 auto 20px;border:0;outline:none;">` : "";
+  return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"></head><body style="margin:0;padding:0;background-color:#f3f4f6;font-family:Arial,Helvetica,sans-serif;color:#1f2937;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background-color:#f3f4f6;"><tr><td align="center" style="padding:30px 15px;"><table role="presentation" width="640" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:640px;background-color:#ffffff;border-radius:14px;overflow:hidden;border:1px solid #e5e7eb;"><tr><td height="6" style="height:6px;background-color:#C5A059;font-size:0;line-height:0;">&nbsp;</td></tr><tr><td align="center" style="background-color:#ffffff;padding:25px 35px 24px;border-bottom:1px solid #eeeeee;">${logoCell}<table role="presentation" width="55" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:0 auto 18px;"><tr><td height="3" style="height:3px;background-color:#C5A059;font-size:0;line-height:0;">&nbsp;</td></tr></table><div style="color:#9A7838;font-size:11px;line-height:16px;font-weight:bold;letter-spacing:2.4px;text-transform:uppercase;margin-bottom:10px;">${escapeHtml(category)}</div><div style="color:#18253a;font-size:24px;line-height:32px;font-weight:700;max-width:550px;margin:0 auto;">${escapeHtml(title)}</div>${summary ? `<div style="color:#7b8491;font-size:13px;line-height:20px;margin-top:9px;">${escapeHtml(summary)}</div>` : ""}</td></tr><tr><td style="padding:28px 45px 10px;color:#4b5563;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:22px;">${content}</td></tr>${emailFooter()}</table></td></tr></table></body></html>`;
 }
 
 export function emailParagraph(value: string): string { return `<p style="margin:0 0 16px;">${escapeHtml(value)}</p>`; }

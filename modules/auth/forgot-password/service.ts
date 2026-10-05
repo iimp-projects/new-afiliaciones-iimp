@@ -47,7 +47,7 @@ export const ForgotPasswordService = {
     // Creamos el enlace mágico que lleva a la pantalla de reset con el email en la URL
     const resetUrl = `${appUrl}/reset-password?email=${encodeURIComponent(to)}`;
 
-    const html = emailLayout({ title: "Recuperación de acceso", summary: "Restablece tu contraseña de forma segura.", variant: "neutral", content: `<p>Has solicitado restablecer tu contraseña.</p><p>Ingresa el siguiente código de seguridad en la plataforma:</p>${emailInfoBox(`<div style="text-align:center;font-size:32px;font-weight:bold;letter-spacing:8px;color:#7F561E;">${escapeHtml(code)}</div>`, "neutral")}<p>Este código expirará en <strong>30 minutos</strong>.</p>${emailCta("RESTABLECER CONTRASEÑA", resetUrl)}` });
+    const html = emailLayout({ category: "Seguridad de Cuenta", title: "Recuperación de acceso", summary: "Restablece tu contraseña de forma segura.", variant: "neutral", content: `<p>Has solicitado restablecer tu contraseña.</p><p>Ingresa el siguiente código de seguridad en la plataforma:</p>${emailInfoBox(`<div style="text-align:center;font-size:32px;font-weight:bold;letter-spacing:8px;color:#7F561E;">${escapeHtml(code)}</div>`, "neutral")}<p>Este código expirará en <strong>30 minutos</strong>.</p>${emailCta("RESTABLECER CONTRASEÑA", resetUrl)}` });
 
     try {
       await mailService.sendMail({

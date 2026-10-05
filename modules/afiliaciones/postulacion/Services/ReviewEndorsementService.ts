@@ -199,7 +199,7 @@ export class ReviewEndorsementService {
         </html>
       `;
 
-      const htmlContent = emailLayout({ title: "Estado de Aprobación de Aval", summary: `Tu aval ha ${isApproved ? "aprobado" : "rechazado"} tu solicitud.`, variant: isApproved ? "success" : "warning", content: `<p>Estimado(a) <strong>${escapeHtml(applicantName.toUpperCase())}</strong>,</p><p>Te informamos que tu aval <strong>${escapeHtml(sponsorName)}</strong> ha evaluado tu solicitud de incorporación.</p>${emailInfoBox(`<strong>${statusText}</strong><br>${escapeHtml(statusMessage)}`, isApproved ? "success" : "warning")}${!isApproved ? emailCta("ACTUALIZAR AVAL", trackingUrl) : ""}` });
+      const htmlContent = emailLayout({ category: "Estado de Aval", title: "Estado de Aprobación de Aval", summary: `Tu aval ha ${isApproved ? "aprobado" : "rechazado"} tu solicitud.`, variant: isApproved ? "success" : "warning", content: `<p>Estimado(a) <strong>${escapeHtml(applicantName.toUpperCase())}</strong>,</p><p>Te informamos que tu aval <strong>${escapeHtml(sponsorName)}</strong> ha evaluado tu solicitud de incorporación.</p>${emailInfoBox(`<strong>${statusText}</strong><br>${escapeHtml(statusMessage)}`, isApproved ? "success" : "warning")}${!isApproved ? emailCta("ACTUALIZAR AVAL", trackingUrl) : ""}` });
       await this.mailService.sendMail({
         to: applicantEmail,
         subject: `IIMP | Status de aprobación de aval_ ${applicantName}`,

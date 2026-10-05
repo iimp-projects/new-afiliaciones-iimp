@@ -75,7 +75,7 @@ export class PaymentConfirmationEmailService {
       '</td></tr><tr><td align="center" style="padding:28px 24px;background:#ffffff;border-top:1px solid #e5e7eb;color:#64748b;font-size:11px;line-height:18px;">Instituto de Ingenieros de Minas del Perú<br><span style="color:#8a671d;">Gracias por formar parte del IIMP.</span><br><br>Este es un mensaje automático. Por favor, no responda a este correo.<br>© ' + new Date().getFullYear() + ' Instituto de Ingenieros de Minas del Perú</td></tr></table></td></tr></table></body></html>';
     // The detailed, server-built payment data remains intact; the surrounding
     // institutional shell is now shared with every affiliation email.
-    return emailLayout({ title: "Pago confirmado", summary: "Tu pago fue procesado correctamente.", variant: "success", content: emailInfoBox(legacyContent, "success") });
+    return emailLayout({ category: "Pago de Afiliación", title: "Pago confirmado", summary: "Tu pago fue procesado correctamente.", variant: "success", content: emailInfoBox(legacyContent, "success") });
   }
 }
 
