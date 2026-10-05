@@ -33,7 +33,8 @@ export async function fetchAsociadosAction(params: FetchAsociadosParams) {
         { email: { contains: search, mode: "insensitive" } },
         { documentNumber: { contains: search } },
         { person: { firstName: { contains: search, mode: "insensitive" } } },
-        { person: { paternalLastName: { contains: search, mode: "insensitive" } } }
+        { person: { paternalLastName: { contains: search, mode: "insensitive" } } },
+        { person: { maternalLastName: { contains: search, mode: "insensitive" } } }
       ];
     }
 

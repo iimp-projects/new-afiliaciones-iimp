@@ -93,7 +93,7 @@ export function AsociadosFilterBar({ total, currentQuery, currentType, currentSo
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const updateFilters = useCallback((name: string, value: string) => {
+  const updateFilters = useCallback((name: string, value: string, mode: "push" | "replace" = "push") => {
     const params = new URLSearchParams(searchParams.toString());
     if (value && value !== "ALL" && value !== "") {
       params.set(name, value);
@@ -101,18 +101,31 @@ export function AsociadosFilterBar({ total, currentQuery, currentType, currentSo
       params.delete(name);
     }
     params.set("page", "1");
-    router.push(`${pathname}?${params.toString()}`);
+    const url = `${pathname}?${params.toString()}`;
+    if (mode === "replace") router.replace(url);
+    else router.push(url);
   }, [searchParams, pathname, router]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    updateFilters("q", searchTerm);
+    updateFilters("q", searchTerm.trim());
   };
 
   const handleClearAll = () => {
     setSearchTerm("");
     router.push(pathname); 
   };
+
+  // Búsqueda automática con debounce (~400 ms): al dejar de escribir se actualiza `q`
+  // y se conservan los demás filtros. Usa router.replace para no llenar el historial.
+  useEffect(() => {
+    const trimmed = searchTerm.trim();
+    if (trimmed === currentQuery) return;
+    const timer = setTimeout(() => {
+      updateFilters("q", trimmed, "replace");
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchTerm, currentQuery, updateFilters]);
 
   const hasActiveFilters = searchParams.has("q") || searchParams.has("type");
 
