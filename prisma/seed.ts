@@ -16,6 +16,7 @@ import {
   seedMembershipDepartments,
   seedAddressTypes,
   seedSystemSettings,
+  seedMembershipCategories,
   // seedCompanies,
   // seedConfiguration,
   // seedDemoUsers, 
@@ -47,6 +48,7 @@ const main = async (): Promise<void> => {
     await runSeed('Catalogs: Benefits', seedBenefits);
     await runSeed('Catalogs: Membership Departments', seedMembershipDepartments);
     await runSeed('Catalogs: Address Types', seedAddressTypes);
+    await runSeed('Catalogs: Membership Categories', seedMembershipCategories);
     await runSeed('System: System Settings', seedSystemSettings);
     // await runSeed('System: Configuration', seedConfiguration);
     

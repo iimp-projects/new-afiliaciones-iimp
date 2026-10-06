@@ -1,5 +1,7 @@
 import { getAssociatesApiConfig, type AssociatesApiConfig } from "../Config/AssociatesApiConfig";
+import { parseAssociateListPage, parseAssociateListPageWithClave } from "../Mappers/SieAssociateListMapper";
 import type { AssociateRequestPayloadSnapshot, SieAssociateState, SieAssociateStateQuota, SieAssociateStateRequest } from "../Models/AssociateIntegration";
+import type { SieAssociateListPage, SieAssociateListPageWithClave, SieAssociateListRequest } from "../Models/SieAssociateList";
 import { AssociatesApiError } from "./AssociatesApiError";
 
 type FetchLike = typeof fetch;
@@ -42,6 +44,50 @@ export class AssociatesApiClient {
     }
   }
 
+  async listAssociates(input: SieAssociateListRequest = {}): Promise<SieAssociateListPage> {
+    const body: Record<string, unknown> = { Pagina: input.pagina ?? 1, TamanioPagina: input.tamanioPagina ?? 500 };
+    if (input.tipo) body.Tipo = input.tipo;
+    try { return await this.listAssociatesOnce(body); }
+    catch (error) {
+      if (!(error instanceof AssociatesApiError) || error.httpStatus !== 401) throw error;
+      this.tokenCache = null;
+      try { return await this.listAssociatesOnce(body); }
+      catch (retryError) {
+        if (retryError instanceof AssociatesApiError && retryError.httpStatus === 401) throw new AssociatesApiError(retryError.message, { ...retryError.options, retryable: false });
+        throw retryError;
+      }
+    }
+  }
+
+  private async listAssociatesOnce(body: Record<string, unknown>): Promise<SieAssociateListPage> {
+    const token = await this.token();
+    const response = await this.request("/ventas/asociados/lista", { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${token}` }, body: JSON.stringify(body) }, "LIST_ASSOCIATES");
+    if (!response.ok) throw await this.toError(response, "LIST_ASSOCIATES");
+    return parseAssociateListPage(await this.json(response, "LIST_ASSOCIATES"));
+  }
+
+  async listAssociatesWithClave(input: SieAssociateListRequest = {}): Promise<SieAssociateListPageWithClave> {
+    const body: Record<string, unknown> = { Pagina: input.pagina ?? 1, TamanioPagina: input.tamanioPagina ?? 500 };
+    if (input.tipo) body.Tipo = input.tipo;
+    try { return await this.listAssociatesWithClaveOnce(body); }
+    catch (error) {
+      if (!(error instanceof AssociatesApiError) || error.httpStatus !== 401) throw error;
+      this.tokenCache = null;
+      try { return await this.listAssociatesWithClaveOnce(body); }
+      catch (retryError) {
+        if (retryError instanceof AssociatesApiError && retryError.httpStatus === 401) throw new AssociatesApiError(retryError.message, { ...retryError.options, retryable: false });
+        throw retryError;
+      }
+    }
+  }
+
+  private async listAssociatesWithClaveOnce(body: Record<string, unknown>): Promise<SieAssociateListPageWithClave> {
+    const token = await this.token();
+    const response = await this.request("/ventas/asociados/lista", { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${token}` }, body: JSON.stringify(body) }, "LIST_ASSOCIATES");
+    if (!response.ok) throw await this.toError(response, "LIST_ASSOCIATES");
+    return parseAssociateListPageWithClave(await this.json(response, "LIST_ASSOCIATES"));
+  }
+
   private async postAssociate(payload: AssociateRequestPayloadSnapshot): Promise<AssociatesCreateResult> {
     const token = await this.token();
     const response = await this.request("/asociados", { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${token}` }, body: JSON.stringify(payload) }, "CREATE_ASSOCIATE");
@@ -70,7 +116,7 @@ export class AssociatesApiClient {
     return body.token;
   }
 
-  private async request(path: string, init: RequestInit, operation: "LOGIN" | "CREATE_ASSOCIATE" | "GET_ASSOCIATE_STATE"): Promise<Response> {
+  private async request(path: string, init: RequestInit, operation: "LOGIN" | "CREATE_ASSOCIATE" | "GET_ASSOCIATE_STATE" | "LIST_ASSOCIATES"): Promise<Response> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), this.config.timeoutMs);
     try { return await this.fetcher(`${this.config.baseUrl}${path}`, { ...init, signal: controller.signal }); }
@@ -78,13 +124,13 @@ export class AssociatesApiClient {
     finally { clearTimeout(timeout); }
   }
 
-  private async toError(response: Response, operation: "LOGIN" | "CREATE_ASSOCIATE" | "GET_ASSOCIATE_STATE"): Promise<AssociatesApiError> {
+  private async toError(response: Response, operation: "LOGIN" | "CREATE_ASSOCIATE" | "GET_ASSOCIATE_STATE" | "LIST_ASSOCIATES"): Promise<AssociatesApiError> {
     const body = await this.json(response, operation, true) as ErrorBody | null;
     const retryable = operation === "LOGIN" ? response.status === 429 : response.status >= 500;
     return new AssociatesApiError(body?.mensaje || `La API de asociados respondió HTTP ${response.status}.`, { httpStatus: response.status, code: body?.codigo, identifier: body?.identificador, details: Array.isArray(body?.detalles) ? body.detalles.filter((item): item is string => typeof item === "string") : undefined, retryable, operation, kind: httpErrorKind(response.status) });
   }
 
-  private async json(response: Response, operation: "LOGIN" | "CREATE_ASSOCIATE" | "GET_ASSOCIATE_STATE", allowEmpty = false): Promise<any> {
+  private async json(response: Response, operation: "LOGIN" | "CREATE_ASSOCIATE" | "GET_ASSOCIATE_STATE" | "LIST_ASSOCIATES", allowEmpty = false): Promise<any> {
     try { return await response.json(); }
     catch { if (allowEmpty) return null; throw new AssociatesApiError("La API de asociados devolvió JSON inválido.", { retryable: false, operation }); }
   }

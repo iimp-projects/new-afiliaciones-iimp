@@ -1,7 +1,7 @@
 export class AssociatesApiError extends Error {
   constructor(
     message: string,
-    readonly options: { httpStatus?: number; code?: string; identifier?: string; details?: string[]; retryable: boolean; operation: "LOGIN" | "CREATE_ASSOCIATE" | "GET_ASSOCIATE_STATE"; kind?: AssociatesApiErrorKind; cause?: unknown },
+    readonly options: { httpStatus?: number; code?: string; identifier?: string; details?: string[]; retryable: boolean; operation: "LOGIN" | "CREATE_ASSOCIATE" | "GET_ASSOCIATE_STATE" | "LIST_ASSOCIATES"; kind?: AssociatesApiErrorKind; cause?: unknown },
   ) { super(message, { cause: options.cause }); this.name = "AssociatesApiError"; }
   get httpStatus() { return this.options.httpStatus; }
   get code() { return this.options.code; }

@@ -40,8 +40,8 @@ model User {
   operationalAlertsAssigned  OperationalAlertTracking[]    @relation("OperationalAlertAssignedUser")
   operationalAlertsResolved  OperationalAlertTracking[]    @relation("OperationalAlertResolvedByUser")
   operationalAlertNotes      OperationalAlertNote[]        @relation("OperationalAlertNoteAuthor")
-  emailCampaignsCreated      EmailCampaign[]              @relation("EmailCampaignCreator")
-  emailRecipientListsCreated EmailRecipientList[]         @relation("EmailRecipientListCreator")
+  emailCampaignsCreated      EmailCampaign[]               @relation("EmailCampaignCreator")
+  emailRecipientListsCreated EmailRecipientList[]          @relation("EmailRecipientListCreator")
 
   @@index([email])
   @@index([status])
@@ -222,6 +222,7 @@ model Person {
   academicInfos           AcademicInfo[]
   employmentInfos         EmploymentInfo[]
   professionalExperiences ProfessionalExperience[]
+  sieAssociateRecords     SieAssociateRecord[]
 
   @@unique([documentType, documentNumber])
   @@index([documentNumber])
@@ -1162,6 +1163,12 @@ enum AssociateIntegrationAttemptResult {
   FAILED
 }
 
+enum SieLinkStatus {
+  LINKED
+  UNLINKED
+  CONFLICT
+}
+
 // Estados a nivel de Área (Validación individual)
 enum ValidationStatus {
   PENDING
@@ -1368,11 +1375,11 @@ model EmailCampaign {
   id          Int                 @id @default(autoincrement())
   name        String              @db.VarChar(200)
   subject     String              @db.VarChar(500)
-  htmlContent String              @db.Text @map("html_content")
-  textContent String?             @db.Text @map("text_content")
-  senderName  String?             @db.VarChar(200) @map("sender_name")
-  senderEmail String?             @db.VarChar(200) @map("sender_email")
-  replyTo     String?             @db.VarChar(200) @map("reply_to")
+  htmlContent String              @map("html_content") @db.Text
+  textContent String?             @map("text_content") @db.Text
+  senderName  String?             @map("sender_name") @db.VarChar(200)
+  senderEmail String?             @map("sender_email") @db.VarChar(200)
+  replyTo     String?             @map("reply_to") @db.VarChar(200)
   status      EmailCampaignStatus @default(DRAFT)
   createdBy   Int?                @map("created_by")
   createdAt   DateTime            @default(now()) @map("created_at")
@@ -1380,7 +1387,7 @@ model EmailCampaign {
 
   recipients EmailCampaignRecipient[]
   deliveries EmailDelivery[]
-  creator    User?                @relation("EmailCampaignCreator", fields: [createdBy], references: [id], onDelete: SetNull)
+  creator    User?                    @relation("EmailCampaignCreator", fields: [createdBy], references: [id], onDelete: SetNull)
 
   @@index([status])
   @@index([createdBy])
@@ -1410,14 +1417,14 @@ model EmailRecipientList {
   id          Int      @id @default(autoincrement())
   name        String   @db.VarChar(200)
   description String?  @db.Text
-  sourceFile  String?  @db.VarChar(500) @map("source_file")
-  sourceSheet String?  @db.VarChar(200) @map("source_sheet")
+  sourceFile  String?  @map("source_file") @db.VarChar(500)
+  sourceSheet String?  @map("source_sheet") @db.VarChar(200)
   createdBy   Int?     @map("created_by")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   members EmailRecipientListMember[]
-  creator User?      @relation("EmailRecipientListCreator", fields: [createdBy], references: [id], onDelete: SetNull)
+  creator User?                      @relation("EmailRecipientListCreator", fields: [createdBy], references: [id], onDelete: SetNull)
 
   @@index([createdBy])
   @@map("email_recipient_lists")
@@ -1462,18 +1469,59 @@ model EmailDelivery {
   email         String          @db.VarChar(320)
   status        EmailSendStatus @default(PENDING)
   attemptNumber Int             @default(1) @map("attempt_number")
-  messageId     String?         @db.VarChar(500) @map("message_id")
-  errorMessage  String?         @db.Text @map("error_message")
+  messageId     String?         @map("message_id") @db.VarChar(500)
+  errorMessage  String?         @map("error_message") @db.Text
   sentAt        DateTime?       @map("sent_at")
   createdAt     DateTime        @default(now()) @map("created_at")
 
   campaign  EmailCampaign?  @relation(fields: [campaignId], references: [id], onDelete: SetNull)
   recipient EmailRecipient? @relation(fields: [recipientId], references: [id], onDelete: SetNull)
 
+  @@unique([campaignId, recipientId, attemptNumber])
   @@index([campaignId])
   @@index([recipientId])
   @@index([status])
   @@index([createdAt])
-  @@unique([campaignId, recipientId, attemptNumber])
   @@map("email_deliveries")
+}
+
+model MembershipCategory {
+  id                  Int                  @id @default(autoincrement())
+  code                String               @unique @db.VarChar(10)
+  name                String               @db.VarChar(100)
+  allowsLogin         Boolean              @default(false) @map("allows_login")
+  mappedAffiliateType AffiliateType?       @map("mapped_affiliate_type")
+  mappedRoleSlug      String?              @map("mapped_role_slug") @db.VarChar(100)
+  isActive            Boolean              @default(true) @map("is_active")
+  createdAt           DateTime             @default(now()) @map("created_at")
+  updatedAt           DateTime             @updatedAt @map("updated_at")
+  records             SieAssociateRecord[]
+
+  @@map("membership_categories")
+}
+
+model SieAssociateRecord {
+  id                 Int                 @id @default(autoincrement())
+  provider           String              @db.VarChar(50)
+  externalCode       String              @map("external_code") @db.VarChar(50)
+  sourceDocumentType String?             @map("source_document_type") @db.VarChar(20)
+  documentNumber     String?             @map("document_number") @db.VarChar(50)
+  sourceType         String              @map("source_type") @db.VarChar(10)
+  sourceDescription  String?             @map("source_description") @db.VarChar(100)
+  personId           Int?                @map("person_id")
+  categoryId         Int?                @map("category_id")
+  linkStatus         SieLinkStatus       @default(UNLINKED) @map("link_status")
+  lastSyncedAt       DateTime?           @map("last_synced_at")
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+  person             Person?             @relation(fields: [personId], references: [id], onDelete: SetNull)
+  category           MembershipCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@unique([provider, externalCode])
+  @@index([personId])
+  @@index([documentNumber])
+  @@index([sourceType])
+  @@index([linkStatus])
+  @@index([categoryId])
+  @@map("sie_associate_records")
 }

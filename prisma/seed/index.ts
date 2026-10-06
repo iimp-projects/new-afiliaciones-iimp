@@ -16,6 +16,7 @@ export { seedAcademicDegrees } from './education/academic-degrees.seed';
 export { seedBenefits } from './benefits/benefits.seed';
 export { seedMembershipDepartments } from './catalogs/membership-departments.seed';
 export { seedAddressTypes } from './catalogs/address-types.seed';
+export { seedMembershipCategories } from './catalogs/membership-categories.seed';
 export { seedSystemSettings } from './system/system-settings.seed';
 // export { seedCompanies } from './geography/companies.seed';
 

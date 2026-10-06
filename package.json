@@ -14,7 +14,13 @@
     "security:runtime": "node scripts/security/audit-runtime.mjs",
     "security:secrets": "node scripts/security/scan-secrets.mjs",
     "security:check": "npm run security:secrets && npm run security:dependencies",
-    "check": "npm run typecheck && npm run lint && npm run test"
+    "check": "npm run typecheck && npm run lint && npm run test",
+    "credential-sync:dry-run": "tsx scripts/credential-sync-dry-run.ts",
+    "sie-historical:dry-run": "tsx scripts/sie-historical-dry-run.ts",
+    "sie-ubigeo:forensics": "tsx scripts/sie-ubigeo-forensics.ts",
+    "sie-historical:migrate": "tsx scripts/sie-historical-migrate.ts",
+    "sie-account:reconcile": "tsx scripts/sie-account-reconciliation.ts",
+    "sie-account:provision": "tsx scripts/sie-account-provision.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.3",
