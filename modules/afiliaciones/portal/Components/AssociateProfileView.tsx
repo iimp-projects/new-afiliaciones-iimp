@@ -10,6 +10,7 @@ import { toast } from "sonner";
 
 import {
   BriefcaseBusiness,
+  BookOpen,
   CheckCircle2,
   ChevronRight,
   GraduationCap,
@@ -942,6 +943,16 @@ export function AssociateProfileView() {
               <ChevronRight size={16} />
             </Link>
           )}
+          <Link
+            href="/api/integrations/onemine"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-flex items-center gap-2 rounded-xl border border-[#dec28b] bg-white px-4 py-2.5 text-sm font-bold text-[#8a6828] transition hover:bg-[#fcfaf5]"
+          >
+            <BookOpen size={17} />
+            Biblioteca virtual (OneMine)
+            <ChevronRight size={16} />
+          </Link>
         </Card>
 
         {/* SEGURIDAD */}
