@@ -5,6 +5,7 @@ import { AuthenticationError, AuthorizationError } from "../errors";
 import { contextRepository } from "./repository";
 import { authAdapter } from "./adapter";
 import { isAffiliateUser, type CurrentUserDTO } from "./types";
+import { getAffiliateLandingRoute } from "@/lib/security/affiliate-profile-only";
 
 class ContextService {
   /**
@@ -79,7 +80,7 @@ class ContextService {
    */
   public requireRole = async (roleSlugs: string[]): Promise<void> => {
     const user = await this.requireAuth();
-    if (user && isAffiliateUser(user)) redirect("/intranet/mi-cuenta");
+    if (user && isAffiliateUser(user)) redirect(getAffiliateLandingRoute());
     const has = roleSlugs.includes(user.role.slug);
     if (!has) {
       throw new AuthorizationError(
@@ -112,7 +113,7 @@ class ContextService {
     subject: string,
   ): Promise<CurrentUserDTO> => {
     const user = await this.requireAuth();
-    if (user && isAffiliateUser(user)) redirect("/intranet/mi-cuenta");
+    if (user && isAffiliateUser(user)) redirect(getAffiliateLandingRoute());
     const has = user.permissions.has("manage:all") || user.permissions.has(`${action}:${subject}`);
     if (!has) {
       throw new AuthorizationError(
@@ -124,7 +125,7 @@ class ContextService {
 
   public requireAdministrativeUser = async (): Promise<CurrentUserDTO> => {
     const user = await this.requireAuth();
-    if (isAffiliateUser(user)) redirect("/intranet/mi-cuenta");
+    if (isAffiliateUser(user)) redirect(getAffiliateLandingRoute());
     return user;
   };
 

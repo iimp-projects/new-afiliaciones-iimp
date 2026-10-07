@@ -35,7 +35,12 @@ export default auth((req) => {
     return NextResponse.redirect(new URL("/intranet", req.url));
   }
 
-  return NextResponse.next();
+  // Exponemos el pathname a los Server Components (vía headers()) para permitir
+  // guardas de ruta server-side sin depender del cliente.
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set("x-pathname", pathname);
+
+  return NextResponse.next({ request: { headers: requestHeaders } });
 });
 
 export const config = {

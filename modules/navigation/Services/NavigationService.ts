@@ -1,6 +1,10 @@
-import type { NavigationNode } from "../Models/NavigationNode";
+import type { NavigationNode, NavigationAudience } from "../Models/NavigationNode";
 import type { IAuthorizationProvider } from "../Ports/IAuthorizationProvider";
 import { navigationRegistry } from "../Registry/NavigationRegistry";
+import {
+    AFFILIATE_PROFILE_ONLY_MODE,
+    isAffiliateProfileOnlyItemAllowed,
+} from "@/lib/security/affiliate-profile-only";
 
 export class NavigationService {
     constructor(
@@ -12,13 +16,31 @@ export class NavigationService {
         return await this.filterAndSortTree(rawTree);
     }
 
-    private async filterAndSortTree(nodes: NavigationNode[]): Promise<NavigationNode[]> {
+    private async filterAndSortTree(
+        nodes: NavigationNode[],
+        inheritedAudience?: NavigationAudience,
+    ): Promise<NavigationNode[]> {
         const result: NavigationNode[] = [];
 
         for (const node of nodes) {
             const isAffiliate = await this.authProvider.isAffiliate?.() ?? false;
-            if (node.audience === "affiliate" && !isAffiliate) continue;
-            if (node.audience === "administrative" && isAffiliate) continue;
+            const audience = node.audience ?? inheritedAudience;
+
+            if (audience === "affiliate" && !isAffiliate) continue;
+            if (audience === "administrative" && isAffiliate) continue;
+
+            // R70: modo "solo perfil" para asociados — oculta todos los ítems
+            // del menú del asociado salvo "Mi perfil".
+            if (
+                AFFILIATE_PROFILE_ONLY_MODE &&
+                isAffiliate &&
+                audience === "affiliate" &&
+                node.type !== "group" &&
+                !isAffiliateProfileOnlyItemAllowed(node.id)
+            ) {
+                continue;
+            }
+
             // 1. Evaluar Permiso si el nodo lo requiere
             if (node.permission) {
                 const hasAccess = await this.authProvider.hasPermission(
@@ -33,7 +55,7 @@ export class NavigationService {
 
             // 2. Procesar hijos recursivamente
             if (node.children && node.children.length > 0) {
-                const authorizedChildren = await this.filterAndSortTree(node.children);
+                const authorizedChildren = await this.filterAndSortTree(node.children, audience);
                 
                 // 🛑 CORRECCIÓN DEL GRUPO FANTASMA:
                 // Si este nodo es un "grupo" pero se quedó sin hijos tras filtrar los permisos, 

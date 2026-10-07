@@ -30,6 +30,7 @@ import { PROFILE_CONTENT } from "../Config/ProfileContent";
 import type { AssociateProfileDTO } from "../Services/AssociateProfileService";
 import { formatCalendarDate } from "../Utils/calendarDate";
 import { formatPeruDate } from "@/modules/shared/Utils/formatPeruDateTime";
+import { AFFILIATE_PROFILE_ONLY_MODE } from "@/lib/security/affiliate-profile-only";
 
 type Item = {
   id: number;
@@ -932,13 +933,15 @@ export function AssociateProfileView() {
             />
           </div>
 
-          <Link
-            href="/intranet/mi-cuenta/membresia"
-            className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-[#9b7530] transition hover:text-[#7f5f25]"
-          >
-            Ver detalle de membresía
-            <ChevronRight size={16} />
-          </Link>
+          {!AFFILIATE_PROFILE_ONLY_MODE && (
+            <Link
+              href="/intranet/mi-cuenta/membresia"
+              className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-[#9b7530] transition hover:text-[#7f5f25]"
+            >
+              Ver detalle de membresía
+              <ChevronRight size={16} />
+            </Link>
+          )}
         </Card>
 
         {/* SEGURIDAD */}

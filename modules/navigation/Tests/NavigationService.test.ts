@@ -57,11 +57,11 @@ describe("NavigationService - Application Service", () => {
         expect(securityNode?.children).toBeUndefined();
     });
 
-    it("retorna únicamente la navegación del portal para un asociado", async () => {
+    it("retorna solo Mi perfil para un asociado en modo solo perfil", async () => {
         const service = new NavigationService(new MockAuthProvider(new Set(["read:memberships"]), true));
         const tree = await service.getAuthorizedTree();
-        expect(tree.map((node) => node.id)).toEqual(["group-affiliate-main", "group-affiliate-account"]);
-        expect(tree.flatMap((node) => node.children ?? []).every((node) => node.href?.startsWith("/intranet/mi-cuenta"))).toBe(true);
+        expect(tree.map((node) => node.id)).toEqual(["group-affiliate-account"]);
+        expect(tree[0].children?.map((node) => node.id)).toEqual(["nav-affiliate-profile"]);
     });
 
     it("muestra Mi perfil a cualquier usuario administrativo sin exigir un permiso adicional", async () => {
