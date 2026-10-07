@@ -943,16 +943,36 @@ export function AssociateProfileView() {
               <ChevronRight size={16} />
             </Link>
           )}
-          <Link
-            href="/api/integrations/onemine"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-4 inline-flex items-center gap-2 rounded-xl border border-[#dec28b] bg-white px-4 py-2.5 text-sm font-bold text-[#8a6828] transition hover:bg-[#fcfaf5]"
-          >
-            <BookOpen size={17} />
-            Biblioteca virtual (OneMine)
-            <ChevronRight size={16} />
-          </Link>
+          <div className="mt-6 rounded-2xl border border-[#dec28b] bg-gradient-to-br from-[#fffdf8] to-[#f7efd9] p-5 shadow-sm">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#17375e] text-white shadow-sm">
+                  <BookOpen size={21} aria-hidden="true" />
+                </span>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[.13em] text-[#9b7530]">
+                    Biblioteca virtual
+                  </p>
+                  <h3 className="mt-0.5 text-lg font-extrabold text-[#17375e]">
+                    OneMine
+                  </h3>
+                  <p className="mt-1 max-w-xl text-sm leading-6 text-slate-600">
+                    Explora publicaciones técnicas, investigaciones y recursos especializados para la industria minera.
+                  </p>
+                </div>
+              </div>
+
+              <Link
+                href="/api/integrations/onemine"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#17375e] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#102b4b] focus:outline-none focus:ring-2 focus:ring-[#b48a37] focus:ring-offset-2"
+              >
+                Ingresar a OneMine
+                <ChevronRight size={16} aria-hidden="true" />
+              </Link>
+            </div>
+          </div>
         </Card>
 
         {/* SEGURIDAD */}
