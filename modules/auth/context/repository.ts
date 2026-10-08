@@ -4,6 +4,13 @@ import { S3StorageService } from '@/modules/shared/Services/S3StorageService'; /
 import { UserStatus } from '@prisma/client';
 import { APPLICATION_KEY_PREFIX, LEGACY_DOCUMENT_KEY_PREFIX } from '@/modules/afiliaciones/postulacion/Services/ApplicationDocumentAccess';
 
+type ProfilePhotoDocument = {
+  mimeType: string;
+  category: string;
+  fileName: string;
+  fileUrl: string;
+};
+
 export class ContextRepository {
   async getHydratedUser(userId: number): Promise<CurrentUserDTO | null> {
     const user = await prisma.user.findUnique({
@@ -35,7 +42,7 @@ export class ContextRepository {
     // El avatar es opcional: si no está autorizado o la firma falla, se
     // devuelve null y la UI usa sus iniciales. No debe romper la autenticación.
     const application = user.person.applications?.[0];
-    const applicationPhoto = application?.documents.find((document) =>
+    const applicationPhoto = application?.documents.find((document: ProfilePhotoDocument) =>
       document.mimeType.startsWith('image/') &&
       (document.category === 'OTHER' || document.fileName.toLowerCase().includes('foto')),
     );
