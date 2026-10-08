@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import type { CurrentUserDTO } from './types';
 import { S3StorageService } from '@/modules/shared/Services/S3StorageService'; // ✅ IMPORTAMOS EL SERVICIO DE S3
-import { ApplicationStatus, UserStatus } from '@prisma/client';
+import { UserStatus } from '@prisma/client';
 import { APPLICATION_KEY_PREFIX, LEGACY_DOCUMENT_KEY_PREFIX } from '@/modules/afiliaciones/postulacion/Services/ApplicationDocumentAccess';
 
 export class ContextRepository {
@@ -12,7 +12,7 @@ export class ContextRepository {
         person: {
           include: {
             applications: {
-              where: { status: ApplicationStatus.COMPLETED, deletedAt: null },
+              where: { status: "COMPLETED", deletedAt: null },
               orderBy: { updatedAt: 'desc' },
               take: 1,
               include: { documents: { orderBy: { updatedAt: 'desc' } } },
