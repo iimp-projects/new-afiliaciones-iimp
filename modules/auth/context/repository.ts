@@ -1,14 +1,24 @@
 import { prisma } from '@/lib/prisma';
 import type { CurrentUserDTO } from './types';
 import { S3StorageService } from '@/modules/shared/Services/S3StorageService'; // ✅ IMPORTAMOS EL SERVICIO DE S3
-import { UserStatus } from '@prisma/client';
+import { ApplicationStatus, UserStatus } from '@prisma/client';
+import { APPLICATION_KEY_PREFIX, LEGACY_DOCUMENT_KEY_PREFIX } from '@/modules/afiliaciones/postulacion/Services/ApplicationDocumentAccess';
 
 export class ContextRepository {
   async getHydratedUser(userId: number): Promise<CurrentUserDTO | null> {
     const user = await prisma.user.findUnique({
       where: { id: userId, status: UserStatus.ACTIVE, deletedAt: null },
       include: {
-        person: true,
+        person: {
+          include: {
+            applications: {
+              where: { status: ApplicationStatus.COMPLETED, deletedAt: null },
+              orderBy: { updatedAt: 'desc' },
+              take: 1,
+              include: { documents: { orderBy: { updatedAt: 'desc' } } },
+            },
+          },
+        },
         role: {
           include: {
             rolePermissions: {
@@ -24,10 +34,27 @@ export class ContextRepository {
     // ✅ FIRMAMOS LA URL DE LA IMAGEN SI EXISTE.
     // El avatar es opcional: si no está autorizado o la firma falla, se
     // devuelve null y la UI usa sus iniciales. No debe romper la autenticación.
-    let finalImageUrl = user.image;
-    if (finalImageUrl) {
+    const application = user.person.applications?.[0];
+    const applicationPhoto = application?.documents.find((document) =>
+      document.mimeType.startsWith('image/') &&
+      (document.category === 'OTHER' || document.fileName.toLowerCase().includes('foto')),
+    );
+
+    let finalImageUrl: string | null = null;
+    if (applicationPhoto?.fileUrl) {
       try {
-        finalImageUrl = await new S3StorageService().getPresignedAvatarUrl(finalImageUrl);
+        finalImageUrl = await new S3StorageService().getPresignedApplicationDocumentUrl(
+          applicationPhoto.fileUrl,
+          [APPLICATION_KEY_PREFIX, LEGACY_DOCUMENT_KEY_PREFIX],
+        );
+      } catch {
+        finalImageUrl = null;
+      }
+    }
+
+    if (!finalImageUrl && user.image) {
+      try {
+        finalImageUrl = await new S3StorageService().getPresignedAvatarUrl(user.image);
       } catch {
         finalImageUrl = null;
       }

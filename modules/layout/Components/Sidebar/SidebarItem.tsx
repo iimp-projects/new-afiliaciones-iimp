@@ -106,6 +106,8 @@ export function SidebarItem({ item, isNested = false, isCollapsed = false, onMob
             href={item.href || "#"}
             onClick={onMobileClick}
             title={isCollapsed ? item.title : undefined}
+            target={item.openInNewTab ? "_blank" : undefined}
+            rel={item.openInNewTab ? "noopener noreferrer" : undefined}
             className={`group flex items-center justify-between px-4 py-2 rounded-2xl transition-all duration-300 outline-none mb-1 ${
                 isActive
                 ? "bg-gradient-to-r from-[#dca45c] to-[#c39254] text-white font-bold shadow-md shadow-[#c39254]/30" 
@@ -124,7 +126,12 @@ export function SidebarItem({ item, isNested = false, isCollapsed = false, onMob
                 ) : (
                     <Dot size={17} strokeWidth={3} className={isActive ? "text-white" : "text-slate-300 group-hover:text-[#a3722a]"} />
                 )}
-                {!isCollapsed && <span className="tracking-wide whitespace-nowrap">{item.title}</span>}
+                {!isCollapsed && (
+                    <span className="flex min-w-0 flex-col leading-tight">
+                        <span className="tracking-wide whitespace-nowrap">{item.title}</span>
+                        {item.subtitle && <span className="mt-0.5 text-[10px] font-semibold tracking-normal text-slate-400 group-hover:text-[#a3722a]">{item.subtitle}</span>}
+                    </span>
+                )}
             </div>
 
             {!isCollapsed && isActive && !isNested && (

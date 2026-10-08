@@ -1,9 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({ findUnique: vi.fn(), getPresignedAvatarUrl: vi.fn() }));
+const mocks = vi.hoisted(() => ({ findUnique: vi.fn(), getPresignedAvatarUrl: vi.fn(), getPresignedApplicationDocumentUrl: vi.fn() }));
 vi.mock("@/lib/prisma", () => ({ prisma: { user: { findUnique: mocks.findUnique } } }));
 vi.mock("@/modules/shared/Services/S3StorageService", () => ({
-  S3StorageService: class { getPresignedAvatarUrl = mocks.getPresignedAvatarUrl; },
+  S3StorageService: class {
+    getPresignedAvatarUrl = mocks.getPresignedAvatarUrl;
+    getPresignedApplicationDocumentUrl = mocks.getPresignedApplicationDocumentUrl;
+  },
 }));
 
 import { ContextRepository } from "./repository";
@@ -53,6 +56,26 @@ describe("ContextRepository active authorization boundary", () => {
     const user = await new ContextRepository().getHydratedUser(7);
     expect(user?.image).toBe("https://signed.example/avatar");
     expect(mocks.getPresignedAvatarUrl).toHaveBeenCalledWith("afiliaciones/perfiles/foto.png");
+  });
+
+  it("uses the signed application photo when one exists", async () => {
+    mocks.findUnique.mockResolvedValue(activeUser({
+      image: "afiliaciones/perfiles/avatar.png",
+      person: {
+        firstName: "Ana", paternalLastName: "Perez", maternalLastName: null, documentNumber: "12345678",
+        applications: [{ documents: [{ mimeType: "image/jpeg", category: "OTHER", fileName: "foto.jpg", fileUrl: "afiliaciones/applications/7/foto.jpg" }] }],
+      },
+    }));
+    mocks.getPresignedApplicationDocumentUrl.mockResolvedValue("https://signed.example/application-photo");
+
+    const user = await new ContextRepository().getHydratedUser(7);
+
+    expect(user?.image).toBe("https://signed.example/application-photo");
+    expect(mocks.getPresignedApplicationDocumentUrl).toHaveBeenCalledWith(
+      "afiliaciones/applications/7/foto.jpg",
+      ["afiliaciones/applications", "afiliaciones/legacy/documents"],
+    );
+    expect(mocks.getPresignedAvatarUrl).not.toHaveBeenCalled();
   });
 
   it("deja el avatar en null cuando no está autorizado, sin romper la hidratación", async () => {

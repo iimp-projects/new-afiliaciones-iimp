@@ -12,6 +12,8 @@ export interface NavigationNode {
     title: string;
     href?: string;
     icon?: string;
+    subtitle?: string;
+    openInNewTab?: boolean;
     type?: NavigationNodeType; // <-- Si es "group", actúa como título de sección
     permission?: NavigationPermission;
     children?: NavigationNode[];
