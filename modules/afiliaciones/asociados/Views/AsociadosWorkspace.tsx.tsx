@@ -20,7 +20,7 @@ export function AsociadosWorkspace({ initialData, total, currentPage, query, mem
   const drawerData = (): DrawerData<any> | null => {
     if (!selectedUser) return null;
     return { caseId: selectedUser.id, header: AsociadosMapper.toCardData(selectedUser), availableTabs: [
-      { id: "resumen", label: "Resumen", hasNotification: false }, { id: "informacion", label: "Información", hasNotification: false }, { id: "membresia", label: "Membresía", hasNotification: false }, { id: "pagos", label: "Pagos", hasNotification: false }, { id: "cuenta", label: "Cuenta", hasNotification: false }, { id: "sie", label: "SIE", hasNotification: false }, { id: "documentos", label: "Documentos", hasNotification: false }, { id: "historial", label: "Historial", hasNotification: false },
+      { id: "resumen", label: "Resumen", hasNotification: false }, { id: "informacion", label: "Información", hasNotification: false }, { id: "membresia-pagos", label: "Membresía y Pagos", hasNotification: false }, { id: "cuenta", label: "Cuenta", hasNotification: false }, { id: "historial", label: "Historial", hasNotification: false },
     ], defaultTabId: "resumen", payload: selectedUser };
   };
 
