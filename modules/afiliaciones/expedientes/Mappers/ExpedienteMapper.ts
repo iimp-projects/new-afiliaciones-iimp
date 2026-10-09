@@ -7,6 +7,7 @@ import {
 import { S3StorageService } from "@/modules/shared/Services/S3StorageService";
 import { APPLICATION_KEY_PREFIX, LEGACY_DOCUMENT_KEY_PREFIX } from "@/modules/afiliaciones/postulacion/Services/ApplicationDocumentAccess";
 import { LIMA_TIME_ZONE } from "@/modules/shared/Utils/formatPeruDateTime";
+import { documentTypeLabel } from "@/modules/shared/Utils/documentType";
 import type {
   SmartCaseCardData,
   AtomicValidation,
@@ -330,7 +331,7 @@ export class ExpedienteMapper {
       subStatus,
       identity: {
         title: fullName,
-        subtitle: `DNI ${app.documentNumber}`,
+        subtitle: `${documentTypeLabel(app.documentType)} ${app.documentNumber}`,
         avatarUrl,
         fallbackInitials: initials,
         categoryBadge: {

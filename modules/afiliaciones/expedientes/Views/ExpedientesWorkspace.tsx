@@ -113,13 +113,11 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
     const myValidation = validations.find((v: any) => v.label.toLowerCase() === myDepartmentName.toLowerCase()) || validations[0];
     
     const hasAlreadyValidated = !isAdmin && !isComite && myValidation && ["APPROVED", "check", "REJECTED", "error"].includes(myValidation.status);
-    const dniMatch = cardData.identity.subtitle.match(/DNI\s*(\d+)/i);
-    const cleanSubtitle = dniMatch ? `DNI: ${dniMatch[1]}` : cardData.identity.subtitle;
     const realUserName = currentUser ? `${currentUser.person.firstName} ${currentUser.person.paternalLastName}` : "Administrador";
 
     const updatedHeader = {
       ...cardData,
-      identity: { ...cardData.identity, subtitle: cleanSubtitle },
+      identity: { ...cardData.identity },
       metadata: {
         ...cardData.metadata,
         isAlreadyEvaluatedByMe: hasAlreadyValidated,

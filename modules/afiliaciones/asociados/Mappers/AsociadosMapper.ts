@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- adapter boundary for the existing shared card contract. */
 import type { AtomicValidation, AtomicValidationStatus, PrimaryBadgeIcon, SmartCaseCardData } from "@/modules/shared/Components/SmartCaseCard/types";
 import { formatPeruDate } from "@/modules/shared/Utils/formatPeruDateTime";
+import { documentTypeLabel } from "@/modules/shared/Utils/documentType";
 
 export class AsociadosMapper {
   static toCardData(user: any): SmartCaseCardData {
@@ -13,6 +14,7 @@ export class AsociadosMapper {
     const fullName = `${user.person?.firstName ?? ""} ${user.person?.paternalLastName ?? ""} ${user.person?.maternalLastName ?? ""}`.trim();
     const initials = `${user.person?.firstName?.charAt(0) ?? ""}${user.person?.paternalLastName?.charAt(0) ?? ""}`.toUpperCase();
     const code = user.person?.documentNumber ?? "No registrado";
+    const documentType = user.person?.documentType;
     const primaryContact = user.person?.contacts?.find((contact: any) => contact.isPrimary) ?? user.person?.contacts?.[0];
     const academicUniversity = user.person?.academicInfos?.[0]?.university?.name;
     const company = user.person?.professionalExperiences?.[0]?.company?.name ?? user.person?.employmentInfos?.[0]?.company?.name;
@@ -23,7 +25,7 @@ export class AsociadosMapper {
       cardLine(isStudent ? "GraduationCap" : "BriefcaseBusiness", isStudent ? "Institución" : "Empresa", isStudent ? (academicUniversity ?? "No registrada") : (company ?? "No registrada"), isStudent ? (academicUniversity ? "check" : "dash") : (company ? "check" : "dash"), isStudent ? (academicUniversity ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600") : (company ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600")),
       cardLine("CreditCard", "Inscripción", paidPayment ? "Pagada" : isStudent ? "Gratuita" : "Sin pago registrado", paidPayment || isStudent ? "check" : "dash", paidPayment || isStudent ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600", paidPayment && !isStudent ? `S/ ${Number(paidPayment.totalAmount).toFixed(2)}` : undefined),
     ];
-    return { id: user.id, trackingCode: code, topBorderColorClass: isStudent ? "bg-[#4F6BD8]" : "bg-[#B58B35]", hideContactDetails: true, identity: { title: fullName, subtitle: `DNI ${code}`, email: primaryContact?.email ?? user.email ?? null, phone: primaryContact?.phoneNumber ?? null, avatarUrl: user.affiliateAvatarUrl ?? user.image ?? null, fallbackInitials: initials }, primaryBadge, subStatus: membershipSubtitle(isStudent, user.status), atomicValidations: validations, metadata: { priority: "low", lastUpdatedRelative: `Actualizado: ${formatPeruDate(user.updatedAt)}`, assignedTo: { name: "IIMP", initial: "I" } }, allowedActions: ["view"], rawId: user.id };
+    return { id: user.id, trackingCode: code, topBorderColorClass: isStudent ? "bg-[#4F6BD8]" : "bg-[#B58B35]", hideContactDetails: true, identity: { title: fullName, subtitle: `${documentTypeLabel(documentType)} ${code}`, email: primaryContact?.email ?? user.email ?? null, phone: primaryContact?.phoneNumber ?? null, avatarUrl: user.affiliateAvatarUrl ?? user.image ?? null, fallbackInitials: initials }, primaryBadge, subStatus: membershipSubtitle(isStudent, user.status), atomicValidations: validations, metadata: { priority: "low", lastUpdatedRelative: `Actualizado: ${formatPeruDate(user.updatedAt)}`, assignedTo: { name: "IIMP", initial: "I" } }, allowedActions: ["view"], rawId: user.id };
   }
 }
 

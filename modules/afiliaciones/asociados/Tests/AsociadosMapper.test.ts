@@ -41,4 +41,34 @@ describe("AsociadosMapper", () => {
     expect(card.subStatus).toBe("Membresía estudiantil");
     expect(card.topBorderColorClass).toBe("bg-[#4F6BD8]");
   });
+
+  const user = (documentType: unknown, documentNumber: string) => ({
+    id: 20, status: "ACTIVE", updatedAt: new Date(), role: { slug: "ASOCIADO_ACTIVO" },
+    person: { firstName: "Ana", paternalLastName: "Ríos", documentType, documentNumber, contacts: [], professionalExperiences: [], applications: [{ status: "COMPLETED", history: [], payments: [] }] },
+  });
+
+  it("construye el subtítulo con el tipo de documento real (DNI)", () => {
+    const card = AsociadosMapper.toCardData(user("DNI", "41000057"));
+    expect(card.identity.subtitle).toBe("DNI 41000057");
+  });
+
+  it("construye el subtítulo con el tipo de documento real (CE)", () => {
+    const card = AsociadosMapper.toCardData(user("CE", "001234567"));
+    expect(card.identity.subtitle).toBe("CE 001234567");
+  });
+
+  it("construye el subtítulo para pasaporte y conserva el número alfanumérico", () => {
+    const card = AsociadosMapper.toCardData(user("PASSPORT", "P14138404"));
+    expect(card.identity.subtitle).toBe("Pasaporte P14138404");
+  });
+
+  it("muestra Documento para tipo OTHER sin alterar el número", () => {
+    const card = AsociadosMapper.toCardData(user("OTHER", "G33052626"));
+    expect(card.identity.subtitle).toBe("Documento G33052626");
+  });
+
+  it("muestra Documento cuando el tipo no está registrado", () => {
+    const card = AsociadosMapper.toCardData(user(null, "P11219869"));
+    expect(card.identity.subtitle).toBe("Documento P11219869");
+  });
 });
