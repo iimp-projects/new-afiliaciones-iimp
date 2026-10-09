@@ -57,6 +57,8 @@ export interface SmartCaseCardData {
   id: string | number;
   trackingCode: string;
   topBorderColorClass?: string;
+  /** Hides contact lines only in compact directory cards; contact data remains available to consumers. */
+  hideContactDetails?: boolean;
   rowLayout?: "default" | "expediente";
   subStatus?: string;
   identity: {

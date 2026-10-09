@@ -38,7 +38,7 @@ export function SmartCaseCard({
   onNotifyCommittee, 
   onResendApplicant 
 }: SmartCaseCardProps) {
-  const { identity, primaryBadge, atomicValidations, metadata, topBorderColorClass, subStatus, operationalAlerts } = data;
+  const { identity, primaryBadge, atomicValidations, metadata, topBorderColorClass, subStatus, operationalAlerts, hideContactDetails } = data;
   const isExpedienteLayout = data.rowLayout === "expediente";
   const portalAccessAvailable = canManagePortalAccess(data.generalStatus);
   
@@ -69,7 +69,7 @@ export function SmartCaseCard({
       )}
 
       {/* HEADER: ESTADO Y SUB-ESTADO UNIDOS EN UNA SOLA CAJA VISUAL */}
-      <div className="flex items-start justify-between mt-1 mb-6 relative">
+      <div className={`flex items-start justify-between mt-1 relative ${hideContactDetails ? "mb-5" : "mb-6"}`}>
         {primaryBadge && (
             <div className={`flex flex-col px-3 py-1.5 rounded-xl w-max ${primaryBadge.colorClass}`}>
             <div className="flex items-center gap-1.5">
@@ -180,7 +180,7 @@ export function SmartCaseCard({
       {operationalAlerts && operationalAlerts.total > 0 && <button type="button" onClick={(event) => { event.stopPropagation(); window.location.assign(`/intranet/alertas?applicationId=${data.rawId}`); }} className={`-mt-3 mb-4 inline-flex w-max items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[10px] font-bold ${operationalAlerts.highestSeverity === "CRITICAL" ? "border-red-200 bg-red-50 text-red-700" : "border-amber-200 bg-amber-50 text-amber-800"}`} title="Ver alertas operativas"><AlertTriangle size={13} />{operationalAlerts.highestSeverity === "CRITICAL" ? `${operationalAlerts.critical} alerta${operationalAlerts.critical === 1 ? "" : "s"} crítica${operationalAlerts.critical === 1 ? "" : "s"}` : `${operationalAlerts.total} alerta${operationalAlerts.total === 1 ? "" : "s"}`}</button>}
 
       {/* IDENTIDAD DEL POSTULANTE */}
-      <div className="flex items-center gap-4 mb-6">
+      <div className={`flex items-center gap-4 ${hideContactDetails ? "mb-5" : "mb-6"}`}>
         <div className="w-[56px] h-[56px] shrink-0 rounded-full overflow-hidden border border-slate-100 relative">
           {identity.avatarUrl && !avatarFailed ? (
             <img src={identity.avatarUrl} onError={() => setAvatarFailed(true)} alt={identity.title} className="w-full h-full object-cover" />
@@ -194,14 +194,14 @@ export function SmartCaseCard({
           </h3>
           <p className="text-[11px] font-semibold text-slate-500 mt-1">{identity.categoryBadge?.label}</p>
           <p className="mt-0.5 text-[10px] font-bold text-slate-400 font-mono break-words [overflow-wrap:anywhere]">{identity.subtitle}</p>
-          {identity.email && <p className="mt-0.5 flex min-w-0 items-center gap-1 text-[10px] font-medium text-slate-500 break-words [overflow-wrap:anywhere]"><Mail size={11} className="shrink-0" /><span className="min-w-0 break-words [overflow-wrap:anywhere]">{identity.email}</span></p>}
-          {identity.phone && <p className="mt-0.5 flex items-center gap-1 text-[10px] font-medium text-slate-500"><Phone size={11} className="shrink-0" />{identity.phone}</p>}
+          {!hideContactDetails && identity.email && <p className="mt-0.5 flex min-w-0 items-center gap-1 text-[10px] font-medium text-slate-500 break-words [overflow-wrap:anywhere]"><Mail size={11} className="shrink-0" /><span className="min-w-0 break-words [overflow-wrap:anywhere]">{identity.email}</span></p>}
+          {!hideContactDetails && identity.phone && <p className="mt-0.5 flex items-center gap-1 text-[10px] font-medium text-slate-500"><Phone size={11} className="shrink-0" />{identity.phone}</p>}
         </div>
       </div>
 
       {/* VALIDACIONES ATÓMICAS */}
       {atomicValidations && (
-        <div className="flex flex-col gap-3.5 mb-5 flex-grow">
+        <div className={`flex flex-col flex-grow ${hideContactDetails ? "mb-4 gap-3" : "mb-5 gap-3.5"}`}>
           {atomicValidations.map((val, idx) => (
             <div key={idx} className={`w-full ${isExpedienteLayout ? "grid grid-cols-[84px_max-content_minmax(0,1fr)] items-center gap-x-1" : "grid grid-cols-[90px_minmax(0,1fr)_auto] items-center gap-x-1"} ${idx === 3 ? "mt-2" : ""}`}>
               
@@ -256,7 +256,7 @@ export function SmartCaseCard({
       )}
 
       {/* FOOTER */}
-      <div className="flex items-center gap-1.5 pt-4 border-t border-slate-100 text-[11px] font-medium text-slate-500 mt-auto">
+      <div className={`flex items-center gap-1.5 border-t border-slate-100 text-[11px] font-medium text-slate-500 mt-auto ${hideContactDetails ? "pt-3" : "pt-4"}`}>
         <Clock size={14} className="text-slate-400" /> {metadata.lastUpdatedRelative}
       </div>
 

@@ -7,6 +7,7 @@ describe("AsociadosMapper", () => {
     expect(card.atomicValidations?.map((item) => item.label)).toEqual(["Código", "Miembro desde", "Empresa", "Inscripción"]);
     expect(card.identity.email).toBe("andrea@example.com");
     expect(card.identity.phone).toBe("999999999");
+    expect(card.hideContactDetails).toBe(true);
     expect(card.atomicValidations?.at(-1)?.assignee?.name).toBe("S/ 300.00");
   });
 
@@ -17,6 +18,7 @@ describe("AsociadosMapper", () => {
     expect(card.atomicValidations?.[2].statusLabel).toBe(institution);
     expect(card.atomicValidations?.at(-1)?.statusLabel).toBe("Gratuita");
     expect(card.atomicValidations?.at(-1)?.assignee).toBeUndefined();
+    expect(card.hideContactDetails).toBe(true);
   });
 
   it("asociado activo usa etiqueta dorada sin borde, subtítulo de membresía activa y línea superior dorada", () => {
