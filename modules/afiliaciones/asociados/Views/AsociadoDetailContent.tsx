@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- the shared InspectionDrawer currently exposes its payload as any. */
 /* eslint-disable @typescript-eslint/no-unused-vars -- legacy payment tab retained for compatibility. */
 
-import { BriefcaseBusiness, CalendarDays, CreditCard, FileText, GraduationCap, Info, Landmark, ShieldCheck, UserCircle2, WalletCards } from "lucide-react";
+import { Activity, BriefcaseBusiness, CalendarDays, CircleAlert, CreditCard, FileText, GraduationCap, Info, Landmark, ShieldCheck, UserCircle2 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SandboxPaymentResetButton } from "@/modules/afiliaciones/payments/Components/SandboxPaymentResetButton";
@@ -12,11 +12,49 @@ import { MembershipSieQuotaSummary } from "../Components/MembershipSieQuotaSumma
 import type { AssociateSieProfileResponse } from "../Services/AssociateSieProfileService";
 import { formatCalendarDate, formatPeruDate, formatPeruDateTime } from "@/modules/shared/Utils/formatPeruDateTime";
 import { documentTypeLabel } from "@/modules/shared/Utils/documentType";
+import { AsociadosMapper } from "../Mappers/AsociadosMapper";
 
 const formatDate = (value: string | Date | null | undefined, withTime = false) => value ? (withTime ? formatPeruDateTime(value) : formatPeruDate(value)) : "No registrado";
 const formatBirthDate = (value: string | Date | null | undefined) => value ? formatCalendarDate(value) : "No registrado";
 const money = (value: unknown) => new Intl.NumberFormat("es-PE", { style: "currency", currency: "PEN" }).format(Number(value));
 const label = (value: string) => value.replaceAll("_", " ").toLowerCase().replace(/(^|\s)\S/g, (character) => character.toUpperCase());
+
+type AssociateSummaryEvent = { id: string; date: string | Date; title: string; description: string | null };
+
+export function buildAssociateExecutiveSummary(user: any, application: any, completion: any, payments: any[]) {
+  const category = user.role?.name ?? (application?.affiliateType === "STUDENT" ? "Asociado Estudiante" : "Asociado Activo");
+  const membershipStatus = user.status === "ACTIVE" ? "HÁBIL" : label(user.status ?? "INACTIVO");
+  const verifiedMemberSince = completion?.createdAt ?? null;
+  const paidPayment = payments.find((payment: any) => payment.status === "PAID");
+  const latestPayment = payments[0];
+  const registration = paidPayment
+    ? { label: "Inscripción pagada", detail: formatDate(paidPayment.gatewayTransactionDate ?? paidPayment.paymentDate ?? paidPayment.createdAt), tone: "success" as const }
+    : latestPayment?.status === "PENDING" || latestPayment?.status === "PROCESSING"
+      ? { label: "Inscripción en confirmación", detail: "Pago local pendiente", tone: "warning" as const }
+      : latestPayment?.status === "FAILED"
+        ? { label: "Inscripción rechazada", detail: "Último intento local", tone: "danger" as const }
+        : { label: "Sin registro local", detail: "No permite inferir cuotas", tone: "neutral" as const };
+  const recentEvents: AssociateSummaryEvent[] = (application?.history ?? [])
+    .filter((event: any) => event?.createdAt)
+    .map((event: any) => ({
+      id: `history-${event.id}`,
+      date: event.createdAt,
+      title: event.newStatus === "COMPLETED" ? "Afiliación completada" : `Estado actualizado a ${label(event.newStatus ?? "DESCONOCIDO")}`,
+      description: event.changeReason ?? null,
+    }))
+    .sort((left: AssociateSummaryEvent, right: AssociateSummaryEvent) => new Date(right.date).getTime() - new Date(left.date).getTime())
+    .slice(0, 3);
+
+  return {
+    category,
+    membershipStatus,
+    verifiedMemberSince,
+    membershipAge: verifiedMemberSince ? elapsed(verifiedMemberSince) : null,
+    registration,
+    lastUpdated: AsociadosMapper.toCardData(user).metadata.lastUpdatedRelative,
+    recentEvents,
+  };
+}
 
 function useAssociateSieProfile(applicationId: number, shouldLoad: boolean, canReadMemberships: boolean) {
   const [state, setState] = useState<AssociateSieProfileViewState>({ kind: canReadMemberships ? "idle" : "forbidden" });
@@ -77,7 +115,7 @@ export function AsociadoDetailContent({ tab, user, canResetSandboxPayments = fal
   const category = user.role?.name ?? (application?.affiliateType === "STUDENT" ? "Asociado Estudiante" : "Asociado Activo");
   const code = person.documentNumber ?? "No registrado";
 
-  if (tab === "resumen") return <div className="space-y-5"><InfoNotice text="Vista general del estado institucional y los datos principales del asociado."/><Section icon={<ShieldCheck/>} title="Estado de membresía"><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"><Metric label="Estado" value={user.status === "ACTIVE" ? "HÁBIL" : label(user.status ?? "INACTIVO")} success={user.status === "ACTIVE"}/><Metric label="Categoría" value={category}/><Metric label="Código de asociado" value={code}/><Metric label="Miembro desde" value={formatDate(memberSince)}/></div></Section><Section icon={<UserCircle2/>} title="Información principal"><div className="grid gap-5 sm:grid-cols-2"><Field label="Correo" value={user.email}/><Field label="Teléfono" value={contact?.phoneNumber}/><Field label="Empresa" value={employment?.company?.name}/><Field label="Cargo" value={employment?.position?.name}/><Field label="Ubicación" value={address ? [address.district?.province?.department?.country?.name, address.district?.province?.department?.name, address.district?.province?.name, address.district?.name].filter(Boolean).join(", ") : null}/></div></Section><Section icon={<WalletCards/>} title="Estado de pagos">{paidPayments[0] ? <div className="grid gap-4 sm:grid-cols-3"><Metric label="Inscripción" value="Pagada" success/><Metric label="Monto" value={money(paidPayments[0].totalAmount)}/><Metric label="Fecha" value={formatDate(paidPayments[0].paymentDate ?? paidPayments[0].createdAt)}/></div> : <Empty text="No hay pagos de inscripción registrados para este asociado."/>}</Section></div>;
+  if (tab === "resumen") return <AssociateExecutiveSummary user={user} application={application} completion={completion} payments={payments}/>;
   if (tab === "informacion") return <div className="space-y-5"><InfoNotice text="Consulta los datos personales, académicos y laborales registrados durante su afiliación."/><Section icon={<UserCircle2/>} title="Datos personales"><div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"><Field label="Nombres" value={person.firstName}/><Field label="Apellido paterno" value={person.paternalLastName}/><Field label="Apellido materno" value={person.maternalLastName}/><Field label="Documento" value={person.documentType ? `${documentTypeLabel(person.documentType)} ${person.documentNumber}` : person.documentNumber}/><Field label="Fecha de nacimiento" value={formatBirthDate(person.birthDate)}/><Field label="Nacionalidad" value={person.nationality?.name}/><Field label="Correo principal" value={contact?.email ?? user.email}/><Field label="Teléfono" value={contact?.phoneNumber}/><Field label="Dirección" value={address?.street} full/></div></Section><Section icon={<GraduationCap/>} title="Formación académica"><div className="grid gap-5 sm:grid-cols-2"><Field label="Universidad" value={academic?.university?.name}/><Field label="Carrera o especialidad" value={academic?.specialty?.name}/><Field label="Grado" value={academic?.degree?.name ?? academic?.degreeTitle}/><Field label="Ciclo" value={academic?.termOrSemester}/><Field label="Año de egreso" value={academic?.graduationYear}/><Field label="Colegiatura" value={academic?.professionalAssociation}/><Field label="Número de colegiatura" value={academic?.licenseNumber}/></div></Section><Section icon={<BriefcaseBusiness/>} title="Información laboral"><div className="grid gap-5 sm:grid-cols-2"><Field label="Empresa actual" value={employment?.company?.name}/><Field label="Cargo" value={employment?.position?.name}/><Field label="Área" value={employment?.area}/><Field label="Correo corporativo" value={employment?.workEmail}/><Field label="Teléfono de trabajo" value={employment?.workPhone}/><Field label="Dirección laboral" value={employment?.workingAddress}/></div></Section></div>;
   if (tab === "membresia") return <div className="space-y-5"><Section icon={<ShieldCheck/>} title="Membresía"><div className="grid gap-5 sm:grid-cols-2"><Field label="Categoría" value={category}/><Field label="Estado" value={user.status === "ACTIVE" ? "HÁBIL" : label(user.status ?? "INACTIVO")}/><Field label="Código" value={code}/><Field label="Fecha de afiliación" value={formatDate(memberSince)}/><Field label="Antigüedad" value={memberSince ? elapsed(memberSince) : null}/><Field label="Proceso de afiliación" value={application?.applicationCode}/></div></Section><MembershipSieQuotaSummary state={sieState} canReadMemberships={canReadMemberships} onRetry={refreshSie} onViewDetails={() => onSelectTab?.("sie")}/><p className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm leading-6 text-slate-500">El sistema actual no registra cambios de categoría ni estados institucionales como suspensión, baja o retiro. Esta ficha muestra únicamente el estado de cuenta realmente disponible.</p></div>;
   if (tab === "pagos") return <PaymentsTabDetailed payments={payments} canViewTechnical={canResetSandboxPayments} canResetSandboxPayments={canResetSandboxPayments}/>;
@@ -86,6 +124,49 @@ export function AsociadoDetailContent({ tab, user, canResetSandboxPayments = fal
   if (tab === "documentos") return <DocumentsTab documents={documents}/>;
   if (tab === "historial") return <HistoryTab user={user} applications={applications} payments={paidPayments}/>;
   return <Empty text="No hay información disponible."/>;
+}
+
+function AssociateExecutiveSummary({ user, application, completion, payments }: { user: any; application: any; completion: any; payments: any[] }) {
+  const summary = buildAssociateExecutiveSummary(user, application, completion, payments);
+  const attentionItems = [
+    ...(user.status === "ACTIVE" ? [] : [{ icon: <CircleAlert size={16}/>, text: `Membresía ${summary.membershipStatus.toLowerCase()}.`, tone: "text-amber-700" }]),
+    ...(summary.registration.tone === "warning" || summary.registration.tone === "danger" ? [{ icon: <CreditCard size={16}/>, text: summary.registration.label, tone: summary.registration.tone === "danger" ? "text-red-700" : "text-amber-700" }] : []),
+  ];
+  const registrationTone = summary.registration.tone === "success" ? "text-emerald-700" : summary.registration.tone === "warning" ? "text-amber-700" : summary.registration.tone === "danger" ? "text-red-700" : "text-slate-700";
+
+  return <div className="space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
+    <section aria-labelledby="associate-summary-indicators">
+      <h2 id="associate-summary-indicators" className="mb-3 flex items-center gap-2 text-[13px] font-bold text-slate-800"><Activity size={16} className="text-[#C5A059]"/>Indicadores principales</h2>
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <ExecutiveMetric icon={<ShieldCheck size={17}/>} label="Membresía" value={summary.membershipStatus} detail={summary.category} valueClass={user.status === "ACTIVE" ? "text-emerald-700" : "text-slate-800"}/>
+        <ExecutiveMetric icon={<CalendarDays size={17}/>} label="Antigüedad" value={summary.membershipAge ?? "No registrada"} detail={summary.verifiedMemberSince ? `Incorporación: ${formatDate(summary.verifiedMemberSince)}` : "Sin fecha verificable"}/>
+        <ExecutiveMetric icon={<CreditCard size={17}/>} label="Inscripción" value={summary.registration.label} detail={summary.registration.detail} valueClass={registrationTone}/>
+        <ExecutiveMetric icon={<Activity size={17}/>} label="Última actividad" value={summary.lastUpdated.replace("Actualizado: ", "")} detail="Actualización del registro"/>
+      </div>
+    </section>
+
+    <section aria-labelledby="associate-summary-current">
+      <h2 id="associate-summary-current" className="mb-3 text-[13px] font-bold text-slate-800">Situación actual</h2>
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+        <div className="flex items-start gap-3"><ShieldCheck size={19} className={user.status === "ACTIVE" ? "mt-0.5 shrink-0 text-emerald-600" : "mt-0.5 shrink-0 text-amber-600"}/><div><p className="text-sm font-black text-slate-800">{summary.membershipStatus === "HÁBIL" ? "Membresía habilitada" : `Membresía ${summary.membershipStatus.toLowerCase()}`}</p><p className="mt-1 text-xs leading-5 text-slate-500">Categoría registrada: {summary.category}.</p></div></div>
+        <div className="mt-4 border-t border-slate-100 pt-4">
+          {attentionItems.length > 0 ? <ul className="space-y-2" aria-label="Pendientes confirmados">{attentionItems.map((item) => <li key={item.text} className={`flex items-center gap-2 text-sm font-semibold ${item.tone}`}>{item.icon}{item.text}</li>)}</ul> : <p className="text-sm text-slate-500">No hay pendientes confirmados en los datos locales disponibles.</p>}
+          <p className="mt-3 text-xs leading-5 text-slate-400">La inscripción local no determina la situación de cuotas u otras obligaciones.</p>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="associate-summary-activity">
+      <h2 id="associate-summary-activity" className="mb-3 text-[13px] font-bold text-slate-800">Actividad reciente</h2>
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+        {summary.recentEvents.length === 0 ? <div className="flex items-center gap-3 py-2 text-sm text-slate-500"><CalendarDays size={18} className="text-slate-400"/>No hay movimientos registrados en el historial disponible.</div> : <ol className="space-y-4 border-l-2 border-slate-100 pl-5">{summary.recentEvents.map((event) => <li key={event.id} className="relative"><span className="absolute -left-[29px] top-1.5 h-3 w-3 rounded-full border-2 border-white bg-[#C5A059]"/><p className="text-xs font-semibold text-slate-400">{formatDate(event.date, true)}</p><h3 className="mt-1 text-sm font-black text-slate-800">{event.title}</h3>{event.description && <p className="mt-1 text-sm leading-6 text-slate-500">{event.description}</p>}</li>)}</ol>}
+      </div>
+    </section>
+  </div>;
+}
+
+function ExecutiveMetric({ icon, label: metricLabel, value, detail, valueClass = "text-slate-800" }: { icon: ReactNode; label: string; value: string; detail: string; valueClass?: string }) {
+  return <article className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div className="flex items-center gap-2 text-[#C5A059]"><span>{icon}</span><p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{metricLabel}</p></div><p className={`mt-3 break-words text-sm font-black leading-5 ${valueClass}`}>{value}</p><p className="mt-1 text-xs leading-5 text-slate-500">{detail}</p></article>;
 }
 
 function PaymentsTab({ payments, canResetSandboxPayments }: { payments: any[]; canResetSandboxPayments: boolean }) { const total = payments.filter((payment) => payment.status === "PAID").reduce((sum, payment) => sum + Number(payment.totalAmount), 0); return <div className="space-y-5"><InfoNotice text="Revisa los pagos registrados y los datos de facturación relacionados."/><Section icon={<CreditCard/>} title="Pagos"><div className="grid gap-4 sm:grid-cols-2"><Metric label="Total pagado" value={money(total)}/><Metric label="Último pago" value={payments[0] ? formatDate(payments[0].paymentDate ?? payments[0].createdAt) : "No registrado"}/></div></Section>{payments.length === 0 ? <Empty text="No hay pagos registrados."/> : <Section icon={<Landmark/>} title="Historial de pagos"><div className="overflow-x-auto"><table className="min-w-full text-left text-sm"><thead className="border-b border-slate-100 text-[11px] uppercase tracking-wide text-slate-400"><tr><th className="pb-3 pr-4">Concepto</th><th className="pb-3 pr-4">Fecha</th><th className="pb-3 pr-4">Monto</th><th className="pb-3 pr-4">Método</th><th className="pb-3">Estado</th><th className="pb-3">Acciones</th></tr></thead><tbody className="divide-y divide-slate-100">{payments.map((payment) => <tr key={payment.id}><td className="py-3 pr-4 font-bold text-slate-700">Inscripción IIMP</td><td className="py-3 pr-4 text-slate-500">{formatDate(payment.paymentDate ?? payment.createdAt, true)}</td><td className="py-3 pr-4 font-semibold text-slate-700">{money(payment.totalAmount)}</td><td className="py-3 pr-4 text-slate-500">{label(payment.gateway)}</td><td className="py-3"><Status value={payment.status}/></td><td className="py-3">{canResetSandboxPayments && payment.gateway === "NIUBIZ" && payment.status !== "PROCESSING" && !payment.billing?.invoice ? <SandboxPaymentResetButton paymentId={payment.id}/> : null}</td></tr>)}</tbody></table></div></Section>}</div>; }
