@@ -5,7 +5,9 @@ import type { AssociateSieProfileResponse } from "../Services/AssociateSieProfil
 import { formatCalendarDate, formatPeruDateTime } from "@/modules/shared/Utils/formatPeruDateTime";
 
 export type AssociateSieProfileViewState =
-  | { kind: "idle" | "loading" }
+  | { kind: "idle" }
+  | { kind: "loading" }
+  | { kind: "forbidden" }
   | { kind: "loaded"; data: AssociateSieProfileResponse }
   | { kind: "error"; message: string };
 
@@ -16,6 +18,7 @@ const receipt = (serie: string, number: string) => serie && number ? `${serie} -
 export function sortSieQuotas(quotas: Extract<AssociateSieProfileResponse, { registered: true }>["quotas"]) { return [...quotas].sort((left, right) => (right.fechaFin || "").localeCompare(left.fechaFin || "") || right.anno - left.anno); }
 
 export function AssociateSieProfileSection({ state, onRefresh }: { state: AssociateSieProfileViewState; onRefresh: () => void }) {
+  if (state.kind === "forbidden") return <div className="space-y-5"><Notice text="La consulta se realiza directamente contra SIE y no modifica la ficha del asociado."/><section className="rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm"><AlertCircle className="mx-auto text-slate-300" size={32}/><h2 className="mt-3 font-black text-slate-800">Información SIE</h2><p className="mt-2 text-sm text-slate-500">No tienes permiso para consultar información de membresías en SIE.</p></section></div>;
   if (state.kind === "error") return <div className="space-y-5"><Notice text="La consulta se realiza directamente contra SIE y no modifica la ficha del asociado."/><section className="rounded-2xl border border-amber-200 bg-amber-50 p-5"><div className="flex gap-3"><AlertCircle className="mt-0.5 shrink-0 text-amber-600" size={20}/><div><h2 className="font-black text-amber-900">No pudimos consultar SIE</h2><p className="mt-1 text-sm leading-6 text-amber-800">{state.message}</p><RefreshButton onClick={onRefresh} label="Reintentar"/></div></div></section></div>;
   if (state.kind !== "loaded") return <div className="space-y-5"><Notice text="La consulta se realiza directamente contra SIE y no modifica la ficha del asociado."/><LoadingCard/></div>;
 

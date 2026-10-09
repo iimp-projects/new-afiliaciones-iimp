@@ -25,7 +25,7 @@ interface InspectionDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   data: DrawerData<any> | null;
-  renderContent: (activeTab: string, payload: any) => React.ReactNode;
+  renderContent: (activeTab: string, payload: any, selectTab: (tab: string) => void) => React.ReactNode;
   onReevaluate?: () => void;
   evaluationActions?: React.ReactNode;
 }
@@ -412,7 +412,7 @@ function DrawerInner({
             </div>
 
             <div className="flex-1 overflow-y-auto overflow-x-hidden p-5 sm:p-8 scrollbar-thin scrollbar-thumb-slate-200">
-              {renderContent(activeTab, payload)}
+              {renderContent(activeTab, payload, setActiveTab)}
             </div>
 
             <footer className="shrink-0 px-5 sm:px-8 py-4 bg-white flex items-center justify-between text-[11px] font-bold text-slate-400 border-t border-slate-100">

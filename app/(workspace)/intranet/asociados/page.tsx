@@ -14,6 +14,7 @@ export default async function AsociadosPage({
 }) {
   await contextService.requirePermission("read", "associates");
   const currentUser = await contextService.requireAuth();
+  const canReadMemberships = await contextService.hasPermission("read", "memberships");
 
   const resolvedParams = await searchParams;
   const page = Number(resolvedParams.page) || 1;
@@ -39,6 +40,7 @@ export default async function AsociadosPage({
         membershipType={membershipType}
         sort={sort}
         canResetSandboxPayments={paymentConfig.environment === "TEST" && currentUser.role.slug === "SUPER_ADMIN"}
+        canReadMemberships={canReadMemberships}
       />
     </div>
   );
