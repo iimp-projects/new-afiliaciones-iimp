@@ -157,15 +157,16 @@ function parseAssociateState(value: unknown): SieAssociateState {
 function parseStateQuota(value: unknown): SieAssociateStateQuota {
   if (!isRecord(value)) throw invalidStateResponse("La API de asociados devolvió una cuota inválida.");
   const concepto = oneOf(value.concepto, ["INSCRIPCION", "CUOTA"] as const);
-  const numero = value.numero === null ? null : finiteInteger(value.numero);
-  if ((concepto === "INSCRIPCION" && numero !== null) || (concepto === "CUOTA" && numero === null)) throw invalidStateResponse("La API de asociados devolvió un número de cuota inválido.");
+  const numero = concepto === "INSCRIPCION"
+    ? parseInscriptionNumber(value.numero)
+    : finiteInteger(value.numero);
   const monto = finiteNumber(value.monto);
   if (monto < 0) throw invalidStateResponse("La API de asociados devolvió un monto inválido.");
   const anno = finiteInteger(value.anno);
   const estadoContable = oneOf(value.estadoContable, ["Facturado", "Pendiente"] as const);
   const fechaPago = dateField(value.fechaPago, estadoContable);
-  const fechaInicio = dateField(value.fechaInicio, estadoContable);
-  const fechaFin = dateField(value.fechaFin, estadoContable);
+  const fechaInicio = dateField(value.fechaInicio, estadoContable, concepto === "INSCRIPCION");
+  const fechaFin = dateField(value.fechaFin, estadoContable, concepto === "INSCRIPCION");
   return {
     concepto,
     numero,
@@ -182,10 +183,15 @@ function parseStateQuota(value: unknown): SieAssociateStateQuota {
   };
 }
 
-function dateField(value: unknown, estadoContable: "Facturado" | "Pendiente"): string {
+function parseInscriptionNumber(value: unknown): null {
+  if (value === undefined || value === null) return null;
+  throw invalidStateResponse("La API de asociados devolvió un número de cuota inválido.");
+}
+
+function dateField(value: unknown, estadoContable: "Facturado" | "Pendiente", allowEmptyInvoiced = false): string {
   if (typeof value !== "string") throw invalidStateResponse("La API de asociados devolvió una fecha inválida.");
   if (!value) {
-    if (estadoContable === "Pendiente") return value;
+    if (estadoContable === "Pendiente" || allowEmptyInvoiced) return value;
     throw invalidStateResponse("La API de asociados devolvió una fecha facturada vacía.");
   }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) throw invalidStateResponse("La API de asociados devolvió una fecha inválida.");

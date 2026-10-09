@@ -9,6 +9,15 @@ const payload: AssociateRequestPayloadSnapshot = { TipoDocumento: "1", NumDocume
 const response = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
 const stateQuota = (overrides: Record<string, unknown> = {}) => ({ concepto: "CUOTA", numero: 1, monto: 150, moneda: "S/", anno: 2026, tipo: "Activo", estadoContable: "Facturado", fechaPago: "2026-01-05", fechaInicio: "2026-01-05", fechaFin: "2027-01-04", docGSer: "F009", docGNro: "3298", ...overrides });
 const associateState = (overrides: Record<string, unknown> = {}) => ({ status: true, cuotas: [stateQuota()], ...overrides });
+const postmanState = {
+  status: true,
+  cuotas: [
+    { concepto: "INSCRIPCION", monto: 150, moneda: "S/", anno: 2023, tipo: "Activo", estadoContable: "Facturado", fechaPago: "2023-11-27", fechaInicio: "", fechaFin: "", docGSer: "F001", docGNro: "6805" },
+    { concepto: "CUOTA", numero: 1, monto: 150, moneda: "S/", anno: 2023, tipo: "Activo", estadoContable: "Facturado", fechaPago: "2023-11-27", fechaInicio: "2023-11-27", fechaFin: "2024-11-26", docGSer: "F001", docGNro: "6805" },
+    { concepto: "CUOTA", numero: 2, monto: 150, moneda: "S/", anno: 2024, tipo: "Activo", estadoContable: "Facturado", fechaPago: "2024-12-19", fechaInicio: "2024-11-27", fechaFin: "2025-11-26", docGSer: "F001", docGNro: "8252" },
+    { concepto: "CUOTA", numero: 3, monto: 150, moneda: "S/", anno: 2025, tipo: "Activo", estadoContable: "Facturado", fechaPago: "2025-09-13", fechaInicio: "2025-11-27", fechaFin: "2026-11-26", docGSer: "F001", docGNro: "8954" },
+  ],
+};
 
 describe("AssociatesApiClient", () => {
   it("fails closed only when a real client is constructed without private configuration", () => {
@@ -110,6 +119,8 @@ describe("AssociatesApiClient", () => {
     ["fecha inválida", () => response(associateState({ cuotas: [stateQuota({ fechaFin: "2026-02-30" })] })), "fecha inválida"],
     ["fecha nula", () => response(associateState({ cuotas: [stateQuota({ fechaFin: null })] })), "fecha inválida"],
     ["campo obligatorio faltante", () => { const { docGSer: _docGSer, ...value } = stateQuota(); return response(associateState({ cuotas: [value] })); }, "texto inválido"],
+    ["CUOTA sin número", () => { const { numero: _numero, ...value } = stateQuota(); return response(associateState({ cuotas: [value] })); }, "entero inválido"],
+    ["CUOTA facturada sin fecha de cobertura", () => response(associateState({ cuotas: [stateQuota({ fechaInicio: "" })] })), "fecha facturada vacía"],
   ])("rechaza respuesta externa con %s", async (_label, makeResponse, message) => {
     const fetcher = vi.fn().mockResolvedValueOnce(response({ token: "a", expiraEnSegundos: 1800 })).mockResolvedValueOnce(makeResponse());
     await expect(new AssociatesApiClient(config, fetcher as typeof fetch).getAssociateState({ tipoDocumento: "1", numDocumento: "1" })).rejects.toMatchObject({ operation: "GET_ASSOCIATE_STATE", message: expect.stringContaining(message) });
@@ -125,5 +136,25 @@ describe("AssociatesApiClient", () => {
 
     const empty = vi.fn().mockResolvedValueOnce(response({ token: "b", expiraEnSegundos: 1800 })).mockResolvedValueOnce(response({ status: true, cuotas: [] }));
     await expect(new AssociatesApiClient(config, empty as typeof fetch).getAssociateState({ tipoDocumento: "1", numDocumento: "2" })).resolves.toEqual({ status: true, cuotas: [] });
+  });
+
+  it("acepta y preserva la respuesta de Postman con inscripción sin número y cuatro registros históricos", async () => {
+    const fetcher = vi.fn()
+      .mockResolvedValueOnce(response({ token: "a", expiraEnSegundos: 1800 }))
+      .mockResolvedValueOnce(response(postmanState));
+
+    await expect(new AssociatesApiClient(config, fetcher as typeof fetch).getAssociateState({ tipoDocumento: "1", numDocumento: "test-document" })).resolves.toEqual({
+      status: true,
+      cuotas: [{ ...postmanState.cuotas[0], numero: null }, ...postmanState.cuotas.slice(1)],
+    });
+  });
+
+  it("acepta INSCRIPCION con numero null y fechas de cobertura vacías", async () => {
+    const cuota = { ...postmanState.cuotas[0], numero: null };
+    const fetcher = vi.fn()
+      .mockResolvedValueOnce(response({ token: "a", expiraEnSegundos: 1800 }))
+      .mockResolvedValueOnce(response({ status: true, cuotas: [cuota] }));
+
+    await expect(new AssociatesApiClient(config, fetcher as typeof fetch).getAssociateState({ tipoDocumento: "1", numDocumento: "test-document" })).resolves.toEqual({ status: true, cuotas: [cuota] });
   });
 });
