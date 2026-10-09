@@ -57,11 +57,29 @@ describe("NavigationService - Application Service", () => {
         expect(securityNode?.children).toBeUndefined();
     });
 
-    it("retorna solo Mi perfil para un asociado en modo solo perfil", async () => {
+    it("retorna Mi perfil y OneMine para un asociado en modo solo perfil", async () => {
         const service = new NavigationService(new MockAuthProvider(new Set(["read:memberships"]), true));
         const tree = await service.getAuthorizedTree();
-        expect(tree.map((node) => node.id)).toEqual(["group-affiliate-account"]);
+        expect(tree.map((node) => node.id)).toEqual(["group-affiliate-account", "group-affiliate-library"]);
         expect(tree[0].children?.map((node) => node.id)).toEqual(["nav-affiliate-profile"]);
+        expect(tree[1].children?.map((node) => node.id)).toEqual(["nav-affiliate-onemine"]);
+    });
+
+    it("no filtra el nodo OneMine de la navegación de un ASOCIADO_ACTIVO", async () => {
+        const service = new NavigationService(new MockAuthProvider(new Set(), true));
+        const tree = await service.getAuthorizedTree();
+
+        const library = tree.find((node) => node.id === "group-affiliate-library");
+        expect(library).toBeDefined();
+        expect(library?.title).toBe("Biblioteca virtual");
+
+        const onemine = library?.children?.find((node) => node.id === "nav-affiliate-onemine");
+        expect(onemine).toMatchObject({
+            title: "OneMine",
+            href: "/api/integrations/onemine",
+            icon: "BookOpen",
+            openInNewTab: true,
+        });
     });
 
     it("muestra Mi perfil a cualquier usuario administrativo sin exigir un permiso adicional", async () => {

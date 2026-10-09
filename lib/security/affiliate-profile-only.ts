@@ -18,7 +18,7 @@ export const AFFILIATE_PROFILE_ONLY_ROUTE = "/intranet/mi-cuenta/perfil";
 const AFFILIATE_DEFAULT_ROUTE = "/intranet/mi-cuenta";
 
 /** Únicos ítems de navegación del asociado permitidos en modo solo perfil. */
-const AFFILIATE_PROFILE_ONLY_ALLOWED_ITEM_IDS = new Set<string>(["nav-affiliate-profile"]);
+const AFFILIATE_PROFILE_ONLY_ALLOWED_ITEM_IDS = new Set<string>(["nav-affiliate-profile", "nav-affiliate-onemine"]);
 
 export function isAffiliateProfileOnlyItemAllowed(id: string): boolean {
   return AFFILIATE_PROFILE_ONLY_ALLOWED_ITEM_IDS.has(id);

@@ -167,13 +167,22 @@ export const securityModuleDefinition: ModuleDefinition = {
             order: 15,
             children: [
                 { id: "nav-affiliate-profile", title: "Mi perfil", href: "/intranet/mi-cuenta/perfil", icon: "UserRound", order: 1 },
-                { id: "nav-affiliate-onemine", title: "Biblioteca virtual", subtitle: "OneMine", href: "/api/integrations/onemine", icon: "BookOpen", openInNewTab: true, order: 2 },
                 { id: "nav-affiliate-membership", title: "Mi membresía", href: "/intranet/mi-cuenta/membresia", icon: "CreditCard", order: 3 },
                 { id: "nav-affiliate-payments", title: "Pagos y comprobantes", href: "/intranet/mi-cuenta/pagos", icon: "FileText", order: 4 },
                 { id: "nav-affiliate-benefits", title: "Beneficios", href: "/intranet/mi-cuenta/beneficios", icon: "Gift", order: 5 },
                 { id: "nav-affiliate-events", title: "Eventos", href: "/intranet/mi-cuenta/eventos", icon: "CalendarDays", order: 6 },
                 { id: "nav-affiliate-documents", title: "Documentos", href: "/intranet/mi-cuenta/documentos", icon: "FileText", order: 7 },
                 { id: "nav-affiliate-support", title: "Soporte", href: "/intranet/mi-cuenta/soporte", icon: "BadgeHelp", order: 8 },
+            ],
+        },
+        {
+            id: "group-affiliate-library",
+            title: "Biblioteca virtual",
+            type: "group",
+            audience: "affiliate",
+            order: 16,
+            children: [
+                { id: "nav-affiliate-onemine", title: "OneMine", href: "/api/integrations/onemine", icon: "BookOpen", openInNewTab: true, order: 1 },
             ],
         }
     ]

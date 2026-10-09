@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, ChevronRight, Dot } from "lucide-react";
+import { ChevronDown, ChevronRight, Dot, ExternalLink } from "lucide-react";
 import type { NavigationNode } from "@/modules/navigation/Models/NavigationNode";
 import { DynamicIcon } from "../../Utils/DynamicIcon";
 
@@ -136,6 +136,10 @@ export function SidebarItem({ item, isNested = false, isCollapsed = false, onMob
 
             {!isCollapsed && isActive && !isNested && (
                 <ChevronRight size={16} strokeWidth={3} className="text-white/80 animate-in fade-in slide-in-from-left-2" />
+            )}
+
+            {!isCollapsed && item.openInNewTab && (
+                <ExternalLink size={14} strokeWidth={2} className="text-slate-400 group-hover:text-[#a3722a] transition-colors" />
             )}
 
             {!isCollapsed && item.badge && (

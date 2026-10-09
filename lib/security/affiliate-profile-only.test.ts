@@ -13,8 +13,9 @@ describe("affiliate-profile-only (R70)", () => {
     expect(AFFILIATE_PROFILE_ONLY_ROUTE).toBe("/intranet/mi-cuenta/perfil");
   });
 
-  it("solo permite el ítem Mi perfil del menú del asociado", () => {
+  it("solo permite Mi perfil y OneMine del menú del asociado", () => {
     expect(isAffiliateProfileOnlyItemAllowed("nav-affiliate-profile")).toBe(true);
+    expect(isAffiliateProfileOnlyItemAllowed("nav-affiliate-onemine")).toBe(true);
     expect(isAffiliateProfileOnlyItemAllowed("nav-affiliate-home")).toBe(false);
     expect(isAffiliateProfileOnlyItemAllowed("nav-affiliate-membership")).toBe(false);
     expect(isAffiliateProfileOnlyItemAllowed("nav-affiliate-payments")).toBe(false);
