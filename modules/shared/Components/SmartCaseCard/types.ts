@@ -6,6 +6,11 @@ export function canManagePortalAccess(generalStatus?: string): boolean {
   return generalStatus === COMPLETED_APPLICATION_STATUS;
 }
 
+/** Evaluation context only applies while the affiliation case is still open. */
+export function shouldShowEvaluationContext(generalStatus?: string): boolean {
+  return generalStatus !== COMPLETED_APPLICATION_STATUS;
+}
+
 // Se integran los nuevos estados del backend conservando la compatibilidad gráfica
 export type AtomicValidationStatus =
   | "PENDING"
@@ -84,6 +89,8 @@ export interface SmartCaseCardData {
    priority: CasePriority;
     lastUpdatedRelative: string;
     isAlreadyEvaluatedByMe?: boolean; 
+    /** Explicitly controls evaluation context in the detail drawer for this card. */
+    showEvaluationContext?: boolean;
     reviewerArea?: string;       
     assignedTo?: {
       name: string;

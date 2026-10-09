@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- adapter boundary for the existing shared card contract. */
-import type { AtomicValidation, AtomicValidationStatus, PrimaryBadgeIcon, SmartCaseCardData } from "@/modules/shared/Components/SmartCaseCard/types";
+import { shouldShowEvaluationContext, type AtomicValidation, type AtomicValidationStatus, type PrimaryBadgeIcon, type SmartCaseCardData } from "@/modules/shared/Components/SmartCaseCard/types";
 import { formatPeruDate } from "@/modules/shared/Utils/formatPeruDateTime";
 import { documentTypeLabel } from "@/modules/shared/Utils/documentType";
 
@@ -25,7 +25,10 @@ export class AsociadosMapper {
       cardLine(isStudent ? "GraduationCap" : "BriefcaseBusiness", isStudent ? "Institución" : "Empresa", isStudent ? (academicUniversity ?? "No registrada") : (company ?? "No registrada"), isStudent ? (academicUniversity ? "check" : "dash") : (company ? "check" : "dash"), isStudent ? (academicUniversity ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600") : (company ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600")),
       cardLine("CreditCard", "Inscripción", paidPayment ? "Pagada" : isStudent ? "Gratuita" : "Sin pago registrado", paidPayment || isStudent ? "check" : "dash", paidPayment || isStudent ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600", paidPayment && !isStudent ? `S/ ${Number(paidPayment.totalAmount).toFixed(2)}` : undefined),
     ];
-    return { id: user.id, trackingCode: code, topBorderColorClass: isStudent ? "bg-[#4F6BD8]" : "bg-[#B58B35]", hideContactDetails: true, identity: { title: fullName, subtitle: `${documentTypeLabel(documentType)} ${code}`, email: primaryContact?.email ?? user.email ?? null, phone: primaryContact?.phoneNumber ?? null, avatarUrl: user.affiliateAvatarUrl ?? user.image ?? null, fallbackInitials: initials }, primaryBadge, subStatus: membershipSubtitle(isStudent, user.status), atomicValidations: validations, metadata: { priority: "low", lastUpdatedRelative: `Actualizado: ${formatPeruDate(user.updatedAt)}`, assignedTo: { name: "IIMP", initial: "I" } }, allowedActions: ["view"], rawId: user.id };
+    const latestUpdatedAt = [user.updatedAt, application?.updatedAt]
+      .filter((value): value is string | Date => Boolean(value))
+      .sort((left, right) => new Date(right).getTime() - new Date(left).getTime())[0];
+    return { id: user.id, trackingCode: code, topBorderColorClass: isStudent ? "bg-[#4F6BD8]" : "bg-[#B58B35]", hideContactDetails: true, identity: { title: fullName, subtitle: `${documentTypeLabel(documentType)} ${code}`, email: primaryContact?.email ?? user.email ?? null, phone: primaryContact?.phoneNumber ?? null, avatarUrl: user.affiliateAvatarUrl ?? user.image ?? null, fallbackInitials: initials }, primaryBadge, subStatus: membershipSubtitle(isStudent, user.status), atomicValidations: validations, metadata: { priority: "low", lastUpdatedRelative: latestUpdatedAt ? `Actualizado: ${formatPeruDate(latestUpdatedAt)}` : "Actualizado: No registrado", showEvaluationContext: shouldShowEvaluationContext(application?.status), assignedTo: { name: "IIMP", initial: "I" } }, allowedActions: ["view"], rawId: user.id, generalStatus: application?.status };
   }
 }
 

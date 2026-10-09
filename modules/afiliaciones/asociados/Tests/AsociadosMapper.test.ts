@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { AsociadosMapper } from "../Mappers/AsociadosMapper";
+import { shouldShowEvaluationContext } from "@/modules/shared/Components/SmartCaseCard/types";
 
 describe("AsociadosMapper", () => {
   it("mantiene filas compactas para un asociado activo", () => {
@@ -40,6 +41,30 @@ describe("AsociadosMapper", () => {
     expect(card.primaryBadge?.colorClass).not.toContain("border");
     expect(card.subStatus).toBe("Membresía estudiantil");
     expect(card.topBorderColorClass).toBe("bg-[#4F6BD8]");
+  });
+
+  it("conserva la etiqueta real de una membresía no activa", () => {
+    const card = AsociadosMapper.toCardData({ id: 13, status: "BLOCKED", updatedAt: new Date(), role: { slug: "ASOCIADO_ACTIVO" }, person: { firstName: "María", paternalLastName: "Soto", documentNumber: "41000059", contacts: [], professionalExperiences: [], applications: [{ status: "COMPLETED", history: [], payments: [] }] } });
+    expect(card.subStatus).toBe("Membresía suspendida");
+  });
+
+  it("usa la actualización más reciente entre el asociado y su expediente", () => {
+    const card = AsociadosMapper.toCardData({ id: 14, status: "ACTIVE", updatedAt: new Date("2026-10-02T10:00:00.000Z"), role: { slug: "ASOCIADO_ACTIVO" }, person: { firstName: "Lucía", paternalLastName: "Paz", documentNumber: "41000060", contacts: [], professionalExperiences: [], applications: [{ status: "COMPLETED", updatedAt: new Date("2026-10-03T10:00:00.000Z"), history: [], payments: [] }] } });
+    expect(card.metadata.lastUpdatedRelative).toContain("03/10/2026");
+    expect(card.generalStatus).toBe("COMPLETED");
+    expect(card.metadata.showEvaluationContext).toBe(false);
+  });
+
+  it("oculta el contexto de evaluación solo cuando el flujo finalizó", () => {
+    expect(shouldShowEvaluationContext("COMPLETED")).toBe(false);
+    expect(shouldShowEvaluationContext("APPROVED")).toBe(true);
+    expect(shouldShowEvaluationContext("UNDER_EVALUACION")).toBe(true);
+    expect(shouldShowEvaluationContext("PENDING")).toBe(true);
+  });
+
+  it("formatea la actualización en la zona horaria institucional de Lima", () => {
+    const card = AsociadosMapper.toCardData({ id: 15, status: "ACTIVE", updatedAt: new Date("2026-10-03T02:00:00.000Z"), role: { slug: "ASOCIADO_ACTIVO" }, person: { firstName: "Elena", paternalLastName: "Gil", documentNumber: "41000061", contacts: [], professionalExperiences: [], applications: [{ status: "COMPLETED", updatedAt: new Date("2026-10-02T20:00:00.000Z"), history: [], payments: [] }] } });
+    expect(card.metadata.lastUpdatedRelative).toBe("Actualizado: 02/10/2026");
   });
 
   const user = (documentType: unknown, documentNumber: string) => ({

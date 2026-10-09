@@ -31,6 +31,8 @@ interface InspectionDrawerProps {
 }
 
 const getBadgeIconName = (iconType: string) => {
+  if (iconType === "person") return "User";
+  if (iconType === "graduation") return "GraduationCap";
   if (iconType === "review") return "AlertCircle";
   if (iconType === "check") return "CheckCircle2";
   if (iconType === "error") return "XCircle";
@@ -74,6 +76,7 @@ function DrawerInner({
 
   if (!data) return null;
   const { header, availableTabs, payload } = data;
+  const showEvaluationContext = header.metadata.showEvaluationContext !== false;
   const notificationTab = availableTabs.find((tab) => tab.hasNotification);
 
   const handleCopyDni = () => {
@@ -238,12 +241,9 @@ function DrawerInner({
               className={`flex flex-col min-w-0 w-full ${isTheaterMode ? "items-center md:items-start" : "pr-10"}`}
             >
               {header.primaryBadge && (
-                <div
-                  className={`flex flex-col gap-2 mb-3 ${isTheaterMode ? "items-center md:items-start" : "items-start"}`}
-                >
-                  <span
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider w-max ${header.primaryBadge.colorClass}`}
-                  >
+                <div className={`mb-3 flex flex-col ${isTheaterMode ? "items-center md:items-start" : "items-start"}`}>
+                  <div className={`flex w-max flex-col rounded-xl px-3 py-1.5 ${header.primaryBadge.colorClass}`}>
+                  <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider">
                     <DynamicIcon
                       name={getBadgeIconName(
                         header.primaryBadge.icon as string,
@@ -252,6 +252,8 @@ function DrawerInner({
                     />
                     {header.primaryBadge.label}
                   </span>
+                  {header.subStatus && <span className="mt-0.5 text-[11px] font-semibold opacity-80">{header.subStatus}</span>}
+                  </div>
                   {header.metadata.isAlreadyEvaluatedByMe && (
                     <button
                       onClick={onReevaluate}
@@ -325,7 +327,7 @@ function DrawerInner({
                 </div>
 
                 {/* Área y Evaluador: Texto simple y limpio */}
-                <div className="flex items-center gap-4 text-[11px]">
+                {showEvaluationContext && <div className="flex items-center gap-4 text-[11px]">
                   <div className="flex items-center gap-1.5 text-slate-500">
                     <Briefcase size={14} className="text-slate-400" />
                     <span className="font-bold">
@@ -370,7 +372,7 @@ function DrawerInner({
                       </>
                     )}
                   </div>
-                </div>
+                </div>}
               </div>
 
               {/* BOTONES DE EVALUACIÓN */}
@@ -417,7 +419,6 @@ function DrawerInner({
 
             <footer className="shrink-0 px-5 sm:px-8 py-4 bg-white flex items-center justify-between text-[11px] font-bold text-slate-400 border-t border-slate-100">
               <span>{header.metadata.lastUpdatedRelative}</span>
-              <span>Actualizado: Hoy</span>
             </footer>
           </div>
         </div>
