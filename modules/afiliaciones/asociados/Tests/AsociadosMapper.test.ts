@@ -18,4 +18,25 @@ describe("AsociadosMapper", () => {
     expect(card.atomicValidations?.at(-1)?.statusLabel).toBe("Gratuita");
     expect(card.atomicValidations?.at(-1)?.assignee).toBeUndefined();
   });
+
+  it("asociado activo usa etiqueta dorada sin borde, subtítulo de membresía activa y línea superior dorada", () => {
+    const card = AsociadosMapper.toCardData({ id: 9, status: "ACTIVE", updatedAt: new Date(), role: { slug: "ASOCIADO_ACTIVO" }, person: { firstName: "Andrea", paternalLastName: "Paredes", documentNumber: "41000057", contacts: [], professionalExperiences: [], applications: [{ status: "COMPLETED", history: [], payments: [] }] } });
+    expect(card.primaryBadge).toMatchObject({ label: "Asociado Activo", icon: "person", colorClass: "bg-[#FFF4DE] text-[#9A6A1F]" });
+    expect(card.primaryBadge?.colorClass).not.toContain("border");
+    expect(card.subStatus).toBe("Membresía activa");
+    expect(card.topBorderColorClass).toBe("bg-[#B58B35]");
+  });
+
+  it("asociado activo inactivo no muestra el subtítulo 'Membresía activa'", () => {
+    const card = AsociadosMapper.toCardData({ id: 11, status: "INACTIVE", updatedAt: new Date(), role: { slug: "ASOCIADO_ACTIVO" }, person: { firstName: "Luis", paternalLastName: "Pérez", documentNumber: "41000058", contacts: [], professionalExperiences: [], applications: [{ status: "COMPLETED", history: [], payments: [] }] } });
+    expect(card.subStatus).toBe("Membresía inactiva");
+  });
+
+  it("asociado estudiante usa etiqueta azul índigo sin borde y línea superior índigo", () => {
+    const card = AsociadosMapper.toCardData({ id: 12, status: "ACTIVE", updatedAt: new Date(), role: { slug: "ASOCIADO_ESTUDIANTE" }, person: { firstName: "Ana", paternalLastName: "Ríos", documentNumber: "70000002", contacts: [], academicInfos: [], applications: [{ status: "COMPLETED", history: [], payments: [] }] } });
+    expect(card.primaryBadge).toMatchObject({ label: "Asociado Estudiante", icon: "graduation", colorClass: "bg-[#EEF2FF] text-[#4F46B8]" });
+    expect(card.primaryBadge?.colorClass).not.toContain("border");
+    expect(card.subStatus).toBe("Membresía estudiantil");
+    expect(card.topBorderColorClass).toBe("bg-[#4F6BD8]");
+  });
 });
