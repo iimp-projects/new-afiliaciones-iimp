@@ -42,6 +42,30 @@
   }
 }
 
+/* --- Cursor UX global --- */
+/* Los elementos interactivos (botones habilitados, enlaces y roles de botón)
+   muestran la mano; los deshabilitados muestran not-allowed. Se implementa a
+   nivel de base para que sea consistente y mantenible, sin repetir la clase
+   cursor-pointer en cada componente. */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  input[type="button"]:not(:disabled),
+  input[type="reset"]:not(:disabled),
+  input[type="submit"]:not(:disabled),
+  summary {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [role="button"][aria-disabled="true"],
+  input:disabled,
+  select:disabled,
+  textarea:disabled {
+    cursor: not-allowed;
+  }
+}
+
 /* --- TipTap Editor Styles --- */
 /* ¡AFUERA del bloque @theme! */
 @layer components {
