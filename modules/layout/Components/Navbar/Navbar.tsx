@@ -12,8 +12,10 @@ import {
   User,
   Settings,
   LogOut,
+  Clock,
 } from "lucide-react";
 import type { CurrentUserDTO } from "@/modules/auth/context/types";
+import { announceSessionEnded, useSessionPresentation } from "@/modules/auth/session/Components/SessionManager";
 import { getOperationalAlertPresentation, getOperationalAlertSeverityLabel } from "@/modules/afiliaciones/alerts/Config/OperationalAlertCatalog";
 import { logoutAction } from "@/modules/auth/logout/logoutAction"; // Importamos la acción para cerrar sesión
 
@@ -23,11 +25,19 @@ interface NavbarProps {
 }
 
 export function Navbar({ user, onToggleSidebar }: NavbarProps) {
+  const session = useSessionPresentation();
   const pathname = usePathname();
   const router = useRouter();
   const [activeLang, setActiveLang] = useState<"ES" | "EN" | "QU">("ES");
   const portalBreadcrumbs: Record<string, string> = { "/intranet/mi-cuenta": "Inicio", "/intranet/mi-cuenta/perfil": "Mi perfil", "/intranet/mi-cuenta/membresia": "Mi membresía", "/intranet/mi-cuenta/pagos": "Pagos y comprobantes", "/intranet/mi-cuenta/beneficios": "Beneficios", "/intranet/mi-cuenta/eventos": "Eventos", "/intranet/mi-cuenta/documentos": "Documentos", "/intranet/mi-cuenta/soporte": "Soporte" };
   const portalPage = portalBreadcrumbs[pathname];
+  const formatRemaining = (milliseconds: number | null) => {
+    if (milliseconds === null) return "--:--:--";
+    const seconds = Math.ceil(milliseconds / 1000);
+    return [Math.floor(seconds / 3600), Math.floor(seconds / 60) % 60, seconds % 60]
+      .map((value) => String(value).padStart(2, "0")).join(":");
+  };
+  const isSessionWarning = session.remainingMs !== null && session.remainingMs <= 5 * 60 * 1000;
 
   // Estados para los popovers
   const [isNotifOpen, setIsNotifOpen] = useState(false);
@@ -151,6 +161,13 @@ export function Navbar({ user, onToggleSidebar }: NavbarProps) {
         </div>
 
         <div className="h-6 w-px bg-slate-200 hidden sm:block mx-1"></div>
+
+        <div className={`group relative flex items-center gap-1.5 rounded-full px-2 py-2 text-xs font-bold tabular-nums ${isSessionWarning ? "bg-amber-50 text-amber-700" : "text-slate-500"}`} title="Tiempo restante de sesión">
+          <Clock size={18} strokeWidth={2.2} aria-hidden="true" />
+          <span className="hidden sm:inline">{formatRemaining(session.remainingMs)}</span>
+          <span className="sr-only">Tiempo restante de sesión: {formatRemaining(session.remainingMs)}</span>
+          <span className="pointer-events-none absolute right-0 top-full z-50 mt-2 hidden w-52 rounded-lg border border-slate-200 bg-white p-2 text-[11px] font-medium text-slate-600 shadow-lg group-hover:block sm:hidden">{formatRemaining(session.remainingMs)} restantes</span>
+        </div>
 
         {/* Notificaciones y Mensajes */}
         <div className="flex items-center gap-2">
@@ -314,7 +331,7 @@ export function Navbar({ user, onToggleSidebar }: NavbarProps) {
               {/* Botón de Cerrar Sesión integrado al Popover */}
               <div className="p-2 border-t border-slate-100">
                 <button
-                  onClick={() => logoutAction()}
+                  onClick={() => { announceSessionEnded(); void logoutAction(); }}
                   className="w-full flex items-center gap-3 px-3 py-2.5 text-[13px] font-bold text-red-600 hover:bg-red-50 rounded-xl transition-colors"
                 >
                   <LogOut size={16} strokeWidth={2.5} />

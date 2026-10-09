@@ -5,6 +5,7 @@ import type { NavigationNode } from "@/modules/navigation/Models/NavigationNode"
 import { SidebarItem } from "./SidebarItem";
 // import { signOut } from "next-auth/react";
 import { logoutAction } from "@/modules/auth/logout/logoutAction";
+import { announceSessionEnded } from "@/modules/auth/session/Components/SessionManager";
 interface SidebarProps {
   navigationTree: NavigationNode[];
   isMobileOpen: boolean;
@@ -80,7 +81,7 @@ export function Sidebar({
                         title="Cerrar Sesión"
                     > */}
           <button
-            onClick={() => logoutAction()} // 
+            onClick={() => { announceSessionEnded(); void logoutAction(); }}
             className={`w-full flex items-center ${isCollapsed ? "justify-center" : "gap-2"} px-3 py-2 rounded-xl transition-all outline-none text-slate-500 hover:bg-red-50 hover:text-red-600 group`}
             title="Cerrar Sesión"
           >

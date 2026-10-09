@@ -23,3 +23,15 @@ export interface CreateSessionInput {
   os?: string | null;
   browser?: string | null;
 }
+
+export type SessionExpiryReason = "IDLE" | "ABSOLUTE";
+
+/** Datos seguros que el cliente necesita para representar el estado de sesión. */
+export interface SessionStatusDTO {
+  valid: boolean;
+  serverNow: Date;
+  expiresAt: Date | null;
+  lastActivityAt: Date | null;
+  effectiveExpiresAt: Date | null;
+  expiryReason: SessionExpiryReason | null;
+}

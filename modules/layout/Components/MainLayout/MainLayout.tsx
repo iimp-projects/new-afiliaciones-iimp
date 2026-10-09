@@ -6,6 +6,7 @@ import { Sidebar } from "../Sidebar/Sidebar";
 import { Navbar } from "../Navbar/Navbar";
 import type { NavigationNode } from "@/modules/navigation/Models/NavigationNode";
 import type { CurrentUserDTO } from "@/modules/auth/context/types";
+import { SessionManager } from "@/modules/auth/session/Components/SessionManager";
 
 interface MainLayoutProps {
     children: ReactNode;
@@ -19,7 +20,7 @@ export function MainLayout({ children, navigationTree, user }: MainLayoutProps) 
     const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
 
     return (
-        <div className="flex h-screen w-full bg-[#F4F5F7] overflow-hidden antialiased font-sans text-slate-800">
+        <SessionManager><div className="flex h-screen w-full bg-[#F4F5F7] overflow-hidden antialiased font-sans text-slate-800">
             
             <Sidebar 
                 navigationTree={navigationTree} 
@@ -48,6 +49,6 @@ export function MainLayout({ children, navigationTree, user }: MainLayoutProps) 
                     </div>
                 </main>
             </div>
-        </div>
+        </div></SessionManager>
     );
 }
