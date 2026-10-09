@@ -3,8 +3,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { contextService } from "@/modules/auth/context/service";
-import { S3StorageService } from "@/modules/shared/Services/S3StorageService";
-import { APPLICATION_KEY_PREFIX, LEGACY_DOCUMENT_KEY_PREFIX } from "@/modules/afiliaciones/postulacion/Services/ApplicationDocumentAccess";
+import { resolveAffiliatePhoto } from "@/modules/shared/Services/AffiliatePhotoResolver";
 import { ApplicationStatus } from "@prisma/client";
 
 interface FetchAsociadosParams {
@@ -100,23 +99,12 @@ export async function fetchAsociadosAction(params: FetchAsociadosParams) {
       role: person?.user?.role ?? { slug: application.affiliateType === "STUDENT" ? "ASOCIADO_ESTUDIANTE" : "ASOCIADO_ACTIVO", name: application.affiliateType === "STUDENT" ? "Asociado Estudiante" : "Asociado Activo" },
       createdAt: person?.user?.createdAt ?? application.createdAt, updatedAt: application.updatedAt, lastLoginAt: person?.user?.lastLoginAt ?? null, systemUser: null,
       person: person ? { ...person, applications: [safeApplicationData] } : null,
-      affiliateAvatarUrl: await resolveAffiliatePhoto({ image: person?.user?.image ?? null, person: person ? { applications: person.applications } : null }),
+      affiliateAvatarUrl: await resolveAffiliatePhoto(person?.applications ?? []),
     }); }));
 
     return { success: true, data: dataWithPhoto, total, page, pageSize };
   } catch (error: any) {
     console.error("[Fetch Asociados Error]:", error);
     return { success: false, message: "Error al obtener la lista de asociados.", data: [], total: 0 };
-  }
-}
-
-async function resolveAffiliatePhoto(user: { image: string | null; person: { applications: Array<{ id: number; documents: Array<{ mimeType: string; category: string; fileName: string; fileUrl: string }> }> } | null }) {
-  const application = user.person?.applications.find((candidate) => candidate.documents.some((document) => document.mimeType.startsWith("image/") && (document.category === "OTHER" || document.fileName.toLowerCase().includes("foto"))));
-  const photo = application?.documents.find((document) => document.mimeType.startsWith("image/") && (document.category === "OTHER" || document.fileName.toLowerCase().includes("foto")));
-  if (!application || !photo?.fileUrl) return user.image;
-  try {
-    return await new S3StorageService().getPresignedApplicationDocumentUrl(photo.fileUrl, [APPLICATION_KEY_PREFIX, LEGACY_DOCUMENT_KEY_PREFIX]);
-  } catch {
-    return user.image;
   }
 }

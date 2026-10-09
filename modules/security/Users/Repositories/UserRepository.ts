@@ -50,7 +50,18 @@ export class UserRepository {
         where: baseWhere,
         skip,
         take: pageSize,
-        include: { person: true, role: true },
+        include: {
+          person: {
+            include: {
+              applications: {
+                where: { deletedAt: null },
+                orderBy: { updatedAt: "desc" },
+                include: { documents: { orderBy: { updatedAt: "desc" } } },
+              },
+            },
+          },
+          role: true,
+        },
         orderBy: { createdAt: "desc" },
       }),
       prisma.user.count({ where: baseWhere }),

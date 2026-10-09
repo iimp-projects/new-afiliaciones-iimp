@@ -56,6 +56,13 @@ describe("UsersTable", () => {
     expect(html).toContain("AP");
   });
 
+  it("renders the image as avatar when the user has a photo", () => {
+    const userWithImage = { ...activeUser, image: "https://signed.example/avatar.jpg" };
+    const html = renderToStaticMarkup(<UsersTable users={[userWithImage]} roles={[]} onActionSuccess={vi.fn()} />);
+    expect(html).toContain('src="https://signed.example/avatar.jpg"');
+    expect(html).not.toContain("AP");
+  });
+
   it("renders an empty state when there are no users", () => {
     const html = renderToStaticMarkup(<UsersTable users={[]} roles={[]} onActionSuccess={vi.fn()} />);
     expect(html).toContain("No hay usuarios");

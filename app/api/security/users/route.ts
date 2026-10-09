@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { contextService } from "@/modules/auth/context/service";
 import { UserService } from "@/modules/security/Users/Services/UserService";
 import { S3StorageService } from "@/modules/shared/Services/S3StorageService";
+import { resolveAffiliatePhoto } from "@/modules/shared/Services/AffiliatePhotoResolver";
 
 export async function GET(request: NextRequest) {
   try {
@@ -21,18 +22,29 @@ export async function GET(request: NextRequest) {
     const service = new UserService();
     const result = await service.getList(page, pageSize, search, status, roleId);
 
-    // 4. Firmar URLs de S3 para las imágenes
+    // 4. Resolver la fotografía (documento de postulación) y firmar el avatar de
+    //    respaldo. Nunca se exponen los documentos ni las claves privadas de S3.
     const s3Service = new S3StorageService();
-    for (const user of result.data) {
-      if (user.image) {
-        user.image = await s3Service.getPresignedAvatarUrl(user.image);
-      }
-    }
+    const data = await Promise.all(
+      result.data.map(async (user) => {
+        const photo = await resolveAffiliatePhoto(user.person?.applications ?? []);
+        const image = photo ?? (user.image ? await s3Service.getPresignedAvatarUrl(user.image) : null);
+
+        let person: typeof user.person = null;
+        if (user.person) {
+          const { applications: _applications, ...safePerson } = user.person;
+          void _applications;
+          person = safePerson as typeof user.person;
+        }
+
+        return { ...user, image, person };
+      }),
+    );
 
     // 5. Devolvemos la respuesta formateada como en Expedientes
     return NextResponse.json({
       success: true,
-      data: result.data,
+      data,
       meta: {
         total: result.total,
         page: result.page,
