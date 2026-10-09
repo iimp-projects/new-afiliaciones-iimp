@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { EmailCampaignStatus, EmailSendStatus, Prisma } from "@prisma/client";
-import { CampaignMailService, CampaignMailError, SMTP_CONFIG_UNAVAILABLE_CODE } from "../Services/CampaignMailService";
+import { CampaignMailService, CampaignMailError, SMTP_CONFIG_UNAVAILABLE_CODE, SMTP_QUOTA_EXHAUSTED_CODE } from "../Services/CampaignMailService";
 import { MailServiceError } from "@/modules/shared/Services/MailService";
 import { ConfigurationError } from "@/lib/config/env";
 import type { CampaignRepository } from "../Repositories/CampaignRepository";
@@ -17,6 +17,8 @@ function campaign(overrides: Partial<CampaignDetail> = {}): CampaignDetail {
     senderName: "IIMP",
     senderEmail: "no-reply@iimp.org.pe",
     replyTo: "asociados@iimp.org.pe",
+    smtpAccount: "PROV",
+    pausedByQuota: false,
     htmlContent: "<p>Estimado(a) {{nombre}},</p>",
     textContent: "Estimado(a) {{nombre}},",
     status: EmailCampaignStatus.READY,
@@ -78,14 +80,22 @@ function setup(overrides: {
   const sendMail = vi.fn(overrides.sendMail ?? (async () => ({ messageId: "<abc123@example>" })));
   const validateConfiguration = vi.fn();
   const mailService = { sendMail, validateConfiguration };
+  const defaultSendMail = vi.fn(async () => ({ messageId: "<default@example>" }));
+  const defaultValidateConfiguration = vi.fn();
+  const defaultMailService = { sendMail: defaultSendMail, validateConfiguration: defaultValidateConfiguration };
+  const getLimit = vi.fn().mockReturnValue(null);
+  const tryReserve = vi.fn().mockResolvedValue({ allowed: true, used: 0 });
+  const quotaService = { getLimit, tryReserve };
 
-  const service = new CampaignMailService(campaignRepository, deliveryRepository, mailService as never);
+  const service = new CampaignMailService(campaignRepository, deliveryRepository, mailService as never, defaultMailService as never, quotaService as never);
   return {
     service,
     campaignRepository,
     deliveryRepository,
     mailService,
-    mocks: { getCampaign, getCampaignRecipient, recoverStaleDeliveries, hasInFlightDelivery, createPendingDelivery, markDeliverySent, markDeliveryError, markRecipientSending, markRecipientSent, markRecipientError, writeAudit, sendMail, validateConfiguration },
+    defaultMailService,
+    quotaService,
+    mocks: { getCampaign, getCampaignRecipient, recoverStaleDeliveries, hasInFlightDelivery, createPendingDelivery, markDeliverySent, markDeliveryError, markRecipientSending, markRecipientSent, markRecipientError, writeAudit, sendMail, validateConfiguration, defaultSendMail, defaultValidateConfiguration, getLimit, tryReserve },
   };
 }
 
@@ -303,5 +313,54 @@ describe("CampaignMailService.sendIndividual", () => {
     const { service, mocks } = setup();
     mocks.validateConfiguration.mockReturnValue(undefined);
     expect(() => service.validateSendConfiguration()).not.toThrow();
+  });
+});
+
+describe("CampaignMailService.selección de cuenta SMTP", () => {
+  it("campaña PROV envía con la cuenta de campañas (MailService PROV)", async () => {
+    const { service, mocks } = setup();
+    await service.sendIndividual(1, 7, ACTOR);
+    expect(mocks.sendMail).toHaveBeenCalled();
+    expect(mocks.defaultSendMail).not.toHaveBeenCalled();
+  });
+
+  it("campaña DEFAULT envía con la cuenta institucional (MailService DEFAULT)", async () => {
+    const { service, mocks, defaultMailService } = setup({ getCampaign: campaign({ smtpAccount: "DEFAULT" }) });
+    await service.sendIndividual(1, 7, ACTOR);
+    expect(defaultMailService.sendMail).toHaveBeenCalled();
+    expect(mocks.sendMail).not.toHaveBeenCalled();
+  });
+
+  it("validateSendConfiguration resuelve la cuenta desde la campaña", () => {
+    const { service, mocks } = setup();
+    service.validateSendConfiguration("DEFAULT");
+    expect(mocks.defaultValidateConfiguration).toHaveBeenCalled();
+  });
+});
+
+describe("CampaignMailService.cuota diaria", () => {
+  it("reserva cuota antes de crear el delivery cuando hay límite", async () => {
+    const { service, mocks } = setup();
+    mocks.getLimit.mockReturnValue(100);
+    await service.sendIndividual(1, 7, ACTOR);
+    expect(mocks.tryReserve).toHaveBeenCalledWith("PROV");
+    expect(mocks.createPendingDelivery).toHaveBeenCalled();
+  });
+
+  it("cuota agotada aborta sin crear delivery ni marcar destinatario", async () => {
+    const { service, mocks } = setup();
+    mocks.getLimit.mockReturnValue(100);
+    mocks.tryReserve.mockResolvedValue({ allowed: false, used: 100 });
+    await expect(service.sendIndividual(1, 7, ACTOR)).rejects.toMatchObject({ code: SMTP_QUOTA_EXHAUSTED_CODE, status: 429 });
+    expect(mocks.createPendingDelivery).not.toHaveBeenCalled();
+    expect(mocks.markRecipientSending).not.toHaveBeenCalled();
+    expect(mocks.sendMail).not.toHaveBeenCalled();
+  });
+
+  it("sin límite no reserva cuota", async () => {
+    const { service, mocks } = setup();
+    mocks.getLimit.mockReturnValue(null);
+    await service.sendIndividual(1, 7, ACTOR);
+    expect(mocks.tryReserve).not.toHaveBeenCalled();
   });
 });

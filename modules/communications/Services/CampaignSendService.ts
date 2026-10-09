@@ -1,8 +1,10 @@
 import { EmailCampaignStatus } from "@prisma/client";
-import { CampaignMailError, CampaignMailService } from "./CampaignMailService";
+import { CampaignMailError, CampaignMailService, SMTP_QUOTA_EXHAUSTED_CODE } from "./CampaignMailService";
 import { CampaignRepository } from "../Repositories/CampaignRepository";
 import { EmailDeliveryRepository } from "../Repositories/EmailDeliveryRepository";
+import { SmtpQuotaService } from "./SmtpQuotaService";
 import { CAMPAIGN_BATCH_SIZE, CAMPAIGN_STALE_TIMEOUT_MINUTES } from "../Config/campaignSend";
+import { getCampaignMaxRecipients, toMailServiceAccount } from "../Config/smtpAccounts";
 import type { CampaignSendProgress, BatchResult } from "../Models/CampaignSend";
 import type { CampaignDetail } from "../Models/Campaign";
 
@@ -28,6 +30,7 @@ export class CampaignSendService {
     private readonly campaignRepository = new CampaignRepository(),
     private readonly deliveryRepository = new EmailDeliveryRepository(),
     private readonly mailService = new CampaignMailService(),
+    private readonly quotaService = new SmtpQuotaService(),
   ) {}
 
   async start(campaignId: number, actor: { userId: number; email: string }): Promise<{ recipientCount: number }> {
@@ -43,13 +46,23 @@ export class CampaignSendService {
       throw new CampaignMailError("La campaña no tiene destinatarios.", 422);
     }
     this.mailService.assertReplyToValid(campaign.replyTo);
-    this.mailService.validateSendConfiguration();
+    this.mailService.validateSendConfiguration(toMailServiceAccount(campaign.smtpAccount));
+
+    const maxRecipients = getCampaignMaxRecipients(campaign.smtpAccount);
+    if (campaign.recipientCount > maxRecipients) {
+      throw new CampaignMailError(
+        `La cuenta de envío seleccionada permite un máximo de ${maxRecipients} destinatarios por campaña. Esta campaña tiene ${campaign.recipientCount}.`,
+        422,
+        "CAMPAIGN_RECIPIENT_LIMIT_EXCEEDED",
+      );
+    }
 
     const claimed = await this.campaignRepository.claimCampaignSending(campaignId, EmailCampaignStatus.READY);
     if (!claimed) {
       throw new CampaignMailError("La campaña ya fue iniciada por otro proceso.", 409, "CAMPAIGN_ALREADY_STARTED");
     }
-    await this.campaignRepository.writeAudit(actor, "CAMPAIGN_SEND_STARTED", campaignId, campaign.name, { recipientCount: campaign.recipientCount });
+    await this.campaignRepository.setPausedByQuota(campaignId, false);
+    await this.campaignRepository.writeAudit(actor, "CAMPAIGN_SEND_STARTED", campaignId, campaign.name, { recipientCount: campaign.recipientCount, smtpAccount: campaign.smtpAccount });
     return { recipientCount: campaign.recipientCount };
   }
 
@@ -77,9 +90,21 @@ export class CampaignSendService {
 
     let processed = 0;
     if (pending.length > 0) {
-      for (const recipient of pending) {
-        const result = await this.mailService.deliverRecipient(campaign, campaignId, recipient.recipientId);
-        if (result.outcome !== "SKIPPED") processed += 1;
+      try {
+        for (const recipient of pending) {
+          const result = await this.mailService.deliverRecipient(campaign, campaignId, recipient.recipientId);
+          if (result.outcome !== "SKIPPED") processed += 1;
+        }
+      } catch (error) {
+        if (error instanceof CampaignMailError && error.code === SMTP_QUOTA_EXHAUSTED_CODE) {
+          // Pausa controlada: los destinatarios restantes permanecen PENDING
+          // (NO se marcan como ERROR). La campaña vuelve a READY y queda
+          // marcada para reanudación automática cuando haya nueva capacidad.
+          await this.campaignRepository.setStatus(campaignId, EmailCampaignStatus.READY);
+          await this.campaignRepository.setPausedByQuota(campaignId, true);
+          await this.campaignRepository.writeAudit(actor, "CAMPAIGN_SEND_PAUSED", campaignId, campaign.name, { reason: SMTP_QUOTA_EXHAUSTED_CODE, smtpAccount: campaign.smtpAccount, processed });
+        }
+        throw error;
       }
       await this.campaignRepository.touchCampaign(campaignId);
     }
@@ -95,7 +120,7 @@ export class CampaignSendService {
       throw new CampaignMailError("Solo se pueden reintentar destinatarios de una campaña con errores.", 409);
     }
     this.mailService.assertReplyToValid(campaign.replyTo);
-    this.mailService.validateSendConfiguration();
+    this.mailService.validateSendConfiguration(toMailServiceAccount(campaign.smtpAccount));
 
     const claimed = await this.campaignRepository.claimCampaignSending(campaignId, EmailCampaignStatus.PARTIAL);
     if (!claimed) {
@@ -135,8 +160,34 @@ export class CampaignSendService {
     return { recovered: true };
   }
 
-  async getProgress(campaignId: number): Promise<CampaignSendProgress> {
-    const campaign = await this.campaignRepository.getCampaign(campaignId);
+  /**
+   * Reanudación automática (idempotente) de campañas pausadas por cuota.
+   *
+   * Para cada campaña READY marcada como pausada, si su cuenta vuelve a tener
+   * capacidad diaria (p. ej. nuevo día UTC), la reclama atómicamente hacia
+   * SENDING. El motor continúa desde los destinatarios PENDING restantes. La
+   * reclamación atómica (`claimCampaignSending`) evita dobles reanudaciones.
+   */
+  async autoResumeEligible(actor: { userId: number; email: string }): Promise<{ resumed: number }> {
+    const paused = await this.campaignRepository.listPausedByQuota();
+    let resumed = 0;
+    for (const campaign of paused) {
+      const limit = this.quotaService.getLimit(campaign.smtpAccount);
+      if (limit !== null) {
+        const used = await this.quotaService.getUsed(campaign.smtpAccount);
+        if (used >= limit) continue; // aún sin capacidad
+      }
+      const claimed = await this.campaignRepository.claimCampaignSending(campaign.id, EmailCampaignStatus.READY);
+      if (claimed) {
+        await this.campaignRepository.setPausedByQuota(campaign.id, false);
+        await this.campaignRepository.writeAudit(actor, "CAMPAIGN_SEND_RESUMED", campaign.id, "", { smtpAccount: campaign.smtpAccount });
+        resumed += 1;
+      }
+    }
+    return { resumed };
+  }
+
+  async getProgress(campaignId: number): Promise<CampaignSendProgress> {    const campaign = await this.campaignRepository.getCampaign(campaignId);
     if (!campaign) throw new CampaignMailError("La campaña no existe.", 404);
     const stats = await this.deliveryRepository.getCampaignStats(campaignId);
     const processed = stats.sent + stats.error;

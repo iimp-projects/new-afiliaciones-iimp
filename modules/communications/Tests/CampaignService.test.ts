@@ -15,6 +15,8 @@ function campaign(overrides: Partial<CampaignDetail> = {}): CampaignDetail {
     senderName: "IIMP",
     senderEmail: null,
     replyTo: null,
+    smtpAccount: "PROV",
+    pausedByQuota: false,
     htmlContent: "<p>Contenido</p>",
     textContent: "Contenido texto",
     status: EmailCampaignStatus.DRAFT,
@@ -70,8 +72,8 @@ describe("CampaignService", () => {
     const repository = makeRepository();
     const service = new CampaignService(repository);
     await service.createCampaign({ name: "Campaña", subject: "Asunto", htmlContent: "<p>Hola</p>" }, ACTOR);
-    expect(repository.createCampaign).toHaveBeenCalledWith(expect.objectContaining({ name: "Campaña", subject: "Asunto" }), 1);
-    expect(repository.writeAudit).toHaveBeenCalledWith(ACTOR, "CAMPAIGN_CREATED", 1, "Campaña");
+    expect(repository.createCampaign).toHaveBeenCalledWith(expect.objectContaining({ name: "Campaña", subject: "Asunto", smtpAccount: "PROV" }), 1);
+    expect(repository.writeAudit).toHaveBeenCalledWith(ACTOR, "CAMPAIGN_CREATED", 1, "Campaña", expect.objectContaining({ smtpAccount: "PROV" }));
   });
 
   it("rechaza crear campaña sin asunto", async () => {

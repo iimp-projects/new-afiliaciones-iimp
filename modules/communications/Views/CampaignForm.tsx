@@ -2,35 +2,51 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Eye, Loader2, Save } from "lucide-react";
+import { AlertTriangle, Building2, Eye, Loader2, Mail, Megaphone, Save } from "lucide-react";
 import { createCampaignAction, updateCampaignAction } from "../Actions/campaign.actions";
 import { CampaignPreviewModal } from "./CampaignPreviewModal";
+import type { SmtpAccountOption } from "../Config/smtpAccounts";
 import type { CampaignDetail } from "../Models/Campaign";
+import type { EmailSmtpAccount } from "@prisma/client";
 
 const EMPTY = {
   name: "",
   subject: "",
   senderName: "",
-  senderEmail: "",
   replyTo: "",
   htmlContent: "",
   textContent: "",
 };
 
-export function CampaignForm({ campaignId, initial }: { campaignId?: number; initial?: CampaignDetail }) {
+const ACCOUNT_ICON: Record<EmailSmtpAccount, typeof Mail> = {
+  DEFAULT: Building2,
+  PROV: Megaphone,
+};
+
+export function CampaignForm({
+  campaignId,
+  initial,
+  smtpAccountOptions,
+}: {
+  campaignId?: number;
+  initial?: CampaignDetail;
+  smtpAccountOptions: SmtpAccountOption[];
+}) {
   const router = useRouter();
   const [form, setForm] = useState({
     name: initial?.name ?? EMPTY.name,
     subject: initial?.subject ?? EMPTY.subject,
     senderName: initial?.senderName ?? EMPTY.senderName,
-    senderEmail: initial?.senderEmail ?? EMPTY.senderEmail,
     replyTo: initial?.replyTo ?? EMPTY.replyTo,
     htmlContent: initial?.htmlContent ?? EMPTY.htmlContent,
     textContent: initial?.textContent ?? EMPTY.textContent,
   });
+  const [smtpAccount, setSmtpAccount] = useState<EmailSmtpAccount>(initial?.smtpAccount ?? "PROV");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
+
+  const selectedOption = smtpAccountOptions.find((option) => option.value === smtpAccount) ?? null;
 
   const set = (key: keyof typeof EMPTY) => (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm((prev) => ({ ...prev, [key]: event.target.value }));
@@ -42,8 +58,9 @@ export function CampaignForm({ campaignId, initial }: { campaignId?: number; ini
       name: form.name,
       subject: form.subject,
       senderName: form.senderName || null,
-      senderEmail: form.senderEmail || null,
+      senderEmail: selectedOption?.email ?? null,
       replyTo: form.replyTo || null,
+      smtpAccount,
       htmlContent: form.htmlContent,
       textContent: form.textContent || null,
     };
@@ -78,15 +95,52 @@ export function CampaignForm({ campaignId, initial }: { campaignId?: number; ini
           <span className="text-xs font-bold uppercase text-slate-500">Nombre del remitente</span>
           <input value={form.senderName} onChange={set("senderName")} className={field} placeholder="Instituto de Ingenieros de Minas del Perú" />
         </label>
-        <label className="block">
-          <span className="text-xs font-bold uppercase text-slate-500">Correo remitente</span>
-          <input value={form.senderEmail} onChange={set("senderEmail")} className={field} placeholder="no-reply@iimp.org.pe" />
-        </label>
         <label className="block sm:col-span-2">
           <span className="text-xs font-bold uppercase text-slate-500">Reply-To</span>
           <input value={form.replyTo} onChange={set("replyTo")} className={field} placeholder="asociados@iimp.org.pe" />
         </label>
       </div>
+
+      <section className="rounded-2xl border border-slate-200 p-4">
+        <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Cuenta de envío</p>
+        <p className="mt-1 text-[11px] text-slate-400">Selecciona la cuenta SMTP que enviará esta campaña. La dirección del remitente es fija y proviene de la configuración autorizada.</p>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          {smtpAccountOptions.map((option) => {
+            const Icon = ACCOUNT_ICON[option.value];
+            const selected = smtpAccount === option.value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setSmtpAccount(option.value)}
+                className={`flex items-start gap-3 rounded-2xl border p-4 text-left transition-colors ${selected ? "border-[#C5A059] bg-[#fdfaf5] ring-1 ring-[#C5A059]" : "border-slate-200 hover:border-slate-300"}`}
+              >
+                <span className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${selected ? "bg-[#C5A059] text-white" : "bg-slate-100 text-slate-500"}`}>
+                  <Icon size={18} />
+                </span>
+                <span className="min-w-0">
+                  <span className="flex items-center gap-2 text-sm font-bold text-slate-800">{option.label}</span>
+                  <span className="mt-0.5 block truncate text-xs font-semibold text-slate-500">{option.email ?? "No configurada"}</span>
+                  <span className="mt-1 block text-[11px] leading-4 text-slate-400">{option.description}</span>
+                  <span className="mt-1 block text-[11px] font-semibold text-slate-500">Límite por campaña: {option.maxRecipients.toLocaleString("es-PE")} destinatarios</span>
+                  {option.dailyCampaignLimit != null && (
+                    <span className="block text-[11px] font-semibold text-slate-500">Cuota diaria para campañas: {option.dailyCampaignLimit.toLocaleString("es-PE")}</span>
+                  )}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        {selectedOption?.sharesTransactionalCapacity && (
+          <p className="mt-3 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs font-semibold text-amber-800">
+            <AlertTriangle size={15} className="mt-0.5 shrink-0" />
+            Esta cuenta comparte capacidad con las notificaciones transaccionales (recuperación de contraseña, activación, avales y pagos). Úsala solo para audiencias reducidas.
+          </p>
+        )}
+        <p className="mt-3 text-xs font-semibold text-slate-500">
+          Remitente efectivo: <span className="font-bold text-slate-700">{selectedOption?.email ?? "No configurada"}</span>
+        </p>
+      </section>
 
       <label className="block">
         <span className="text-xs font-bold uppercase text-slate-500">Contenido HTML</span>
@@ -127,13 +181,13 @@ export function CampaignForm({ campaignId, initial }: { campaignId?: number; ini
             htmlContent: form.htmlContent,
             textContent: form.textContent || null,
             senderName: form.senderName || null,
-            senderEmail: form.senderEmail || null,
+            senderEmail: selectedOption?.email ?? null,
             replyTo: form.replyTo || null,
           }}
           campaignId={null}
           status={null}
           previewRecipients={[]}
-          fromEmail={form.senderEmail || null}
+          fromEmail={selectedOption?.email ?? null}
           demo={true}
           onClose={() => setPreviewOpen(false)}
         />

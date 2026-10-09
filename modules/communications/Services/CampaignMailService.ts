@@ -1,16 +1,20 @@
 import { EmailCampaignStatus, EmailSendStatus, Prisma } from "@prisma/client";
 import { MailService, MailServiceError } from "@/modules/shared/Services/MailService";
-import { ConfigurationError } from "@/lib/config/env";
+import { ConfigurationError, type SmtpAccount } from "@/lib/config/env";
 import { renderTemplate, type TemplateRecipient } from "./TemplateRenderer";
 import { isValidEmail } from "./Import/EmailProcessing";
 import { CampaignRepository } from "../Repositories/CampaignRepository";
 import { EmailDeliveryRepository } from "../Repositories/EmailDeliveryRepository";
+import { SmtpQuotaService } from "./SmtpQuotaService";
+import { toMailServiceAccount } from "../Config/smtpAccounts";
 import type { CampaignDetail } from "../Models/Campaign";
 
 const SEND_IN_PROGRESS_MESSAGE = "Ya existe un envío en curso para este destinatario. Espera a que termine antes de intentarlo nuevamente.";
 const INVALID_REPLY_TO_MESSAGE = "El correo Reply-To no tiene un formato válido.";
 const SMTP_CONFIG_UNAVAILABLE_MESSAGE = "Configuración de correo no disponible.";
+const SMTP_QUOTA_EXHAUSTED_MESSAGE = "Se alcanzó la cuota diaria de envío de esta cuenta. El envío se pausará y podrá reanudarse cuando exista nueva capacidad.";
 export const SMTP_CONFIG_UNAVAILABLE_CODE = "SMTP_CONFIGURATION_UNAVAILABLE";
+export const SMTP_QUOTA_EXHAUSTED_CODE = "SMTP_QUOTA_EXHAUSTED";
 
 export class CampaignMailError extends Error {
   constructor(message: string, readonly status = 400, readonly code?: string) {
@@ -41,7 +45,14 @@ export class CampaignMailService {
     private readonly campaignRepository = new CampaignRepository(),
     private readonly deliveryRepository = new EmailDeliveryRepository(),
     private readonly mailService = new MailService("PROV"),
+    private readonly defaultMailService = new MailService("DEFAULT"),
+    private readonly quotaService = new SmtpQuotaService(),
   ) {}
+
+  /** Resuelve el MailService correspondiente a la cuenta SMTP persistida. */
+  private mailServiceFor(account: SmtpAccount): MailService {
+    return account === "DEFAULT" ? this.defaultMailService : this.mailService;
+  }
 
   async sendTest(campaignId: number, toEmail: string, referenceRecipientId: number | null, actor: { userId: number; email: string }): Promise<{ messageId?: string }> {
     if (!isValidEmail(toEmail.trim().toLowerCase())) throw new CampaignMailError("Correo destinatario inválido.", 422, "INVALID_TO_EMAIL");
@@ -62,8 +73,8 @@ export class CampaignMailService {
     const html = renderTemplate(campaign.htmlContent, reference);
     const text = campaign.textContent ? renderTemplate(campaign.textContent, reference) : undefined;
 
-    const result = await this.deliver({ to: toEmail.trim(), subject, html, text, fromName: campaign.senderName ?? undefined, replyTo: campaign.replyTo ?? undefined });
-    await this.deliveryRepository.writeAudit(actor, "EMAIL_TEST_SENT", { campaignId, testRecipient: toEmail.trim().toLowerCase(), referenceRecipientId: referenceRecipientId ?? null });
+    const result = await this.deliver({ to: toEmail.trim(), subject, html, text, fromName: campaign.senderName ?? undefined, replyTo: campaign.replyTo ?? undefined }, toMailServiceAccount(campaign.smtpAccount));
+    await this.deliveryRepository.writeAudit(actor, "EMAIL_TEST_SENT", { campaignId, testRecipient: toEmail.trim().toLowerCase(), referenceRecipientId: referenceRecipientId ?? null, smtpAccount: campaign.smtpAccount });
     return result;
   }
 
@@ -113,6 +124,16 @@ export class CampaignMailService {
       return { outcome: "SKIPPED", skipReason: "IN_FLIGHT", email: recipient.email, priorSendCount: membership.sendCount };
     }
 
+    // Cuota diaria por cuenta (protege a DEFAULT de agotar la capacidad
+    // compartida con las notificaciones transaccionales). Se reserva ANTES de
+    // crear el delivery para no marcar el destinatario como fallido en pausa.
+    if (this.quotaService.getLimit(campaign.smtpAccount) !== null) {
+      const reservation = await this.quotaService.tryReserve(campaign.smtpAccount);
+      if (!reservation.allowed) {
+        throw new CampaignMailError(SMTP_QUOTA_EXHAUSTED_MESSAGE, 429, SMTP_QUOTA_EXHAUSTED_CODE);
+      }
+    }
+
     let delivery: { id: number; attemptNumber: number };
     try {
       delivery = await this.deliveryRepository.createPendingDelivery(campaignId, recipientId, recipient.email);
@@ -130,7 +151,7 @@ export class CampaignMailService {
     const text = campaign.textContent ? renderTemplate(campaign.textContent, recipient) : undefined;
 
     try {
-      const result = await this.deliver({ to: recipient.email, subject, html, text, fromName: campaign.senderName ?? undefined, replyTo: campaign.replyTo ?? undefined });
+      const result = await this.deliver({ to: recipient.email, subject, html, text, fromName: campaign.senderName ?? undefined, replyTo: campaign.replyTo ?? undefined }, toMailServiceAccount(campaign.smtpAccount));
       await this.deliveryRepository.markDeliverySent(delivery.id, result.messageId);
       await this.deliveryRepository.markRecipientSent(campaignId, recipientId);
       return { outcome: "SENT", email: recipient.email, deliveryId: delivery.id, attemptNumber: delivery.attemptNumber, priorSendCount: membership.sendCount, messageId: result.messageId };
@@ -152,9 +173,9 @@ export class CampaignMailService {
    * variables requeridas, sin abrir conexión. Lanza CampaignMailError con
    * SMTP_CONFIGURATION_UNAVAILABLE si falta configuración.
    */
-  validateSendConfiguration(): void {
+  validateSendConfiguration(account: SmtpAccount = "PROV"): void {
     try {
-      this.mailService.validateConfiguration();
+      this.mailServiceFor(account).validateConfiguration();
     } catch (error) {
       if (error instanceof ConfigurationError) {
         throw new CampaignMailError(SMTP_CONFIG_UNAVAILABLE_MESSAGE, 503, SMTP_CONFIG_UNAVAILABLE_CODE);
@@ -169,9 +190,9 @@ export class CampaignMailService {
     }
   }
 
-  private async deliver(options: { to: string; subject: string; html: string; text?: string; fromName?: string; replyTo?: string }): Promise<{ messageId?: string }> {
+  private async deliver(options: { to: string; subject: string; html: string; text?: string; fromName?: string; replyTo?: string }, account: SmtpAccount): Promise<{ messageId?: string }> {
     try {
-      return await this.mailService.sendMail(options);
+      return await this.mailServiceFor(account).sendMail(options);
     } catch (error) {
       if (error instanceof ConfigurationError) throw new CampaignMailError(SMTP_CONFIG_UNAVAILABLE_MESSAGE, 503, SMTP_CONFIG_UNAVAILABLE_CODE);
       throw error;

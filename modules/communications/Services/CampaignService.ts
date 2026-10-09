@@ -1,6 +1,7 @@
 import { EmailCampaignStatus } from "@prisma/client";
 import { CampaignRepository } from "../Repositories/CampaignRepository";
 import { isValidEmail } from "./Import/EmailProcessing";
+import { normalizeSmtpAccount } from "../Config/smtpAccounts";
 import type { CampaignDetail, CampaignInput, CampaignListItem, CampaignRecipientPreview, CampaignRecipientSelection } from "../Models/Campaign";
 
 export class CampaignServiceError extends Error {
@@ -29,8 +30,9 @@ export class CampaignService {
     if (input.replyTo?.trim() && !isValidEmail(input.replyTo.trim())) {
       throw new CampaignServiceError("El correo Reply-To no tiene un formato válido.", 422, ["replyTo"]);
     }
-    const created = await this.repository.createCampaign(input, actor.userId);
-    await this.repository.writeAudit(actor, "CAMPAIGN_CREATED", created.id, input.name.trim());
+    const normalized = { ...input, smtpAccount: normalizeSmtpAccount(input.smtpAccount) };
+    const created = await this.repository.createCampaign(normalized, actor.userId);
+    await this.repository.writeAudit(actor, "CAMPAIGN_CREATED", created.id, input.name.trim(), { smtpAccount: normalized.smtpAccount });
     return created;
   }
 
@@ -45,8 +47,8 @@ export class CampaignService {
     if (input.replyTo?.trim() && !isValidEmail(input.replyTo.trim())) {
       throw new CampaignServiceError("El correo Reply-To no tiene un formato válido.", 422, ["replyTo"]);
     }
-    await this.repository.updateCampaign(id, input);
-    await this.repository.writeAudit(actor, "CAMPAIGN_UPDATED", id, input.name.trim());
+    await this.repository.updateCampaign(id, { ...input, smtpAccount: normalizeSmtpAccount(input.smtpAccount) });
+    await this.repository.writeAudit(actor, "CAMPAIGN_UPDATED", id, input.name.trim(), { smtpAccount: normalizeSmtpAccount(input.smtpAccount) });
   }
 
   async getSelection(campaignId: number): Promise<CampaignRecipientSelection> {

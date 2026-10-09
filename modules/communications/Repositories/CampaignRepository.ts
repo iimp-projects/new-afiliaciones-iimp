@@ -1,4 +1,4 @@
-import { EmailCampaignStatus, EmailSendStatus, Prisma, type PrismaClient } from "@prisma/client";
+import { EmailCampaignStatus, EmailSendStatus, EmailSmtpAccount, Prisma, type PrismaClient } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import type { CampaignDetail, CampaignInput, CampaignListItem, CampaignRecipientPreview } from "../Models/Campaign";
 
@@ -36,6 +36,8 @@ export class CampaignRepository {
       senderName: row.senderName,
       senderEmail: row.senderEmail,
       replyTo: row.replyTo,
+      smtpAccount: row.smtpAccount,
+      pausedByQuota: row.pausedByQuota,
       htmlContent: row.htmlContent,
       textContent: row.textContent,
       status: row.status,
@@ -55,6 +57,7 @@ export class CampaignRepository {
         senderName: data.senderName?.trim() || null,
         senderEmail: data.senderEmail?.trim() || null,
         replyTo: data.replyTo?.trim() || null,
+        smtpAccount: data.smtpAccount ?? EmailSmtpAccount.PROV,
         htmlContent: data.htmlContent,
         textContent: data.textContent?.trim() || null,
         status: EmailCampaignStatus.DRAFT,
@@ -74,6 +77,7 @@ export class CampaignRepository {
         senderName: data.senderName?.trim() || null,
         senderEmail: data.senderEmail?.trim() || null,
         replyTo: data.replyTo?.trim() || null,
+        smtpAccount: data.smtpAccount ?? EmailSmtpAccount.PROV,
         htmlContent: data.htmlContent,
         textContent: data.textContent?.trim() || null,
       },
@@ -105,6 +109,20 @@ export class CampaignRepository {
   /** Heartbeat: reafirma SENDING y actualiza `updated_at` (señal de actividad del lote). */
   async touchCampaign(id: number): Promise<void> {
     await this.db.emailCampaign.update({ where: { id }, data: { status: EmailCampaignStatus.SENDING } });
+  }
+
+  /** Marca o limpia la marca de pausa por cuota diaria. */
+  async setPausedByQuota(id: number, paused: boolean): Promise<void> {
+    await this.db.emailCampaign.update({ where: { id }, data: { pausedByQuota: paused } });
+  }
+
+  /** Campañas READY pausadas por cuota, candidatas a reanudación automática. */
+  async listPausedByQuota(): Promise<Array<{ id: number; smtpAccount: EmailSmtpAccount }>> {
+    const rows = await this.db.emailCampaign.findMany({
+      where: { status: EmailCampaignStatus.READY, pausedByQuota: true },
+      select: { id: true, smtpAccount: true },
+    });
+    return rows;
   }
 
   async getSelectionData(): Promise<{

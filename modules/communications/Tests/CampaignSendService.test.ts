@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { EmailCampaignStatus } from "@prisma/client";
 import { CampaignSendService } from "../Services/CampaignSendService";
-import { CampaignMailError, SMTP_CONFIG_UNAVAILABLE_CODE } from "../Services/CampaignMailService";
+import { CampaignMailError, SMTP_CONFIG_UNAVAILABLE_CODE, SMTP_QUOTA_EXHAUSTED_CODE } from "../Services/CampaignMailService";
 import type { CampaignDetail } from "../Models/Campaign";
 
 const ACTOR = { userId: 1, email: "admin@iimp.org.pe" };
@@ -14,6 +14,8 @@ function campaign(overrides: Partial<CampaignDetail> = {}): CampaignDetail {
     senderName: "IIMP",
     senderEmail: "no-reply@iimp.org.pe",
     replyTo: "asociados@iimp.org.pe",
+    smtpAccount: "PROV",
+    pausedByQuota: false,
     htmlContent: "<p>x</p>",
     textContent: "x",
     status: EmailCampaignStatus.READY,
@@ -37,6 +39,8 @@ function setup() {
     finalizeCampaign: vi.fn(),
     touchCampaign: vi.fn(),
     setStatus: vi.fn(),
+    setPausedByQuota: vi.fn(),
+    listPausedByQuota: vi.fn().mockResolvedValue([]),
     writeAudit: vi.fn().mockResolvedValue(undefined),
   };
   const deliveryRepository = {
@@ -50,8 +54,12 @@ function setup() {
     assertReplyToValid: vi.fn(),
     validateSendConfiguration: vi.fn(),
   };
-  const service = new CampaignSendService(campaignRepository as never, deliveryRepository as never, mailService as never);
-  return { service, campaignRepository, deliveryRepository, mailService };
+  const quotaService = {
+    getLimit: vi.fn().mockReturnValue(null),
+    getUsed: vi.fn().mockResolvedValue(0),
+  };
+  const service = new CampaignSendService(campaignRepository as never, deliveryRepository as never, mailService as never, quotaService as never);
+  return { service, campaignRepository, deliveryRepository, mailService, quotaService };
 }
 
 const pending = (n: number) => Array.from({ length: n }, (_, i) => ({ recipientId: i + 1, email: `r${i + 1}@x.com`, name: `N${i + 1}`, company: null, position: null }));
@@ -86,6 +94,21 @@ describe("CampaignSendService.start", () => {
     campaignRepository.getCampaign.mockResolvedValue(campaign({ recipientCount: 0 }));
     await expect(service.start(1, ACTOR)).rejects.toMatchObject({ status: 422 });
     expect(campaignRepository.claimCampaignSending).not.toHaveBeenCalled();
+  });
+
+  it("campaña DEFAULT por encima del límite no puede iniciar (protege transaccionales)", async () => {
+    const { service, campaignRepository } = setup();
+    campaignRepository.getCampaign.mockResolvedValue(campaign({ smtpAccount: "DEFAULT", recipientCount: 5001 }));
+    await expect(service.start(1, ACTOR)).rejects.toMatchObject({ code: "CAMPAIGN_RECIPIENT_LIMIT_EXCEEDED", status: 422 });
+    expect(campaignRepository.claimCampaignSending).not.toHaveBeenCalled();
+  });
+
+  it("campaña PROV respeta su propio límite más amplio", async () => {
+    const { service, campaignRepository } = setup();
+    campaignRepository.getCampaign.mockResolvedValue(campaign({ smtpAccount: "PROV", recipientCount: 100 }));
+    campaignRepository.claimCampaignSending.mockResolvedValue(true);
+    await service.start(1, ACTOR);
+    expect(campaignRepository.claimCampaignSending).toHaveBeenCalled();
   });
 
   it("configuración SMTP faltante hace fail-fast y NO cambia READY->SENDING", async () => {
@@ -245,6 +268,49 @@ describe("CampaignSendService.processBatch", () => {
 
     expect(deliveryRepository.recoverStaleDeliveriesForCampaign).toHaveBeenCalledWith(1);
     expect(mailService.deliverRecipient).toHaveBeenCalledTimes(3);
+  });
+
+  it("cuota agotada pausa la campaña (SENDING -> READY) sin marcar fallidos ni finalizar", async () => {
+    const { service, campaignRepository, deliveryRepository, mailService } = setup();
+    campaignRepository.getCampaign.mockResolvedValue(campaign({ status: EmailCampaignStatus.SENDING, smtpAccount: "DEFAULT" }));
+    deliveryRepository.listPendingRecipients.mockResolvedValue(pending(5));
+    deliveryRepository.getCampaignStats.mockResolvedValue(stats({ sent: 0, pending: 5 }));
+    mailService.deliverRecipient.mockRejectedValue(new CampaignMailError("Se alcanzó la cuota diaria de envío de esta cuenta.", 429, SMTP_QUOTA_EXHAUSTED_CODE));
+
+    await expect(service.processBatch(1, ACTOR)).rejects.toMatchObject({ code: SMTP_QUOTA_EXHAUSTED_CODE, status: 429 });
+    expect(campaignRepository.setStatus).toHaveBeenCalledWith(1, EmailCampaignStatus.READY);
+    expect(campaignRepository.setPausedByQuota).toHaveBeenCalledWith(1, true);
+    expect(campaignRepository.finalizeCampaign).not.toHaveBeenCalled();
+    expect(campaignRepository.writeAudit).toHaveBeenCalledWith(ACTOR, "CAMPAIGN_SEND_PAUSED", 1, "Campaña", expect.objectContaining({ reason: SMTP_QUOTA_EXHAUSTED_CODE, smtpAccount: "DEFAULT" }));
+  });
+});
+
+describe("CampaignSendService.autoResumeEligible", () => {
+  it("reanuda campañas pausadas cuando hay capacidad diaria", async () => {
+    const { service, campaignRepository, quotaService } = setup();
+    campaignRepository.listPausedByQuota.mockResolvedValue([{ id: 5, smtpAccount: "DEFAULT" }]);
+    quotaService.getLimit.mockReturnValue(1500);
+    quotaService.getUsed.mockResolvedValue(0);
+    campaignRepository.claimCampaignSending.mockResolvedValue(true);
+
+    const result = await service.autoResumeEligible(ACTOR);
+
+    expect(campaignRepository.claimCampaignSending).toHaveBeenCalledWith(5, EmailCampaignStatus.READY);
+    expect(campaignRepository.setPausedByQuota).toHaveBeenCalledWith(5, false);
+    expect(result).toEqual({ resumed: 1 });
+  });
+
+  it("no reanuda cuando la cuota sigue agotada", async () => {
+    const { service, campaignRepository, quotaService } = setup();
+    campaignRepository.listPausedByQuota.mockResolvedValue([{ id: 5, smtpAccount: "DEFAULT" }]);
+    quotaService.getLimit.mockReturnValue(1500);
+    quotaService.getUsed.mockResolvedValue(1500);
+    campaignRepository.claimCampaignSending.mockResolvedValue(true);
+
+    const result = await service.autoResumeEligible(ACTOR);
+
+    expect(campaignRepository.claimCampaignSending).not.toHaveBeenCalled();
+    expect(result).toEqual({ resumed: 0 });
   });
 });
 

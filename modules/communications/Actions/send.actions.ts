@@ -110,3 +110,14 @@ export async function recoverStaleCampaignAction(campaignId: number): Promise<{ 
     return failure(error);
   }
 }
+
+export async function autoResumePausedCampaignsAction(): Promise<{ success: true; resumed: number } | { success: false; message: string; status?: number; code?: string }> {
+  try {
+    const actor = await requireActor();
+    const result = await new CampaignSendService().autoResumeEligible(actor);
+    if (result.resumed > 0) revalidatePath("/intranet/correos-masivos");
+    return { success: true, resumed: result.resumed };
+  } catch (error) {
+    return failure(error);
+  }
+}

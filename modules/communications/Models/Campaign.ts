@@ -1,4 +1,4 @@
-import type { EmailCampaignStatus } from "@prisma/client";
+import type { EmailCampaignStatus, EmailSmtpAccount } from "@prisma/client";
 
 export interface CampaignListItem {
   id: number;
@@ -16,6 +16,8 @@ export interface CampaignDetail {
   senderName: string | null;
   senderEmail: string | null;
   replyTo: string | null;
+  smtpAccount: EmailSmtpAccount;
+  pausedByQuota: boolean;
   htmlContent: string;
   textContent: string | null;
   status: EmailCampaignStatus;
@@ -32,6 +34,7 @@ export interface CampaignInput {
   senderName?: string | null;
   senderEmail?: string | null;
   replyTo?: string | null;
+  smtpAccount?: EmailSmtpAccount | null;
   htmlContent: string;
   textContent?: string | null;
 }

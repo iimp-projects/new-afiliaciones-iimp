@@ -9,9 +9,10 @@ import { CampaignPreviewModal } from "./CampaignPreviewModal";
 import { ImportRecipientsWizard } from "./ImportRecipientsWizard";
 import { backToDraftAction, cancelCampaignAction, markCampaignReadyAction, setCampaignRecipientsAction } from "../Actions/campaign.actions";
 import { deleteRecipientListAction, renameRecipientListAction } from "../Actions/recipient.actions";
-import { fetchDeliveryHistoryAction, processCampaignBatchAction, retryCampaignFailedAction, sendIndividualEmailAction, startCampaignSendAction } from "../Actions/send.actions";
+import { fetchDeliveryHistoryAction, processCampaignBatchAction, retryCampaignFailedAction, sendIndividualEmailAction, startCampaignSendAction, autoResumePausedCampaignsAction } from "../Actions/send.actions";
 import { formatDateTimeEsPe } from "@/modules/shared/Utils/formatDateTime";
 import { CAMPAIGN_POLL_INTERVAL_MS } from "../Config/campaignSend";
+import type { SmtpAccountOption } from "../Config/smtpAccounts";
 import type { CampaignDetail, CampaignRecipientPreview, CampaignRecipientSelection } from "../Models/Campaign";
 import type { CampaignSendProgress } from "../Models/CampaignSend";
 import type { CampaignRecipientView, CampaignSendStats, DeliveryView } from "../Repositories/EmailDeliveryRepository";
@@ -75,6 +76,7 @@ export function CampaignWorkspace({
   campaignRecipients,
   stats,
   senderEmail,
+  smtpAccountOptions,
 }: {
   campaign: CampaignDetail;
   selection: CampaignRecipientSelection;
@@ -82,6 +84,7 @@ export function CampaignWorkspace({
   campaignRecipients: CampaignRecipientView[];
   stats: CampaignSendStats;
   senderEmail: string | null;
+  smtpAccountOptions: SmtpAccountOption[];
 }) {
   const router = useRouter();
   const [tab, setTab] = useState<"resumen" | "contenido" | "destinatarios">("resumen");
@@ -117,10 +120,16 @@ export function CampaignWorkspace({
   }, [liveProgress, stats, campaign.id, campaign.status]);
 
   useEffect(() => {
+    // Reanudación automática de campañas pausadas por cuota (idempotente).
+    void autoResumePausedCampaignsAction().then((response) => {
+      if (response.success && response.resumed > 0) router.refresh();
+    });
+  }, [router]);
+
+  useEffect(() => {
     if (campaign.status !== "SENDING") return;
     let cancelled = false;
     let timer: ReturnType<typeof setInterval> | null = null;
-
     const tick = async () => {
       const response = await processCampaignBatchAction(campaign.id);
       if (cancelled) return;
@@ -249,7 +258,7 @@ export function CampaignWorkspace({
 
         {tab === "contenido" && (
           <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-            {isDraft ? <CampaignForm campaignId={campaign.id} initial={campaign} /> : (
+            {isDraft ? <CampaignForm campaignId={campaign.id} initial={campaign} smtpAccountOptions={smtpAccountOptions} /> : (
               <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-800">
                 La campaña no está en borrador. Vuelve a borrador para editar el contenido.
               </div>
@@ -311,7 +320,7 @@ export function CampaignWorkspace({
         />
       )}
 
-      {confirmSend && <MassSendModal campaign={campaign} stats={stats} onClose={() => setConfirmSend(false)} onConfirmed={() => { setConfirmSend(false); router.refresh(); }} />}
+      {confirmSend && <MassSendModal campaign={campaign} stats={stats} senderEmail={senderEmail} onClose={() => setConfirmSend(false)} onConfirmed={() => { setConfirmSend(false); router.refresh(); }} />}
 
       {confirmRetry && <RetryModal campaign={campaign} errorCount={stats.error} onClose={() => setConfirmRetry(false)} onConfirmed={() => { setConfirmRetry(false); router.refresh(); }} />}
     </main>
@@ -885,7 +894,7 @@ function ConfirmModal({ title, children, onClose, onConfirm, busy, disabled = fa
   );
 }
 
-function MassSendModal({ campaign, stats, onClose, onConfirmed }: { campaign: CampaignDetail; stats: CampaignSendStats; onClose: () => void; onConfirmed: () => void }) {
+function MassSendModal({ campaign, stats, senderEmail, onClose, onConfirmed }: { campaign: CampaignDetail; stats: CampaignSendStats; senderEmail: string | null; onClose: () => void; onConfirmed: () => void }) {
   const mounted = useGlobalModal();
   const [confirmation, setConfirmation] = useState("");
   const [busy, setBusy] = useState(false);
@@ -914,7 +923,8 @@ function MassSendModal({ campaign, stats, onClose, onConfirmed }: { campaign: Ca
           <p>Nombre: <strong>{campaign.name}</strong></p>
           <p>Asunto: <strong>{campaign.subject}</strong></p>
           <p>Cantidad de destinatarios únicos: <strong>{stats.recipients}</strong></p>
-          <p>Remitente: <strong>{campaign.senderName || "IIMP"}{campaign.senderEmail ? ` <${campaign.senderEmail}>` : ""}</strong></p>
+          <p>Remitente: <strong>{campaign.senderName || "IIMP"}{senderEmail ? ` <${senderEmail}>` : ""}</strong></p>
+          <p>Cuenta de envío: <strong>{campaign.smtpAccount === "DEFAULT" ? "Correo institucional (DEFAULT)" : "Correo de campañas (PROV)"}</strong></p>
           <p>Reply-To: <strong>{campaign.replyTo || "—"}</strong></p>
           <p>Estado actual: <strong>{statusLabel[campaign.status]}</strong></p>
         </div>
