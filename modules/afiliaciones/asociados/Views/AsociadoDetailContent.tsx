@@ -35,10 +35,15 @@ function useAssociateSieProfile(applicationId: number, shouldLoad: boolean, canR
     try {
       const response = await fetch(`/api/afiliaciones/asociados/${applicationId}/sie`, { cache: "no-store", signal: controller.signal });
       const body = await response.json() as { success?: boolean; data?: AssociateSieProfileResponse; message?: string };
-      if (!response.ok || !body.success || !body.data) throw new Error(body.message || "No pudimos consultar SIE en este momento.");
+      if (response.status === 401) { if (requestRef.current?.id === id) replaceState({ kind: "unauthenticated" }); return; }
+      if (response.status === 403) { if (requestRef.current?.id === id) replaceState({ kind: "forbidden" }); return; }
+      if (!response.ok || !body.success || !body.data) {
+        if (requestRef.current?.id === id) replaceState({ kind: "error", message: body.message || "No pudimos consultar SIE en este momento.", retryable: response.status === 502 || response.status === 503 });
+        return;
+      }
       if (requestRef.current?.id === id) replaceState({ kind: "loaded", data: body.data });
     } catch (error) {
-      if (!(error instanceof DOMException && error.name === "AbortError") && requestRef.current?.id === id) replaceState({ kind: "error", message: error instanceof Error ? error.message : "No pudimos consultar SIE en este momento." });
+      if (!(error instanceof DOMException && error.name === "AbortError") && requestRef.current?.id === id) replaceState({ kind: "error", message: "No fue posible conectar con SIE. Intenta nuevamente.", retryable: true });
     } finally { if (requestRef.current?.id === id) requestRef.current = null; }
   }, [applicationId, canReadMemberships, replaceState]);
   useEffect(() => { if (shouldLoad) void load(); }, [shouldLoad, load]);

@@ -45,12 +45,26 @@ describe("MembershipSieQuotaSummary", () => {
   it("representa disponibilidad vacía, error, no registrado y sin permiso sin solicitar datos", () => {
     expect(render({ kind: "idle" })).toContain("aún no fue consultada");
     expect(render({ kind: "loading" })).toContain("Consultando cuotas");
-    expect(render({ kind: "error", message: "SIE no disponible" })).toContain("SIE no disponible");
+    expect(render({ kind: "error", message: "SIE no disponible", retryable: true })).toContain("SIE no disponible");
     expect(render({ kind: "loaded", data: { registered: false, checkedAt: "2026-01-01T00:00:00.000Z" } })).toContain("no está registrado");
     expect(render({ kind: "forbidden" }, false)).toContain("Sin permiso");
   });
 
   it("muestra el acceso al detalle SIE con datos disponibles", () => {
     expect(render({ kind: "loaded", data: { registered: true, checkedAt: "2026-01-01T00:00:00.000Z", quotas: [quota()] } })).toContain("Ver detalle en SIE");
+  });
+
+  it("does not offer retry for expired sessions, missing permission, or non-retryable failures", () => {
+    const expired = render({ kind: "unauthenticated" });
+    const forbidden = render({ kind: "forbidden" });
+    const unexpected = render({ kind: "error", message: "No fue posible consultar SIE en este momento.", retryable: false });
+    const transient = render({ kind: "error", message: "SIE no está disponible.", retryable: true });
+
+    expect(expired).toContain("Sesión expirada");
+    expect(expired).not.toContain("Reintentar");
+    expect(forbidden).toContain("Sin permiso");
+    expect(forbidden).not.toContain("Reintentar");
+    expect(unexpected).not.toContain("Reintentar");
+    expect(transient).toContain("Reintentar");
   });
 });
