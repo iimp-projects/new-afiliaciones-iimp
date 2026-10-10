@@ -71,6 +71,8 @@ export const securityModuleDefinition: ModuleDefinition = {
                     href: "/intranet/security/roles",
                     icon: "KeyRound",
                     order: 2,
+                    // Ocultado temporalmente del men├║ lateral (reversible).
+                    visibility: "hidden",
                     // Solo visible si el rol tiene permiso de 'read:roles'
                     permission: { action: "read", subject: "roles" }
                 },
@@ -80,6 +82,8 @@ export const securityModuleDefinition: ModuleDefinition = {
                     href: "/intranet/security/audit",
                     icon: "Activity",
                     order: 3,
+                    // Ocultado temporalmente del men├║ lateral (reversible).
+                    visibility: "hidden",
                     // Solo visible si el rol tiene permiso de 'read:audit'
                     permission: { action: "read", subject: "audit" }
                 },

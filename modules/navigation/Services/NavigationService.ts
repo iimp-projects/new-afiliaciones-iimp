@@ -23,6 +23,10 @@ export class NavigationService {
         const result: NavigationNode[] = [];
 
         for (const node of nodes) {
+            // Nodos marcados como ocultos (visibility: "hidden") se podan para
+            // todos los usuarios, incluido SUPER_ADMIN. Reversible.
+            if (node.visibility === "hidden") continue;
+
             const isAffiliate = await this.authProvider.isAffiliate?.() ?? false;
             const audience = node.audience ?? inheritedAudience;
 
