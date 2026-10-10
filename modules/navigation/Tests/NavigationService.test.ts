@@ -32,7 +32,21 @@ describe("NavigationService - Application Service", () => {
         const securityNode = tree.find(node => node.id === "group-security");
 
         expect(securityNode).toBeDefined();
-        expect(securityNode?.children?.length).toBe(4);
+        expect(securityNode?.children?.length).toBe(2);
+    });
+
+    it("oculta Roles y Permisos y Auditor├¡a del Sistema para SUPER_ADMIN", async () => {
+        const superAdminProvider = new MockAuthProvider(new Set(["manage:all"]));
+        const service = new NavigationService(superAdminProvider);
+
+        const tree = await service.getAuthorizedTree();
+        const securityNode = tree.find(node => node.id === "group-security");
+        const childIds = (securityNode?.children ?? []).map((child) => child.id);
+
+        expect(childIds).toContain("nav-security-users");
+        expect(childIds).toContain("nav-security-system-settings");
+        expect(childIds).not.toContain("nav-security-roles");
+        expect(childIds).not.toContain("nav-security-audit");
     });
 
     it("Debe podar las rutas no autorizadas para un usuario limitado", async () => {
