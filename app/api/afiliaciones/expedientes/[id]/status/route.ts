@@ -158,12 +158,16 @@ export async function PATCH(
         }
 
         // 6. Lanzamiento de Eventos / Notificaciones (Fuera de la transacción para no bloquear)
+        const attachment = attachmentUrl
+            ? { applicationId: appId, attachmentUrl, attachmentName, mimeType }
+            : undefined;
+
         if (targetAreaStatus === ValidationStatus.APPROVED) {
             const notifyService = new NotifyComiteService();
-            notifyService.execute(appId).catch(console.error);
+            notifyService.execute(appId, false, undefined, undefined, undefined, attachment).catch(console.error);
         } else if (targetAreaStatus === ValidationStatus.OBSERVED) {
             const notifyApplicant = new NotifyApplicantService();
-            notifyApplicant.notifyObservationCreated(appId, plainTextReason, normalizedFieldPaths).catch(console.error);
+            notifyApplicant.notifyObservationCreated(appId, plainTextReason, normalizedFieldPaths, attachment).catch(console.error);
         }
 
         return NextResponse.json({ success: true, message: "Estado y observaciones actualizadas correctamente." }, { status: 200 });
