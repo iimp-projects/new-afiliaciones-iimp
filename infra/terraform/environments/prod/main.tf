@@ -54,6 +54,7 @@ module "security" {
   vpc_id            = module.network.vpc_id
   app_port          = 3000
   smtp_egress_ports = [25, 465, 587]
+  sie_egress_ports  = [8443]
   tags              = local.common_tags
 }
 

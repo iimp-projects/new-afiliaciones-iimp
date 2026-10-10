@@ -140,6 +140,7 @@ docker rm -f "$CONTAINER" 2>/dev/null || true
 docker run -d \
   --name "$CONTAINER" \
   --restart unless-stopped \
+  --cap-add SYS_ADMIN \
   -p "$APP_PORT:3000" \
   --env-file "$ENV_FILE" \
   "$IMAGE"
