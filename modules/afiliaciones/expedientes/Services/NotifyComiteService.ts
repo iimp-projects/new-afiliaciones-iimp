@@ -1,13 +1,14 @@
 import { prisma } from "@/lib/prisma";
 import { MailService } from "@/modules/shared/Services/MailService";
 import { DeclarationPdfService } from "@/modules/afiliaciones/postulacion/Services/DeclarationPdfService";
+import { StatusChangeAttachmentService, type StatusChangeAttachmentRef, type ResolvedEmailAttachment } from "@/modules/afiliaciones/expedientes/Services/StatusChangeAttachmentService";
 import { ValidationAction } from "@prisma/client";
 import { emailLayout } from "@/modules/shared/Email/EmailLayout";
 import { emailInfoBox } from "@/modules/shared/Email/EmailComponents";
 import { escapeHtml } from "@/modules/shared/Email/EmailEscaping";
 
 export class NotifyComiteService {
-  async execute(applicationId: number, isManualResend: boolean = false, targetUserId?: number, actorId?: number, actorName?: string) {
+  async execute(applicationId: number, isManualResend: boolean = false, targetUserId?: number, actorId?: number, actorName?: string, attachment?: StatusChangeAttachmentRef) {
     const app = await prisma.membershipApplication.findUnique({
       where: { id: applicationId },
       include: {
@@ -83,15 +84,27 @@ export class NotifyComiteService {
     `;
 
     const html = emailLayout({ category: "Comité Evaluador", title: "Expediente Listo para Evaluación", summary: "Notificación interna para Comité Evaluador.", variant: "info", content: `<p>Estimados miembros del Comité Evaluador,</p><p>El expediente de <strong>${escapeHtml(postulanteName)}</strong> (Cód: ${escapeHtml(app.applicationCode)}) ha superado exitosamente los filtros administrativos previos y está listo para su veredicto final.</p>${emailInfoBox(`<strong>Resumen de Aprobaciones:</strong><ul><li>✓ <strong>Avales:</strong> Confirmados por ${escapeHtml(avalesNames)}</li><li>✓ <strong>Atención al Asociado:</strong> Revisado por ${escapeHtml(asocName)}</li><li>✓ <strong>Logística:</strong> Validado por ${escapeHtml(logName)}</li></ul>`, "info")}<p>Se adjunta la ficha de postulación en formato PDF para su respectiva revisión técnica.</p>` });
+
+    const attachments: ResolvedEmailAttachment[] = [{
+      filename: `Expediente_${app.applicationCode}.pdf`,
+      content: Buffer.from(pdfBuffer as any),
+      contentType: "application/pdf"
+    }];
+    if (attachment?.attachmentUrl) {
+      try {
+        const evidence = await new StatusChangeAttachmentService().resolve(attachment);
+        attachments.push(...evidence);
+      } catch (error) {
+        console.error("[NotifyComite] No se pudo adjuntar la evidencia al correo:", error instanceof Error ? error.message : "error desconocido");
+        return;
+      }
+    }
+
     await mailService.sendMail({
       to: comiteEmails,
       subject: `Nuevo Expediente para Comité - ${postulanteName}`,
       html,
-      attachments: [{
-        filename: `Expediente_${app.applicationCode}.pdf`,
-        content: Buffer.from(pdfBuffer as any),
-        contentType: "application/pdf"
-      }]
+      attachments
     });
 
     // ¡LA MAGIA DEL HISTORIAL!: Inyectamos el evento en la Línea de Tiempo del expediente

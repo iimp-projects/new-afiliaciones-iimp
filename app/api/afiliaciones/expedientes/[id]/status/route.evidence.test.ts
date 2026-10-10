@@ -133,6 +133,18 @@ describe("status route — evidencia de cambio de estado", () => {
     expect(mocks.observationCreate.mock.calls[0][0].data.attachmentUrl).toBeNull();
   });
 
+  it("OBSERVED + evidencia transmite la referencia del adjunto a la notificación", async () => {
+    const res = await PATCH(makeRequest({ newStatus: "OBSERVED", reason: "Falta info", fieldPaths: ["personalInformation.phone"], ...evidence }), context);
+    expect(res.status).toBe(200);
+    expect(mocks.notifyApplicant).toHaveBeenCalledWith(26, "Falta info", ["personalInformation.phone"], expect.objectContaining({ attachmentUrl: evidence.attachmentUrl }));
+  });
+
+  it("APPROVED + evidencia transmite la referencia del adjunto a la notificación del comité", async () => {
+    const res = await PATCH(makeRequest({ newStatus: "APPROVED", reason: "Conforme", ...evidence }), context);
+    expect(res.status).toBe(200);
+    expect(mocks.notifyComite).toHaveBeenCalledWith(26, false, undefined, undefined, undefined, expect.objectContaining({ attachmentUrl: evidence.attachmentUrl }));
+  });
+
   it("REJECTED + evidencia persiste en el historial", async () => {
     const res = await PATCH(makeRequest({ newStatus: "REJECTED", reason: "Rechazado", ...evidence }), context);
     expect(res.status).toBe(200);
