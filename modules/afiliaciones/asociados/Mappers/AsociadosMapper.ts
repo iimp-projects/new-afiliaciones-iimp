@@ -14,13 +14,14 @@ export class AsociadosMapper {
     const fullName = `${user.person?.firstName ?? ""} ${user.person?.paternalLastName ?? ""} ${user.person?.maternalLastName ?? ""}`.trim();
     const initials = `${user.person?.firstName?.charAt(0) ?? ""}${user.person?.paternalLastName?.charAt(0) ?? ""}`.toUpperCase();
     const code = user.person?.documentNumber ?? "No registrado";
+    const institutionalCode = user.institutionalCode ?? null;
     const documentType = user.person?.documentType;
     const primaryContact = user.person?.contacts?.find((contact: any) => contact.isPrimary) ?? user.person?.contacts?.[0];
     const academicUniversity = user.person?.academicInfos?.[0]?.university?.name;
     const company = user.person?.professionalExperiences?.[0]?.company?.name ?? user.person?.employmentInfos?.[0]?.company?.name;
     const primaryBadge = { label: isStudent ? "Asociado Estudiante" : "Asociado Activo", icon: (isStudent ? "graduation" : "person") as PrimaryBadgeIcon, colorClass: isStudent ? "bg-[#EEF2FF] text-[#4F46B8]" : "bg-[#FFF4DE] text-[#9A6A1F]" };
     const validations: AtomicValidation[] = [
-      cardLine("UserCheck", "Código", code, "check", "bg-emerald-50 text-emerald-700", "Activo"),
+      cardLine("UserCheck", "Código de asociado", institutionalCode ?? "No disponible", institutionalCode ? "check" : "dash", institutionalCode ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600", "SIE"),
       cardLine("CalendarDays", "Miembro desde", memberSince ? formatPeruDate(memberSince) : "No registrado", memberSince ? "check" : "dash", memberSince ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600", "IIMP"),
       cardLine(isStudent ? "GraduationCap" : "BriefcaseBusiness", isStudent ? "Institución" : "Empresa", isStudent ? (academicUniversity ?? "No registrada") : (company ?? "No registrada"), isStudent ? (academicUniversity ? "check" : "dash") : (company ? "check" : "dash"), isStudent ? (academicUniversity ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600") : (company ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600")),
       cardLine("CreditCard", "Inscripción", paidPayment ? "Pagada" : isStudent ? "Gratuita" : "Sin pago registrado", paidPayment || isStudent ? "check" : "dash", paidPayment || isStudent ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600", paidPayment && !isStudent ? `S/ ${Number(paidPayment.totalAmount).toFixed(2)}` : undefined),

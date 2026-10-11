@@ -14,6 +14,24 @@ interface FetchAsociadosParams {
   sort?: string; // ✅ Añadido
 }
 
+function resolveInstitutionalCode(person: any): string | null {
+  const sieRecord = person?.sieAssociateRecords?.find(
+    (record: any) =>
+      record.externalCode?.trim() &&
+      (record.category?.mappedAffiliateType === "ACTIVE" || record.category?.mappedAffiliateType === "STUDENT"),
+  );
+  if (sieRecord) return sieRecord.externalCode.trim();
+  const application = person?.applications?.[0];
+  if (
+    application?.status === "COMPLETED" &&
+    application?.associateIntegration?.status === "SYNCED" &&
+    application.associateIntegration.externalAssociateCode != null
+  ) {
+    return String(application.associateIntegration.externalAssociateCode);
+  }
+  return null;
+}
+
 
 export async function fetchAsociadosAction(params: FetchAsociadosParams) {
   try {
@@ -54,6 +72,7 @@ export async function fetchAsociadosAction(params: FetchAsociadosParams) {
             orderBy: { createdAt: "desc" },
             include: { billing: { include: { country: true, invoice: true } } },
           },
+          associateIntegration: true,
           person: {
             include: {
               nationality: true,
@@ -62,6 +81,7 @@ export async function fetchAsociadosAction(params: FetchAsociadosParams) {
               academicInfos: { include: { specialty: true, university: true, degree: true } },
               employmentInfos: { orderBy: { updatedAt: "desc" }, include: { company: true, position: true } },
               professionalExperiences: { orderBy: [{ isCurrent: "desc" }, { updatedAt: "desc" }], include: { company: true, position: true } },
+              sieAssociateRecords: { where: { linkStatus: "LINKED" }, include: { category: true } },
               applications: {
                 where: { deletedAt: null },
                 orderBy: { updatedAt: "desc" },
@@ -99,6 +119,7 @@ export async function fetchAsociadosAction(params: FetchAsociadosParams) {
       role: person?.user?.role ?? { slug: application.affiliateType === "STUDENT" ? "ASOCIADO_ESTUDIANTE" : "ASOCIADO_ACTIVO", name: application.affiliateType === "STUDENT" ? "Asociado Estudiante" : "Asociado Activo" },
       createdAt: person?.user?.createdAt ?? application.createdAt, updatedAt: application.updatedAt, lastLoginAt: person?.user?.lastLoginAt ?? null, systemUser: null,
       person: person ? { ...person, applications: [safeApplicationData] } : null,
+      institutionalCode: person ? resolveInstitutionalCode(person) : null,
       affiliateAvatarUrl: await resolveAffiliatePhoto(person?.applications ?? []),
     }); }));
 
