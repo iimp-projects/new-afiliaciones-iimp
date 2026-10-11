@@ -8,6 +8,7 @@ import {
   detectDuplicateCodes,
   maskDocument,
   type ActiveCodeDecision,
+  type SyncExistingRecord,
   type SyncPerson,
   type SyncRecord,
 } from "../modules/afiliaciones/associates-integration/Services/SieActiveCodeSyncService";
@@ -126,25 +127,39 @@ async function main(): Promise<void> {
       .filter((r) => !duplicateCodes.has(r.externalCode?.trim() ?? ""))
       .map((r) => ({ documentType: mapSieDocumentType(r.documentType) as DocumentType, documentNumber: r.documentNumber }));
 
-    const persons = await prisma.person.findMany({
-      where: { OR: docPairs.map((p) => ({ documentType: p.documentType, documentNumber: p.documentNumber })) },
-      select: { id: true, documentType: true, documentNumber: true, firstName: true, paternalLastName: true, maternalLastName: true },
-    });
-    const personByDoc = new Map(persons.map((p) => [`${p.documentType}|${p.documentNumber}`, p]));
+    const CHUNK = 500;
+
+    const personByDoc = new Map<string, { id: number; documentType: string; documentNumber: string; firstName: string; paternalLastName: string; maternalLastName: string | null }>();
+    for (let i = 0; i < docPairs.length; i += CHUNK) {
+      const chunk = docPairs.slice(i, i + CHUNK);
+      const persons = await prisma.person.findMany({
+        where: { OR: chunk.map((p) => ({ documentType: p.documentType, documentNumber: p.documentNumber })) },
+        select: { id: true, documentType: true, documentNumber: true, firstName: true, paternalLastName: true, maternalLastName: true },
+      });
+      for (const p of persons) personByDoc.set(`${p.documentType}|${p.documentNumber}`, p);
+    }
 
     const codes = records.map((r) => r.externalCode?.trim() ?? "").filter(Boolean);
-    const existingByCode = await prisma.sieAssociateRecord.findMany({
-      where: { provider: "SIE", externalCode: { in: codes } },
-      select: { externalCode: true, personId: true, linkStatus: true },
-    });
-    const recordByCode = new Map(existingByCode.map((r) => [r.externalCode, r]));
+    const recordByCode = new Map<string, SyncExistingRecord>();
+    for (let i = 0; i < codes.length; i += CHUNK) {
+      const chunk = codes.slice(i, i + CHUNK);
+      const rows = await prisma.sieAssociateRecord.findMany({
+        where: { provider: "SIE", externalCode: { in: chunk } },
+        select: { externalCode: true, personId: true, linkStatus: true },
+      });
+      for (const r of rows) recordByCode.set(r.externalCode, r);
+    }
 
-    const personIds = [...new Set(persons.map((p) => p.id))];
-    const linkedByPersonRows = await prisma.sieAssociateRecord.findMany({
-      where: { personId: { in: personIds }, linkStatus: SieLinkStatus.LINKED },
-      select: { externalCode: true, personId: true, linkStatus: true },
-    });
-    const linkedByPerson = new Map(linkedByPersonRows.map((r) => [r.personId as number, r]));
+    const personIds = [...new Set([...personByDoc.values()].map((p) => p.id))];
+    const linkedByPerson = new Map<number, SyncExistingRecord>();
+    for (let i = 0; i < personIds.length; i += CHUNK) {
+      const chunk = personIds.slice(i, i + CHUNK);
+      const rows = await prisma.sieAssociateRecord.findMany({
+        where: { personId: { in: chunk }, linkStatus: SieLinkStatus.LINKED },
+        select: { externalCode: true, personId: true, linkStatus: true },
+      });
+      for (const r of rows) linkedByPerson.set(r.personId as number, r);
+    }
 
     const decisions: Decision[] = [];
     for (const record of records) {
