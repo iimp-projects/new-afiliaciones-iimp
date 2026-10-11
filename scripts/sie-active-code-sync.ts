@@ -185,14 +185,35 @@ async function main(): Promise<void> {
 
     if (mode === "candidates") {
       const links = decisions.filter((d): d is { record: SanitizedSieAssociate; decision: Extract<ActiveCodeDecision, { kind: "LINK" }> } => d.decision !== "SKIP_DUPLICATE_CODE" && d.decision.kind === "LINK");
-      const preview = links.slice(0, 10).map(({ record, decision }) => ({
-        document: maskDocument(record.documentNumber),
-        documentType: record.documentType,
-        externalCode: maskDocument(decision.externalCode),
-        personId: decision.personId,
-        categoryCode: record.sourceType,
-      }));
-      console.log(JSON.stringify({ mode: "candidates", totalLinks: links.length, preview }, null, 2));
+
+      const linkPersonIds = [...new Set(links.map((l) => l.decision.personId))];
+      const completedSet = new Set<number>();
+      const userSet = new Set<number>();
+      for (let i = 0; i < linkPersonIds.length; i += CHUNK) {
+        const chunk = linkPersonIds.slice(i, i + CHUNK);
+        const [apps, users] = await Promise.all([
+          prisma.membershipApplication.findMany({ where: { personId: { in: chunk }, status: "COMPLETED", deletedAt: null }, select: { personId: true } }),
+          prisma.user.findMany({ where: { personId: { in: chunk } }, select: { personId: true } }),
+        ]);
+        for (const a of apps) completedSet.add(a.personId as number);
+        for (const u of users) userSet.add(u.personId as number);
+      }
+
+      const preview = links
+        .slice(0, 30)
+        .map(({ record, decision }) => ({
+          document: maskDocument(record.documentNumber),
+          documentType: record.documentType,
+          externalCode: maskDocument(decision.externalCode),
+          personId: decision.personId,
+          categoryCode: record.sourceType,
+          hasCompleted: completedSet.has(decision.personId),
+          hasUser: userSet.has(decision.personId),
+        }))
+        .filter((c) => c.hasCompleted && c.hasUser)
+        .slice(0, 10);
+
+      console.log(JSON.stringify({ mode: "candidates", totalLinks: links.length, withCompletedAndUser: preview.length, preview }, null, 2));
       return;
     }
 
