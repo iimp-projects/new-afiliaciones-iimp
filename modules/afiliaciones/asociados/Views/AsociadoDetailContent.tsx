@@ -13,6 +13,7 @@ import type { AssociateSieProfileResponse } from "../Services/AssociateSieProfil
 import { formatCalendarDate, formatPeruDate, formatPeruDateTime } from "@/modules/shared/Utils/formatPeruDateTime";
 import { documentTypeLabel } from "@/modules/shared/Utils/documentType";
 import { AsociadosMapper } from "../Mappers/AsociadosMapper";
+import { AdminCarnetPanel } from "@/modules/afiliaciones/carnet/Views/AdminCarnetPanel";
 
 const formatDate = (value: string | Date | null | undefined, withTime = false) => value ? (withTime ? formatPeruDateTime(value) : formatPeruDate(value)) : "No registrado";
 const formatBirthDate = (value: string | Date | null | undefined) => value ? formatCalendarDate(value) : "No registrado";
@@ -111,6 +112,7 @@ export function AsociadoDetailContent({ tab, user, canResetSandboxPayments = fal
   if (tab === "membresia-pagos") return <MembershipPaymentsTab user={user} application={application} payments={payments} paidPayments={paidPayments} documents={documents} category={category} code={code} memberSince={memberSince} sieState={sieState} onRefreshSie={refreshSie} canReadMemberships={canReadMemberships} canResetSandboxPayments={canResetSandboxPayments}/>;
   if (tab === "cuenta") return <div className="space-y-5"><Section icon={<UserCircle2/>} title="Cuenta y acceso"><div className="grid gap-5 sm:grid-cols-2"><Field label="Estado de cuenta" value={label(user.status ?? "PENDING")}/><Field label="Usuario" value={user.email}/><Field label="Creada" value={formatDate(user.createdAt)}/><Field label="Último acceso" value={formatDate(user.lastLoginAt, true)}/><Field label="Rol" value={user.role?.name ?? user.role?.slug}/></div></Section><p className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm leading-6 text-slate-500">Esta ficha no muestra ni gestiona contraseñas. La creación automática de cuentas y enlaces seguros de acceso corresponde a una fase posterior.</p></div>;
   if (tab === "historial") return <HistoryTab user={user} applications={applications} payments={paidPayments}/>;
+  if (tab === "carnet" && typeof person.id === "number") return <AdminCarnetPanel personId={person.id}/>;
   return <Empty text="No hay información disponible."/>;
 }
 
