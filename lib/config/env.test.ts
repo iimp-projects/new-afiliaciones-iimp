@@ -7,6 +7,7 @@ import {
   ConfigurationError,
   assertStartupConfig,
   getAppBaseUrl,
+  getCardIssuanceEnabled,
   getPaymentAuthSecret,
   getSapConfig,
   getS3Config,
@@ -174,6 +175,19 @@ describe("feature configuration (lazy)", () => {
   it("getPaymentAuthSecret exige al menos 32 caracteres", () => {
     expect(() => getPaymentAuthSecret({ PAYMENT_AUTH_SECRET: "corto" })).toThrow(ConfigurationError);
     expect(getPaymentAuthSecret({ PAYMENT_AUTH_SECRET: "x".repeat(32) })).toHaveLength(32);
+  });
+});
+
+describe("getCardIssuanceEnabled", () => {
+  it("está deshabilitada por defecto", () => {
+    expect(getCardIssuanceEnabled({})).toBe(false);
+    expect(getCardIssuanceEnabled({ CARD_ISSUANCE_ENABLED: "false" })).toBe(false);
+    expect(getCardIssuanceEnabled({ CARD_ISSUANCE_ENABLED: "" })).toBe(false);
+  });
+
+  it("se habilita únicamente con 'true'", () => {
+    expect(getCardIssuanceEnabled({ CARD_ISSUANCE_ENABLED: "true" })).toBe(true);
+    expect(getCardIssuanceEnabled({ CARD_ISSUANCE_ENABLED: "TRUE" })).toBe(true);
   });
 });
 

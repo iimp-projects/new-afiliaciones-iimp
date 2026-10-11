@@ -351,3 +351,15 @@ export function getWhatsAppConfig(env: EnvSource = process.env): WhatsAppConfig 
   if (issues.length) throw new ConfigurationError(issues);
   return { phoneNumberId: phoneNumberId as string, accessToken: accessToken as string, graphApiVersion };
 }
+
+/**
+ * Control server-side de la emisión oficial de carnets virtuales.
+ *
+ * Deshabilitada por defecto; se habilita explícitamente con
+ * `CARD_ISSUANCE_ENABLED=true`. Reutiliza el mismo mecanismo de configuración
+ * por entorno que el resto de integraciones (validación al usarse, sin bloquear
+ * el arranque).
+ */
+export function getCardIssuanceEnabled(env: EnvSource = process.env): boolean {
+  return env.CARD_ISSUANCE_ENABLED?.trim().toLowerCase() === "true";
+}

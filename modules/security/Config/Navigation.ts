@@ -167,6 +167,7 @@ export const securityModuleDefinition: ModuleDefinition = {
             order: 15,
             children: [
                 { id: "nav-affiliate-profile", title: "Mi perfil", href: "/intranet/mi-cuenta/perfil", icon: "UserRound", order: 1 },
+                { id: "nav-affiliate-carnet", title: "Mi carnet virtual", href: "/intranet/mi-cuenta/carnet", icon: "IdCard", order: 2 },
                 { id: "nav-affiliate-membership", title: "Mi membresía", href: "/intranet/mi-cuenta/membresia", icon: "CreditCard", order: 3 },
                 { id: "nav-affiliate-payments", title: "Pagos y comprobantes", href: "/intranet/mi-cuenta/pagos", icon: "FileText", order: 4 },
                 { id: "nav-affiliate-benefits", title: "Beneficios", href: "/intranet/mi-cuenta/beneficios", icon: "Gift", order: 5 },
