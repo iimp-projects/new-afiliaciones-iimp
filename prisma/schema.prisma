@@ -343,6 +343,10 @@ model MembershipApplication {
 
   operationalAlertTrackings OperationalAlertTracking[]
 
+  notifications Notification[]
+
+  transactionalEmails TransactionalEmail[]
+
   @@index([documentNumber])
   @@index([documentNumber, status])
   @@index([email])
@@ -947,20 +951,57 @@ model AddressType {
 }
 
 model Notification {
-  id        Int                 @id @default(autoincrement())
-  userId    Int                 @map("user_id")
-  channel   NotificationChannel @default(IN_APP)
-  title     String              @db.VarChar(200)
-  message   String
-  status    NotificationStatus  @default(UNREAD)
-  readAt    DateTime?           @map("read_at")
-  createdAt DateTime            @default(now()) @map("created_at")
-  updatedAt DateTime            @updatedAt @map("updated_at")
-  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            Int                    @id @default(autoincrement())
+  userId        Int                    @map("user_id")
+  channel       NotificationChannel    @default(IN_APP)
+  type          String?                @db.VarChar(100)
+  severity      String?                @db.VarChar(20)
+  title         String                 @db.VarChar(200)
+  message       String
+  status        NotificationStatus     @default(UNREAD)
+  applicationId Int?                   @map("application_id")
+  entityType    String?                @map("entity_type") @db.VarChar(100)
+  entityId      String?                @map("entity_id") @db.VarChar(100)
+  metadata      Json?                  @map("metadata")
+  dedupKey      String?                @unique @map("dedup_key") @db.VarChar(255)
+  href          String?                @db.VarChar(500)
+  readAt        DateTime?              @map("read_at")
+  archivedAt    DateTime?              @map("archived_at")
+  createdAt     DateTime               @default(now()) @map("created_at")
+  updatedAt     DateTime               @updatedAt @map("updated_at")
+  user          User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  application   MembershipApplication? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([status])
+  @@index([userId, createdAt])
   @@map("sys_notifications")
+}
+
+model TransactionalEmail {
+  id                Int                     @id @default(autoincrement())
+  event             String?                 @db.VarChar(100)
+  templateName      String?                 @map("template_name") @db.VarChar(150)
+  applicationId     Int?                    @map("application_id")
+  recipient         String                  @db.VarChar(255)
+  status            TransactionalEmailStatus @default(PENDING)
+  attemptCount      Int                     @default(0) @map("attempt_count")
+  messageId         String?                 @map("message_id") @db.VarChar(255)
+  smtpAcceptedAt    DateTime?               @map("smtp_accepted_at")
+  lastError         String?                 @map("last_error") @db.Text
+  requiresAttention Boolean                 @default(false) @map("requires_attention")
+  correlationId     String?                 @map("correlation_id") @db.VarChar(100)
+  idempotencyKey    String?                 @unique @map("idempotency_key") @db.VarChar(255)
+  createdAt         DateTime                @default(now()) @map("created_at")
+  updatedAt         DateTime                @updatedAt @map("updated_at")
+
+  application MembershipApplication? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+
+  @@index([applicationId])
+  @@index([status])
+  @@index([recipient])
+  @@index([createdAt])
+  @@map("sys_transactional_emails")
 }
 
 model OperationalAlertTracking {
@@ -1310,6 +1351,15 @@ enum NotificationStatus {
   UNREAD
   READ
   ARCHIVED
+}
+
+enum TransactionalEmailStatus {
+  PENDING
+  SENDING
+  ACCEPTED
+  FAILED
+  RETRY_PENDING
+  EXHAUSTED
 }
 
 enum OperationalAlertStatus {
