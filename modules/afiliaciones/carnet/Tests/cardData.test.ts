@@ -38,77 +38,80 @@ function buildDb(overrides: { person?: PersonRow | null; card?: unknown } = {}) 
   return db as unknown as PrismaClient;
 }
 
-const completedSyncedApplication = {
-  status: "COMPLETED",
-  affiliateType: "ACTIVE" as const,
-  documents: [],
-  associateIntegration: { status: "SYNCED", externalAssociateCode: 12345 },
-};
+describe("resolveCardData (regla simplificada temporal)", () => {
+  const activeCompleted = { status: "COMPLETED", affiliateType: "ACTIVE" as const, documents: [], associateIntegration: null };
+  const studentCompleted = { status: "COMPLETED", affiliateType: "STUDENT" as const, documents: [], associateIntegration: null };
 
-describe("resolveCardData", () => {
-  it("es elegible para un asociado nuevo con postulación COMPLETED y SIE SYNCED", async () => {
+  it("Activo + COMPLETED → elegible (sin código SIE)", async () => {
     const person: PersonRow = {
       firstName: "María", paternalLastName: "Pérez", maternalLastName: "López",
       user: { image: null },
-      applications: [completedSyncedApplication],
+      applications: [activeCompleted],
       sieAssociateRecords: [],
     };
     const result = await resolveCardData(1, buildDb({ person }));
     expect(result.eligible).toBe(true);
-    expect(result.source).toBe("NEW");
-    expect(result.code).toBe("12345");
     expect(result.category).toBe("Asociado Activo");
+    expect(result.code).toBeNull();
     expect(result.notFound).toBe(false);
   });
 
-  it("es elegible para un asociado migrado con registro SIE LINKED y categoría permitida", async () => {
+  it("Estudiante + COMPLETED → elegible (sin código SIE)", async () => {
     const person: PersonRow = {
       firstName: "Juan", paternalLastName: "García", maternalLastName: null,
       user: { image: null },
-      applications: [],
-      sieAssociateRecords: [
-        { externalCode: "999", category: { mappedAffiliateType: "STUDENT", name: "Estudiante" } },
-      ],
+      applications: [studentCompleted],
+      sieAssociateRecords: [],
     };
     const result = await resolveCardData(1, buildDb({ person }));
     expect(result.eligible).toBe(true);
-    expect(result.source).toBe("MIGRATED");
-    expect(result.code).toBe("999");
     expect(result.category).toBe("Asociado Estudiante");
+    expect(result.code).toBeNull();
   });
 
-  it("no es elegible si el código institucional no fue confirmado por SIE", async () => {
+  it("Activo + PENDING → no elegible", async () => {
     const person: PersonRow = {
       firstName: "Ana", paternalLastName: "Ruiz", maternalLastName: null,
       user: { image: null },
-      applications: [
-        {
-          status: "COMPLETED",
-          affiliateType: "ACTIVE",
-          documents: [],
-          associateIntegration: { status: "PENDING", externalAssociateCode: null },
-        },
-      ],
+      applications: [{ status: "PENDING", affiliateType: "ACTIVE", documents: [], associateIntegration: null }],
       sieAssociateRecords: [],
     };
     const result = await resolveCardData(1, buildDb({ person }));
     expect(result.eligible).toBe(false);
-    expect(result.reason).toContain("SIE");
-    expect(result.code).toBeNull();
   });
 
-  it("no es elegible para categorías institucionales no permitidas", async () => {
+  it("Estudiante + OBSERVED → no elegible", async () => {
     const person: PersonRow = {
       firstName: "Luis", paternalLastName: "Torres", maternalLastName: null,
       user: { image: null },
-      applications: [],
-      sieAssociateRecords: [
-        { externalCode: "888", category: { mappedAffiliateType: null, name: "Vitalicio" } },
-      ],
+      applications: [{ status: "OBSERVED", affiliateType: "STUDENT", documents: [], associateIntegration: null }],
+      sieAssociateRecords: [],
     };
     const result = await resolveCardData(1, buildDb({ person }));
     expect(result.eligible).toBe(false);
-    expect(result.reason).toContain("Categoría");
+  });
+
+  it("sin postulación COMPLETED → no elegible (aunque tenga categoría SIE especial)", async () => {
+    const person: PersonRow = {
+      firstName: "Rosa", paternalLastName: "Soto", maternalLastName: null,
+      user: { image: null },
+      applications: [],
+      sieAssociateRecords: [{ externalCode: "888", category: { mappedAffiliateType: null, name: "Vitalicio" } }],
+    };
+    const result = await resolveCardData(1, buildDb({ person }));
+    expect(result.eligible).toBe(false);
+  });
+
+  it("Activo + COMPLETED conserva el código SIE cuando existe (display)", async () => {
+    const person: PersonRow = {
+      firstName: "María", paternalLastName: "Pérez", maternalLastName: "López",
+      user: { image: null },
+      applications: [{ status: "COMPLETED", affiliateType: "ACTIVE", documents: [], associateIntegration: { status: "SYNCED", externalAssociateCode: 12345 } }],
+      sieAssociateRecords: [],
+    };
+    const result = await resolveCardData(1, buildDb({ person }));
+    expect(result.eligible).toBe(true);
+    expect(result.code).toBe("12345");
   });
 
   it("marca notFound si la persona no existe", async () => {

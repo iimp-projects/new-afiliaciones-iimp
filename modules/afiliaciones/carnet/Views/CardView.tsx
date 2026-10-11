@@ -81,7 +81,7 @@ export function CardFace({
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Código de asociado</p>
-              <p className="text-sm font-bold text-slate-700">{data.code ?? "No disponible"}</p>
+              <p className="text-sm font-bold text-slate-700">{data.code ?? "Pendiente de sincronización SIE"}</p>
             </div>
             <div>
               <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Estado</p>
@@ -176,7 +176,7 @@ export function CardView({ data, card }: { data: CardViewData | null; card: Card
         <section className="flex flex-col items-start gap-3 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="space-y-1">
             <h2 className="font-black text-slate-800">{data.name}</h2>
-            <p className="text-sm text-slate-500">Código: {data.code ?? "No disponible"}</p>
+            <p className="text-sm text-slate-500">Código: {data.code ?? "Pendiente de sincronización SIE"}</p>
             <p className="text-sm text-slate-500">Categoría: {data.category ?? "No disponible"}</p>
           </div>
           <button
