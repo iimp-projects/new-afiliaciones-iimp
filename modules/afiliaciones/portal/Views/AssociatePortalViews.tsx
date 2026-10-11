@@ -256,6 +256,13 @@ export function AssociateHomeView({
           />
 
           <PortalAction
+            href="/intranet/mi-cuenta/carnet"
+            icon={IdCard}
+            title="Mi carnet virtual"
+            description="Genera y descarga tu credencial institucional."
+          />
+
+          <PortalAction
             href="/intranet/mi-cuenta/pagos"
             icon={WalletCards}
             title="Pagos"

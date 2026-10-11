@@ -223,6 +223,7 @@ model Person {
   employmentInfos         EmploymentInfo[]
   professionalExperiences ProfessionalExperience[]
   sieAssociateRecords     SieAssociateRecord[]
+  associateCards          AssociateCard[]
 
   @@unique([documentType, documentNumber])
   @@index([documentNumber])
@@ -1524,4 +1525,24 @@ model SieAssociateRecord {
   @@index([linkStatus])
   @@index([categoryId])
   @@map("sie_associate_records")
+}
+
+enum AssociateCardStatus {
+  ISSUED
+  REVOKED
+}
+
+model AssociateCard {
+  id                String              @id @default(cuid())
+  personId          Int                 @unique @map("person_id")
+  verificationToken String              @unique @map("verification_token") @db.VarChar(64)
+  status            AssociateCardStatus @default(ISSUED)
+  revokedAt         DateTime?           @map("revoked_at")
+  revokedReason     String?             @map("revoked_reason") @db.Text
+  createdAt         DateTime            @default(now()) @map("created_at")
+  updatedAt         DateTime            @updatedAt @map("updated_at")
+
+  person Person @relation(fields: [personId], references: [id], onDelete: Restrict)
+
+  @@map("associate_cards")
 }
