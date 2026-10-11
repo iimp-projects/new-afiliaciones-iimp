@@ -153,6 +153,13 @@ export const securityModuleDefinition: ModuleDefinition = {
                     icon: "UserRound",
                     order: 1,
                 },
+                {
+                    id: "nav-notifications",
+                    title: "Centro de Notificaciones",
+                    href: "/intranet/notificaciones",
+                    icon: "Bell",
+                    order: 2,
+                },
             ],
         },
         {

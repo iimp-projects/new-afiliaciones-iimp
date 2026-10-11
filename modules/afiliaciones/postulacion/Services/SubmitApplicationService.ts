@@ -9,6 +9,7 @@ import { S3StorageService } from "@/modules/shared/Services/S3StorageService";
 import { ApplicationAccessService } from "./ApplicationAccessService";
 import { ApplicationFlowError } from "./Exceptions/ApplicationFlowError";
 import { canSubmitApplication } from "../Models/ApplicationAction";
+import { applicationNotificationEvents } from "../../notifications/Services/ApplicationNotificationEvents";
 
 export class SubmitApplicationService {
   private readonly notifyService = new NotifySponsorsService();
@@ -30,6 +31,13 @@ export class SubmitApplicationService {
     // 1. Guardar en BD (commit de la postulación y persistencia de documentos).
     const submittedApplication =
       await this.repository.submitApplication(trackingCode);
+
+    // 1b. Notificaciones internas para las áreas que deben revisar el expediente.
+    try {
+      await applicationNotificationEvents.notifyNewApplication(Number(submittedApplication.id));
+    } catch (notificationError) {
+      console.error("[SubmitApplicationService] Error generando notificaciones internas:", notificationError);
+    }
 
     // 2. Recuperar la Declaración Jurada FIRMADA (una sola vez por submit).
     //    La fuente es ApplicationDocument(category = SWORN_DECLARATION); NO se
