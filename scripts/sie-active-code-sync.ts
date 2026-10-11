@@ -107,7 +107,7 @@ async function writeLink(
 
 async function main(): Promise<void> {
   const modeArg = process.argv[2] ?? "dry-run";
-  const mode = modeArg === "pilot" ? "pilot" : modeArg === "apply" ? "apply" : "dry-run";
+  const mode = modeArg === "pilot" ? "pilot" : modeArg === "apply" ? "apply" : modeArg === "candidates" ? "candidates" : "dry-run";
   const pilotDocument = process.argv[3] ?? null;
   const pilotDocumentType = process.argv[4] ?? null;
   const applyConfirm = process.argv[3] ?? null;
@@ -180,6 +180,19 @@ async function main(): Promise<void> {
 
     if (mode === "dry-run") {
       console.log(JSON.stringify({ mode: "dry-run", ...summarize(decisions, duplicateCodes.size) }, null, 2));
+      return;
+    }
+
+    if (mode === "candidates") {
+      const links = decisions.filter((d): d is { record: SanitizedSieAssociate; decision: Extract<ActiveCodeDecision, { kind: "LINK" }> } => d.decision !== "SKIP_DUPLICATE_CODE" && d.decision.kind === "LINK");
+      const preview = links.slice(0, 10).map(({ record, decision }) => ({
+        document: maskDocument(record.documentNumber),
+        documentType: record.documentType,
+        externalCode: maskDocument(decision.externalCode),
+        personId: decision.personId,
+        categoryCode: record.sourceType,
+      }));
+      console.log(JSON.stringify({ mode: "candidates", totalLinks: links.length, preview }, null, 2));
       return;
     }
 
