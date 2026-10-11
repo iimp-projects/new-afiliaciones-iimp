@@ -79,7 +79,7 @@ export async function generateCardPdf(input: CardPdfInput): Promise<Uint8Array> 
     cursorY -= 30;
   };
   drawField("NOMBRE COMPLETO", input.name || null);
-  drawField("CÓDIGO DE ASOCIADO", input.code);
+  drawField("CÓDIGO DE ASOCIADO", input.code ?? "Pendiente de sincronización SIE");
   drawField("CATEGORÍA", input.category);
 
   // Código QR.
