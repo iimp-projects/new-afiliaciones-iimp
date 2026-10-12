@@ -2,7 +2,8 @@ import { EmailCampaignStatus, EmailSendStatus, Prisma, type PrismaClient } from 
 import { prisma } from "@/lib/prisma";
 import { getAppBaseUrl } from "@/lib/config/env";
 import type { CampaignDetail, CampaignInput, CampaignListItem, CampaignRecipientPreview } from "../Models/Campaign";
-import type { AssociateRecipientMetadata } from "../Models/AssociateRecipient";
+import { buildAssociateMetadata, personFullName, toAssociateRecipientLink } from "../Models/AssociateRecipient";
+import type { AssociateIdentity, AssociateRecipientMetadata } from "../Models/AssociateRecipient";
 
 function isAssociateMetadataValue(value: Prisma.JsonValue | null | undefined): AssociateRecipientMetadata | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
@@ -212,9 +213,32 @@ export class CampaignRepository {
     await this.db.$transaction(async (tx) => {
       await tx.emailCampaignRecipient.deleteMany({ where: { campaignId } });
       if (unique.length > 0) {
-        await tx.emailCampaignRecipient.createMany({
-          data: unique.map((recipientId) => ({ campaignId, recipientId, status: EmailSendStatus.PENDING })),
+        const recipients = await tx.emailRecipient.findMany({
+          where: { id: { in: unique } },
+          select: { id: true, metadata: true },
         });
+        const linkByRecipientId = new Map<number, { userId: number } | null>();
+        const userIds = new Set<number>();
+        for (const recipient of recipients) {
+          const link = toAssociateRecipientLink(recipient.metadata);
+          linkByRecipientId.set(recipient.id, link);
+          if (link) userIds.add(link.userId);
+        }
+
+        const identities = userIds.size > 0 ? await this.loadAssociateIdentities(tx, Array.from(userIds)) : new Map<number, AssociateIdentity>();
+
+        const rows = unique.map((recipientId) => {
+          const link = linkByRecipientId.get(recipientId);
+          const snapshot = link ? buildAssociateMetadata(identities.get(link.userId)) : null;
+          return {
+            campaignId,
+            recipientId,
+            status: EmailSendStatus.PENDING,
+            metadata: snapshot ? (snapshot as unknown as Prisma.InputJsonValue) : Prisma.DbNull,
+          };
+        });
+
+        await tx.emailCampaignRecipient.createMany({ data: rows });
       }
       await tx.auditLog.create({
         data: {
@@ -227,6 +251,33 @@ export class CampaignRepository {
       });
     });
     return { count: unique.length };
+  }
+
+  /** Resuelve identidades de asociado para un conjunto de userIds (para reconstruir el snapshot al seleccionar manualmente). */
+  private async loadAssociateIdentities(tx: Prisma.TransactionClient, userIds: number[]): Promise<Map<number, AssociateIdentity>> {
+    const users = await tx.user.findMany({
+      where: { id: { in: userIds } },
+      select: {
+        id: true,
+        email: true,
+        status: true,
+        role: { select: { slug: true } },
+        person: { select: { id: true, firstName: true, paternalLastName: true, maternalLastName: true, documentNumber: true } },
+      },
+    });
+    const map = new Map<number, AssociateIdentity>();
+    for (const user of users) {
+      map.set(user.id, {
+        userId: user.id,
+        personId: user.person?.id ?? null,
+        email: user.email,
+        status: user.status,
+        roleSlug: user.role?.slug ?? null,
+        nombreCompleto: personFullName(user.person?.firstName, user.person?.paternalLastName, user.person?.maternalLastName),
+        documentNumber: user.person?.documentNumber ?? null,
+      });
+    }
+    return map;
   }
 
   /**

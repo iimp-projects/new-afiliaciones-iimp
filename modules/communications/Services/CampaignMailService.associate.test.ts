@@ -40,13 +40,19 @@ function metadata(overrides: Partial<AssociateRecipientMetadata> = {}): Associat
   };
 }
 
-function setup(overrides: { metadata?: unknown; live?: unknown } = {}) {
+function setup(overrides: {
+  metadata?: unknown;
+  live?: unknown;
+  identity?: unknown;
+  recipient?: { id: number; email: string; name: string | null; company: string | null; position: string | null; metadata?: unknown };
+  campaign?: CampaignDetail;
+} = {}) {
   const campaignRepository = {
-    getCampaign: vi.fn().mockResolvedValue(campaign()),
+    getCampaign: vi.fn().mockResolvedValue(overrides.campaign ?? campaign()),
   };
   const deliveryRepository = {
     getCampaignRecipient: vi.fn().mockResolvedValue({ recipientId: 5, status: EmailSendStatus.PENDING, sendCount: 0, metadata: overrides.metadata === undefined ? metadata() : overrides.metadata }),
-    getRecipient: vi.fn().mockResolvedValue({ id: 5, email: "juan@iimp.org.pe", name: "Juan Pérez", company: null, position: null }),
+    getRecipient: vi.fn().mockResolvedValue(overrides.recipient ?? { id: 5, email: "juan@iimp.org.pe", name: "Juan Pérez", company: null, position: null, metadata: null }),
     recoverStaleDeliveries: vi.fn().mockResolvedValue(0),
     hasInFlightDelivery: vi.fn().mockResolvedValue(false),
     createPendingDelivery: vi.fn().mockResolvedValue({ id: 99, attemptNumber: 1 }),
@@ -61,6 +67,7 @@ function setup(overrides: { metadata?: unknown; live?: unknown } = {}) {
   };
   const associateRepository = {
     getUserAccess: vi.fn().mockResolvedValue(overrides.live === undefined ? { id: 7, email: "juan@iimp.org.pe", status: UserStatus.ACTIVE, deletedAt: null, roleSlug: "ASOCIADO_ACTIVO" } : overrides.live),
+    getAssociateIdentity: vi.fn().mockResolvedValue(overrides.identity ?? null),
   };
   const accountActivation = { createActivationUrl: vi.fn().mockResolvedValue({ email: "juan@iimp.org.pe", url: "https://portal/activar-cuenta?token=t" }) };
   const mailService = { sendMail: vi.fn().mockResolvedValue({ messageId: "<abc@example>" }), validateConfiguration: vi.fn() };
@@ -148,7 +155,8 @@ describe("CampaignMailService — origen 'Asociados del sistema'", () => {
     const { service, deliveryRepository, mailService } = setup({ metadata: null });
     mailService.sendMail.mockRejectedValueOnce(new MailServiceError("Límite temporal de envío del proveedor alcanzado.", "RATE_LIMITED"));
 
-    const result = await service.deliverRecipient(campaign(), 1, 5);
+    const manualCampaign: CampaignDetail = { ...campaign(), subject: "Hola {{nombre}}", htmlContent: "<p>{{nombre}}</p>" };
+    const result = await service.deliverRecipient(manualCampaign, 1, 5);
     expect(result.outcome).toBe("RATE_LIMITED");
     expect(deliveryRepository.markRecipientPending).toHaveBeenCalledWith(1, 5);
     expect(deliveryRepository.markRecipientError).not.toHaveBeenCalled();
@@ -158,7 +166,8 @@ describe("CampaignMailService — origen 'Asociados del sistema'", () => {
     const { service, deliveryRepository, mailService } = setup({ metadata: null });
     mailService.sendMail.mockRejectedValueOnce(new MailServiceError("Cuota diaria de envío del proveedor alcanzada.", "QUOTA_EXCEEDED"));
 
-    const result = await service.deliverRecipient(campaign(), 1, 5);
+    const manualCampaign: CampaignDetail = { ...campaign(), subject: "Hola {{nombre}}", htmlContent: "<p>{{nombre}}</p>" };
+    const result = await service.deliverRecipient(manualCampaign, 1, 5);
     expect(result.outcome).toBe("QUOTA_EXCEEDED");
     expect(deliveryRepository.markRecipientPending).toHaveBeenCalledWith(1, 5);
   });
@@ -172,11 +181,10 @@ describe("CampaignMailService — origen 'Asociados del sistema'", () => {
     expect(call.html).toContain("Asociado Activo");
   });
 
-  it("sendTest sin destinatario de referencia no personaliza con datos de asociado", async () => {
+  it("sendTest sin destinatario de referencia en campaña de asociados es rechazado (variable obligatoria)", async () => {
     const { service, mailService } = setup();
-    await service.sendTest(1, "prueba@iimp.org.pe", null, { userId: 1, email: "admin@iimp.org.pe" });
-    const call = mailService.sendMail.mock.calls[0][0];
-    expect(call.html).not.toContain("Juan Pérez");
+    await expect(service.sendTest(1, "prueba@iimp.org.pe", null, { userId: 1, email: "admin@iimp.org.pe" })).rejects.toMatchObject({ code: "MISSING_REQUIRED_VARIABLE" });
+    expect(mailService.sendMail).not.toHaveBeenCalled();
   });
 
   it("deliverRecipient excluye asociados con nombre o correo de acceso vacíos", async () => {
@@ -185,8 +193,199 @@ describe("CampaignMailService — origen 'Asociados del sistema'", () => {
     });
     const result = await service.deliverRecipient(campaign(), 1, 5);
     expect(result.outcome).toBe("ERROR");
-    expect(result.errorMessage).toContain("personalización incompletos");
+    expect(result.errorMessage).toContain("nombre_completo");
     expect(deliveryRepository.recordRecipientExclusion).toHaveBeenCalled();
     expect(mailService.sendMail).not.toHaveBeenCalled();
+  });
+
+  it("reconstruye el contexto completo desde EmailRecipient.metadata cuando el snapshot es NULL (caso Ruth)", async () => {
+    const { service, mailService, associateRepository } = setup({
+      metadata: null,
+      recipient: {
+        id: 1253,
+        email: "111683@unsaac.edu.pe",
+        name: "RUTH NERY HUARCO GUTIERREZ",
+        company: null,
+        position: null,
+        metadata: { source: "associates", userId: 1332, personId: 3548, tipoAsociado: "ESTUDIANTE", documentNumber: "73136694" },
+      },
+      identity: {
+        userId: 1332,
+        personId: 3548,
+        email: "111683@unsaac.edu.pe",
+        status: UserStatus.ACTIVE,
+        deletedAt: null,
+        roleSlug: "ASOCIADO_ESTUDIANTE",
+        nombreCompleto: "RUTH NERY HUARCO GUTIERREZ",
+        documentNumber: "73136694",
+      },
+    });
+
+    const ruthCampaign: CampaignDetail = {
+      ...campaign(),
+      subject: "Hola {{nombre_completo}}",
+      htmlContent: "<p>{{nombre_completo}} | {{correo_acceso}} | {{tipo_asociado}} | {{enlace_acceso}}</p>",
+      textContent: "{{nombre_completo}} | {{correo_acceso}} | {{enlace_acceso}}",
+    };
+
+    const result = await service.deliverRecipient(ruthCampaign, 1, 1253);
+
+    expect(result.outcome).toBe("SENT");
+    expect(associateRepository.getAssociateIdentity).toHaveBeenCalledWith(1332);
+
+    const sendArgs = mailService.sendMail.mock.calls[0][0];
+    expect(sendArgs.to).toBe("111683@unsaac.edu.pe");
+    expect(sendArgs.subject).toContain("RUTH NERY HUARCO GUTIERREZ");
+    expect(sendArgs.html).toContain("RUTH NERY HUARCO GUTIERREZ");
+    expect(sendArgs.html).toContain("111683@unsaac.edu.pe");
+    expect(sendArgs.html).toContain("Asociado Estudiante");
+    expect(sendArgs.html).toContain("/login");
+    expect(sendArgs.text).toContain("RUTH NERY HUARCO GUTIERREZ");
+    expect(sendArgs.text).toContain("111683@unsaac.edu.pe");
+    expect(sendArgs.text).toContain("/login");
+  });
+
+  it("fallback: excluye si el asociado vinculado por userId ya no existe", async () => {
+    const { service, deliveryRepository, mailService } = setup({
+      metadata: null,
+      recipient: { id: 5, email: "ruth@example.com", name: "Ruth", company: null, position: null, metadata: { source: "associates", userId: 1332 } },
+      identity: null,
+    });
+
+    const result = await service.deliverRecipient(campaign(), 1, 5);
+    expect(result.outcome).toBe("ERROR");
+    expect(deliveryRepository.recordRecipientExclusion).toHaveBeenCalled();
+    expect(mailService.sendMail).not.toHaveBeenCalled();
+  });
+
+  it("fallback: excluye si la cuenta del asociado ya no está habilitada", async () => {
+    const { service, mailService } = setup({
+      metadata: null,
+      recipient: { id: 5, email: "ruth@example.com", name: "Ruth", company: null, position: null, metadata: { source: "associates", userId: 1332 } },
+      identity: {
+        userId: 1332,
+        personId: 3548,
+        email: "ruth@example.com",
+        status: UserStatus.INACTIVE,
+        deletedAt: null,
+        roleSlug: "ASOCIADO_ESTUDIANTE",
+        nombreCompleto: "Ruth Huarco",
+        documentNumber: null,
+      },
+    });
+
+    const result = await service.deliverRecipient(campaign(), 1, 5);
+    expect(result.outcome).toBe("ERROR");
+    expect(mailService.sendMail).not.toHaveBeenCalled();
+  });
+
+  it("impide el envío cuando la variable obligatoria queda vacía (asociado sin nombre)", async () => {
+    const { service, deliveryRepository, mailService } = setup({
+      metadata: null,
+      recipient: { id: 5, email: "ruth@example.com", name: null, company: null, position: null, metadata: { source: "associates", userId: 1332 } },
+      identity: {
+        userId: 1332,
+        personId: 3548,
+        email: "ruth@example.com",
+        status: UserStatus.ACTIVE,
+        deletedAt: null,
+        roleSlug: "ASOCIADO_ESTUDIANTE",
+        nombreCompleto: null,
+        documentNumber: null,
+      },
+    });
+
+    const result = await service.deliverRecipient(campaign(), 1, 5);
+    expect(result.outcome).toBe("ERROR");
+    expect(result.errorMessage).toContain("nombre_completo");
+    expect(deliveryRepository.recordRecipientExclusion).toHaveBeenCalled();
+    expect(mailService.sendMail).not.toHaveBeenCalled();
+  });
+
+  it("impide el envío a un destinatario manual cuando la plantilla usa variables de asociado", async () => {
+    const { service, deliveryRepository, mailService } = setup({
+      metadata: null,
+      recipient: { id: 5, email: "manual@example.com", name: "Manual", company: null, position: null, metadata: null },
+    });
+
+    const result = await service.deliverRecipient(campaign(), 1, 5);
+    expect(result.outcome).toBe("ERROR");
+    expect(result.errorMessage).toContain("nombre_completo");
+    expect(deliveryRepository.recordRecipientExclusion).toHaveBeenCalled();
+    expect(mailService.sendMail).not.toHaveBeenCalled();
+  });
+
+  it("excluye si el correo de acceso difiere del correo del destinatario (sin redirigir)", async () => {
+    const { service, deliveryRepository, mailService } = setup({
+      metadata: null,
+      recipient: { id: 5, email: "antiguo@example.com", name: "Ruth Huarco", company: null, position: null, metadata: { source: "associates", userId: 1332 } },
+      identity: {
+        userId: 1332,
+        personId: 3548,
+        email: "nuevo@example.com",
+        status: UserStatus.ACTIVE,
+        deletedAt: null,
+        roleSlug: "ASOCIADO_ESTUDIANTE",
+        nombreCompleto: "RUTH NERY HUARCO GUTIERREZ",
+        documentNumber: "73136694",
+      },
+    });
+
+    const result = await service.deliverRecipient(campaign(), 1, 5);
+    expect(result.outcome).toBe("ERROR");
+    expect(result.errorMessage).toContain("cambió");
+    expect(deliveryRepository.recordRecipientExclusion).toHaveBeenCalled();
+    expect(mailService.sendMail).not.toHaveBeenCalled();
+  });
+
+  it("sendTest no mintea ni invalida tokens de activación para cuentas PENDING", async () => {
+    const { service, accountActivation } = setup({
+      metadata: null,
+      recipient: { id: 5, email: "ruth@example.com", name: "Ruth Huarco", company: null, position: null, metadata: { source: "associates", userId: 1332 } },
+      identity: {
+        userId: 1332,
+        personId: 3548,
+        email: "ruth@example.com",
+        status: UserStatus.PENDING,
+        deletedAt: null,
+        roleSlug: "ASOCIADO_ESTUDIANTE",
+        nombreCompleto: "RUTH NERY HUARCO GUTIERREZ",
+        documentNumber: "73136694",
+      },
+    });
+
+    await service.sendTest(1, "prueba@iimp.org.pe", 5, { userId: 1, email: "admin@iimp.org.pe" });
+
+    expect(accountActivation.createActivationUrl).not.toHaveBeenCalled();
+  });
+
+  it("campaña manual con {{nombre}} conserva el nombre genérico pese al vínculo de asociado", async () => {
+    const { service, mailService } = setup({
+      metadata: null,
+      recipient: { id: 5, email: "ruth@example.com", name: "Ruth Huarco", company: null, position: null, metadata: { source: "associates", userId: 1332 } },
+      identity: {
+        userId: 1332,
+        personId: 3548,
+        email: "ruth@example.com",
+        status: UserStatus.ACTIVE,
+        deletedAt: null,
+        roleSlug: "ASOCIADO_ESTUDIANTE",
+        nombreCompleto: "RUTH NERY HUARCO GUTIERREZ",
+        documentNumber: "73136694",
+      },
+    });
+
+    const manualCampaign: CampaignDetail = {
+      ...campaign(),
+      subject: "Hola {{nombre}}",
+      htmlContent: "<p>{{nombre}}</p>",
+      textContent: "{{nombre}}",
+    };
+
+    const result = await service.deliverRecipient(manualCampaign, 1, 5);
+    expect(result.outcome).toBe("SENT");
+    const sendArgs = mailService.sendMail.mock.calls[0][0];
+    expect(sendArgs.subject).toBe("Hola Ruth Huarco");
+    expect(sendArgs.html).toContain("Ruth Huarco");
   });
 });

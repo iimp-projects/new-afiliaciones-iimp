@@ -1,4 +1,4 @@
-import { EmailCampaignStatus, EmailSendStatus, Prisma, UserStatus } from "@prisma/client";
+import { EmailCampaignStatus, Prisma, UserStatus } from "@prisma/client";
 import { MailService, MailServiceError } from "@/modules/shared/Services/MailService";
 import { ConfigurationError, getAppBaseUrl } from "@/lib/config/env";
 import { accountActivationService } from "@/modules/auth/account-activation/service";
@@ -8,6 +8,7 @@ import { isValidEmail } from "./Import/EmailProcessing";
 import { CampaignRepository } from "../Repositories/CampaignRepository";
 import { EmailDeliveryRepository } from "../Repositories/EmailDeliveryRepository";
 import { AssociateRecipientRepository } from "../Repositories/AssociateRecipientRepository";
+import { toAssociateRecipientLink, tipoAsociadoLabel } from "../Models/AssociateRecipient";
 import type { AssociateRecipientMetadata } from "../Models/AssociateRecipient";
 import type { CampaignDetail } from "../Models/Campaign";
 
@@ -34,6 +35,32 @@ function toAssociateMetadata(metadata: Prisma.JsonValue | null | undefined): Ass
   return value as unknown as AssociateRecipientMetadata;
 }
 
+const REQUIRED_ASSOCIATE_VARIABLES = ["nombre_completo", "correo_acceso"] as const;
+
+function usesTemplateVariable(templates: Array<string | null | undefined>, variable: string): boolean {
+  const pattern = new RegExp(`\\{\\{#?${variable}\\}\\}`);
+  return templates.some((template) => template != null && pattern.test(template));
+}
+
+function requiredVariableValue(context: TemplateRecipient, variable: string): string | null | undefined {
+  if (variable === "nombre_completo") return context.nombreCompleto;
+  if (variable === "correo_acceso") return context.correoAcceso;
+  return undefined;
+}
+
+/**
+ * Devuelve el nombre de la primera variable obligatoria de asociado usada por la
+ * plantilla cuyo valor resuelto está vacío, o null si todas están completas.
+ */
+function findMissingRequiredVariable(templates: Array<string | null | undefined>, context: TemplateRecipient): string | null {
+  for (const variable of REQUIRED_ASSOCIATE_VARIABLES) {
+    if (!usesTemplateVariable(templates, variable)) continue;
+    const value = requiredVariableValue(context, variable);
+    if (value == null || value.trim() === "") return variable;
+  }
+  return null;
+}
+
 export type DeliverOutcome = "SENT" | "ERROR" | "SKIPPED" | "RATE_LIMITED" | "QUOTA_EXCEEDED";
 
 export interface DeliverResult {
@@ -46,6 +73,10 @@ export interface DeliverResult {
   errorMessage?: string;
   skipReason?: "IN_FLIGHT" | "NOT_IN_CAMPAIGN" | "RECIPIENT_MISSING";
 }
+
+type AssociateResolution =
+  | { excluded: true; reason: string }
+  | { excluded: false; context: TemplateRecipient | null; pendingActivationUserId: number | null };
 
 export class CampaignMailService {
   constructor(
@@ -69,9 +100,20 @@ export class CampaignMailService {
       if (!membership) throw new CampaignMailError("El destinatario de referencia no pertenece a la campaña.", 422);
       const recipient = await this.deliveryRepository.getRecipient(referenceRecipientId);
       if (recipient) {
-        const associate = await this.resolveAssociateContext(membership.metadata);
-        reference = (associate.excluded ? null : associate.context) ?? { name: recipient.name, company: recipient.company, position: recipient.position, email: recipient.email };
+        reference = { name: recipient.name, company: recipient.company, position: recipient.position, email: recipient.email };
+        const associate = await this.resolveAssociateContext(membership.metadata, recipient.metadata);
+        if (associate.excluded) throw new CampaignMailError(associate.reason, 422, "REFERENCE_ASSOCIATE_EXCLUDED");
+        if (associate.context) {
+          // La prueba no mintea tokens reales: {{enlace_activacion}} queda vacío
+          // para no generar, consumir ni invalidar tokens de activación.
+          reference = { ...reference, ...associate.context };
+        }
       }
+    }
+
+    const missingVariable = findMissingRequiredVariable([campaign.subject, campaign.htmlContent, campaign.textContent ?? undefined], reference);
+    if (missingVariable) {
+      throw new CampaignMailError(`No se puede enviar la prueba: la variable obligatoria "{{${missingVariable}}}" no tiene valor para el destinatario de referencia.`, 422, "MISSING_REQUIRED_VARIABLE");
     }
 
     const subject = renderTemplate(campaign.subject, reference);
@@ -132,15 +174,28 @@ export class CampaignMailService {
     // Revalidación del origen "Asociados del sistema" justo antes de enviar.
     // Protege frente a cambios de correo/estado posteriores a la preparación y
     // resuelve {{correo_acceso}} desde la fuente de autenticación verificada.
-    const associate = await this.resolveAssociateContext(membership.metadata);
+    // Si el snapshot de campaña es NULL, se resuelve por `userId` desde
+    // EmailRecipient.metadata para no perder la vinculación del asociado.
+    const associate = await this.resolveAssociateContext(membership.metadata, recipient.metadata);
     if (associate.excluded) {
       await this.deliveryRepository.recordRecipientExclusion(campaignId, recipientId, recipient.email, associate.reason);
       return { outcome: "ERROR", email: recipient.email, errorMessage: associate.reason };
     }
-    // Validación previa al envío: no enviar correos con datos de personalización
-    // incompletos (nombre o correo de acceso vacíos) para el origen asociados.
-    if (associate.context != null && (!associate.context.nombreCompleto?.trim() || !associate.context.correoAcceso?.trim())) {
-      const reason = "Datos de personalización incompletos (nombre o correo de acceso).";
+
+    // Sin redirigir en silencio: si el correo de acceso resuelto difiere del
+    // correo del destinatario preparado, se excluye en lugar de reenviar a otro.
+    if (associate.context?.email != null && associate.context.email.trim().toLowerCase() !== recipient.email.trim().toLowerCase()) {
+      const reason = "El correo de acceso cambió después de preparar la campaña.";
+      await this.deliveryRepository.recordRecipientExclusion(campaignId, recipientId, recipient.email, reason);
+      return { outcome: "ERROR", email: recipient.email, errorMessage: reason };
+    }
+
+    const genericContext: TemplateRecipient = { name: recipient.name, company: recipient.company, position: recipient.position, email: recipient.email };
+    let context: TemplateRecipient = associate.context ? { ...genericContext, ...associate.context } : genericContext;
+
+    const missingVariable = findMissingRequiredVariable([campaign.subject, campaign.htmlContent, campaign.textContent ?? undefined], context);
+    if (missingVariable) {
+      const reason = `No se puede enviar: la variable obligatoria "{{${missingVariable}}}" no tiene valor para este destinatario.`;
       await this.deliveryRepository.recordRecipientExclusion(campaignId, recipientId, recipient.email, reason);
       return { outcome: "ERROR", email: recipient.email, errorMessage: reason };
     }
@@ -157,7 +212,6 @@ export class CampaignMailService {
 
     await this.deliveryRepository.markRecipientSending(campaignId, recipientId);
 
-    let context: TemplateRecipient = associate.context ?? { name: recipient.name, company: recipient.company, position: recipient.position, email: recipient.email };
     if (associate.pendingActivationUserId != null) {
       try {
         const activation = await this.accountActivation.createActivationUrl(associate.pendingActivationUserId);
@@ -212,13 +266,30 @@ export class CampaignMailService {
    * autenticación en el momento del envío. Devuelve `excluded: true` con motivo
    * si la cuenta dejó de ser elegible o el correo de acceso cambió.
    *
+   * Estrategia en dos niveles:
+   *  1. Snapshot completo (EmailCampaignRecipient.metadata) → revalida contra la
+   *     fuente y usa el nombre capturado al preparar la campaña.
+   *  2. Si el snapshot es NULL, usa el enlace corto (EmailRecipient.metadata,
+   *     `userId`) → resuelve la identidad completa desde usuario/persona.
+   *
    * No emite tokens aquí: el token de activación se genera únicamente después de
    * confirmar que el correo se va a enviar, para evitar tokens huérfanos y
    * reintentos que invaliden enlaces ya entregados.
    */
-  private async resolveAssociateContext(metadata: Prisma.JsonValue): Promise<{ excluded: true; reason: string } | { excluded: false; context: TemplateRecipient | null; pendingActivationUserId: number | null }> {
-    const snapshot = toAssociateMetadata(metadata);
-    if (!snapshot) return { excluded: false, context: null, pendingActivationUserId: null };
+  private async resolveAssociateContext(
+    campaignMetadata: Prisma.JsonValue | null,
+    recipientMetadata: Prisma.JsonValue | null | undefined,
+  ): Promise<AssociateResolution> {
+    const snapshot = toAssociateMetadata(campaignMetadata);
+    if (snapshot) return this.resolveFromSnapshot(snapshot);
+
+    const link = toAssociateRecipientLink(recipientMetadata);
+    if (link) return this.resolveFromUserId(link.userId);
+
+    return { excluded: false, context: null, pendingActivationUserId: null };
+  }
+
+  private async resolveFromSnapshot(snapshot: AssociateRecipientMetadata): Promise<AssociateResolution> {
     const live = await this.associateRepository.getUserAccess(snapshot.userId);
     if (!live || live.deletedAt) return { excluded: true, reason: "La cuenta de acceso del asociado ya no existe." };
     if (live.status !== UserStatus.ACTIVE && live.status !== UserStatus.PENDING) {
@@ -229,15 +300,33 @@ export class CampaignMailService {
       return { excluded: true, reason: "El correo de acceso cambió después de preparar la campaña." };
     }
 
-    const tipoAsociado = snapshot.tipoAsociado === "ESTUDIANTE" ? "Asociado Estudiante" : "Asociado Activo";
-
     return {
       excluded: false,
       pendingActivationUserId: live.status === UserStatus.PENDING ? snapshot.userId : null,
       context: {
         nombreCompleto: escapeHtml(snapshot.nombreCompleto),
         correoAcceso: escapeHtml(liveEmail),
-        tipoAsociado,
+        tipoAsociado: tipoAsociadoLabel(snapshot.tipoAsociado),
+        enlaceAcceso: `${this.appBaseUrl()}/login`,
+        email: liveEmail,
+      },
+    };
+  }
+
+  private async resolveFromUserId(userId: number): Promise<AssociateResolution> {
+    const identity = await this.associateRepository.getAssociateIdentity(userId);
+    if (!identity || identity.deletedAt) return { excluded: true, reason: "La cuenta de acceso del asociado ya no existe." };
+    if (identity.status !== UserStatus.ACTIVE && identity.status !== UserStatus.PENDING) {
+      return { excluded: true, reason: "La cuenta de acceso del asociado ya no está habilitada." };
+    }
+    const liveEmail = identity.email.trim().toLowerCase();
+    return {
+      excluded: false,
+      pendingActivationUserId: identity.status === UserStatus.PENDING ? userId : null,
+      context: {
+        nombreCompleto: escapeHtml(identity.nombreCompleto ?? ""),
+        correoAcceso: escapeHtml(liveEmail),
+        tipoAsociado: tipoAsociadoLabel(identity.roleSlug === "ASOCIADO_ESTUDIANTE" ? "ESTUDIANTE" : "ACTIVO"),
         enlaceAcceso: `${this.appBaseUrl()}/login`,
         email: liveEmail,
       },

@@ -57,3 +57,52 @@ export interface AssociateRecipientMetadata {
   accountStatus: AssociateAccountStatus;
   documentNumber: string | null;
 }
+
+/** Enlace corto persistido en EmailRecipient.metadata (origen "Asociados del sistema"). */
+export interface AssociateRecipientLink {
+  userId: number;
+}
+
+/** Identidad normalizada de un usuario de acceso + persona, para (re)construir el snapshot. */
+export interface AssociateIdentity {
+  userId: number;
+  personId: number | null;
+  email: string;
+  status: string;
+  deletedAt?: Date | null;
+  roleSlug: string | null;
+  nombreCompleto: string | null;
+  documentNumber: string | null;
+}
+
+/** Extrae el enlace de asociado ({ source: "associates", userId }) de un metadata JSON. */
+export function toAssociateRecipientLink(metadata: unknown): AssociateRecipientLink | null {
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) return null;
+  const value = metadata as Record<string, unknown>;
+  if (value.source !== "associates" || typeof value.userId !== "number") return null;
+  return { userId: value.userId };
+}
+
+/** Construye el snapshot completo de asociado desde su identidad verificada. */
+export function buildAssociateMetadata(identity: AssociateIdentity | null | undefined): AssociateRecipientMetadata | null {
+  if (!identity) return null;
+  return {
+    source: "associates",
+    userId: identity.userId,
+    personId: identity.personId,
+    nombreCompleto: identity.nombreCompleto ?? "",
+    correoAcceso: identity.email.trim().toLowerCase(),
+    tipoAsociado: identity.roleSlug === "ASOCIADO_ESTUDIANTE" ? "ESTUDIANTE" : "ACTIVO",
+    accountStatus: identity.status === "ACTIVE" ? "ACTIVE" : "PENDING",
+    documentNumber: identity.documentNumber,
+  };
+}
+
+export function tipoAsociadoLabel(tipoAsociado: AssociateTipoAsociado): string {
+  return tipoAsociado === "ESTUDIANTE" ? "Asociado Estudiante" : "Asociado Activo";
+}
+
+export function personFullName(firstName?: string | null, paternalLastName?: string | null, maternalLastName?: string | null): string | null {
+  const value = [firstName, paternalLastName, maternalLastName].filter(Boolean).join(" ").trim();
+  return value || null;
+}
