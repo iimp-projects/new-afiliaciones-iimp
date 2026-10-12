@@ -41,6 +41,9 @@ function metadata(overrides: Partial<AssociateRecipientMetadata> = {}): Associat
 }
 
 function setup(overrides: { metadata?: unknown; live?: unknown } = {}) {
+  const campaignRepository = {
+    getCampaign: vi.fn().mockResolvedValue(campaign()),
+  };
   const deliveryRepository = {
     getCampaignRecipient: vi.fn().mockResolvedValue({ recipientId: 5, status: EmailSendStatus.PENDING, sendCount: 0, metadata: overrides.metadata === undefined ? metadata() : overrides.metadata }),
     getRecipient: vi.fn().mockResolvedValue({ id: 5, email: "juan@iimp.org.pe", name: "Juan Pérez", company: null, position: null }),
@@ -63,14 +66,14 @@ function setup(overrides: { metadata?: unknown; live?: unknown } = {}) {
   const mailService = { sendMail: vi.fn().mockResolvedValue({ messageId: "<abc@example>" }), validateConfiguration: vi.fn() };
 
   const service = new CampaignMailService(
-    {} as never,
+    campaignRepository as never,
     deliveryRepository as never,
     mailService as never,
     associateRepository as never,
     accountActivation as never,
   );
 
-  return { service, deliveryRepository, associateRepository, accountActivation, mailService };
+  return { service, campaignRepository, deliveryRepository, associateRepository, accountActivation, mailService };
 }
 
 describe("CampaignMailService — origen 'Asociados del sistema'", () => {
@@ -158,5 +161,32 @@ describe("CampaignMailService — origen 'Asociados del sistema'", () => {
     const result = await service.deliverRecipient(campaign(), 1, 5);
     expect(result.outcome).toBe("QUOTA_EXCEEDED");
     expect(deliveryRepository.markRecipientPending).toHaveBeenCalledWith(1, 5);
+  });
+
+  it("sendTest resuelve nombre_completo y correo_acceso del asociado de referencia", async () => {
+    const { service, mailService } = setup();
+    await service.sendTest(1, "prueba@iimp.org.pe", 5, { userId: 1, email: "admin@iimp.org.pe" });
+    const call = mailService.sendMail.mock.calls[0][0];
+    expect(call.html).toContain("Juan Pérez");
+    expect(call.html).toContain("juan@iimp.org.pe");
+    expect(call.html).toContain("Asociado Activo");
+  });
+
+  it("sendTest sin destinatario de referencia no personaliza con datos de asociado", async () => {
+    const { service, mailService } = setup();
+    await service.sendTest(1, "prueba@iimp.org.pe", null, { userId: 1, email: "admin@iimp.org.pe" });
+    const call = mailService.sendMail.mock.calls[0][0];
+    expect(call.html).not.toContain("Juan Pérez");
+  });
+
+  it("deliverRecipient excluye asociados con nombre o correo de acceso vacíos", async () => {
+    const { service, deliveryRepository, mailService } = setup({
+      metadata: metadata({ nombreCompleto: "" }),
+    });
+    const result = await service.deliverRecipient(campaign(), 1, 5);
+    expect(result.outcome).toBe("ERROR");
+    expect(result.errorMessage).toContain("personalización incompletos");
+    expect(deliveryRepository.recordRecipientExclusion).toHaveBeenCalled();
+    expect(mailService.sendMail).not.toHaveBeenCalled();
   });
 });
