@@ -68,10 +68,10 @@ export class EmailDeliveryRepository {
     });
   }
 
-  async getRecipient(recipientId: number): Promise<{ id: number; email: string; name: string | null; company: string | null; position: string | null } | null> {
+  async getRecipient(recipientId: number): Promise<{ id: number; email: string; name: string | null; company: string | null; position: string | null; metadata: Prisma.JsonValue | null } | null> {
     return this.db.emailRecipient.findUnique({
       where: { id: recipientId },
-      select: { id: true, email: true, name: true, company: true, position: true },
+      select: { id: true, email: true, name: true, company: true, position: true, metadata: true },
     });
   }
 

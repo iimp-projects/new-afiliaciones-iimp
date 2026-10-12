@@ -1,7 +1,7 @@
 import { AffiliateType, ApplicationStatus, SieLinkStatus, UserStatus, UserType, type PrismaClient } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { isValidEmail } from "../Services/Import/EmailProcessing";
-import type { AssociateExcludedItem, AssociateRecipientCandidate, AssociateSourceFilter } from "../Models/AssociateRecipient";
+import type { AssociateExcludedItem, AssociateIdentity, AssociateRecipientCandidate, AssociateSourceFilter } from "../Models/AssociateRecipient";
 
 const ROLE_SLUGS: Record<AssociateSourceFilter, string[]> = {
   ALL: ["ASOCIADO_ACTIVO", "ASOCIADO_ESTUDIANTE"],
@@ -72,6 +72,36 @@ export class AssociateRecipientRepository {
     });
     if (!row) return null;
     return { id: row.id, email: row.email, status: row.status, deletedAt: row.deletedAt, roleSlug: row.role?.slug ?? null };
+  }
+
+  /**
+   * Devuelve la identidad completa de un asociado (usuario + persona) para
+   * reconstruir el contexto de personalización desde `userId`, sin depender del
+   * snapshot de campaña. Revalida nombre y correo de acceso contra la fuente.
+   */
+  async getAssociateIdentity(userId: number): Promise<AssociateIdentity | null> {
+    const row = await this.db.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        status: true,
+        deletedAt: true,
+        role: { select: { slug: true } },
+        person: { select: { id: true, firstName: true, paternalLastName: true, maternalLastName: true, documentNumber: true } },
+      },
+    });
+    if (!row) return null;
+    return {
+      userId: row.id,
+      personId: row.person?.id ?? null,
+      email: row.email,
+      status: row.status,
+      deletedAt: row.deletedAt,
+      roleSlug: row.role?.slug ?? null,
+      nombreCompleto: personName(row.person?.firstName, row.person?.paternalLastName, row.person?.maternalLastName),
+      documentNumber: row.person?.documentNumber ?? null,
+    };
   }
 
   /**
