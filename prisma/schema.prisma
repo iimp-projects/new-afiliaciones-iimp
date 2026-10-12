@@ -1433,6 +1433,8 @@ model EmailCampaign {
   replyTo     String?             @map("reply_to") @db.VarChar(200)
   status      EmailCampaignStatus @default(DRAFT)
   createdBy   Int?                @map("created_by")
+  pausedUntil DateTime?           @map("paused_until")
+  pauseReason String?             @map("pause_reason") @db.VarChar(500)
   createdAt   DateTime            @default(now()) @map("created_at")
   updatedAt   DateTime            @updatedAt @map("updated_at")
 
@@ -1501,6 +1503,7 @@ model EmailCampaignRecipient {
   status      EmailSendStatus @default(PENDING)
   lastSentAt  DateTime?       @map("last_sent_at")
   sendCount   Int             @default(0) @map("send_count")
+  metadata    Json?
   createdAt   DateTime        @default(now()) @map("created_at")
   updatedAt   DateTime        @updatedAt @map("updated_at")
 

@@ -1,6 +1,23 @@
 import { EmailCampaignStatus, EmailSendStatus, Prisma, type PrismaClient } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { getAppBaseUrl } from "@/lib/config/env";
 import type { CampaignDetail, CampaignInput, CampaignListItem, CampaignRecipientPreview } from "../Models/Campaign";
+import type { AssociateRecipientMetadata } from "../Models/AssociateRecipient";
+
+function isAssociateMetadataValue(value: Prisma.JsonValue | null | undefined): AssociateRecipientMetadata | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const record = value as Record<string, unknown>;
+  if (record.source !== "associates" || typeof record.userId !== "number") return null;
+  return record as unknown as AssociateRecipientMetadata;
+}
+
+function previewAccessUrl(): string {
+  try {
+    return `${getAppBaseUrl(process.env, { allowDevDefault: true })}/login`;
+  } catch {
+    return "";
+  }
+}
 
 export class CampaignRepository {
   constructor(private readonly db: PrismaClient = prisma) {}
@@ -44,6 +61,8 @@ export class CampaignRepository {
       createdBy: row.createdBy,
       createdByName: row.creator?.person ? [row.creator.person.firstName, row.creator.person.paternalLastName].filter(Boolean).join(" ") : null,
       recipientCount: row._count.recipients,
+      pausedUntil: row.pausedUntil?.toISOString() ?? null,
+      pauseReason: row.pauseReason,
     };
   }
 
@@ -107,6 +126,22 @@ export class CampaignRepository {
     await this.db.emailCampaign.update({ where: { id }, data: { status: EmailCampaignStatus.SENDING } });
   }
 
+  /** Pausa una campaña (mantiene SENDING) con motivo y momento de reanudación. */
+  async pauseCampaign(id: number, until: Date, reason: string): Promise<void> {
+    await this.db.emailCampaign.update({
+      where: { id },
+      data: { pausedUntil: until, pauseReason: reason },
+    });
+  }
+
+  /** Limpia la pausa (reanudación). */
+  async clearPause(id: number): Promise<void> {
+    await this.db.emailCampaign.update({
+      where: { id },
+      data: { pausedUntil: null, pauseReason: null },
+    });
+  }
+
   async getSelectionData(): Promise<{
     lists: Array<{ id: number; name: string; memberCount: number }>;
     recipients: Array<{ id: number; email: string; name: string | null; company: string | null; listIds: number[]; listNames: string[] }>;
@@ -155,13 +190,21 @@ export class CampaignRepository {
       include: { recipient: { select: { id: true, email: true, name: true, company: true, position: true } } },
       orderBy: { recipient: { email: "asc" } },
     });
-    return rows.map((row) => ({
-      id: row.recipient.id,
-      email: row.recipient.email,
-      name: row.recipient.name,
-      company: row.recipient.company,
-      position: row.recipient.position,
-    }));
+    return rows.map((row) => {
+      const meta = isAssociateMetadataValue(row.metadata);
+      return {
+        id: row.recipient.id,
+        email: row.recipient.email,
+        name: row.recipient.name,
+        company: row.recipient.company,
+        position: row.recipient.position,
+        nombreCompleto: meta?.nombreCompleto ?? null,
+        correoAcceso: meta?.correoAcceso ?? null,
+        tipoAsociado: meta ? (meta.tipoAsociado === "ESTUDIANTE" ? "Asociado Estudiante" : "Asociado Activo") : null,
+        enlaceAcceso: meta ? previewAccessUrl() : null,
+        enlaceActivacion: null,
+      };
+    });
   }
 
   async setCampaignRecipients(campaignId: number, recipientIds: number[], actor: { userId: number; email: string }, campaignName: string): Promise<{ count: number }> {
@@ -184,6 +227,66 @@ export class CampaignRepository {
       });
     });
     return { count: unique.length };
+  }
+
+  /**
+   * Materializa destinatarios de campaña a partir del origen "Asociados del
+   * sistema". Crea/vincula EmailRecipient por correo de acceso y reemplaza los
+   * destinatarios de la campaña con un snapshot (metadata) por destinatario.
+   */
+  async setCampaignRecipientsFromAssociates(
+    campaignId: number,
+    recipients: AssociateRecipientMetadata[],
+    actor: { userId: number; email: string },
+    campaignName: string,
+  ): Promise<{ count: number }> {
+    await this.db.$transaction(async (tx) => {
+      const emails = recipients.map((item) => item.correoAcceso);
+      const existing = await tx.emailRecipient.findMany({ where: { email: { in: emails } }, select: { id: true, email: true } });
+      const existingByEmail = new Map(existing.map((row) => [row.email, row.id]));
+
+      const missing = recipients.filter((item) => !existingByEmail.has(item.correoAcceso));
+      if (missing.length > 0) {
+        await tx.emailRecipient.createMany({
+          data: missing.map((item) => ({
+            email: item.correoAcceso,
+            name: item.nombreCompleto || null,
+            metadata: {
+              source: "associates",
+              userId: item.userId,
+              personId: item.personId,
+              tipoAsociado: item.tipoAsociado,
+              documentNumber: item.documentNumber,
+            } as Prisma.InputJsonValue,
+          })),
+        });
+        const created = await tx.emailRecipient.findMany({ where: { email: { in: missing.map((item) => item.correoAcceso) } }, select: { id: true, email: true } });
+        for (const row of created) existingByEmail.set(row.email, row.id);
+      }
+
+      const rows = recipients.map((item) => ({
+        campaignId,
+        recipientId: existingByEmail.get(item.correoAcceso) as number,
+        status: EmailSendStatus.PENDING,
+        metadata: item as unknown as Prisma.InputJsonValue,
+      }));
+
+      await tx.emailCampaignRecipient.deleteMany({ where: { campaignId } });
+      if (rows.length > 0) {
+        await tx.emailCampaignRecipient.createMany({ data: rows });
+      }
+
+      await tx.auditLog.create({
+        data: {
+          userId: actor.userId,
+          action: "CAMPAIGN_RECIPIENTS_FROM_ASSOCIATES",
+          entity: "EmailCampaign",
+          entityId: String(campaignId),
+          newValues: { campaignName, recipientCount: rows.length, actorEmail: actor.email } as Prisma.InputJsonValue,
+        },
+      });
+    });
+    return { count: recipients.length };
   }
 
   async writeAudit(actor: { userId: number; email: string }, action: string, campaignId: number, campaignName: string, metadata: Record<string, unknown> = {}): Promise<void> {

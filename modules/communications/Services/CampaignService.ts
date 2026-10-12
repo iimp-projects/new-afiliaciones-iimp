@@ -1,7 +1,9 @@
 import { EmailCampaignStatus } from "@prisma/client";
 import { CampaignRepository } from "../Repositories/CampaignRepository";
+import { AssociateRecipientSourceService } from "./AssociateRecipientSourceService";
 import { isValidEmail } from "./Import/EmailProcessing";
 import type { CampaignDetail, CampaignInput, CampaignListItem, CampaignRecipientPreview, CampaignRecipientSelection } from "../Models/Campaign";
+import type { AssociateExcludedItem, AssociateRecipientSelection, AssociateSourceFilter } from "../Models/AssociateRecipient";
 
 export class CampaignServiceError extends Error {
   constructor(message: string, readonly status = 400, readonly fields: string[] = []) { super(message); }
@@ -111,5 +113,24 @@ export class CampaignService {
 
   async getPreviewRecipients(campaignId: number): Promise<CampaignRecipientPreview[]> {
     return this.repository.getCampaignRecipientsForPreview(campaignId);
+  }
+
+  async getAssociateSelection(filter: AssociateSourceFilter): Promise<AssociateRecipientSelection> {
+    return new AssociateRecipientSourceService().preview(filter);
+  }
+
+  async setRecipientsFromAssociates(campaignId: number, filter: AssociateSourceFilter, actor: { userId: number; email: string }): Promise<{ count: number; excluded: AssociateExcludedItem[]; excludedTotal: number }> {
+    const campaign = await this.repository.getCampaign(campaignId);
+    if (!campaign) throw new CampaignServiceError("La campaña no existe.", 404);
+    if (campaign.status !== EmailCampaignStatus.DRAFT) {
+      throw new CampaignServiceError("Solo se pueden modificar destinatarios en estado borrador.", 409);
+    }
+    const source = new AssociateRecipientSourceService();
+    const [recipients, excluded] = await Promise.all([
+      source.collectEligible(filter),
+      source.preview(filter),
+    ]);
+    const { count } = await this.repository.setCampaignRecipientsFromAssociates(campaignId, recipients, actor, campaign.name);
+    return { count, excluded: excluded.excluded, excludedTotal: excluded.totalExcluded };
   }
 }

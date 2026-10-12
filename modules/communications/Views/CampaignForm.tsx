@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Eye, Loader2, Save } from "lucide-react";
-import { createCampaignAction, updateCampaignAction } from "../Actions/campaign.actions";
+import { Eye, Loader2, Mail, Save } from "lucide-react";
+import { createCampaignAction, loadInstitutionalTemplateAction, updateCampaignAction } from "../Actions/campaign.actions";
 import { CampaignPreviewModal } from "./CampaignPreviewModal";
 import type { CampaignDetail } from "../Models/Campaign";
 
@@ -29,8 +29,27 @@ export function CampaignForm({ campaignId, initial }: { campaignId?: number; ini
     textContent: initial?.textContent ?? EMPTY.textContent,
   });
   const [saving, setSaving] = useState(false);
+  const [loadingTemplate, setLoadingTemplate] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
+
+  const loadTemplate = async () => {
+    setLoadingTemplate(true);
+    setError(null);
+    const response = await loadInstitutionalTemplateAction();
+    setLoadingTemplate(false);
+    if (!response.success) {
+      setError(response.message);
+      return;
+    }
+    setForm((prev) => ({
+      ...prev,
+      name: prev.name || response.name,
+      subject: prev.subject || response.subject,
+      htmlContent: response.htmlContent,
+      textContent: response.textContent,
+    }));
+  };
 
   const set = (key: keyof typeof EMPTY) => (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm((prev) => ({ ...prev, [key]: event.target.value }));
@@ -90,7 +109,16 @@ export function CampaignForm({ campaignId, initial }: { campaignId?: number; ini
 
       <label className="block">
         <span className="text-xs font-bold uppercase text-slate-500">Contenido HTML</span>
-        <p className="mb-1 text-[11px] text-slate-400">Puede usar variables: {"{{nombre}}"} {"{{empresa}}"} {"{{cargo}}"} {"{{email}}"}</p>
+        <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+          <p className="text-[11px] text-slate-400">Puede usar variables: {"{{nombre}}"} {"{{empresa}}"} {"{{cargo}}"} {"{{email}}"} {"{{nombre_completo}}"} {"{{correo_acceso}}"} {"{{tipo_asociado}}"} {"{{enlace_acceso}}"} {"{{enlace_activacion}}"}</p>
+          <button
+            onClick={() => void loadTemplate()}
+            disabled={loadingTemplate}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-[#C5A059] px-3 py-1.5 text-[11px] font-black text-[#7f561e] disabled:opacity-50"
+          >
+            {loadingTemplate ? <Loader2 size={13} className="animate-spin" /> : <Mail size={13} />} Cargar plantilla institucional
+          </button>
+        </div>
         <textarea value={form.htmlContent} onChange={set("htmlContent")} rows={12} className={`${field} font-mono text-xs`} />
       </label>
 

@@ -15,6 +15,10 @@ export interface CampaignSendProgress {
   percent: number;
   /** true cuando el estado es terminal (COMPLETED / PARTIAL / CANCELLED). */
   done: boolean;
+  /** true cuando la campaña está pausada por límite/cuota del proveedor. */
+  paused: boolean;
+  pauseReason: string | null;
+  resumeAt: string | null;
 }
 
 /** Resultado de procesar un lote. */
@@ -24,4 +28,7 @@ export interface BatchResult {
   processedThisBatch: number;
   /** true si la campaña quedó en un estado terminal tras este lote. */
   finished: boolean;
+  paused: boolean;
+  pauseReason: string | null;
+  resumeAt: string | null;
 }

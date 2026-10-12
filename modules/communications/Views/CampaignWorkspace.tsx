@@ -7,6 +7,7 @@ import { AlertTriangle, CheckCircle2, ChevronLeft, ChevronRight, Eye, Loader2, M
 import { CampaignForm } from "./CampaignForm";
 import { CampaignPreviewModal } from "./CampaignPreviewModal";
 import { ImportRecipientsWizard } from "./ImportRecipientsWizard";
+import { AssociatesSourceSection } from "./AssociatesSourceSection";
 import { backToDraftAction, cancelCampaignAction, markCampaignReadyAction, setCampaignRecipientsAction } from "../Actions/campaign.actions";
 import { deleteRecipientListAction, renameRecipientListAction } from "../Actions/recipient.actions";
 import { fetchDeliveryHistoryAction, processCampaignBatchAction, retryCampaignFailedAction, sendIndividualEmailAction, startCampaignSendAction } from "../Actions/send.actions";
@@ -75,6 +76,7 @@ export function CampaignWorkspace({
   campaignRecipients,
   stats,
   senderEmail,
+  initialPause,
 }: {
   campaign: CampaignDetail;
   selection: CampaignRecipientSelection;
@@ -82,6 +84,7 @@ export function CampaignWorkspace({
   campaignRecipients: CampaignRecipientView[];
   stats: CampaignSendStats;
   senderEmail: string | null;
+  initialPause: { paused: boolean; pauseReason: string | null; resumeAt: string | null };
 }) {
   const router = useRouter();
   const [tab, setTab] = useState<"resumen" | "contenido" | "destinatarios">("resumen");
@@ -113,8 +116,11 @@ export function CampaignWorkspace({
       processed,
       percent: stats.recipients === 0 ? 0 : Math.round((processed / stats.recipients) * 100),
       done: campaign.status === "COMPLETED" || campaign.status === "PARTIAL" || campaign.status === "CANCELLED",
+      paused: initialPause.paused,
+      pauseReason: initialPause.pauseReason,
+      resumeAt: initialPause.resumeAt,
     };
-  }, [liveProgress, stats, campaign.id, campaign.status]);
+  }, [liveProgress, stats, campaign.id, campaign.status, initialPause]);
 
   useEffect(() => {
     if (campaign.status !== "SENDING") return;
@@ -414,6 +420,8 @@ function RecipientsTab({ campaignId, isDraft, selection, onDirtyChange }: { camp
 
   return (
     <section className="space-y-5">
+      <AssociatesSourceSection campaignId={campaignId} onApplied={() => router.refresh()} />
+
       <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h3 className="text-sm font-black uppercase tracking-wide text-slate-700">Listas disponibles</h3>
@@ -678,6 +686,15 @@ function SendTab({ campaignId, isReady, campaignRecipients, progress }: { campai
                 </span>
                 <span className="text-xs font-bold text-slate-500">{progress.processed} de {progress.total} procesados · {progress.percent}%</span>
               </div>
+              {progress.paused && (
+                <div className="mt-3 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs font-semibold text-amber-800">
+                  <AlertTriangle size={15} className="mt-0.5 shrink-0" />
+                  <div>
+                    <p>Envío en pausa: {progress.pauseReason ?? "límite del proveedor alcanzado"}</p>
+                    <p className="mt-1 text-amber-700">Se reanudará automáticamente {progress.resumeAt ? formatDate(progress.resumeAt) : "próximamente"}.</p>
+                  </div>
+                </div>
+              )}
               <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-100">
                 <div className="h-full rounded-full bg-[#C5A059] transition-all" style={{ width: `${progress.percent}%` }} />
               </div>
