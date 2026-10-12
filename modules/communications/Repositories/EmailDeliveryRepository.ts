@@ -45,12 +45,27 @@ export interface PendingRecipient {
 export class EmailDeliveryRepository {
   constructor(private readonly db: PrismaClient = prisma) {}
 
-  async getCampaignRecipient(campaignId: number, recipientId: number): Promise<{ recipientId: number; status: EmailSendStatus; sendCount: number } | null> {
+  async getCampaignRecipient(campaignId: number, recipientId: number): Promise<{ recipientId: number; status: EmailSendStatus; sendCount: number; metadata: Prisma.JsonValue | null } | null> {
     const row = await this.db.emailCampaignRecipient.findUnique({
       where: { campaignId_recipientId: { campaignId, recipientId } },
-      select: { recipientId: true, status: true, sendCount: true },
+      select: { recipientId: true, status: true, sendCount: true, metadata: true },
     });
     return row;
+  }
+
+  /** Registra una exclusión en envío: crea un delivery ERROR con motivo y marca al destinatario ERROR. */
+  async recordRecipientExclusion(campaignId: number, recipientId: number, email: string, reason: string): Promise<void> {
+    await this.db.$transaction(async (tx) => {
+      const aggregate = await tx.emailDelivery.aggregate({ where: { campaignId, recipientId }, _max: { attemptNumber: true } });
+      const attemptNumber = (aggregate._max.attemptNumber ?? 0) + 1;
+      await tx.emailDelivery.create({
+        data: { campaignId, recipientId, email, status: EmailSendStatus.ERROR, attemptNumber, errorMessage: reason },
+      });
+      await tx.emailCampaignRecipient.update({
+        where: { campaignId_recipientId: { campaignId, recipientId } },
+        data: { status: EmailSendStatus.ERROR },
+      });
+    });
   }
 
   async getRecipient(recipientId: number): Promise<{ id: number; email: string; name: string | null; company: string | null; position: string | null } | null> {
@@ -132,6 +147,21 @@ export class EmailDeliveryRepository {
     await this.db.emailCampaignRecipient.update({
       where: { campaignId_recipientId: { campaignId, recipientId } },
       data: { status: EmailSendStatus.ERROR },
+    });
+  }
+
+  /** Devuelve un destinatario a PENDING (p. ej. al alcanzar un límite temporal del proveedor). */
+  async markRecipientPending(campaignId: number, recipientId: number): Promise<void> {
+    await this.db.emailCampaignRecipient.update({
+      where: { campaignId_recipientId: { campaignId, recipientId } },
+      data: { status: EmailSendStatus.PENDING },
+    });
+  }
+
+  /** Cantidad de envíos SENT desde una fecha (contador de cuota diaria global). */
+  async countSentSince(since: Date): Promise<number> {
+    return this.db.emailDelivery.count({
+      where: { status: EmailSendStatus.SENT, sentAt: { gte: since } },
     });
   }
 

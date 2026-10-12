@@ -48,6 +48,36 @@ describe("AccountActivationService", () => {
     expect(sendMail).toHaveBeenCalledWith(expect.objectContaining({ to: "ana@example.com", html: expect.stringContaining("activar-cuenta?token=") }));
   });
 
+  it("createActivationUrl emite token y devuelve URL sin enviar correo", async () => {
+    process.env.NEXT_PUBLIC_APP_URL = "https://portal.example";
+    const tx = {
+      $executeRaw: vi.fn(),
+      user: { findUnique: vi.fn().mockResolvedValue({ id: 7, email: "ana@example.com", status: "PENDING", deletedAt: null, roleId: 2, person: { firstName: "Ana", paternalLastName: "Pérez" }, credentials: [] }) },
+      verificationToken: { deleteMany: vi.fn(), create: vi.fn() },
+    };
+    db.$transaction.mockImplementationOnce((callback: (client: typeof tx) => unknown) => callback(tx));
+    sendMail.mockClear();
+
+    const result = await new AccountActivationService().createActivationUrl(7);
+
+    expect(result?.email).toBe("ana@example.com");
+    expect(result?.url).toMatch(/^https:\/\/portal\.example\/activar-cuenta\?token=/);
+    expect(tx.verificationToken.create).toHaveBeenCalledOnce();
+    expect(sendMail).not.toHaveBeenCalled();
+  });
+
+  it("createActivationUrl devuelve null para cuenta no activable (ACTIVE)", async () => {
+    const tx = {
+      $executeRaw: vi.fn(),
+      user: { findUnique: vi.fn().mockResolvedValue({ id: 8, email: "activo@example.com", status: "ACTIVE", deletedAt: null, roleId: 2, person: null, credentials: [] }) },
+      verificationToken: { deleteMany: vi.fn(), create: vi.fn() },
+    };
+    db.$transaction.mockImplementationOnce((callback: (client: typeof tx) => unknown) => callback(tx));
+
+    await expect(new AccountActivationService().createActivationUrl(8)).resolves.toBeNull();
+    expect(tx.verificationToken.create).not.toHaveBeenCalled();
+  });
+
   it("rejects expired tokens", async () => {
     db.verificationToken.findUnique.mockResolvedValueOnce({ identifier: "account-activation:7", expires: new Date(0) });
     await expect(new AccountActivationService().getActivationDetails("a".repeat(43))).resolves.toBeNull();

@@ -31,5 +31,8 @@ export default async function CampanaPage({ params }: { params: Promise<{ id: st
     senderEmail = campaign.senderEmail;
   }
 
-  return <CampaignWorkspace campaign={campaign} selection={selection} previewRecipients={previewRecipients} campaignRecipients={campaignRecipients} stats={stats} senderEmail={senderEmail} />;
+  const paused = campaign.pausedUntil ? new Date(campaign.pausedUntil).getTime() > Date.now() : false;
+  const initialPause = { paused, pauseReason: paused ? campaign.pauseReason : null, resumeAt: paused ? campaign.pausedUntil : null };
+
+  return <CampaignWorkspace campaign={campaign} selection={selection} previewRecipients={previewRecipients} campaignRecipients={campaignRecipients} stats={stats} senderEmail={senderEmail} initialPause={initialPause} />;
 }

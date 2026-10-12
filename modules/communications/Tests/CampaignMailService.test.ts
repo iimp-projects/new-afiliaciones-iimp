@@ -25,6 +25,8 @@ function campaign(overrides: Partial<CampaignDetail> = {}): CampaignDetail {
     createdBy: 1,
     createdByName: "Admin",
     recipientCount: 1,
+    pausedUntil: null,
+    pauseReason: null,
     ...overrides,
   };
 }

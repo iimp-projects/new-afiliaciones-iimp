@@ -67,12 +67,12 @@ export async function startCampaignSendAction(campaignId: number): Promise<{ suc
   }
 }
 
-export async function processCampaignBatchAction(campaignId: number): Promise<{ success: true; progress: CampaignSendProgress; processedThisBatch: number; finished: boolean } | { success: false; message: string; status?: number; code?: string }> {
+export async function processCampaignBatchAction(campaignId: number): Promise<{ success: true; progress: CampaignSendProgress; processedThisBatch: number; finished: boolean; paused: boolean; pauseReason: string | null; resumeAt: string | null } | { success: false; message: string; status?: number; code?: string }> {
   try {
     const actor = await requireActor();
     const result = await new CampaignSendService().processBatch(campaignId, actor);
     revalidatePath(`/intranet/correos-masivos/campanas/${campaignId}`);
-    return { success: true, progress: result.progress, processedThisBatch: result.processedThisBatch, finished: result.finished };
+    return { success: true, progress: result.progress, processedThisBatch: result.processedThisBatch, finished: result.finished, paused: result.paused, pauseReason: result.pauseReason, resumeAt: result.resumeAt };
   } catch (error) {
     return failure(error);
   }

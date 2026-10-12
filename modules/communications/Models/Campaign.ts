@@ -24,6 +24,9 @@ export interface CampaignDetail {
   createdBy: number | null;
   createdByName: string | null;
   recipientCount: number;
+  /** Pausa por cuota/rate-limit del proveedor (null = sin pausa). */
+  pausedUntil: string | null;
+  pauseReason: string | null;
 }
 
 export interface CampaignInput {
@@ -49,4 +52,10 @@ export interface CampaignRecipientPreview {
   name: string | null;
   company: string | null;
   position: string | null;
+  /** Variables del origen "Asociados del sistema" (snapshot), para previsualización. */
+  nombreCompleto?: string | null;
+  correoAcceso?: string | null;
+  tipoAsociado?: string | null;
+  enlaceAcceso?: string | null;
+  enlaceActivacion?: string | null;
 }
