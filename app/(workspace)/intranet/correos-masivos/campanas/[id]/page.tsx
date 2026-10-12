@@ -27,7 +27,7 @@ export default async function CampanaPage({ params }: { params: Promise<{ id: st
 
   let senderEmail: string | null = null;
   try {
-    senderEmail = getSmtpConfig(process.env, "PROV").from;
+    senderEmail = getSmtpConfig(process.env).from;
   } catch {
     senderEmail = campaign.senderEmail;
   }

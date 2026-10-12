@@ -51,7 +51,7 @@ export class CampaignMailService {
   constructor(
     private readonly campaignRepository = new CampaignRepository(),
     private readonly deliveryRepository = new EmailDeliveryRepository(),
-    private readonly mailService = new MailService("PROV"),
+    private readonly mailService = new MailService(),
     private readonly associateRepository = new AssociateRecipientRepository(),
     private readonly accountActivation = accountActivationService,
   ) {}
@@ -243,8 +243,8 @@ export class CampaignMailService {
   }
 
   /**
-   * Fail-fast de configuración: valida que la cuenta SMTP (PROV) tenga las
-   * variables requeridas, sin abrir conexión. Lanza CampaignMailError con
+   * Fail-fast de configuración: valida que la cuenta SMTP institucional tenga
+   * las variables requeridas, sin abrir conexión. Lanza CampaignMailError con
    * SMTP_CONFIGURATION_UNAVAILABLE si falta configuración.
    */
   validateSendConfiguration(): void {
