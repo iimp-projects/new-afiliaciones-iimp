@@ -37,6 +37,20 @@ export class UpdateDraftService {
         new ApplicationAccessService().require(Number(application.id), token);
         await this.ensureEditable(application, dto);
 
+        // ─── CONTENCIÓN TEMPORAL (reversible) ───────────────────────────────
+        // Bloquea el guardado de subsanaciones (OBSERVED) para impedir la
+        // pérdida de documentos históricos provocada por syncPersistedEntities
+        // (applicationDocument.deleteMany global). No afecta postulaciones en
+        // BORRADOR. Se retira al desplegar la corrección definitiva.
+        if (application.status === "OBSERVED") {
+            throw new ApplicationFlowError(
+                "APPLICATION_NOT_EDITABLE",
+                "La corrección de solicitudes está temporalmente en mantenimiento. Inténtalo nuevamente más tarde.",
+                503,
+            );
+        }
+        // ─────────────────────────────────────────────────────────────────────
+
         const isLegacy = isLegacyTrackingCode(application.trackingCode);
 
         await this.validateStudentAcademicCatalog(dto, application, isLegacy);
