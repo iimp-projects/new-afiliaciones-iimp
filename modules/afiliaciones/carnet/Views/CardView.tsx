@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import QRCode from "qrcode";
-import { BadgeCheck, Download, ShieldAlert, UserRound } from "lucide-react";
+import { BadgeCheck, Download, Info, ShieldAlert, UserRound } from "lucide-react";
 
 export type CardViewData = {
   firstName: string;
@@ -49,11 +49,14 @@ function useQr(url: string | null): string | null {
 export function CardFace({
   data,
   verificationUrl,
+  mode = "issued",
 }: {
   data: CardViewData;
   verificationUrl: string | null;
+  mode?: "issued" | "preview";
 }) {
-  const qr = useQr(verificationUrl);
+  const qr = useQr(mode === "issued" ? verificationUrl : null);
+  const issued = mode === "issued";
 
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -85,29 +88,51 @@ export function CardFace({
             </div>
             <div>
               <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Estado</p>
-              <span className="inline-flex items-center gap-1 text-sm font-bold text-emerald-700">
-                <BadgeCheck size={15} /> Credencial emitida
-              </span>
+              {issued ? (
+                <span className="inline-flex items-center gap-1 text-sm font-bold text-emerald-700">
+                  <BadgeCheck size={15} /> Credencial emitida
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-sm font-bold text-amber-700">
+                  <Info size={15} /> Vista previa — no emitido
+                </span>
+              )}
             </div>
           </div>
           <p className="text-xs text-slate-400">Vigencia institucional no confirmada.</p>
         </div>
 
         <div className="flex flex-col items-center gap-2 self-center">
-          {qr ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={qr} alt="Código QR de verificación" className="h-28 w-28 rounded-lg border border-slate-200" />
+          {issued ? (
+            qr ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={qr} alt="Código QR de verificación" className="h-28 w-28 rounded-lg border border-slate-200" />
+            ) : (
+              <div className="flex h-28 w-28 items-center justify-center rounded-lg border border-dashed border-slate-200 text-slate-300">QR</div>
+            )
           ) : (
-            <div className="flex h-28 w-28 items-center justify-center rounded-lg border border-dashed border-slate-200 text-slate-300">QR</div>
+            <div className="flex h-28 w-28 items-center justify-center rounded-lg border border-dashed border-slate-200 bg-slate-50 p-2 text-center text-[10px] font-bold leading-tight text-slate-400">
+              Vista previa sin QR
+            </div>
           )}
-          <p className="max-w-[112px] text-center text-[10px] leading-tight text-slate-400">Escanear para verificar</p>
+          <p className="max-w-[112px] text-center text-[10px] leading-tight text-slate-400">
+            {issued ? "Escanear para verificar" : "Sin código QR de verificación"}
+          </p>
         </div>
       </div>
     </div>
   );
 }
 
-export function CardView({ data, card }: { data: CardViewData | null; card: CardViewState | null }) {
+export function CardView({
+  data,
+  card,
+  issuanceEnabled,
+}: {
+  data: CardViewData | null;
+  card: CardViewState | null;
+  issuanceEnabled: boolean;
+}) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -173,22 +198,23 @@ export function CardView({ data, card }: { data: CardViewData | null; card: Card
           <p className="text-xs text-red-400">Contacta al área de Asociados para más información.</p>
         </section>
       ) : data.eligible ? (
-        <section className="flex flex-col items-start gap-3 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="space-y-1">
-            <h2 className="font-black text-slate-800">{data.name}</h2>
-            <p className="text-sm text-slate-500">Código: {data.code ?? "Pendiente de sincronización SIE"}</p>
-            <p className="text-sm text-slate-500">Categoría: {data.category ?? "No disponible"}</p>
-          </div>
-          <button
-            type="button"
-            onClick={generate}
-            disabled={loading}
-            className="inline-flex h-10 items-center gap-2 rounded-xl bg-[#B8892D] px-4 text-sm font-bold text-white shadow-sm transition hover:bg-[#9E7425] disabled:opacity-60"
-          >
-            {loading ? "Generando…" : "Generar mi carnet"}
-          </button>
+        <div className="space-y-3">
+          <CardFace data={data} verificationUrl={null} mode="preview" />
+          <p className="text-xs text-slate-500">
+            Vista previa — no emitido. Este es el diseño de tu carnet institucional; aún no se emitió una credencial verificable.
+          </p>
+          {issuanceEnabled ? (
+            <button
+              type="button"
+              onClick={generate}
+              disabled={loading}
+              className="inline-flex h-10 items-center gap-2 rounded-xl bg-[#B8892D] px-4 text-sm font-bold text-white shadow-sm transition hover:bg-[#9E7425] disabled:opacity-60"
+            >
+              {loading ? "Generando…" : "Generar mi carnet"}
+            </button>
+          ) : null}
           {error && <p className="text-sm text-red-600">{error}</p>}
-        </section>
+        </div>
       ) : (
         <section className="rounded-2xl border border-amber-200 bg-amber-50 p-6">
           <h2 className="font-black text-amber-900">Carnet no disponible</h2>
