@@ -1,4 +1,4 @@
-import { ApplicationStatus, SieLinkStatus, UserStatus, UserType, type PrismaClient } from "@prisma/client";
+import { AffiliateType, ApplicationStatus, SieLinkStatus, UserStatus, UserType, type PrismaClient } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { isValidEmail } from "../Services/Import/EmailProcessing";
 import type { AssociateExcludedItem, AssociateRecipientCandidate, AssociateSourceFilter } from "../Models/AssociateRecipient";
@@ -22,6 +22,21 @@ export class AssociateRecipientRepository {
 
   async countEligible(filter: AssociateSourceFilter): Promise<number> {
     return this.db.user.count({ where: this.eligibleWhere(filter) });
+  }
+
+  /** Total real de elegibles con correo de acceso válido (utilizables para envío). */
+  async countEligibleValid(filter: AssociateSourceFilter): Promise<number> {
+    const slugs = ROLE_SLUGS[filter].map((slug) => `'${slug}'`).join(",");
+    const rows = await this.db.$queryRawUnsafe<Array<{ count: number }>>(
+      `SELECT COUNT(*)::int AS count
+       FROM auth_users u
+       JOIN auth_roles r ON r.id = u.role_id
+       WHERE u.type = 'AFFILIATE' AND u.deleted_at IS NULL
+         AND u.status IN ('ACTIVE','PENDING')
+         AND r.slug IN (${slugs})
+         AND u.email ~ '^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$'`,
+    );
+    return Number(rows[0]?.count ?? 0);
   }
 
   async listEligible(filter: AssociateSourceFilter, skip: number, take: number): Promise<AssociateRecipientCandidate[]> {
@@ -60,22 +75,37 @@ export class AssociateRecipientRepository {
   }
 
   /**
-   * Reporte de asociados excluidos para revisión. Se deriva de:
-   *  1. Postulaciones COMPLETADAS cuya persona no tiene cuenta de acceso elegible.
-   *  2. Cuentas de rol asociado con correo inválido (NO_ACCESS_EMAIL) o type≠AFFILIATE.
-   *  3. Registros SIE: CONFLICT, LINKED sin cuenta y UNLINKED (deduplicados).
+   * Reporte de exclusiones. Separa:
+   *  - Asociados a revisar (A/E sin cuenta elegible, correo inválido, type≠AFFILIATE,
+   *    conflicto A/E, sin vincular A/E). Respeta el filtro de membresía.
+   *  - Registros SIE de categorías NO-login (Fallecido, Honorario, Renunciante,
+   *    Adherente, Anulado, Vitalicio, Separado) que NO son activos ni estudiantes.
    */
-  async listExcluded(limit = 500): Promise<{ items: AssociateExcludedItem[]; total: number }> {
+  async listExcluded(filter: AssociateSourceFilter, limit = 500): Promise<{ items: AssociateExcludedItem[]; total: number; byReason: Record<string, number>; nonAssociate: number }> {
     const items: AssociateExcludedItem[] = [];
     const seen = new Set<string>();
+    const byReason: Record<string, number> = {};
+    let nonAssociate = 0;
+    const nonAssociateSeen = new Set<string>();
+
     const push = (item: AssociateExcludedItem, key: string): void => {
       if (seen.has(key)) return;
       seen.add(key);
       items.push(item);
+      byReason[item.reason] = (byReason[item.reason] ?? 0) + 1;
+    };
+    const pushNonAssociate = (key: string): void => {
+      if (nonAssociateSeen.has(key)) return;
+      nonAssociateSeen.add(key);
+      nonAssociate += 1;
     };
 
+    const affiliateTypes: AffiliateType[] = filter === "ALL" ? [AffiliateType.ACTIVE, AffiliateType.STUDENT] : [filter as AffiliateType];
+    const roleSlugs = ROLE_SLUGS[filter];
+
+    // 1. Postulaciones COMPLETADAS (del filtro) sin cuenta de acceso elegible.
     const applications = await this.db.membershipApplication.findMany({
-      where: { status: ApplicationStatus.COMPLETED, deletedAt: null },
+      where: { status: ApplicationStatus.COMPLETED, deletedAt: null, affiliateType: { in: affiliateTypes } },
       select: {
         email: true,
         person: {
@@ -91,7 +121,6 @@ export class AssociateRecipientRepository {
         },
       },
     });
-
     for (const application of applications) {
       const person = application.person;
       if (!person) continue;
@@ -108,9 +137,9 @@ export class AssociateRecipientRepository {
       }
     }
 
-    // Cuentas de rol asociado que no serían elegibles: email inválido o type≠AFFILIATE.
+    // 2. Cuentas del filtro con correo inválido o type≠AFFILIATE.
     const accountUsers = await this.db.user.findMany({
-      where: { role: { slug: { in: ["ASOCIADO_ACTIVO", "ASOCIADO_ESTUDIANTE"] } }, deletedAt: null, status: { in: [UserStatus.ACTIVE, UserStatus.PENDING] } },
+      where: { role: { slug: { in: roleSlugs } }, deletedAt: null, status: { in: [UserStatus.ACTIVE, UserStatus.PENDING] } },
       select: { id: true, email: true, type: true, person: { select: { id: true, documentNumber: true, firstName: true, paternalLastName: true, maternalLastName: true } } },
     });
     for (const account of accountUsers) {
@@ -124,21 +153,15 @@ export class AssociateRecipientRepository {
       }
     }
 
-    const conflicts = await this.db.sieAssociateRecord.findMany({
-      where: { linkStatus: SieLinkStatus.CONFLICT },
-      select: { personId: true, documentNumber: true, person: { select: { firstName: true, paternalLastName: true, maternalLastName: true, contacts: { where: { email: { not: null } }, take: 1, select: { email: true } } } } },
-    });
-    for (const record of conflicts) {
-      const key = `sie:${record.personId ?? record.documentNumber}`;
-      if (seen.has(key)) continue;
-      push({ personId: record.personId, documentNumber: record.documentNumber, nombre: personName(record.person?.firstName, record.person?.paternalLastName, record.person?.maternalLastName), correoContacto: record.person?.contacts[0]?.email ?? null, reason: "CONFLICT" }, key);
-    }
-
-    const unprovisionedSie = await this.db.sieAssociateRecord.findMany({
-      where: { linkStatus: SieLinkStatus.LINKED },
+    // 3. Registros SIE: separar categorías login (A/E) de NO-login.
+    const sie = await this.db.sieAssociateRecord.findMany({
       select: {
+        id: true,
+        linkStatus: true,
         personId: true,
         documentNumber: true,
+        externalCode: true,
+        category: { select: { allowsLogin: true } },
         person: {
           select: {
             firstName: true,
@@ -150,25 +173,37 @@ export class AssociateRecipientRepository {
         },
       },
     });
-    for (const record of unprovisionedSie) {
+    for (const record of sie) {
       const person = record.person;
-      if (!person) continue;
-      const user = person.user;
+      const user = person?.user;
       const eligible = user && !user.deletedAt && user.type === UserType.AFFILIATE && (user.role?.slug === "ASOCIADO_ACTIVO" || user.role?.slug === "ASOCIADO_ESTUDIANTE") && (user.status === UserStatus.ACTIVE || user.status === UserStatus.PENDING);
-      if (!eligible) {
-        push({ personId: record.personId, documentNumber: record.documentNumber, nombre: personName(person.firstName, person.paternalLastName, person.maternalLastName), correoContacto: person.contacts[0]?.email ?? null, reason: "NO_ACCOUNT" }, `person:${record.personId}`);
+      const nombre = personName(person?.firstName, person?.paternalLastName, person?.maternalLastName);
+      const contactEmail = person?.contacts[0]?.email ?? null;
+      const isLoginCategory = record.category?.allowsLogin === true;
+
+      if (record.linkStatus === SieLinkStatus.LINKED) {
+        if (eligible) continue;
+        if (isLoginCategory) {
+          push({ personId: record.personId, documentNumber: record.documentNumber, nombre, correoContacto: contactEmail, reason: "NO_ACCOUNT" }, `person:${record.personId}`);
+        } else {
+          pushNonAssociate(`person:${record.personId}`);
+        }
+      } else if (record.linkStatus === SieLinkStatus.CONFLICT) {
+        if (isLoginCategory) {
+          push({ personId: record.personId, documentNumber: record.documentNumber, nombre, correoContacto: contactEmail, reason: "CONFLICT" }, `sie:${record.personId ?? record.documentNumber}`);
+        } else {
+          pushNonAssociate(`conflict:${record.id}`);
+        }
+      } else if (record.linkStatus === SieLinkStatus.UNLINKED) {
+        if (isLoginCategory) {
+          push({ personId: record.personId, documentNumber: record.documentNumber, nombre, correoContacto: contactEmail, reason: "UNLINKED" }, `sie-unlinked:${record.externalCode}`);
+        } else {
+          pushNonAssociate(`unlinked:${record.externalCode}`);
+        }
       }
     }
 
-    const unlinkedSie = await this.db.sieAssociateRecord.findMany({
-      where: { linkStatus: SieLinkStatus.UNLINKED },
-      select: { externalCode: true, personId: true, documentNumber: true, person: { select: { firstName: true, paternalLastName: true, maternalLastName: true, contacts: { where: { email: { not: null } }, take: 1, select: { email: true } } } } },
-    });
-    for (const record of unlinkedSie) {
-      push({ personId: record.personId, documentNumber: record.documentNumber, nombre: personName(record.person?.firstName, record.person?.paternalLastName, record.person?.maternalLastName), correoContacto: record.person?.contacts[0]?.email ?? null, reason: "UNLINKED" }, `sie-unlinked:${record.externalCode}`);
-    }
-
-    return { items: items.slice(0, limit), total: items.length };
+    return { items: items.slice(0, limit), total: items.length, byReason, nonAssociate };
   }
 
   private eligibleWhere(filter: AssociateSourceFilter) {

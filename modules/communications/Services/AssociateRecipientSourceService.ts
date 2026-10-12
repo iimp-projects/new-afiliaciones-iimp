@@ -14,20 +14,25 @@ export class AssociateRecipientSourceService {
 
   /**
    * Vista previa para la UI: primera página de elegibles + resumen de excluidos.
-   * No materializa destinatarios.
+   * No materializa destinatarios. `totalEligible` es el total real (correos
+   * válidos), no el tamaño de la muestra.
    */
   async preview(filter: AssociateSourceFilter): Promise<AssociateRecipientSelection> {
-    const [eligible, excluded] = await Promise.all([
+    const [eligible, excluded, totalEligible] = await Promise.all([
       this.repository.listEligible(filter, 0, 50),
-      this.repository.listExcluded(),
+      this.repository.listExcluded(filter),
+      this.repository.countEligibleValid(filter),
     ]);
     const valid = eligible.filter((item) => isValidEmail(item.correoAcceso));
     return {
       filter,
       eligible: valid,
+      shownCount: valid.length,
+      totalEligible,
       excluded: excluded.items,
-      totalEligible: valid.length,
+      excludedByReason: excluded.byReason,
       totalExcluded: excluded.total,
+      totalNonAssociate: excluded.nonAssociate,
     };
   }
 
