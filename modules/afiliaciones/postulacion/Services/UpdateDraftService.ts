@@ -15,6 +15,7 @@ import { AcademicStudy } from "../Models/AcademicStudy";
 import { MembershipType } from "../Types/MembershipType";
 import { AcademicStudyValidator } from "../Validators/AcademicStudyValidator";
 import { assertStudentAcademicAllowed, persistAcademicInfos } from "../Repositories/AcademicInfoPersistence";
+import { isLegacyTrackingCode } from "../StudentAcademicRules";
 
 export class UpdateDraftService {
 
@@ -34,10 +35,12 @@ export class UpdateDraftService {
         new ApplicationAccessService().require(Number(application.id), token);
         await this.ensureEditable(application, dto);
 
-        await this.validateStudentAcademicCatalog(dto, application);
+        const isLegacy = isLegacyTrackingCode(application.trackingCode);
+
+        await this.validateStudentAcademicCatalog(dto, application, isLegacy);
 
         if (application.status === "OBSERVED") {
-            this.validateAcademicSync(dto, application);
+            this.validateAcademicSync(dto, application, isLegacy);
         }
 
         const updatedApplication = await this.updateDraft(
@@ -47,7 +50,7 @@ export class UpdateDraftService {
         );
 
         if (application.status === "OBSERVED") {
-            await this.syncPersistedEntities(Number(application.id), dto.draftData);
+            await this.syncPersistedEntities(Number(application.id), dto.draftData, isLegacy);
             await this.markCorrectionSubmitted(Number(application.id));
 
             try {
@@ -241,9 +244,16 @@ export class UpdateDraftService {
      * el mismo validador del envío inicial para no duplicar las reglas. Para
      * estudiantes exige especialidad, ciclo y año de ingreso, además de los campos
      * ya obligatorios del flujo estudiantil.
+     *
+     * Para postulaciones Legacy se omite esta revalidación integral: los registros
+     * académicos migrados no disponen de todos los campos del flujo nuevo (p. ej.
+     * `cycle` se migró como `termOrSemester`) y no deben revalidarse contra las
+     * reglas actuales. La restricción de especialidad ya se aplica, con
+     * compatibilidad de familias, en {@link validateStudentAcademicCatalog}.
      */
-    private validateAcademicSync(dto: UpdateDraftDTO, application: Application): void {
+    private validateAcademicSync(dto: UpdateDraftDTO, application: Application, isLegacy: boolean): void {
         if (application.affiliateType !== "STUDENT") return;
+        if (isLegacy) return;
 
         const studies = (dto.draftData as ApplicationDraft | undefined)?.academicStudies;
         if (!studies?.length) return;
@@ -263,15 +273,20 @@ export class UpdateDraftService {
      * (especialidades canónicas y filtro provisional de universidad) cada vez
      * que se guarda información académica, para que la restricción no dependa
      * únicamente del filtro visual del frontend.
+     *
+     * En postulaciones Legacy se permite conservar especialidades históricas de
+     * las familias Minas / Geología / Metalurgia.
      */
-    private async validateStudentAcademicCatalog(dto: UpdateDraftDTO, application: Application): Promise<void> {
+    private async validateStudentAcademicCatalog(dto: UpdateDraftDTO, application: Application, isLegacy: boolean): Promise<void> {
         if (application.affiliateType !== "STUDENT") return;
 
         const studies = (dto.draftData as ApplicationDraft | undefined)?.academicStudies;
         if (!studies?.length) return;
 
         for (const study of studies as AcademicStudy[]) {
-            await assertStudentAcademicAllowed(prisma, study);
+            await assertStudentAcademicAllowed(prisma, study, {
+                allowLegacySpecialtyFamily: isLegacy,
+            });
         }
     }
 
@@ -279,7 +294,7 @@ export class UpdateDraftService {
      * Sincroniza las tablas relacionales (membership_documents, person, etc.)
      * con los datos subsanados del draftData para que el CMS y la BD se actualicen de inmediato.
      */
-    private async syncPersistedEntities(applicationId: number, draftData: any): Promise<void> {
+    private async syncPersistedEntities(applicationId: number, draftData: any, isLegacy: boolean): Promise<void> {
         if (!draftData) return;
         const draft = draftData as Record<string, any>;
 
@@ -382,7 +397,9 @@ export class UpdateDraftService {
             // persistido, para que `cycle` y el resto de campos académicos queden
             // alineados con draftData después de una subsanación.
             if (app.personId) {
-                await persistAcademicInfos(tx, app.personId, app.draftData, app.affiliateType);
+                await persistAcademicInfos(tx, app.personId, app.draftData, app.affiliateType, {
+                    allowLegacySpecialtyFamily: isLegacy,
+                });
             }
         });
     }
