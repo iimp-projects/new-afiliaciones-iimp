@@ -68,7 +68,10 @@ export class CampaignMailService {
       const membership = await this.deliveryRepository.getCampaignRecipient(campaignId, referenceRecipientId);
       if (!membership) throw new CampaignMailError("El destinatario de referencia no pertenece a la campaña.", 422);
       const recipient = await this.deliveryRepository.getRecipient(referenceRecipientId);
-      if (recipient) reference = { name: recipient.name, company: recipient.company, position: recipient.position, email: recipient.email };
+      if (recipient) {
+        const associate = await this.resolveAssociateContext(membership.metadata);
+        reference = (associate.excluded ? null : associate.context) ?? { name: recipient.name, company: recipient.company, position: recipient.position, email: recipient.email };
+      }
     }
 
     const subject = renderTemplate(campaign.subject, reference);
@@ -133,6 +136,13 @@ export class CampaignMailService {
     if (associate.excluded) {
       await this.deliveryRepository.recordRecipientExclusion(campaignId, recipientId, recipient.email, associate.reason);
       return { outcome: "ERROR", email: recipient.email, errorMessage: associate.reason };
+    }
+    // Validación previa al envío: no enviar correos con datos de personalización
+    // incompletos (nombre o correo de acceso vacíos) para el origen asociados.
+    if (associate.context != null && (!associate.context.nombreCompleto?.trim() || !associate.context.correoAcceso?.trim())) {
+      const reason = "Datos de personalización incompletos (nombre o correo de acceso).";
+      await this.deliveryRepository.recordRecipientExclusion(campaignId, recipientId, recipient.email, reason);
+      return { outcome: "ERROR", email: recipient.email, errorMessage: reason };
     }
 
     let delivery: { id: number; attemptNumber: number };
