@@ -19,7 +19,7 @@ const REASON_LABEL: Record<string, string> = {
   UNLINKED: "Registro SIE sin vincular",
 };
 
-export function AssociatesSourceSection({ campaignId, onApplied }: { campaignId: number; onApplied: () => void }) {
+export function AssociatesSourceSection({ campaignId, onApplied, configuredCount = 0 }: { campaignId: number; onApplied: () => void; configuredCount?: number }) {
   const [filter, setFilter] = useState<AssociateSourceFilter>("ALL");
   const [selection, setSelection] = useState<AssociateRecipientSelection | null>(null);
   const [busy, setBusy] = useState(false);
@@ -92,24 +92,56 @@ export function AssociatesSourceSection({ campaignId, onApplied }: { campaignId:
       )}
 
       {selection && (
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <div className="rounded-2xl bg-emerald-50 p-4">
-            <div className="flex items-center gap-2 text-sm font-black text-emerald-800">
-              <Users size={15} /> Elegibles
+        <div className="mt-4 space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="rounded-2xl bg-emerald-50 p-4">
+              <div className="flex items-center gap-2 text-sm font-black text-emerald-800">
+                <Users size={15} /> Elegibles
+              </div>
+              <p className="mt-2 text-3xl font-black text-emerald-700">{selection.totalEligible}</p>
+              <p className="text-xs font-semibold text-emerald-600">
+                correos de acceso válidos y únicos
+                {selection.totalEligible > selection.shownCount && ` · mostrando ${selection.shownCount} de ${selection.totalEligible}`}
+              </p>
             </div>
-            <p className="mt-2 text-3xl font-black text-emerald-700">{selection.totalEligible}</p>
-            <p className="text-xs font-semibold text-emerald-600">asociados con cuenta de acceso vinculada</p>
+            <div className="rounded-2xl bg-amber-50 p-4">
+              <div className="flex items-center gap-2 text-sm font-black text-amber-800">
+                <AlertTriangle size={15} /> Excluidos (a revisar)
+              </div>
+              <p className="mt-2 text-3xl font-black text-amber-700">{selection.totalExcluded}</p>
+              <p className="text-xs font-semibold text-amber-600">asociados sin cuenta, conflicto o correo no verificable</p>
+            </div>
           </div>
-          <div className="rounded-2xl bg-amber-50 p-4">
-            <div className="flex items-center gap-2 text-sm font-black text-amber-800">
-              <AlertTriangle size={15} /> Excluidos para revisión
+
+          {Object.keys(selection.excludedByReason).length > 0 && (
+            <div className="rounded-2xl border border-slate-200 p-4">
+              <p className="text-xs font-bold uppercase text-slate-400">Excluidos por motivo</p>
+              <ul className="mt-2 grid gap-1 sm:grid-cols-2">
+                {Object.entries(selection.excludedByReason).map(([reason, count]) => (
+                  <li key={reason} className="flex items-center justify-between gap-2 rounded-lg bg-slate-50 px-3 py-1.5 text-xs">
+                    <span className="font-semibold text-slate-600">{REASON_LABEL[reason] ?? reason}</span>
+                    <span className="font-bold text-slate-800">{count}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
-            <p className="mt-2 text-3xl font-black text-amber-700">{selection.totalExcluded}</p>
-            <p className="text-xs font-semibold text-amber-600">sin cuenta, conflicto o no elegibles</p>
+          )}
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <div className="text-xs font-bold uppercase text-slate-400">No asociados (SIE)</div>
+              <p className="mt-2 text-2xl font-black text-slate-500">{selection.totalNonAssociate}</p>
+              <p className="text-xs font-semibold text-slate-500">categorías SIE sin acceso (fallecidos, renunciantes, separados, etc.)</p>
+            </div>
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <div className="text-xs font-bold uppercase text-slate-400">Configurados en la campaña</div>
+              <p className="mt-2 text-2xl font-black text-slate-500">{configuredCount}</p>
+              <p className="text-xs font-semibold text-slate-500">snapshot guardado (puede diferir del total actual)</p>
+            </div>
           </div>
 
           {selection.excluded.length > 0 && (
-            <div className="sm:col-span-2 rounded-2xl border border-slate-200 p-4">
+            <div className="rounded-2xl border border-slate-200 p-4">
               <p className="text-xs font-bold uppercase text-slate-400">Detalle de excluidos (muestra)</p>
               <div className="mt-2 max-h-56 space-y-1 overflow-y-auto">
                 {selection.excluded.map((item, index) => (

@@ -420,7 +420,7 @@ function RecipientsTab({ campaignId, isDraft, selection, onDirtyChange }: { camp
 
   return (
     <section className="space-y-5">
-      <AssociatesSourceSection campaignId={campaignId} onApplied={() => router.refresh()} />
+      <AssociatesSourceSection campaignId={campaignId} onApplied={() => router.refresh()} configuredCount={selection.uniqueSelectedCount} />
 
       <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">

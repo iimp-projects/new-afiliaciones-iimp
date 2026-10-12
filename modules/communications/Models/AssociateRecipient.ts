@@ -17,7 +17,7 @@ export interface AssociateRecipientCandidate {
   documentNumber: string | null;
 }
 
-export type AssociateExcludedReason = "NO_ACCOUNT" | "NOT_ELIGIBLE_ACCOUNT" | "CONFLICT" | "NO_ACCESS_EMAIL" | "UNLINKED";
+export type AssociateExcludedReason = "NO_ACCOUNT" | "NOT_ELIGIBLE_ACCOUNT" | "CONFLICT" | "NO_ACCESS_EMAIL" | "UNLINKED" | "NO_ASOCIADO";
 
 export interface AssociateExcludedItem {
   personId: number | null;
@@ -29,10 +29,20 @@ export interface AssociateExcludedItem {
 
 export interface AssociateRecipientSelection {
   filter: AssociateSourceFilter;
+  /** Muestra visual (primera página, máximo 50). */
   eligible: AssociateRecipientCandidate[];
-  excluded: AssociateExcludedItem[];
+  /** Número de elegibles mostrados en esta muestra. */
+  shownCount: number;
+  /** Total real de elegibles (correos válidos, únicos y utilizables). */
   totalEligible: number;
+  /** Muestra de excluidos reales (asociados a revisar). */
+  excluded: AssociateExcludedItem[];
+  /** Conteo real de excluidos por motivo (asociados a revisar). */
+  excludedByReason: Record<AssociateExcludedReason, number>;
+  /** Total real de asociados a revisar (sin incluir SIE no-login). */
   totalExcluded: number;
+  /** Registros SIE de categorías que NO son activos ni estudiantes. */
+  totalNonAssociate: number;
 }
 
 /** Snapshot por destinatario de campaña (EmailCampaignRecipient.metadata). */
