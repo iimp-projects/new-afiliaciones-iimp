@@ -16,6 +16,7 @@ import { MembershipType } from "../Types/MembershipType";
 import { AcademicStudyValidator } from "../Validators/AcademicStudyValidator";
 import { assertStudentAcademicAllowed, persistAcademicInfos } from "../Repositories/AcademicInfoPersistence";
 import { isLegacyTrackingCode } from "../StudentAcademicRules";
+import { findUnauthorizedChange } from "../DraftComparison";
 import { applicationNotificationEvents, type CorrectionReference } from "../../notifications/Services/ApplicationNotificationEvents";
 
 export class UpdateDraftService {
@@ -159,20 +160,10 @@ export class UpdateDraftService {
         const current = (application.draftData ?? {}) as Record<string, any>;
         const proposed = dto.draftData as Record<string, any>;
 
-        const compare = (before: any, after: any, path = ""): void => {
-            if (JSON.stringify(before) === JSON.stringify(after)) return;
-            // Si la ruta exacta está en las permitidas, se acepta cualquier cambio en esa rama
-            if (path && allowedToModify.has(path)) return;
-            if (before && after && typeof before === "object" && typeof after === "object") {
-                const keys = new Set([...Object.keys(before), ...Object.keys(after)]);
-                keys.forEach((key) => compare(before[key], after[key], path ? `${path}.${key}` : key));
-                return;
-            }
-            if (!allowedToModify.has(path)) {
-                throw new ApplicationFlowError("APPLICATION_NOT_EDITABLE", "Solo puede modificar los campos solicitados en la observación.");
-            }
-        };
-        Object.keys(proposed).forEach((section) => compare(current[section], proposed[section], section));
+        const unauthorized = findUnauthorizedChange(current, proposed, allowedToModify);
+        if (unauthorized) {
+            throw new ApplicationFlowError("APPLICATION_NOT_EDITABLE", "Solo puede modificar los campos solicitados en la observación.");
+        }
 
         // ── VALIDACIÓN DE CAMPOS OBSERVADOS ATENDIDOS ─────────────────────────────
         // Verificar que TODOS los campos observados fueron efectivamente modificados.
