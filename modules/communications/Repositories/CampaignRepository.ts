@@ -38,6 +38,16 @@ export class CampaignRepository {
     }));
   }
 
+  /** Ids de campañas en SENDING (para el tick server-side independiente del navegador). */
+  async listSendingCampaignIds(): Promise<number[]> {
+    const rows = await this.db.emailCampaign.findMany({
+      where: { status: EmailCampaignStatus.SENDING },
+      select: { id: true },
+      orderBy: { id: "asc" },
+    });
+    return rows.map((row) => row.id);
+  }
+
   async getCampaign(id: number): Promise<CampaignDetail | null> {
     const row = await this.db.emailCampaign.findUnique({
       where: { id },
@@ -340,7 +350,7 @@ export class CampaignRepository {
     return { count: recipients.length };
   }
 
-  async writeAudit(actor: { userId: number; email: string }, action: string, campaignId: number, campaignName: string, metadata: Record<string, unknown> = {}): Promise<void> {
+  async writeAudit(actor: { userId: number | null; email: string }, action: string, campaignId: number, campaignName: string, metadata: Record<string, unknown> = {}): Promise<void> {
     await this.db.auditLog.create({
       data: {
         userId: actor.userId,

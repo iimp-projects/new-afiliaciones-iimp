@@ -51,6 +51,7 @@ function setup(overrides: {
   const getRecipient = vi.fn().mockResolvedValue({ id: 7, email: "juan@empresa.com", name: "Juan Pérez", company: "Empresa A", position: "Gerente" });
   const recoverStaleDeliveries = vi.fn().mockResolvedValue(overrides.staleRecovered ?? 0);
   const hasInFlightDelivery = vi.fn().mockResolvedValue(overrides.inFlight ?? false);
+  const claimRecipient = vi.fn().mockResolvedValue(overrides.inFlight ? { claimed: false, status: EmailSendStatus.SENDING } : { claimed: true, status: EmailSendStatus.SENDING });
   const createPendingDelivery = vi.fn().mockResolvedValue({ id: 99, attemptNumber: 1 });
   const markDeliverySent = vi.fn().mockResolvedValue(undefined);
   const markDeliveryError = vi.fn().mockResolvedValue(undefined);
@@ -68,6 +69,7 @@ function setup(overrides: {
     getRecipient,
     recoverStaleDeliveries,
     hasInFlightDelivery,
+    claimRecipient,
     createPendingDelivery,
     markDeliverySent,
     markDeliveryError,
@@ -87,7 +89,7 @@ function setup(overrides: {
     campaignRepository,
     deliveryRepository,
     mailService,
-    mocks: { getCampaign, getCampaignRecipient, recoverStaleDeliveries, hasInFlightDelivery, createPendingDelivery, markDeliverySent, markDeliveryError, markRecipientSending, markRecipientSent, markRecipientError, writeAudit, sendMail, validateConfiguration },
+    mocks: { getCampaign, getCampaignRecipient, recoverStaleDeliveries, hasInFlightDelivery, claimRecipient, createPendingDelivery, markDeliverySent, markDeliveryError, markRecipientSending, markRecipientSent, markRecipientError, writeAudit, sendMail, validateConfiguration },
   };
 }
 
@@ -176,11 +178,11 @@ describe("CampaignMailService.sendIndividual", () => {
     expect(mocks.markRecipientSent).toHaveBeenCalledWith(1, 7);
   });
 
-  it("marca el destinatario como SENDING antes de enviar (PENDING -> SENDING -> SENT)", async () => {
+  it("reserva atómicamente el destinatario antes de enviar (PENDING -> SENDING -> SENT)", async () => {
     const { service, mocks } = setup({ sendMail: async () => ({ messageId: "<abc@example>" }) });
     await service.sendIndividual(1, 7, ACTOR);
-    expect(mocks.markRecipientSending).toHaveBeenCalledWith(1, 7);
-    expect(mocks.markRecipientSending.mock.invocationCallOrder[0]).toBeLessThan(mocks.markRecipientSent.mock.invocationCallOrder[0]);
+    expect(mocks.claimRecipient).toHaveBeenCalledWith(1, 7);
+    expect(mocks.claimRecipient.mock.invocationCallOrder[0]).toBeLessThan(mocks.markRecipientSent.mock.invocationCallOrder[0]);
   });
 
   it("fallo SMTP → EmailDelivery ERROR y sendCount no incrementa", async () => {

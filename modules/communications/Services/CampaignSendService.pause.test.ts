@@ -48,6 +48,7 @@ function setup(limits: Partial<CampaignSendLimits> = {}) {
     resetErrorRecipientsToPending: vi.fn(),
     recoverStaleDeliveriesForCampaign: vi.fn().mockResolvedValue(0),
     countSentSince: vi.fn().mockResolvedValue(0),
+    countConsecutiveAuthErrors: vi.fn().mockResolvedValue(0),
   };
   const mailService = {
     deliverRecipient: vi.fn(),

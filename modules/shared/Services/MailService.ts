@@ -42,12 +42,15 @@ export class MailServiceError extends Error {
 const TEMPORARY_SMTP_CODES = new Set([421, 429, 450, 451, 452]);
 const QUOTA_TEXT = /daily user sending limit|limit exceeded|sending quota|quota/i;
 
+/** Mensaje sanitizado canónico para fallos de autenticación SMTP (usado también por el circuit-breaker). */
+export const SMTP_AUTH_ERROR_MESSAGE = "Error de autenticación SMTP.";
+
 function sanitizeMailError(error: unknown): { message: string; kind: MailErrorKind } {
   const code = (error as { code?: string })?.code;
   const responseCode = (error as { responseCode?: number })?.responseCode;
   const response = String((error as { response?: string })?.response ?? "");
 
-  if (code === "EAUTH" || responseCode === 535) return { message: "Error de autenticación SMTP.", kind: "AUTH" };
+  if (code === "EAUTH" || responseCode === 535) return { message: SMTP_AUTH_ERROR_MESSAGE, kind: "AUTH" };
   if (code === "ECONNECTION" || code === "ESOCKET" || code === "ETIMEDOUT" || code === "ENOTFOUND" || code === "ECONNREFUSED") {
     return { message: "Conexión SMTP no disponible.", kind: "CONNECTION" };
   }

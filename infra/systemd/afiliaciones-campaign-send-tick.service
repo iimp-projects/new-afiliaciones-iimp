@@ -1,0 +1,10 @@
+[Unit]
+Description=Afiliaciones campaign send tick (one-shot, server-side)
+After=network-online.target docker.service
+Requires=docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# Sin Restart: un fallo puntual se reintenta en el siguiente disparo del timer.
+ExecStart=/usr/local/bin/afiliaciones-campaign-send-tick.sh
