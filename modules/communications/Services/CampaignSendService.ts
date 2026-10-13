@@ -6,6 +6,7 @@ import {
   CAMPAIGN_BATCH_SIZE,
   CAMPAIGN_CIRCUIT_BREAKER_COOLDOWN_MS,
   CAMPAIGN_CIRCUIT_BREAKER_THRESHOLD,
+  CAMPAIGN_CIRCUIT_BREAKER_WINDOW_MS,
   CAMPAIGN_STALE_TIMEOUT_MINUTES,
   getCampaignDailyQuotaLimit,
   getCampaignRateLimitCooldownMs,
@@ -120,9 +121,10 @@ export class CampaignSendService {
     }
 
     // Circuit-breaker: si los últimos errores son consecutivos de autenticación
-    // SMTP, pausa la campaña para evitar cientos de intentos fallidos. La pausa
-    // es persistente (pausedUntil/pauseReason) y evita el envío en bucle.
-    const consecutiveAuthErrors = await this.deliveryRepository.countConsecutiveAuthErrors(campaignId, CAMPAIGN_CIRCUIT_BREAKER_THRESHOLD);
+    // SMTP (dentro de la ventana reciente y tras el último envío exitoso), pausa
+    // la campaña para evitar cientos de intentos fallidos. La pausa es persistente.
+    const circuitBreakerSince = new Date(Date.now() - CAMPAIGN_CIRCUIT_BREAKER_WINDOW_MS);
+    const consecutiveAuthErrors = await this.deliveryRepository.countConsecutiveAuthErrors(campaignId, CAMPAIGN_CIRCUIT_BREAKER_THRESHOLD, circuitBreakerSince);
     if (consecutiveAuthErrors >= CAMPAIGN_CIRCUIT_BREAKER_THRESHOLD) {
       const reason = "Errores consecutivos de autenticación SMTP: campaña pausada automáticamente.";
       const until = new Date(Date.now() + CAMPAIGN_CIRCUIT_BREAKER_COOLDOWN_MS);

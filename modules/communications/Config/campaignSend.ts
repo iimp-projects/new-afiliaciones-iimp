@@ -27,6 +27,9 @@ export const CAMPAIGN_CIRCUIT_BREAKER_THRESHOLD = 5;
 /** Espera tras dispararse el circuit-breaker (errores AUTH consecutivos). */
 export const CAMPAIGN_CIRCUIT_BREAKER_COOLDOWN_MS = 60 * 60 * 1000;
 
+/** Ventana reciente (ms) dentro de la cual se evalúan los errores AUTH del circuit-breaker. */
+export const CAMPAIGN_CIRCUIT_BREAKER_WINDOW_MS = 15 * 60 * 1000;
+
 /**
  * Límite temporal (rate-limit) configurable. `CAMPAIGN_RATE_LIMIT_COOLDOWN_MS`
  * en milisegundos; si no se define o es inválido usa el valor por defecto.
