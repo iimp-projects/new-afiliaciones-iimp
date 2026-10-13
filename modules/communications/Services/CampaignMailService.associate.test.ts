@@ -55,6 +55,7 @@ function setup(overrides: {
     getRecipient: vi.fn().mockResolvedValue(overrides.recipient ?? { id: 5, email: "juan@iimp.org.pe", name: "Juan Pérez", company: null, position: null, metadata: null }),
     recoverStaleDeliveries: vi.fn().mockResolvedValue(0),
     hasInFlightDelivery: vi.fn().mockResolvedValue(false),
+    claimRecipient: vi.fn().mockResolvedValue({ claimed: true, status: EmailSendStatus.SENDING }),
     createPendingDelivery: vi.fn().mockResolvedValue({ id: 99, attemptNumber: 1 }),
     markRecipientSending: vi.fn().mockResolvedValue(undefined),
     markDeliverySent: vi.fn().mockResolvedValue(undefined),

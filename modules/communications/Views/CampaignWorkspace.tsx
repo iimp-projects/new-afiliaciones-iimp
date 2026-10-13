@@ -10,7 +10,7 @@ import { ImportRecipientsWizard } from "./ImportRecipientsWizard";
 import { AssociatesSourceSection } from "./AssociatesSourceSection";
 import { backToDraftAction, cancelCampaignAction, markCampaignReadyAction, setCampaignRecipientsAction } from "../Actions/campaign.actions";
 import { deleteRecipientListAction, renameRecipientListAction } from "../Actions/recipient.actions";
-import { fetchDeliveryHistoryAction, processCampaignBatchAction, retryCampaignFailedAction, sendIndividualEmailAction, startCampaignSendAction } from "../Actions/send.actions";
+import { fetchDeliveryHistoryAction, getCampaignSendProgressAction, retryCampaignFailedAction, sendIndividualEmailAction, startCampaignSendAction } from "../Actions/send.actions";
 import { formatDateTimeEsPe } from "@/modules/shared/Utils/formatDateTime";
 import { CAMPAIGN_POLL_INTERVAL_MS } from "../Config/campaignSend";
 import type { CampaignDetail, CampaignRecipientPreview, CampaignRecipientSelection } from "../Models/Campaign";
@@ -127,12 +127,14 @@ export function CampaignWorkspace({
     let cancelled = false;
     let timer: ReturnType<typeof setInterval> | null = null;
 
+    // El navegador SOLO consulta el progreso; el envío lo ejecuta el worker
+    // server-side (route /api/internal/campaign-send/tick), no este polling.
     const tick = async () => {
-      const response = await processCampaignBatchAction(campaign.id);
+      const response = await getCampaignSendProgressAction(campaign.id);
       if (cancelled) return;
       if (response.success) {
         setLiveProgress(response.progress);
-        if (response.finished) {
+        if (response.progress.done) {
           if (timer) clearInterval(timer);
           timer = null;
           router.refresh();

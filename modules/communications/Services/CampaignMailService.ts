@@ -167,7 +167,10 @@ export class CampaignMailService {
 
     await this.deliveryRepository.recoverStaleDeliveries(campaignId, recipientId);
 
-    if (await this.deliveryRepository.hasInFlightDelivery(campaignId, recipientId)) {
+    // Reserva atómica y persistente: PENDING → SENDING. Evita que dos workers
+    // procesen el mismo destinatario; la reserva sobrevive al envío SMTP.
+    const claim = await this.deliveryRepository.claimRecipient(campaignId, recipientId);
+    if (!claim.claimed) {
       return { outcome: "SKIPPED", skipReason: "IN_FLIGHT", email: recipient.email, priorSendCount: membership.sendCount };
     }
 
@@ -205,12 +208,12 @@ export class CampaignMailService {
       delivery = await this.deliveryRepository.createPendingDelivery(campaignId, recipientId, recipient.email);
     } catch (error) {
       if (isUniqueViolation(error)) {
+        // Defensivo: con la reserva atómica no debería ocurrir; revierte la reserva.
+        await this.deliveryRepository.markRecipientError(campaignId, recipientId);
         return { outcome: "SKIPPED", skipReason: "IN_FLIGHT", email: recipient.email, priorSendCount: membership.sendCount };
       }
       throw error;
     }
-
-    await this.deliveryRepository.markRecipientSending(campaignId, recipientId);
 
     if (associate.pendingActivationUserId != null) {
       try {

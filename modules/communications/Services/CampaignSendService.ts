@@ -4,6 +4,8 @@ import { CampaignRepository } from "../Repositories/CampaignRepository";
 import { EmailDeliveryRepository } from "../Repositories/EmailDeliveryRepository";
 import {
   CAMPAIGN_BATCH_SIZE,
+  CAMPAIGN_CIRCUIT_BREAKER_COOLDOWN_MS,
+  CAMPAIGN_CIRCUIT_BREAKER_THRESHOLD,
   CAMPAIGN_STALE_TIMEOUT_MINUTES,
   getCampaignDailyQuotaLimit,
   getCampaignRateLimitCooldownMs,
@@ -19,6 +21,12 @@ export interface CampaignSendLimits {
   /** Espera tras un límite temporal (rate-limit) del proveedor, en ms. */
   rateLimitCooldownMs: number;
 }
+
+/** Actor de una operación de envío (admin real o el worker de sistema). */
+export type SendActor = { userId: number | null; email: string };
+
+/** Actor del worker server-side (sin sesión). userId null para no requerir un usuario real. */
+export const CAMPAIGN_SEND_SYSTEM_ACTOR: SendActor = { userId: null, email: "system-worker@iimp.org.pe" };
 
 function pauseInfo(campaign: CampaignDetail): { paused: boolean; pauseReason: string | null; resumeAt: string | null } {
   if (!campaign.pausedUntil) return { paused: false, pauseReason: null, resumeAt: null };
@@ -53,7 +61,7 @@ export class CampaignSendService {
     },
   ) {}
 
-  async start(campaignId: number, actor: { userId: number; email: string }): Promise<{ recipientCount: number }> {
+  async start(campaignId: number, actor: { userId: number | null; email: string }): Promise<{ recipientCount: number }> {
     const campaign = await this.campaignRepository.getCampaign(campaignId);
     if (!campaign) throw new CampaignMailError("La campaña no existe.", 404);
     if (campaign.status === EmailCampaignStatus.SENDING) {
@@ -76,7 +84,7 @@ export class CampaignSendService {
     return { recipientCount: campaign.recipientCount };
   }
 
-  async processBatch(campaignId: number, actor: { userId: number; email: string }): Promise<BatchResult> {
+  async processBatch(campaignId: number, actor: { userId: number | null; email: string }): Promise<BatchResult> {
     const campaign = await this.campaignRepository.getCampaign(campaignId);
     if (!campaign) throw new CampaignMailError("La campaña no existe.", 404);
 
@@ -109,6 +117,17 @@ export class CampaignSendService {
         await this.pauseCampaign(campaignId, until, reason, actor, campaign);
         return { progress: await this.getProgress(campaignId), processedThisBatch: 0, finished: false, paused: true, pauseReason: reason, resumeAt: until.toISOString() };
       }
+    }
+
+    // Circuit-breaker: si los últimos errores son consecutivos de autenticación
+    // SMTP, pausa la campaña para evitar cientos de intentos fallidos. La pausa
+    // es persistente (pausedUntil/pauseReason) y evita el envío en bucle.
+    const consecutiveAuthErrors = await this.deliveryRepository.countConsecutiveAuthErrors(campaignId, CAMPAIGN_CIRCUIT_BREAKER_THRESHOLD);
+    if (consecutiveAuthErrors >= CAMPAIGN_CIRCUIT_BREAKER_THRESHOLD) {
+      const reason = "Errores consecutivos de autenticación SMTP: campaña pausada automáticamente.";
+      const until = new Date(Date.now() + CAMPAIGN_CIRCUIT_BREAKER_COOLDOWN_MS);
+      await this.pauseCampaign(campaignId, until, reason, actor, campaign);
+      return { progress: await this.getProgress(campaignId), processedThisBatch: 0, finished: false, paused: true, pauseReason: reason, resumeAt: until.toISOString() };
     }
 
     // Auto-recuperación: los deliveries realmente atascados (>10 min) pasan a
@@ -147,7 +166,7 @@ export class CampaignSendService {
     return { progress: await this.getProgress(campaignId), processedThisBatch: processed, finished: finalized, paused: false, pauseReason: null, resumeAt: null };
   }
 
-  async retryFailed(campaignId: number, actor: { userId: number; email: string }): Promise<{ retryCount: number }> {
+  async retryFailed(campaignId: number, actor: { userId: number | null; email: string }): Promise<{ retryCount: number }> {
     const campaign = await this.campaignRepository.getCampaign(campaignId);
     if (!campaign) throw new CampaignMailError("La campaña no existe.", 404);
     if (campaign.status !== EmailCampaignStatus.PARTIAL) {
@@ -178,7 +197,7 @@ export class CampaignSendService {
    * destinatarios PENDING nunca procesados permanecen PENDING para permitir la
    * reanudación. No actúa sobre campañas pausadas.
    */
-  async recoverStaleCampaign(campaignId: number, actor: { userId: number; email: string }): Promise<{ recovered: boolean }> {
+  async recoverStaleCampaign(campaignId: number, actor: { userId: number | null; email: string }): Promise<{ recovered: boolean }> {
     const campaign = await this.campaignRepository.getCampaign(campaignId);
     if (!campaign) throw new CampaignMailError("La campaña no existe.", 404);
     if (campaign.status !== EmailCampaignStatus.SENDING) return { recovered: false };
@@ -220,7 +239,7 @@ export class CampaignSendService {
     };
   }
 
-  private async pauseCampaign(campaignId: number, until: Date, reason: string, actor: { userId: number; email: string }, campaign: CampaignDetail): Promise<void> {
+  private async pauseCampaign(campaignId: number, until: Date, reason: string, actor: { userId: number | null; email: string }, campaign: CampaignDetail): Promise<void> {
     await this.campaignRepository.pauseCampaign(campaignId, until, reason);
     await this.campaignRepository.writeAudit(actor, "CAMPAIGN_SEND_PAUSED", campaignId, campaign.name, { reason, resumeAt: until.toISOString() });
   }
@@ -229,7 +248,7 @@ export class CampaignSendService {
    * Finaliza la campaña SOLO cuando no quedan destinatarios PENDING ni SENDING.
    * ERROR = 0 -> COMPLETED; ERROR > 0 -> PARTIAL. Devuelve true si finalizó.
    */
-  private async finalizeIfDone(campaign: CampaignDetail, actor: { userId: number; email: string }): Promise<boolean> {
+  private async finalizeIfDone(campaign: CampaignDetail, actor: { userId: number | null; email: string }): Promise<boolean> {
     const stats = await this.deliveryRepository.getCampaignStats(campaign.id);
     if (stats.pending > 0 || stats.sending > 0) return false;
 
@@ -245,5 +264,26 @@ export class CampaignSendService {
       );
     }
     return finalized;
+  }
+
+  /**
+   * Tick server-side (independiente de la sesión/navegador): procesa un lote de
+   * cada campaña SENDING. Es idempotente y reanudable; el navegador solo consulta
+   * el progreso. Un error en una campaña no detiene el tick de las demás.
+   */
+  async processAllSendingCampaigns(actor: { userId: number | null; email: string }): Promise<{ campaignsProcessed: number; campaignsPaused: number }> {
+    const ids = await this.campaignRepository.listSendingCampaignIds();
+    let campaignsProcessed = 0;
+    let campaignsPaused = 0;
+    for (const id of ids) {
+      try {
+        const result = await this.processBatch(id, actor);
+        campaignsProcessed += 1;
+        if (result.paused) campaignsPaused += 1;
+      } catch (error) {
+        console.error("[CAMPAIGN_SEND_TICK] error en campaña", { campaignId: id, error: error instanceof Error ? error.message : "unknown" });
+      }
+    }
+    return { campaignsProcessed, campaignsPaused };
   }
 }

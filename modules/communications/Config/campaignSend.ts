@@ -21,6 +21,12 @@ export const CAMPAIGN_POLL_INTERVAL_MS = 3000;
 /** Espera por defecto tras un límite temporal (rate-limit) del proveedor. */
 export const CAMPAIGN_RATE_LIMIT_COOLDOWN_MS = 15 * 60 * 1000;
 
+/** Número de errores AUTH consecutivos que disparan la pausa automática (circuit-breaker). */
+export const CAMPAIGN_CIRCUIT_BREAKER_THRESHOLD = 5;
+
+/** Espera tras dispararse el circuit-breaker (errores AUTH consecutivos). */
+export const CAMPAIGN_CIRCUIT_BREAKER_COOLDOWN_MS = 60 * 60 * 1000;
+
 /**
  * Límite temporal (rate-limit) configurable. `CAMPAIGN_RATE_LIMIT_COOLDOWN_MS`
  * en milisegundos; si no se define o es inválido usa el valor por defecto.

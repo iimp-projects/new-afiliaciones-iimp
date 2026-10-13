@@ -1,5 +1,6 @@
 import { EmailSendStatus, type Prisma, type PrismaClient } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { SMTP_AUTH_ERROR_MESSAGE } from "@/modules/shared/Services/MailService";
 
 export const DELIVERY_STALE_TIMEOUT_MINUTES = 10;
 export const STALE_DELIVERY_ERROR_MESSAGE = "Envío interrumpido (timeout)";
@@ -73,6 +74,47 @@ export class EmailDeliveryRepository {
       where: { id: recipientId },
       select: { id: true, email: true, name: true, company: true, position: true, metadata: true },
     });
+  }
+
+  /**
+   * Reserva atómica y persistente de un destinatario: PENDING → SENDING.
+   * Es una única operación UPDATE condicionada a `status = PENDING`. PostgreSQL
+   * serializa los UPDATE concurrentes sobre la misma fila, por lo que solo un
+   * worker obtiene `count = 1`. La reserva (SENDING) persiste durante todo el
+   * envío SMTP, evitando que dos workers procesen el mismo destinatario.
+   */
+  async claimRecipient(campaignId: number, recipientId: number): Promise<{ claimed: boolean; status: EmailSendStatus }> {
+    const updated = await this.db.emailCampaignRecipient.updateMany({
+      where: { campaignId, recipientId, status: EmailSendStatus.PENDING },
+      data: { status: EmailSendStatus.SENDING },
+    });
+    if (updated.count === 1) return { claimed: true, status: EmailSendStatus.SENDING };
+
+    const row = await this.db.emailCampaignRecipient.findUnique({
+      where: { campaignId_recipientId: { campaignId, recipientId } },
+      select: { status: true },
+    });
+    return { claimed: false, status: row?.status ?? EmailSendStatus.PENDING };
+  }
+
+  /**
+   * Cuenta los errores AUTH consecutivos más recientes de una campaña (para el
+   * circuit-breaker). Detiene el conteo en la primera entrega ERROR cuyo mensaje
+   * no sea de autenticación SMTP.
+   */
+  async countConsecutiveAuthErrors(campaignId: number, limit: number): Promise<number> {
+    const rows = await this.db.emailDelivery.findMany({
+      where: { campaignId, status: EmailSendStatus.ERROR },
+      orderBy: { id: "desc" },
+      take: limit,
+      select: { errorMessage: true },
+    });
+    let count = 0;
+    for (const row of rows) {
+      if (row.errorMessage === SMTP_AUTH_ERROR_MESSAGE) count += 1;
+      else break;
+    }
+    return count;
   }
 
   async hasInFlightDelivery(campaignId: number, recipientId: number): Promise<boolean> {
@@ -250,8 +292,23 @@ export class EmailDeliveryRepository {
   }
 
   async resetErrorRecipientsToPending(campaignId: number): Promise<number> {
+    // No reintenta resultados inciertos: un envío interrumpido (timeout) pudo ser
+    // aceptado por SMTP antes de persistirse; reintentarlo podría duplicar.
+    const uncertain = await this.db.$queryRaw<Array<{ recipient_id: number }>>`
+      SELECT DISTINCT d.recipient_id
+      FROM email_deliveries d
+      WHERE d.campaign_id = ${campaignId}
+        AND d.status = 'ERROR'
+        AND d.error_message = ${STALE_DELIVERY_ERROR_MESSAGE}
+        AND d.id = (
+          SELECT MAX(id) FROM email_deliveries d2
+          WHERE d2.campaign_id = d.campaign_id AND d2.recipient_id = d.recipient_id
+        )
+    `;
+    const exclude = uncertain.map((row) => row.recipient_id);
+
     const result = await this.db.emailCampaignRecipient.updateMany({
-      where: { campaignId, status: EmailSendStatus.ERROR },
+      where: { campaignId, status: EmailSendStatus.ERROR, recipientId: { notIn: exclude } },
       data: { status: EmailSendStatus.PENDING },
     });
     return result.count;
