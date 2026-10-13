@@ -54,21 +54,6 @@ export class EmailDeliveryRepository {
     return row;
   }
 
-  /** Registra una exclusión en envío: crea un delivery ERROR con motivo y marca al destinatario ERROR. */
-  async recordRecipientExclusion(campaignId: number, recipientId: number, email: string, reason: string): Promise<void> {
-    await this.db.$transaction(async (tx) => {
-      const aggregate = await tx.emailDelivery.aggregate({ where: { campaignId, recipientId }, _max: { attemptNumber: true } });
-      const attemptNumber = (aggregate._max.attemptNumber ?? 0) + 1;
-      await tx.emailDelivery.create({
-        data: { campaignId, recipientId, email, status: EmailSendStatus.ERROR, attemptNumber, errorMessage: reason },
-      });
-      await tx.emailCampaignRecipient.update({
-        where: { campaignId_recipientId: { campaignId, recipientId } },
-        data: { status: EmailSendStatus.ERROR },
-      });
-    });
-  }
-
   async getRecipient(recipientId: number): Promise<{ id: number; email: string; name: string | null; company: string | null; position: string | null; metadata: Prisma.JsonValue | null } | null> {
     return this.db.emailRecipient.findUnique({
       where: { id: recipientId },
@@ -77,24 +62,44 @@ export class EmailDeliveryRepository {
   }
 
   /**
-   * Reserva atómica y persistente de un destinatario: PENDING → SENDING.
-   * Es una única operación UPDATE condicionada a `status = PENDING`. PostgreSQL
-   * serializa los UPDATE concurrentes sobre la misma fila, por lo que solo un
-   * worker obtiene `count = 1`. La reserva (SENDING) persiste durante todo el
-   * envío SMTP, evitando que dos workers procesen el mismo destinatario.
+   * Reserva atómica y persistente de un destinatario: PENDING → SENDING y crea el
+   * delivery de historial en la MISMA transacción. PostgreSQL serializa los UPDATE
+   * concurrentes sobre la misma fila, por lo que solo un worker obtiene `count = 1`.
+   * Al crear el delivery junto con la reserva no queda ningún registro SENDING sin
+   * delivery, de modo que la recuperación por entregas obsoletas siempre lo alcanza.
    */
-  async claimRecipient(campaignId: number, recipientId: number): Promise<{ claimed: boolean; status: EmailSendStatus }> {
-    const updated = await this.db.emailCampaignRecipient.updateMany({
-      where: { campaignId, recipientId, status: EmailSendStatus.PENDING },
-      data: { status: EmailSendStatus.SENDING },
+  async claimRecipient(campaignId: number, recipientId: number, email: string): Promise<{ claimed: boolean; status: EmailSendStatus; delivery?: { id: number; attemptNumber: number } }> {
+    return this.db.$transaction(async (tx) => {
+      const updated = await tx.emailCampaignRecipient.updateMany({
+        where: { campaignId, recipientId, status: EmailSendStatus.PENDING },
+        data: { status: EmailSendStatus.SENDING },
+      });
+      if (updated.count === 0) {
+        const row = await tx.emailCampaignRecipient.findUnique({
+          where: { campaignId_recipientId: { campaignId, recipientId } },
+          select: { status: true },
+        });
+        return { claimed: false, status: row?.status ?? EmailSendStatus.PENDING };
+      }
+      const aggregate = await tx.emailDelivery.aggregate({ where: { campaignId, recipientId }, _max: { attemptNumber: true } });
+      const attemptNumber = (aggregate._max.attemptNumber ?? 0) + 1;
+      const delivery = await tx.emailDelivery.create({
+        data: { campaignId, recipientId, email, status: EmailSendStatus.SENDING, attemptNumber },
+        select: { id: true, attemptNumber: true },
+      });
+      return { claimed: true, status: EmailSendStatus.SENDING, delivery };
     });
-    if (updated.count === 1) return { claimed: true, status: EmailSendStatus.SENDING };
+  }
 
-    const row = await this.db.emailCampaignRecipient.findUnique({
-      where: { campaignId_recipientId: { campaignId, recipientId } },
-      select: { status: true },
+  /** Marca ERROR un delivery ya creado por la reserva (exclusión/validación) y al destinatario. */
+  async excludeClaimedDelivery(deliveryId: number, campaignId: number, recipientId: number, reason: string): Promise<void> {
+    await this.db.$transaction(async (tx) => {
+      await tx.emailDelivery.update({ where: { id: deliveryId }, data: { status: EmailSendStatus.ERROR, errorMessage: reason } });
+      await tx.emailCampaignRecipient.update({
+        where: { campaignId_recipientId: { campaignId, recipientId } },
+        data: { status: EmailSendStatus.ERROR },
+      });
     });
-    return { claimed: false, status: row?.status ?? EmailSendStatus.PENDING };
   }
 
   /**

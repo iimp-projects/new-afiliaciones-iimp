@@ -24,10 +24,6 @@ export class CampaignMailError extends Error {
   }
 }
 
-function isUniqueViolation(error: unknown): boolean {
-  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
-}
-
 function toAssociateMetadata(metadata: Prisma.JsonValue | null | undefined): AssociateRecipientMetadata | null {
   if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) return null;
   const value = metadata as Record<string, unknown>;
@@ -167,12 +163,14 @@ export class CampaignMailService {
 
     await this.deliveryRepository.recoverStaleDeliveries(campaignId, recipientId);
 
-    // Reserva atómica y persistente: PENDING → SENDING. Evita que dos workers
-    // procesen el mismo destinatario; la reserva sobrevive al envío SMTP.
-    const claim = await this.deliveryRepository.claimRecipient(campaignId, recipientId);
-    if (!claim.claimed) {
+    // Reserva atómica y persistente: PENDING → SENDING + delivery en la misma
+    // transacción. Evita que dos workers procesen el mismo destinatario y garantiza
+    // que un envío interrumpido siempre tenga delivery para la recuperación.
+    const claim = await this.deliveryRepository.claimRecipient(campaignId, recipientId, recipient.email);
+    if (!claim.claimed || !claim.delivery) {
       return { outcome: "SKIPPED", skipReason: "IN_FLIGHT", email: recipient.email, priorSendCount: membership.sendCount };
     }
+    const delivery = claim.delivery;
 
     // Revalidación del origen "Asociados del sistema" justo antes de enviar.
     // Protege frente a cambios de correo/estado posteriores a la preparación y
@@ -181,16 +179,16 @@ export class CampaignMailService {
     // EmailRecipient.metadata para no perder la vinculación del asociado.
     const associate = await this.resolveAssociateContext(membership.metadata, recipient.metadata);
     if (associate.excluded) {
-      await this.deliveryRepository.recordRecipientExclusion(campaignId, recipientId, recipient.email, associate.reason);
-      return { outcome: "ERROR", email: recipient.email, errorMessage: associate.reason };
+      await this.deliveryRepository.excludeClaimedDelivery(delivery.id, campaignId, recipientId, associate.reason);
+      return { outcome: "ERROR", email: recipient.email, deliveryId: delivery.id, attemptNumber: delivery.attemptNumber, priorSendCount: membership.sendCount, errorMessage: associate.reason };
     }
 
     // Sin redirigir en silencio: si el correo de acceso resuelto difiere del
     // correo del destinatario preparado, se excluye en lugar de reenviar a otro.
     if (associate.context?.email != null && associate.context.email.trim().toLowerCase() !== recipient.email.trim().toLowerCase()) {
       const reason = "El correo de acceso cambió después de preparar la campaña.";
-      await this.deliveryRepository.recordRecipientExclusion(campaignId, recipientId, recipient.email, reason);
-      return { outcome: "ERROR", email: recipient.email, errorMessage: reason };
+      await this.deliveryRepository.excludeClaimedDelivery(delivery.id, campaignId, recipientId, reason);
+      return { outcome: "ERROR", email: recipient.email, deliveryId: delivery.id, attemptNumber: delivery.attemptNumber, priorSendCount: membership.sendCount, errorMessage: reason };
     }
 
     const genericContext: TemplateRecipient = { name: recipient.name, company: recipient.company, position: recipient.position, email: recipient.email };
@@ -199,20 +197,8 @@ export class CampaignMailService {
     const missingVariable = findMissingRequiredVariable([campaign.subject, campaign.htmlContent, campaign.textContent ?? undefined], context);
     if (missingVariable) {
       const reason = `No se puede enviar: la variable obligatoria "{{${missingVariable}}}" no tiene valor para este destinatario.`;
-      await this.deliveryRepository.recordRecipientExclusion(campaignId, recipientId, recipient.email, reason);
-      return { outcome: "ERROR", email: recipient.email, errorMessage: reason };
-    }
-
-    let delivery: { id: number; attemptNumber: number };
-    try {
-      delivery = await this.deliveryRepository.createPendingDelivery(campaignId, recipientId, recipient.email);
-    } catch (error) {
-      if (isUniqueViolation(error)) {
-        // Defensivo: con la reserva atómica no debería ocurrir; revierte la reserva.
-        await this.deliveryRepository.markRecipientError(campaignId, recipientId);
-        return { outcome: "SKIPPED", skipReason: "IN_FLIGHT", email: recipient.email, priorSendCount: membership.sendCount };
-      }
-      throw error;
+      await this.deliveryRepository.excludeClaimedDelivery(delivery.id, campaignId, recipientId, reason);
+      return { outcome: "ERROR", email: recipient.email, deliveryId: delivery.id, attemptNumber: delivery.attemptNumber, priorSendCount: membership.sendCount, errorMessage: reason };
     }
 
     if (associate.pendingActivationUserId != null) {

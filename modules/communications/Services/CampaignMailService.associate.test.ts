@@ -55,7 +55,7 @@ function setup(overrides: {
     getRecipient: vi.fn().mockResolvedValue(overrides.recipient ?? { id: 5, email: "juan@iimp.org.pe", name: "Juan Pérez", company: null, position: null, metadata: null }),
     recoverStaleDeliveries: vi.fn().mockResolvedValue(0),
     hasInFlightDelivery: vi.fn().mockResolvedValue(false),
-    claimRecipient: vi.fn().mockResolvedValue({ claimed: true, status: EmailSendStatus.SENDING }),
+    claimRecipient: vi.fn().mockResolvedValue({ claimed: true, status: EmailSendStatus.SENDING, delivery: { id: 99, attemptNumber: 1 } }),
     createPendingDelivery: vi.fn().mockResolvedValue({ id: 99, attemptNumber: 1 }),
     markRecipientSending: vi.fn().mockResolvedValue(undefined),
     markDeliverySent: vi.fn().mockResolvedValue(undefined),
@@ -63,7 +63,7 @@ function setup(overrides: {
     markDeliveryError: vi.fn().mockResolvedValue(undefined),
     markRecipientError: vi.fn().mockResolvedValue(undefined),
     markRecipientPending: vi.fn().mockResolvedValue(undefined),
-    recordRecipientExclusion: vi.fn().mockResolvedValue(undefined),
+    excludeClaimedDelivery: vi.fn().mockResolvedValue(undefined),
     writeAudit: vi.fn().mockResolvedValue(undefined),
   };
   const associateRepository = {
@@ -93,7 +93,7 @@ describe("CampaignMailService — origen 'Asociados del sistema'", () => {
       html: expect.stringContaining("Juan Pérez"),
       subject: expect.stringContaining("Juan Pérez"),
     }));
-    expect(deliveryRepository.recordRecipientExclusion).not.toHaveBeenCalled();
+    expect(deliveryRepository.excludeClaimedDelivery).not.toHaveBeenCalled();
   });
 
   it("excluye si el correo de acceso cambió tras preparar la campaña", async () => {
@@ -102,7 +102,7 @@ describe("CampaignMailService — origen 'Asociados del sistema'", () => {
     });
     const result = await service.deliverRecipient(campaign(), 1, 5);
     expect(result.outcome).toBe("ERROR");
-    expect(deliveryRepository.recordRecipientExclusion).toHaveBeenCalledWith(1, 5, "juan@iimp.org.pe", expect.stringContaining("cambió"));
+    expect(deliveryRepository.excludeClaimedDelivery).toHaveBeenCalledWith(99, 1, 5, expect.stringContaining("cambió"));
     expect(mailService.sendMail).not.toHaveBeenCalled();
   });
 
@@ -195,7 +195,7 @@ describe("CampaignMailService — origen 'Asociados del sistema'", () => {
     const result = await service.deliverRecipient(campaign(), 1, 5);
     expect(result.outcome).toBe("ERROR");
     expect(result.errorMessage).toContain("nombre_completo");
-    expect(deliveryRepository.recordRecipientExclusion).toHaveBeenCalled();
+    expect(deliveryRepository.excludeClaimedDelivery).toHaveBeenCalled();
     expect(mailService.sendMail).not.toHaveBeenCalled();
   });
 
@@ -255,7 +255,7 @@ describe("CampaignMailService — origen 'Asociados del sistema'", () => {
 
     const result = await service.deliverRecipient(campaign(), 1, 5);
     expect(result.outcome).toBe("ERROR");
-    expect(deliveryRepository.recordRecipientExclusion).toHaveBeenCalled();
+    expect(deliveryRepository.excludeClaimedDelivery).toHaveBeenCalled();
     expect(mailService.sendMail).not.toHaveBeenCalled();
   });
 
@@ -299,7 +299,7 @@ describe("CampaignMailService — origen 'Asociados del sistema'", () => {
     const result = await service.deliverRecipient(campaign(), 1, 5);
     expect(result.outcome).toBe("ERROR");
     expect(result.errorMessage).toContain("nombre_completo");
-    expect(deliveryRepository.recordRecipientExclusion).toHaveBeenCalled();
+    expect(deliveryRepository.excludeClaimedDelivery).toHaveBeenCalled();
     expect(mailService.sendMail).not.toHaveBeenCalled();
   });
 
@@ -312,7 +312,7 @@ describe("CampaignMailService — origen 'Asociados del sistema'", () => {
     const result = await service.deliverRecipient(campaign(), 1, 5);
     expect(result.outcome).toBe("ERROR");
     expect(result.errorMessage).toContain("nombre_completo");
-    expect(deliveryRepository.recordRecipientExclusion).toHaveBeenCalled();
+    expect(deliveryRepository.excludeClaimedDelivery).toHaveBeenCalled();
     expect(mailService.sendMail).not.toHaveBeenCalled();
   });
 
@@ -335,7 +335,7 @@ describe("CampaignMailService — origen 'Asociados del sistema'", () => {
     const result = await service.deliverRecipient(campaign(), 1, 5);
     expect(result.outcome).toBe("ERROR");
     expect(result.errorMessage).toContain("cambió");
-    expect(deliveryRepository.recordRecipientExclusion).toHaveBeenCalled();
+    expect(deliveryRepository.excludeClaimedDelivery).toHaveBeenCalled();
     expect(mailService.sendMail).not.toHaveBeenCalled();
   });
 
