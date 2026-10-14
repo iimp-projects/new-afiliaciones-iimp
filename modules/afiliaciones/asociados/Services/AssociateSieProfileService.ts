@@ -7,6 +7,9 @@ type AssociateLookup = {
   membershipApplication: {
     findFirst(args: unknown): Promise<{ person: { documentType: string; documentNumber: string; deletedAt: Date | null } | null } | null>;
   };
+  person: {
+    findUnique(args: unknown): Promise<{ documentType: string; documentNumber: string; deletedAt: Date | null } | null>;
+  };
 };
 
 type StateClient = Pick<AssociatesApiClient, "getAssociateState">;
@@ -76,6 +79,35 @@ export class AssociateSieProfileService {
 
   private apiClient(): StateClient {
     return this.client ?? new AssociatesApiClient();
+  }
+
+  /**
+   * Read-only SIE state for a historical associate that has no membership
+   * application. Resolves identity from the person's document, mirroring the
+   * application-based lookup for the V2 flow.
+   */
+  async getByPersonId(personId: number): Promise<AssociateSieProfileResponse> {
+    if (!Number.isInteger(personId) || personId < 1) throw new AssociateSieProfileError("Asociado no encontrado.", 404);
+
+    const person = await this.database.person.findUnique({
+      where: { id: personId, deletedAt: null },
+      select: { documentType: true, documentNumber: true, deletedAt: true },
+    });
+    if (!person) throw new AssociateSieProfileError("Asociado no encontrado.", 404);
+    if (!person.documentNumber.trim()) throw new AssociateSieProfileError("El asociado no tiene un documento válido para consultar SIE.", 422);
+
+    let tipoDocumento: "1" | "4" | "7";
+    try {
+      tipoDocumento = toSieDocumentType(person.documentType);
+    } catch (error) {
+      if (error instanceof AssociatesPayloadValidationError) throw new AssociateSieProfileError("El tipo de documento del asociado no es compatible con SIE.", 422);
+      throw error;
+    }
+
+    return toAssociateSieProfileResponse(
+      await this.apiClient().getAssociateState({ tipoDocumento, numDocumento: person.documentNumber }),
+      this.now().toISOString(),
+    );
   }
 }
 
