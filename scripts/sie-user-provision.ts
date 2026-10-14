@@ -128,15 +128,23 @@ async function buildContexts(rows: Row[], sourceType: "A" | "E" | null) {
 }
 
 async function provisionCandidate(runId: string, candidate: SieProvisioningCandidate, roleId: number): Promise<{ status: "PROVISIONED"; userId: number } | { status: "SKIP"; reason: string }> {
-  return prisma.$transaction(async (tx) => {
-    await tx.$executeRawUnsafe(`SELECT pg_advisory_xact_lock(hashtext($1))`, `sie-provision-user:${candidate.personId}`);
-    const existing = await tx.$queryRawUnsafe<Array<{ id: number }>>(`SELECT id FROM auth_users WHERE person_id = $1 AND deleted_at IS NULL`, candidate.personId);
-    if (existing.length > 0) return { status: "SKIP", reason: "USER_EXISTS" };
-    const emailTaken = await tx.$queryRawUnsafe<Array<{ person_id: number }>>(`SELECT person_id FROM auth_users WHERE lower(email) = $1 AND deleted_at IS NULL LIMIT 1`, candidate.email);
-    if (emailTaken.length > 0 && emailTaken[0].person_id !== candidate.personId) return { status: "SKIP", reason: "EMAIL_CONFLICT" };
-    const res = await service.provisionUser(tx, candidate, roleId, runId);
-    return { status: "PROVISIONED", userId: res.userId };
-  });
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      return await prisma.$transaction(async (tx) => {
+        await tx.$executeRawUnsafe(`SELECT pg_advisory_xact_lock(hashtext($1))`, `sie-provision-user:${candidate.personId}`);
+        const existing = await tx.$queryRawUnsafe<Array<{ id: number }>>(`SELECT id FROM auth_users WHERE person_id = $1 AND deleted_at IS NULL`, candidate.personId);
+        if (existing.length > 0) return { status: "SKIP", reason: "USER_EXISTS" };
+        const emailTaken = await tx.$queryRawUnsafe<Array<{ person_id: number }>>(`SELECT person_id FROM auth_users WHERE lower(email) = $1 AND deleted_at IS NULL LIMIT 1`, candidate.email);
+        if (emailTaken.length > 0 && emailTaken[0].person_id !== candidate.personId) return { status: "SKIP", reason: "EMAIL_CONFLICT" };
+        const res = await service.provisionUser(tx, candidate, roleId, runId);
+        return { status: "PROVISIONED", userId: res.userId };
+      }, { maxWait: 30000, timeout: 30000 });
+    } catch (error) {
+      if (attempt === 2) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+  }
+  throw new Error("unreachable");
 }
 
 async function main() {

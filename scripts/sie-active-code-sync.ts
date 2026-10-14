@@ -17,7 +17,7 @@ import { assertExecutionTarget } from "./sie-execution-guard";
 
 const PAGE_SIZE = 500;
 const ACTIVE_CATEGORIES = new Set(["A", "E"]);
-const MAX_APPLY_RECORDS = 1000;
+const MAX_APPLY_RECORDS = 5000;
 
 type Decision = { record: SanitizedSieAssociate; decision: ActiveCodeDecision | "SKIP_DUPLICATE_CODE" };
 
