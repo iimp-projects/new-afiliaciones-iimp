@@ -5,6 +5,7 @@ import { documentTypeLabel } from "@/modules/shared/Utils/documentType";
 
 export class AsociadosMapper {
   static toCardData(user: any): SmartCaseCardData {
+    const isHistorical = user.source === "SIE_HISTORICAL";
     const isStudent = user.role?.slug === "ASOCIADO_ESTUDIANTE";
     const applications = user.person?.applications ?? [];
     const application = applications.find((item: any) => item.status === "COMPLETED") ?? applications[0];
@@ -13,23 +14,34 @@ export class AsociadosMapper {
     const memberSince = completion?.createdAt ?? application?.updatedAt;
     const fullName = `${user.person?.firstName ?? ""} ${user.person?.paternalLastName ?? ""} ${user.person?.maternalLastName ?? ""}`.trim();
     const initials = `${user.person?.firstName?.charAt(0) ?? ""}${user.person?.paternalLastName?.charAt(0) ?? ""}`.toUpperCase();
-    const code = user.person?.documentNumber ?? "No registrado";
+    const documentNumber = user.person?.documentNumber ?? "No registrado";
     const institutionalCode = user.institutionalCode ?? null;
+    const code = isHistorical ? (institutionalCode ?? documentNumber) : documentNumber;
     const documentType = user.person?.documentType;
     const primaryContact = user.person?.contacts?.find((contact: any) => contact.isPrimary) ?? user.person?.contacts?.[0];
     const academicUniversity = user.person?.academicInfos?.[0]?.university?.name;
     const company = user.person?.professionalExperiences?.[0]?.company?.name ?? user.person?.employmentInfos?.[0]?.company?.name;
     const primaryBadge = { label: isStudent ? "Asociado Estudiante" : "Asociado Activo", icon: (isStudent ? "graduation" : "person") as PrimaryBadgeIcon, colorClass: isStudent ? "bg-[#EEF2FF] text-[#4F46B8]" : "bg-[#FFF4DE] text-[#9A6A1F]" };
-    const validations: AtomicValidation[] = [
-      cardLine("UserCheck", "Código de asociado", institutionalCode ?? "No disponible", institutionalCode ? "check" : "dash", institutionalCode ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600", "SIE"),
-      cardLine("CalendarDays", "Miembro desde", memberSince ? formatPeruDate(memberSince) : "No registrado", memberSince ? "check" : "dash", memberSince ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600", "IIMP"),
-      cardLine(isStudent ? "GraduationCap" : "BriefcaseBusiness", isStudent ? "Institución" : "Empresa", isStudent ? (academicUniversity ?? "No registrada") : (company ?? "No registrada"), isStudent ? (academicUniversity ? "check" : "dash") : (company ? "check" : "dash"), isStudent ? (academicUniversity ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600") : (company ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600")),
-      cardLine("CreditCard", "Inscripción", paidPayment ? "Pagada" : isStudent ? "Gratuita" : "Sin pago registrado", paidPayment || isStudent ? "check" : "dash", paidPayment || isStudent ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600", paidPayment && !isStudent ? `S/ ${Number(paidPayment.totalAmount).toFixed(2)}` : undefined),
-    ];
+    const validations: AtomicValidation[] = isHistorical
+      ? [
+          cardLine("UserCheck", "Código de asociado", institutionalCode ?? "No disponible", institutionalCode ? "check" : "dash", institutionalCode ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600", "SIE"),
+          cardLine("CalendarDays", "Miembro desde", "No registrado", "dash", "bg-slate-100 text-slate-600", "SIE"),
+          cardLine(isStudent ? "GraduationCap" : "BriefcaseBusiness", isStudent ? "Institución" : "Empresa", "No registrada", "dash", "bg-slate-100 text-slate-600"),
+          cardLine("CreditCard", "Inscripción", "No disponible", "dash", "bg-slate-100 text-slate-600"),
+        ]
+      : [
+          cardLine("UserCheck", "Código de asociado", institutionalCode ?? "No disponible", institutionalCode ? "check" : "dash", institutionalCode ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600", "SIE"),
+          cardLine("CalendarDays", "Miembro desde", memberSince ? formatPeruDate(memberSince) : "No registrado", memberSince ? "check" : "dash", memberSince ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600", "IIMP"),
+          cardLine(isStudent ? "GraduationCap" : "BriefcaseBusiness", isStudent ? "Institución" : "Empresa", isStudent ? (academicUniversity ?? "No registrada") : (company ?? "No registrada"), isStudent ? (academicUniversity ? "check" : "dash") : (company ? "check" : "dash"), isStudent ? (academicUniversity ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600") : (company ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600")),
+          cardLine("CreditCard", "Inscripción", paidPayment ? "Pagada" : isStudent ? "Gratuita" : "Sin pago registrado", paidPayment || isStudent ? "check" : "dash", paidPayment || isStudent ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600", paidPayment && !isStudent ? `S/ ${Number(paidPayment.totalAmount).toFixed(2)}` : undefined),
+        ];
     const latestUpdatedAt = [user.updatedAt, application?.updatedAt]
       .filter((value): value is string | Date => Boolean(value))
       .sort((left, right) => new Date(right).getTime() - new Date(left).getTime())[0];
-    return { id: user.id, trackingCode: code, topBorderColorClass: isStudent ? "bg-[#4F6BD8]" : "bg-[#B58B35]", hideContactDetails: true, identity: { title: fullName, subtitle: `${documentTypeLabel(documentType)} ${code}`, email: primaryContact?.email ?? user.email ?? null, phone: primaryContact?.phoneNumber ?? null, avatarUrl: user.affiliateAvatarUrl ?? user.image ?? null, fallbackInitials: initials }, primaryBadge, subStatus: membershipSubtitle(isStudent, user.status), atomicValidations: validations, metadata: { priority: "low", lastUpdatedRelative: latestUpdatedAt ? `Actualizado: ${formatPeruDate(latestUpdatedAt)}` : "Actualizado: No registrado", showEvaluationContext: shouldShowEvaluationContext(application?.status), assignedTo: { name: "IIMP", initial: "I" } }, allowedActions: ["view"], rawId: user.id, generalStatus: application?.status };
+    const subtitle = isHistorical
+      ? `${documentTypeLabel(documentType)} ${documentNumber}`
+      : `${documentTypeLabel(documentType)} ${code}`;
+    return { id: user.id, trackingCode: code, topBorderColorClass: isStudent ? "bg-[#4F6BD8]" : "bg-[#B58B35]", hideContactDetails: true, identity: { title: fullName, subtitle, email: primaryContact?.email ?? user.email ?? null, phone: primaryContact?.phoneNumber ?? null, avatarUrl: user.affiliateAvatarUrl ?? user.image ?? null, fallbackInitials: initials, categoryBadge: isHistorical ? { label: "SIE · Histórico", colorClass: "bg-sky-50 text-sky-700" } : undefined }, primaryBadge, subStatus: isHistorical ? "Membresía histórica SIE" : membershipSubtitle(isStudent, user.status), atomicValidations: validations, metadata: { priority: "low", lastUpdatedRelative: latestUpdatedAt ? `Actualizado: ${formatPeruDate(latestUpdatedAt)}` : "Actualizado: No registrado", showEvaluationContext: isHistorical ? false : shouldShowEvaluationContext(application?.status), assignedTo: { name: "IIMP", initial: "I" } }, allowedActions: ["view"], rawId: user.id, generalStatus: isHistorical ? "COMPLETED" : application?.status };
   }
 }
 

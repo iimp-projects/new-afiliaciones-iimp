@@ -5,6 +5,6 @@ export default defineConfig({
   resolve: { alias: { "@": fileURLToPath(new URL(".", import.meta.url)) } },
   test: {
     environment: "node",
-    exclude: [...configDefaults.exclude, ".agents/**"],
+    exclude: [...configDefaults.exclude, ".agents/**", ".tmp-*/**"],
   },
 });

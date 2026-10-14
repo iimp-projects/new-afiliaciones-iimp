@@ -104,4 +104,15 @@ describe("AsociadosMapper", () => {
     const withCode = AsociadosMapper.toCardData({ ...user("DNI", "41000057"), institutionalCode: "12345" });
     expect(withCode.atomicValidations?.[0].statusLabel).toBe("12345");
   });
+
+  it("reconoce un asociado histórico SIE sin expediente como COMPLETADO con origen y código visible", () => {
+    const card = AsociadosMapper.toCardData({ id: 900, source: "SIE_HISTORICAL", status: "COMPLETED", updatedAt: new Date(), role: { slug: "ASOCIADO_ACTIVO" }, institutionalCode: "00212", sieCode: "00212", person: { firstName: "Jose", paternalLastName: "Briceno", documentType: "DNI", documentNumber: "10000022", contacts: [], professionalExperiences: [], applications: [] } });
+    expect(card.generalStatus).toBe("COMPLETED");
+    expect(card.subStatus).toBe("Membresía histórica SIE");
+    expect(card.identity.categoryBadge?.label).toBe("SIE · Histórico");
+    expect(card.identity.subtitle).toBe("DNI 10000022");
+    expect(card.trackingCode).toBe("00212");
+    expect(card.atomicValidations?.[0].statusLabel).toBe("00212");
+    expect(card.atomicValidations?.[0].assignee?.name).toBe("SIE");
+  });
 });
