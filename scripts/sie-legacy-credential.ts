@@ -10,6 +10,11 @@ import {
   SieLegacyCredentialService,
   type SieLegacyCredentialClassification,
 } from "../modules/afiliaciones/asociados/Services/SieLegacyCredentialService";
+import {
+  parsePilotSelectionArgs,
+  requireExplicitSelectionForExecute,
+  resolveSelection,
+} from "../modules/afiliaciones/asociados/Services/SiePilotSelection";
 
 const prisma = new PrismaClient();
 const service = new SieLegacyCredentialService();
@@ -87,6 +92,22 @@ async function loadCandidateRows(): Promise<CandidateRow[]> {
   `);
 }
 
+async function resolveUserIdById(userId: number): Promise<number[]> {
+  const rows = await q<{ id: number }>(`SELECT id FROM auth_users WHERE id = $1 AND deleted_at IS NULL`, userId);
+  return rows.map((r) => r.id);
+}
+
+async function resolveUserIdsByExternalCode(externalCode: string): Promise<number[]> {
+  const rows = await q<{ id: number }>(`
+    SELECT DISTINCT u.id
+    FROM sie_associate_records s
+    JOIN persons p ON p.id = s.person_id AND p.deleted_at IS NULL
+    JOIN auth_users u ON u.person_id = p.id AND u.deleted_at IS NULL
+    WHERE s.provider = 'SIE' AND s.external_code = $1
+  `, externalCode);
+  return rows.map((r) => r.id);
+}
+
 async function loadEmailOwners(): Promise<Map<string, number>> {
   const rows = await q<{ user_id: number; e: string }>(`SELECT id AS user_id, lower(email) AS e FROM auth_users WHERE email IS NOT NULL AND deleted_at IS NULL`);
   const owners = new Map<string, number>();
@@ -124,9 +145,40 @@ async function importCandidate(runId: string, userId: number, email: string, cla
 
 async function main() {
   const { mode, limit, batchSize } = parseArgs(process.argv);
+  const selection = parsePilotSelectionArgs(process.argv);
   assertExecutionTarget(process.argv, mode);
 
+  // Guarda: cualquier ejecución real exige selección explícita de UNA cuenta.
+  if (mode === "execute") {
+    const guardError = requireExplicitSelectionForExecute(mode, selection);
+    if (guardError) {
+      console.log(guardError);
+      return;
+    }
+  }
+
+  // Resolución de la selección explícita (si existe).
+  let targetUserId: number | null = null;
+  if (selection.userId !== null || selection.externalCode !== null) {
+    const [byId, byCode] = await Promise.all([
+      selection.userId !== null ? resolveUserIdById(selection.userId) : Promise.resolve([] as number[]),
+      selection.externalCode !== null ? resolveUserIdsByExternalCode(selection.externalCode) : Promise.resolve([] as number[]),
+    ]);
+    const resolution = resolveSelection(selection, byId, byCode);
+    if (!resolution.ok) {
+      console.log(`SELECCIÓN RECHAZADA: ${resolution.reason}`);
+      return;
+    }
+    targetUserId = resolution.userId;
+  }
+
   const [rows, emailOwners, sieClaveMap] = await Promise.all([loadCandidateRows(), loadEmailOwners(), fetchSieClaveMap()]);
+
+  const scopedRows = targetUserId !== null ? rows.filter((r) => r.user_id === targetUserId) : rows;
+  if (targetUserId !== null && scopedRows.length === 0) {
+    console.log(`SELECCIÓN RECHAZADA: el usuario ${targetUserId} no es candidato PENDING AFFILIATE vinculado a SIE.`);
+    return;
+  }
 
   const counts: Record<SieLegacyCredentialClassification, number> = {
     ELIGIBLE: 0,
@@ -142,7 +194,7 @@ async function main() {
   interface Candidate { userId: number; email: string; clave: string; externalCode: string; }
   const candidates: Candidate[] = [];
 
-  for (const row of rows) {
+  for (const row of scopedRows) {
     const email = (row.user_email ?? row.contact_email ?? "").trim().toLowerCase();
     const emailOwner = email ? (emailOwners.get(email) ?? row.user_id) : row.user_id;
     const identityConflict = emailOwner !== row.user_id;
@@ -164,7 +216,8 @@ async function main() {
   const before = await q<{ n: number }>(`SELECT count(*)::int AS n FROM auth_credentials WHERE type='PASSWORD' AND is_active`);
 
   console.log(JSON.stringify({
-    PENDING_AFFILIATE_ROWS: rows.length,
+    SELECTION: targetUserId !== null ? { userId: targetUserId } : null,
+    PENDING_AFFILIATE_ROWS: scopedRows.length,
     SIE_CLAVE_MAP_SIZE: sieClaveMap.size,
     ...counts,
     DRY_RUN_CANDIDATES: candidates.length,
