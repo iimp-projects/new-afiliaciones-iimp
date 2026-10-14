@@ -1,0 +1,227 @@
+import { describe, expect, it, vi } from "vitest";
+import bcrypt from "bcryptjs";
+import type { Prisma } from "@prisma/client";
+import {
+  classifyLegacyCredential,
+  isWeakSiePassword,
+  isValidLegacyCredentialEmail,
+  SIE_LEGACY_CREDENTIAL_BCRYPT_COST,
+  SIE_MIN_PASSWORD_LENGTH,
+  SieLegacyCredentialConflictError,
+  SieLegacyCredentialService,
+  type SieLegacyCredentialContext,
+} from "./SieLegacyCredentialService";
+
+const ctx = (overrides: Partial<SieLegacyCredentialContext> = {}): SieLegacyCredentialContext => ({
+  hasUser: true,
+  userStatus: "PENDING",
+  hasAnyCredential: false,
+  email: "asociado@example.com",
+  identityConflict: false,
+  ...overrides,
+});
+
+const SYNTHETIC_CLAVE = "ClaveInventada2026!";
+
+describe("classifyLegacyCredential", () => {
+  it("clasifica ELIGIBLE a un usuario PENDING sin ninguna credencial, con Clave robusta y correo válido", () => {
+    expect(classifyLegacyCredential(SYNTHETIC_CLAVE, ctx())).toBe("ELIGIBLE");
+  });
+
+  it("excluye cuentas con conflicto de identidad por encima de todo", () => {
+    expect(classifyLegacyCredential(SYNTHETIC_CLAVE, ctx({ identityConflict: true }))).toBe("EXCLUDED_IDENTITY_CONFLICT");
+  });
+
+  it("excluye personas sin usuario", () => {
+    expect(classifyLegacyCredential(SYNTHETIC_CLAVE, ctx({ hasUser: false, userStatus: null }))).toBe("EXCLUDED_NO_USER");
+  });
+
+  it("excluye usuarios no-PENDING (ACTIVE/INACTIVE/BLOCKED)", () => {
+    expect(classifyLegacyCredential(SYNTHETIC_CLAVE, ctx({ userStatus: "ACTIVE" }))).toBe("EXCLUDED_NOT_PENDING");
+    expect(classifyLegacyCredential(SYNTHETIC_CLAVE, ctx({ userStatus: "INACTIVE" }))).toBe("EXCLUDED_NOT_PENDING");
+    expect(classifyLegacyCredential(SYNTHETIC_CLAVE, ctx({ userStatus: "BLOCKED" }))).toBe("EXCLUDED_NOT_PENDING");
+  });
+
+  it("excluye usuarios con CUALQUIER credencial previa (PASSWORD o PASSKEY, activa o inactiva)", () => {
+    expect(classifyLegacyCredential(SYNTHETIC_CLAVE, ctx({ hasAnyCredential: true }))).toBe("EXCLUDED_HAS_CREDENTIAL");
+  });
+
+  it("excluye Clave vacía o nula", () => {
+    expect(classifyLegacyCredential(null, ctx())).toBe("EXCLUDED_EMPTY_CLAVE");
+    expect(classifyLegacyCredential("   ", ctx())).toBe("EXCLUDED_EMPTY_CLAVE");
+  });
+
+  it("excluye contraseñas débiles (menor al mínimo)", () => {
+    expect(classifyLegacyCredential("1234567", ctx())).toBe("EXCLUDED_WEAK_PASSWORD");
+    expect(classifyLegacyCredential("12345678", ctx())).toBe("ELIGIBLE");
+  });
+
+  it("excluye correos inválidos", () => {
+    expect(classifyLegacyCredential(SYNTHETIC_CLAVE, ctx({ email: null }))).toBe("EXCLUDED_INVALID_EMAIL");
+    expect(classifyLegacyCredential(SYNTHETIC_CLAVE, ctx({ email: "a@" }))).toBe("EXCLUDED_INVALID_EMAIL");
+  });
+});
+
+describe("política de contraseña", () => {
+  it(`marca como débil cualquier Clave menor a ${SIE_MIN_PASSWORD_LENGTH} caracteres`, () => {
+    expect(isWeakSiePassword("1234567")).toBe(true);
+    expect(isWeakSiePassword("12345678")).toBe(false);
+  });
+
+  it("valida el formato de correo", () => {
+    expect(isValidLegacyCredentialEmail("a@b.co")).toBe(true);
+    expect(isValidLegacyCredentialEmail("a@b")).toBe(false);
+    expect(isValidLegacyCredentialEmail(null)).toBe(false);
+  });
+});
+
+describe("SieLegacyCredentialService.importCredential", () => {
+  function fakeTx(overrides: Record<string, unknown> = {}) {
+    return {
+      $executeRaw: vi.fn().mockResolvedValue(1),
+      credential: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({ id: "cred-1", ...data })),
+        delete: vi.fn().mockResolvedValue({}),
+        deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
+        update: vi.fn().mockResolvedValue({}),
+        updateMany: vi.fn().mockResolvedValue({ count: 0 }),
+        upsert: vi.fn().mockResolvedValue({}),
+      },
+      auditLog: {
+        create: vi.fn().mockResolvedValue({ id: "audit-1" }),
+      },
+      ...overrides,
+    } as unknown as Prisma.TransactionClient;
+  }
+
+  const candidate = { userId: 1, email: "asociado@example.com", clave: SYNTHETIC_CLAVE, externalCode: "00012" };
+
+  it("almacena un hash bcrypt (cost 12), nunca el valor en claro", async () => {
+    const tx = fakeTx();
+    const service = new SieLegacyCredentialService();
+
+    await service.importCredential(tx, candidate, "run-1");
+
+    const create = (tx.credential.create as ReturnType<typeof vi.fn>).mock.calls[0][0] as { data: { secret: string; type: string; isActive: boolean } };
+    expect(create.data.type).toBe("PASSWORD");
+    expect(create.data.isActive).toBe(true);
+    expect(create.data.secret).not.toContain(SYNTHETIC_CLAVE);
+    expect(create.data.secret.startsWith("$2")).toBe(true);
+    expect(await bcrypt.compare(SYNTHETIC_CLAVE, create.data.secret)).toBe(true);
+  });
+
+  it("usa bcrypt cost 12 en el hash generado", async () => {
+    const tx = fakeTx();
+    const service = new SieLegacyCredentialService();
+    await service.importCredential(tx, candidate, "run-1");
+    const create = (tx.credential.create as ReturnType<typeof vi.fn>).mock.calls[0][0] as { data: { secret: string } };
+    const salt = create.data.secret.split("$")[2];
+    expect(salt).toBe(String(SIE_LEGACY_CREDENTIAL_BCRYPT_COST).padStart(2, "0"));
+  });
+
+  it("no expone la contraseña ni el hash en la auditoría (solo correo enmascarado)", async () => {
+    const tx = fakeTx();
+    const service = new SieLegacyCredentialService();
+    await service.importCredential(tx, candidate, "run-1");
+
+    const audit = (tx.auditLog.create as ReturnType<typeof vi.fn>).mock.calls[0][0] as { data: { newValues: Record<string, unknown> } };
+    const serialized = JSON.stringify(audit.data.newValues);
+    expect(serialized).not.toContain(SYNTHETIC_CLAVE);
+    expect(serialized).not.toContain("secret");
+    expect(audit.data.newValues.maskedEmail).toBe("as***@example.com");
+  });
+
+  it("adquiere el bloqueo advisory ANTES de verificar credenciales existentes", async () => {
+    const tx = fakeTx();
+    const service = new SieLegacyCredentialService();
+    await service.importCredential(tx, candidate, "run-1");
+
+    const executeRawOrder = (tx.$executeRaw as ReturnType<typeof vi.fn>).mock.invocationCallOrder[0];
+    const findFirstOrder = (tx.credential.findFirst as ReturnType<typeof vi.fn>).mock.invocationCallOrder[0];
+    expect(executeRawOrder).toBeLessThan(findFirstOrder);
+  });
+});
+
+describe("regresión: preservación de contraseñas existentes", () => {
+  const EXISTING_SECRET = "$2b$12$existinghashvalue000000000000000000000000000000000000000000000000";
+
+  function fakeTxWithExistingCredential() {
+    const tx = {
+      $executeRaw: vi.fn().mockResolvedValue(1),
+      credential: {
+        findFirst: vi.fn().mockResolvedValue({ id: "cred-existing", secret: EXISTING_SECRET }),
+        create: vi.fn(),
+        delete: vi.fn(),
+        deleteMany: vi.fn(),
+        update: vi.fn(),
+        updateMany: vi.fn(),
+        upsert: vi.fn(),
+      },
+      auditLog: { create: vi.fn() },
+    } as unknown as Prisma.TransactionClient;
+    return tx;
+  }
+
+  it("si existe una credencial previa (cualquier tipo), lanza conflicto y NO invoca ninguna mutación", async () => {
+    const tx = fakeTxWithExistingCredential();
+    const service = new SieLegacyCredentialService();
+
+    await expect(service.importCredential(tx, { userId: 1, email: "a@b.co", clave: "ClaveInventada2026!", externalCode: "00012" }, "run-1"))
+      .rejects.toBeInstanceOf(SieLegacyCredentialConflictError);
+
+    expect(tx.credential.create).not.toHaveBeenCalled();
+    expect(tx.credential.delete).not.toHaveBeenCalled();
+    expect(tx.credential.deleteMany).not.toHaveBeenCalled();
+    expect(tx.credential.update).not.toHaveBeenCalled();
+    expect(tx.credential.updateMany).not.toHaveBeenCalled();
+    expect(tx.credential.upsert).not.toHaveBeenCalled();
+    expect(tx.auditLog.create).not.toHaveBeenCalled();
+  });
+
+  it("nunca utiliza deleteMany ni upsert, ni siquiera en el camino de creación", async () => {
+    const tx = {
+      $executeRaw: vi.fn().mockResolvedValue(1),
+      credential: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({ id: "cred-1", ...data })),
+        delete: vi.fn(),
+        deleteMany: vi.fn(),
+        update: vi.fn(),
+        updateMany: vi.fn(),
+        upsert: vi.fn(),
+      },
+      auditLog: { create: vi.fn().mockResolvedValue({ id: "audit-1" }) },
+    } as unknown as Prisma.TransactionClient;
+    const service = new SieLegacyCredentialService();
+
+    await service.importCredential(tx, { userId: 1, email: "a@b.co", clave: "ClaveInventada2026!", externalCode: "00012" }, "run-1");
+
+    expect(tx.credential.deleteMany).not.toHaveBeenCalled();
+    expect(tx.credential.delete).not.toHaveBeenCalled();
+    expect(tx.credential.updateMany).not.toHaveBeenCalled();
+    expect(tx.credential.update).not.toHaveBeenCalled();
+    expect(tx.credential.upsert).not.toHaveBeenCalled();
+  });
+
+  it("es idempotente ante reintentos: un segundo intento con credencial ya existente no crea duplicados", async () => {
+    const service = new SieLegacyCredentialService();
+
+    const firstTx = {
+      $executeRaw: vi.fn().mockResolvedValue(1),
+      credential: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({ id: "cred-1", ...data })),
+      },
+      auditLog: { create: vi.fn().mockResolvedValue({ id: "audit-1" }) },
+    } as unknown as Prisma.TransactionClient;
+
+    await service.importCredential(firstTx, { userId: 7, email: "a@b.co", clave: "ClaveInventada2026!", externalCode: "00012" }, "run-1");
+    expect(firstTx.credential.create).toHaveBeenCalledTimes(1);
+
+    const secondTx = fakeTxWithExistingCredential();
+    await expect(service.importCredential(secondTx, { userId: 7, email: "a@b.co", clave: "OtraClaveDistinta2026!", externalCode: "00012" }, "run-2"))
+      .rejects.toBeInstanceOf(SieLegacyCredentialConflictError);
+    expect(secondTx.credential.create).not.toHaveBeenCalled();
+  });
+});
