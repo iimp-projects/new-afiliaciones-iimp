@@ -20,7 +20,7 @@
     "sie-ubigeo:forensics": "tsx scripts/sie-ubigeo-forensics.ts",
     "sie-historical:migrate": "tsx scripts/sie-historical-migrate.ts",
     "sie-account:reconcile": "tsx scripts/sie-account-reconciliation.ts",
-    "sie-account:provision": "tsx scripts/sie-account-provision.ts",
+    "sie-user:provision": "tsx scripts/sie-user-provision.ts",
     "sie-active-code-sync": "tsx scripts/sie-active-code-sync.ts"
   },
   "dependencies": {
