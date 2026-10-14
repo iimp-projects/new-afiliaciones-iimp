@@ -13,6 +13,7 @@ import {
   type SyncRecord,
 } from "../modules/afiliaciones/associates-integration/Services/SieActiveCodeSyncService";
 import type { SanitizedSieAssociate } from "../modules/afiliaciones/associates-integration/Models/SieAssociateList";
+import { assertExecutionTarget } from "./sie-execution-guard";
 
 const PAGE_SIZE = 500;
 const ACTIVE_CATEGORIES = new Set(["A", "E"]);
@@ -111,6 +112,7 @@ async function main(): Promise<void> {
   const pilotDocument = process.argv[3] ?? null;
   const pilotDocumentType = process.argv[4] ?? null;
   const applyConfirm = process.argv[3] ?? null;
+  assertExecutionTarget(process.argv);
   const prisma = new PrismaClient();
 
   try {
