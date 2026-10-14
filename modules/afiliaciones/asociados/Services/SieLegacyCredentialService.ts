@@ -17,8 +17,14 @@ import { CredentialType, type Prisma } from "@prisma/client";
 
 export const SIE_LEGACY_CREDENTIAL_BCRYPT_COST = 12;
 
-/** Política mínima de contraseña para importación legacy (documentada). */
-export const SIE_MIN_PASSWORD_LENGTH = 8;
+/**
+ * Longitud mínima de la Clave HISTÓRICA del SIE. El sistema legacy generó
+ * claves de 4 a 6 caracteres y bcrypt las acepta; la política de contraseña
+ * FUERTE (mínimo 8) aplica SOLO a contraseñas NUEVAS (activación/reset), no a
+ * la importación de credenciales históricas. Se conserva un piso de 4 para
+ * descartar valores residuales claramente inválidos.
+ */
+export const SIE_MIN_HISTORICAL_CLAVE_LENGTH = 4;
 
 export type SieLegacyCredentialClassification =
   | "ELIGIBLE"
@@ -55,7 +61,7 @@ export function isValidLegacyCredentialEmail(email: string | null | undefined): 
 }
 
 export function isWeakSiePassword(clave: string): boolean {
-  return clave.trim().length < SIE_MIN_PASSWORD_LENGTH;
+  return clave.trim().length < SIE_MIN_HISTORICAL_CLAVE_LENGTH;
 }
 
 /**

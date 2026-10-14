@@ -6,7 +6,7 @@ import {
   isWeakSiePassword,
   isValidLegacyCredentialEmail,
   SIE_LEGACY_CREDENTIAL_BCRYPT_COST,
-  SIE_MIN_PASSWORD_LENGTH,
+  SIE_MIN_HISTORICAL_CLAVE_LENGTH,
   SieLegacyCredentialConflictError,
   SieLegacyCredentialService,
   type SieLegacyCredentialContext,
@@ -51,9 +51,13 @@ describe("classifyLegacyCredential", () => {
     expect(classifyLegacyCredential("   ", ctx())).toBe("EXCLUDED_EMPTY_CLAVE");
   });
 
-  it("excluye contraseñas débiles (menor al mínimo)", () => {
-    expect(classifyLegacyCredential("1234567", ctx())).toBe("EXCLUDED_WEAK_PASSWORD");
-    expect(classifyLegacyCredential("12345678", ctx())).toBe("ELIGIBLE");
+  it("excluye Clave histórica por debajo del mínimo (1-3 caracteres)", () => {
+    expect(classifyLegacyCredential("123", ctx())).toBe("EXCLUDED_WEAK_PASSWORD");
+  });
+
+  it("acepta Clave histórica de 4 y 6 caracteres (no aplica política de contraseña nueva)", () => {
+    expect(classifyLegacyCredential("1234", ctx())).toBe("ELIGIBLE");
+    expect(classifyLegacyCredential("123456", ctx())).toBe("ELIGIBLE");
   });
 
   it("excluye correos inválidos", () => {
@@ -63,9 +67,10 @@ describe("classifyLegacyCredential", () => {
 });
 
 describe("política de contraseña", () => {
-  it(`marca como débil cualquier Clave menor a ${SIE_MIN_PASSWORD_LENGTH} caracteres`, () => {
-    expect(isWeakSiePassword("1234567")).toBe(true);
-    expect(isWeakSiePassword("12345678")).toBe(false);
+  it(`marca como débil únicamente Clave histórica menor a ${SIE_MIN_HISTORICAL_CLAVE_LENGTH} caracteres`, () => {
+    expect(isWeakSiePassword("123")).toBe(true);
+    expect(isWeakSiePassword("1234")).toBe(false);
+    expect(isWeakSiePassword("123456")).toBe(false);
   });
 
   it("valida el formato de correo", () => {
