@@ -17,7 +17,7 @@ export class LoginService {
   async authenticate(
     credentials: LoginInputDTO,
     meta: LoginRequestMeta
-  ): Promise<{ sessionId: string }> {
+  ): Promise<{ sessionId: string; mustChangePassword: boolean }> {
     // Rate limiting por IP: coexiste con el lockout por cuenta.
     const ipAddress = normalizeIpAddress(meta.ipAddress);
     const ipAllowed = await verificationTokenRateLimiter.consume(
@@ -76,7 +76,9 @@ export class LoginService {
       browser: meta.browser,
     });
 
-    return { sessionId: session.id };
+    // Cambio obligatorio de contraseña: el login tiene éxito, pero el frontend
+    // debe redirigir al flujo de cambio antes de otorgar acceso pleno.
+    return { sessionId: session.id, mustChangePassword: user.mustChangePassword === true };
   }
 }
 

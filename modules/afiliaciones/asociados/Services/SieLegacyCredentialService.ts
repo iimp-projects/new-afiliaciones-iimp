@@ -128,6 +128,10 @@ export class SieLegacyCredentialService {
       data: { userId: candidate.userId, type: CredentialType.PASSWORD, secret, isActive: true },
     });
 
+    // Marca el cambio obligatorio de contraseña en el primer ingreso. No cambia
+    // el estado del usuario (permanece PENDING); solo prepara el flujo seguro.
+    await tx.user.update({ where: { id: candidate.userId }, data: { mustChangePassword: true } });
+
     await tx.auditLog.create({
       data: {
         action: "SIE_LEGACY_CREDENTIAL_IMPORT",
@@ -143,6 +147,32 @@ export class SieLegacyCredentialService {
     });
 
     return { credentialId: credential.id };
+  }
+
+  /**
+   * Completa el cambio obligatorio de contraseña del primer ingreso: actualiza
+   * la credencial PASSWORD activa con el nuevo hash bcrypt (cost 12) y limpia
+   * el flag `mustChangePassword`. No registra la contraseña ni el hash.
+   */
+  async completeFirstLoginPasswordChange(
+    tx: Prisma.TransactionClient,
+    userId: number,
+    newPassword: string,
+  ): Promise<void> {
+    const secret = await bcrypt.hash(newPassword, SIE_LEGACY_CREDENTIAL_BCRYPT_COST);
+    await tx.credential.updateMany({
+      where: { userId, type: CredentialType.PASSWORD, isActive: true },
+      data: { secret },
+    });
+    await tx.user.update({ where: { id: userId }, data: { mustChangePassword: false } });
+    await tx.auditLog.create({
+      data: {
+        action: "SIE_FIRST_LOGIN_PASSWORD_CHANGE",
+        entity: "auth_users",
+        entityId: String(userId),
+        newValues: { userId },
+      },
+    });
   }
 }
 

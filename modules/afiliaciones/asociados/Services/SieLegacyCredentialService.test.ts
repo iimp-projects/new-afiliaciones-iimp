@@ -93,6 +93,9 @@ describe("SieLegacyCredentialService.importCredential", () => {
         updateMany: vi.fn().mockResolvedValue({ count: 0 }),
         upsert: vi.fn().mockResolvedValue({}),
       },
+      user: {
+        update: vi.fn().mockResolvedValue({}),
+      },
       auditLog: {
         create: vi.fn().mockResolvedValue({ id: "audit-1" }),
       },
@@ -196,6 +199,7 @@ describe("regresión: preservación de contraseñas existentes", () => {
         updateMany: vi.fn(),
         upsert: vi.fn(),
       },
+      user: { update: vi.fn().mockResolvedValue({}) },
       auditLog: { create: vi.fn().mockResolvedValue({ id: "audit-1" }) },
     } as unknown as Prisma.TransactionClient;
     const service = new SieLegacyCredentialService();
@@ -218,6 +222,7 @@ describe("regresión: preservación de contraseñas existentes", () => {
         findFirst: vi.fn().mockResolvedValue(null),
         create: vi.fn().mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({ id: "cred-1", ...data })),
       },
+      user: { update: vi.fn().mockResolvedValue({}) },
       auditLog: { create: vi.fn().mockResolvedValue({ id: "audit-1" }) },
     } as unknown as Prisma.TransactionClient;
 
@@ -228,5 +233,44 @@ describe("regresión: preservación de contraseñas existentes", () => {
     await expect(service.importCredential(secondTx, { userId: 7, email: "a@b.co", clave: "OtraClaveDistinta2026!", externalCode: "00012" }, "run-2"))
       .rejects.toBeInstanceOf(SieLegacyCredentialConflictError);
     expect(secondTx.credential.create).not.toHaveBeenCalled();
+  });
+});
+
+describe("SieLegacyCredentialService: primer ingreso con cambio obligatorio", () => {
+  function fakeTx() {
+    return {
+      $executeRaw: vi.fn().mockResolvedValue(1),
+      credential: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({ id: "cred-1", ...data })),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      user: { update: vi.fn().mockResolvedValue({}) },
+      auditLog: { create: vi.fn().mockResolvedValue({ id: "audit-1" }) },
+    } as unknown as Prisma.TransactionClient;
+  }
+
+  it("importCredential marca mustChangePassword=true", async () => {
+    const tx = fakeTx();
+    const service = new SieLegacyCredentialService();
+    await service.importCredential(tx, { userId: 1, email: "a@b.co", clave: SYNTHETIC_CLAVE, externalCode: "00012" }, "run-1");
+    expect(tx.user.update).toHaveBeenCalledWith({ where: { id: 1 }, data: { mustChangePassword: true } });
+  });
+
+  it("completeFirstLoginPasswordChange actualiza la credencial y limpia el flag", async () => {
+    const tx = fakeTx();
+    const service = new SieLegacyCredentialService();
+    await service.completeFirstLoginPasswordChange(tx, 1, "NuevaClaveSegura2026!");
+    expect(tx.credential.updateMany).toHaveBeenCalledWith({ where: { userId: 1, type: "PASSWORD", isActive: true }, data: { secret: expect.stringMatching(/^\$2/) } });
+    expect(tx.user.update).toHaveBeenCalledWith({ where: { id: 1 }, data: { mustChangePassword: false } });
+  });
+
+  it("completeFirstLoginPasswordChange no expone la contraseña en la auditoría", async () => {
+    const tx = fakeTx();
+    const service = new SieLegacyCredentialService();
+    await service.completeFirstLoginPasswordChange(tx, 1, "NuevaClaveSegura2026!");
+    const audit = (tx.auditLog.create as ReturnType<typeof vi.fn>).mock.calls[0][0] as { data: { newValues: Record<string, unknown> } };
+    expect(JSON.stringify(audit.data.newValues)).not.toContain("NuevaClaveSegura2026!");
+    expect(JSON.stringify(audit.data.newValues)).not.toContain("secret");
   });
 });

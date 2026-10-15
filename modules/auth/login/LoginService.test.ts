@@ -42,7 +42,7 @@ describe("LoginService email normalization", () => {
 
     await expect(
       new LoginService().authenticate({ email: "USUARIO@IIMP.ORG.PE", password: PASSWORD }, {}),
-    ).resolves.toEqual({ sessionId: "session-1" });
+    ).resolves.toEqual({ sessionId: "session-1", mustChangePassword: false });
   });
 
   it("authenticates a mixed-case email as the same user", async () => {
@@ -50,7 +50,7 @@ describe("LoginService email normalization", () => {
 
     await expect(
       new LoginService().authenticate({ email: "Usuario@IIMP.org.pe", password: PASSWORD }, {}),
-    ).resolves.toEqual({ sessionId: "session-1" });
+    ).resolves.toEqual({ sessionId: "session-1", mustChangePassword: false });
   });
 
   it("still rejects a wrong password", async () => {
