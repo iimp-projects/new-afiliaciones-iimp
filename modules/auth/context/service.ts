@@ -45,13 +45,18 @@ class ContextService {
   /**
    * Helper garantista para Server Actions y Pages protegidas.
    * Si no hay sesión válida, detiene la ejecución y redirige al login inmediatamente.
+   *
+   * Guard de cambio obligatorio de contraseña: si `mustChangePassword` es true,
+   * redirige a `/cambiar-contrasena` y bloquea cualquier módulo privado. Solo se
+   * permite continuar cuando la llamada viene del propio flujo de cambio
+   * (`allowPasswordChange: true`).
    */
-  public requireAuth = async (): Promise<CurrentUserDTO> => {
+  public requireAuth = async (options?: { allowPasswordChange?: boolean }): Promise<CurrentUserDTO> => {
     const user = await this.getCurrentUser();
     // if (!user) {
     //   // redirect() en Next.js App Router arroja un error interno (NEXT_REDIRECT)
     //   // que cancela la ejecución del código subyacente de forma segura.
-    //   redirect('/login');
+    //   // redirect('/login');
     // }
 
     if (!user) {
@@ -61,6 +66,10 @@ class ContextService {
 
     if (user.status !== "ACTIVE") {
       throw new AuthenticationError("Tu cuenta no se encuentra activa.");
+    }
+
+    if (user.mustChangePassword && !options?.allowPasswordChange) {
+      redirect("/cambiar-contrasena");
     }
 
     return user;
