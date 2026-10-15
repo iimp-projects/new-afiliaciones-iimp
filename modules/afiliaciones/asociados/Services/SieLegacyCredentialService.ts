@@ -159,6 +159,14 @@ export class SieLegacyCredentialService {
     userId: number,
     newPassword: string,
   ): Promise<void> {
+    const current = await tx.credential.findFirst({
+      where: { userId, type: CredentialType.PASSWORD, isActive: true },
+      select: { secret: true },
+    });
+    if (current && (await bcrypt.compare(newPassword, current.secret))) {
+      throw new SieLegacyCredentialError("La nueva contraseña no puede ser igual a la contraseña histórica.");
+    }
+
     const secret = await bcrypt.hash(newPassword, SIE_LEGACY_CREDENTIAL_BCRYPT_COST);
     await tx.credential.updateMany({
       where: { userId, type: CredentialType.PASSWORD, isActive: true },

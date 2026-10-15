@@ -273,4 +273,16 @@ describe("SieLegacyCredentialService: primer ingreso con cambio obligatorio", ()
     expect(JSON.stringify(audit.data.newValues)).not.toContain("NuevaClaveSegura2026!");
     expect(JSON.stringify(audit.data.newValues)).not.toContain("secret");
   });
+
+  it("completeFirstLoginPasswordChange rechaza reutilizar la contraseña histórica", async () => {
+    const historicalHash = await bcrypt.hash("ClaveHistorica123", 12);
+    const tx = fakeTx();
+    (tx.credential.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({ secret: historicalHash });
+    const service = new SieLegacyCredentialService();
+
+    await expect(service.completeFirstLoginPasswordChange(tx, 1, "ClaveHistorica123"))
+      .rejects.toThrow("contraseña histórica");
+    expect(tx.credential.updateMany).not.toHaveBeenCalled();
+    expect(tx.user.update).not.toHaveBeenCalled();
+  });
 });
