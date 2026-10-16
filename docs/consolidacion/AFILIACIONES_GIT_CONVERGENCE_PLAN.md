@@ -93,3 +93,32 @@ hotfix/*  ─────────────────── correcciones
 - **BUILD = PASS** en el worktree aislado con `DATABASE_URL`/`AUTH_SECRET`/`JWT_SECRET`/`PAYMENT_AUTH_SECRET` placeholders y red disponible.
 - Chromium **no** es bloqueante del build (solo runtime PDF). El `next/font/google` requiere red (disponible).
 - Sin conexiones a PROD/QA ni efectos externos.
+
+## 11. Resultado Fase 5B (ejecución por lotes)
+
+Punto de recuperación creado: `backup/integration-4ec0240` (ref no destructiva).
+
+| Lote | Funcionalidad | Decisión | Motivo |
+|---|---|---|---|
+| 1 | Selección SMTP + cuota por proveedor (master `74bb8d8`) | **PRESERVADA EN ORIGEN / PENDIENTE DE ACTIVACIÓN** | Requiere 3 migraciones; la migración `add_email_campaign_smtp_account` define `smtp_account DEFAULT 'PROV'` (revertiría el fix DEFAULT `38c8fe2`). |
+| 2 | Provisión SIE PENDING (QA `e6749d9`) | **PRESERVADA EN ORIGEN** | Decisión de seguridad ACTIVE vs PENDING; no cambiar política activa. |
+| 3 | Enriquecimiento histórico (`6aad2e3`) | **PRESERVADA EN ORIGEN** | Herramienta manual con escritura a BD; no auto-ejecutable. |
+| 4 | Variante SIE del carnet (worktree) | **PRESERVADA EN ORIGEN** | Decisión de negocio; PROD desactivó validaciones SIE (`cfbcdc3`). |
+| 5 | Prisma / infra / scripts | **VERIFICADO, SIN CAMBIOS** | 40 migraciones versionadas; 3 de master pendientes; infra sin `apply`; scripts inventariados. |
+| 6 | Validación integral | **PASS** | tsc 0, eslint 0, prisma validate válido, vitest 1783/1783, build PASS. |
+
+**Resultado neto: sin cambios de código.** Las 4 funcionalidades pendientes quedan preservadas en sus ramas de origen (master, QA, `6aad2e3`, worktree/respaldo) con referencias exactas. Ningún merge, migración, script ni despliegue ejecutado.
+
+### Referencias exactas de funcionalidades preservadas
+
+- Selección SMTP + cuota: `master` (`e799400`), commit `74bb8d8`; migraciones `20261009000000_add_email_campaign_smtp_account`, `20261009180000_add_smtp_daily_quota`, `20261009190000_add_email_campaign_paused_by_quota`.
+- Provisión PENDING: `release/sie-historicos-qa` (`a7f55ff`), commits `e6749d9`/`b7e1b5e`; `modules/afiliaciones/asociados/Services/SieUserProvisioningService.ts`.
+- Enriquecimiento histórico: `release/directorio-unificado-prod` (`6aad2e3`); `scripts/sie-historical-profile-enrichment.ts`.
+- Variante SIE carnet: respaldo persistente (worktree original, untracked); `modules/afiliaciones/carnet/Services/cardData.ts`, `cardPdf.ts`.
+
+### Condiciones de activación futura (por funcionalidad)
+
+- **SMTP cuota:** autorización de esquema (3 migraciones) + reemplazar `DEFAULT 'PROV'` por `DEFAULT` y conservar circuit-breaker; mantener DEFAULT activo.
+- **Provisión PENDING:** contrato de seguridad explícito (activación de cuenta por flujo de verificación de correo); no migrar usuarios existentes.
+- **Enriquecimiento:** ejecución manual con dry-run y reporte de conflictos; idempotencia verificada.
+- **Carnet SIE:** autorización de negocio para re-activar elegibilidad SIE; mantener `CARD_ISSUANCE_ENABLED=false`.
