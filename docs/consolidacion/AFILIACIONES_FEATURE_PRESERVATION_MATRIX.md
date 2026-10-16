@@ -156,8 +156,65 @@ La base de integración `e856422` **ya contiene** la implementación canónica d
 
 > Nota de entorno: `npm ci` no generó el cliente Prisma porque `prisma.config.ts` exige `DATABASE_URL` incluso para `prisma generate`. Al regenerar con `DATABASE_URL` placeholder (`postgresql://…/placeholder`), `tsc` pasa a 0 errores. Es un requisito de tooling, no un defecto de código.
 
-## Cambios de esta fase
+## Fase 2 — Subsanaciones legacy
 
-- Nuevo: `docs/consolidacion/AFILIACIONES_FEATURE_PRESERVATION_MATRIX.md` (este archivo).
-- Nuevo: `modules/communications/Tests/CampaignMailService.smtp-account.test.ts` (prueba focalizada).
-- Ningún archivo de producción fue modificado. Ningún merge/cherry-pick/rebase ejecutado.
+### Auditoría comparativa (PROD vs QA vs hotfix)
+
+| Referencia | Commit | Rol |
+|---|---|---|
+| Subsanación documental PROD | `10e73ba` | **ya en la base** (`e856422`) |
+| Compatibilidad especialidades PROD | `f00a5d3` | **ya en la base** (`e856422`) |
+| Subsanación documental QA | `fa3ec71` | EQUIVALENTE (0 diff en los 4 archivos) |
+| Compatibilidad especialidades QA | `c579216` | OLDER: sin `DraftComparison`, sin notificaciones internas |
+| Hotfix de contención | `6da2bfc` | CONTENCIÓN TEMPORAL (no activar) |
+
+### Conclusiones
+
+1. **La base `e856422` ya contiene la implementación canónica** de subsanaciones:
+   - `DraftComparison.ts` (`findUnauthorizedChange` + `normalizeForComparison`): comparación semántica que trata `null`/`undefined`/`""` como vacíos equivalentes (fix "sin bloqueos por normalización").
+   - `StudentAcademicRules.ts`: `LEGACY_STUDENT_SPECIALTY_CODES` (`ESP-MIN`, `ESP-GEO`, `ESP-MET`, `ESP-GEOL`) y raíces terminológicas (minas/geología/metalurgia).
+   - `AcademicInfoPersistence.ts`: `cycle` numérico → `termOrSemester` string (`String(study.cycle)`).
+   - Notificaciones internas (`ApplicationNotificationEvents.notifyCorrectionReceived`) y correo (`NotifyApplicantService`).
+   - `markCorrectionSubmitted` en transacción (integridad de documentos, historial `membershipValidationHistory`, auditoría).
+
+2. **No hay mejoras exclusivas en QA** que importar: `fa3ec71` es equivalente (0 diff) y `c579216` es una versión anterior (comparación inline con `JSON.stringify` sin normalización, y sin notificaciones). Nada que incorporar.
+
+3. **Hotfix `6da2bfc`** bloqueaba temporalmente el guardado OBSERVED (mensaje "en mantenimiento") para impedir la pérdida de documentos por `syncPersistedEntities`. Es **CONTENCIÓN TEMPORAL**, superada por la corrección definitiva ya presente en la base. **No se activa**; se conserva como referencia histórica.
+
+### Funcionalidades únicas preservadas (PRESERVADAS EN ORIGEN)
+
+| Funcionalidad | Rama/commit | Estado |
+|---|---|---|
+| Comparación inline de borradores (QA `c579216`) | `fix/afiliaciones-legacy-specialty-compatibility` | PRESERVADA EN ORIGEN (superada por `DraftComparison`) |
+| Contención temporal de subsanaciones | `hotfix/containment-subsanacion` `6da2bfc` | PRESERVADA EN ORIGEN (no activar) |
+
+### Casos históricos cubiertos por la base
+
+- Solicitud OBSERVED → subsanación permitida (rutas observadas).
+- Solicitud COMPLETED → edición rechazada (`APPLICATION_NOT_EDITABLE`).
+- Actualización exclusiva de `universityLetter`.
+- `cycle` numérico → `termOrSemester` string.
+- `null`/`""`/omitido equivalentes en comparación de borradores.
+- Especialidades históricas `ESP-MIN`/`ESP-GEO`/`ESP-MET`/`ESP-GEOL`.
+- Documentos no modificados se preservan (transacción).
+
+### Pruebas ejecutadas (Fase 2.4/2.5)
+
+- `DraftComparison.test.ts`, `LegacySpecialtyCompatibility.test.ts`, `AcademicInfoPersistence.test.ts`, `StudentAcademicRules.test.ts`, `AcademicStudyValidator.test.ts`.
+- Regresión Fase 1 (SMTP/correos masivos) re-ejecutada: **sin regresión**.
+- Total focalizado: **392 tests OK** (23 archivos). TypeScript **0 errores** · ESLint focalizado **0 errores**.
+
+### Riesgos identificados
+
+- Reintroducir el hotfix de contención bloquearía las subsanaciones (evitar).
+- Importar `c579216` (QA) reintroduciría la comparación sin normalización semántica → regresión de "bloqueos por normalización".
+
+### Decisiones pendientes
+
+- Ninguna pendiente en esta fase: la base ya es canónica. (Pendientes globales documentados arriba: selección de cuentas SMTP y cuota por proveedor.)
+
+## Cambios de esta fase (Fase 2)
+
+- Sin cambios de código de producción: la base `e856422` ya contiene la implementación canónica de subsanaciones.
+- Documentación actualizada: este archivo (sección Fase 2).
+- Ningún merge/cherry-pick/rebase ejecutado. Ningún archivo de producción modificado.
