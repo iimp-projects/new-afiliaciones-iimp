@@ -218,3 +218,83 @@ La base de integración `e856422` **ya contiene** la implementación canónica d
 - Sin cambios de código de producción: la base `e856422` ya contiene la implementación canónica de subsanaciones.
 - Documentación actualizada: este archivo (sección Fase 2).
 - Ningún merge/cherry-pick/rebase ejecutado. Ningún archivo de producción modificado.
+
+## Fase 3A — SIE histórico, directorio unificado y autenticación (auditoría)
+
+### Auditoría de commits (7ab57e3 → e856422 PROD vs 7ab57e3 → a7f55ff QA)
+
+| Área | PROD (`e856422`) | QA (`a7f55ff`) | Estado |
+|---|---|---|---|
+| Directorio unificado SIE+V2 + reconciliación | `a2a9925` (`SieNameReconciliation.ts`) | `a21305d` (mismo archivo) | **CONVERGIDO** (archivo idéntico) |
+| Vinculación SAFE_MATCH | `6fbc678` (`sie-safe-match-link.ts`) | — | SOLO PROD (script) |
+| Acceso histórico + mustChangePassword + password-change | `e5deb4e` | `6ce2a71`+`39b415b`+`a7f55ff` | **CONVERGIDO** (código idéntico) |
+| Activar/provisionar cuentas históricas | `e856422` (métodos en `SieLegacyCredentialService`) | `e6749d9` (`SieUserProvisioningService`) | **DIVERGENTE** (ver conflicto) |
+| Códigos institucionales SIE A/E | — | `527e8d2` (`SieActiveCodeSyncService`) | SOLO QA |
+| Migración histórica (dry-run, lotes, análisis) | — | `73a25b0`, `4dbad69`, `eac1e82`, `aea313e` | SOLO QA (scripts) |
+| Compatibilidad credenciales históricas (Clave 4-6) | (parcial en `e5deb4e`) | `6b78a03`, `c107394` | Convergido en servicio; scripts QA |
+
+### Matriz de funcionalidades (SIE / autenticación)
+
+| Funcionalidad | PROD | QA | master | Integración | Origen | Decisión |
+|---|---|---|---|---|---|---|
+| Consulta de asociados API SIE | SÍ | SÍ | parcial | SÍ | convergido | YA INTEGRADA |
+| Migración de asociados históricos | parcial | SÍ (scripts) | NO | parcial | QA scripts | SOLO QA (scripts) |
+| Provisión de usuarios | SÍ (ACTIVE) | SÍ (PENDING) | NO | SÍ (ACTIVE) | PROD | REQUIERE DECISIÓN |
+| Detección duplicados DNI/CE/pasaporte | SÍ | SÍ | parcial | SÍ | convergido | YA INTEGRADA |
+| Reconciliación de perfiles | SÍ (`SieNameReconciliation`) | SÍ | NO | SÍ | convergido | YA INTEGRADA |
+| Activos/estudiantes/históricos | SÍ | SÍ | parcial | SÍ | convergido | YA INTEGRADA |
+| Códigos históricos compatibles | SÍ | SÍ | NO | SÍ | convergido | YA INTEGRADA |
+| Estados ACTIVE/PENDING | SÍ | SÍ | — | SÍ | divergente (provisión) | REQUIERE DECISIÓN |
+| Autenticación por contraseña | SÍ | SÍ | SÍ | SÍ | convergido | YA INTEGRADA |
+| mustChangePassword | SÍ | SÍ | NO | SÍ | convergido | YA INTEGRADA |
+| Activación/recuperación cuenta | SÍ | SÍ | SÍ | SÍ | convergido | YA INTEGRADA |
+| Sincronización datos SIE | SÍ (directorio) | SÍ (sincronizador A/E) | NO | SÍ (directorio) | divergente | REQUIERE DECISIÓN |
+| Directorio unificado | SÍ | SÍ | NO | SÍ | convergido | YA INTEGRADA |
+| Fotografías asociados | SÍ | SÍ | parcial | SÍ | convergido | YA INTEGRADA |
+| Nacionalidad y direcciones | SÍ (6aad2e3) | parcial | — | NO | PROD posterior | SOLO PROD (pendiente) |
+| Historial de membresías | SÍ | SÍ | — | SÍ | convergido | YA INTEGRADA |
+| Auditoría de cambios | SÍ | SÍ | — | SÍ | convergido | YA INTEGRADA |
+| Roles y permisos | SÍ | SÍ | — | SÍ | convergido | YA INTEGRADA |
+| Integración notificaciones | SÍ | SÍ | — | SÍ | convergido | YA INTEGRADA |
+| Compatibilidad correos masivos | SÍ | SÍ | — | SÍ | convergido | YA INTEGRADA |
+
+### Autenticación y seguridad (FASE 3A.3)
+
+- Código de auth **convergido** entre PROD y QA: `modules/auth/login`, `modules/auth/context`, `modules/auth/password-change`, `app/(auth)/cambiar-contrasena` son **idénticos** (no aparecen en el diff `e856422..a7f55ff`).
+- `bcryptjs` cost 12 para credenciales legacy (ambas líneas).
+- `mustChangePassword` + `api-authorization` (bloqueo de APIs internas) presente en ambas.
+- Sin conflicto de autenticación. Sin cambios de credenciales en esta fase.
+
+### Prisma y migraciones (FASE 3A.4)
+
+- `schema.prisma` **idéntico** entre PROD y QA (diff vacío).
+- **41 migraciones idénticas** en ambas líneas, incluidas las 4 preservadas en el respaldo de Fase 0 (`20261010*`, `20261012*`, `20261013*`) y `20261014000000_add_must_change_password`.
+- Única diferencia: BOM y `\ No newline` en `20261014000000_add_must_change_password/migration.sql` (inocuo, mismo SQL).
+- **Sin conflicto de migraciones.** Las 4 migraciones "untracked" del worktree original ya están commitadas en `e856422`.
+
+### Conflictos identificados (FASE 3A.5)
+
+| Conflicto | PROD | QA | Riesgo | Propuesta |
+|---|---|---|---|---|
+| Provisión de cuentas históricas | `activateLegacyAccount`/`provisionLegacyAccount` en `SieLegacyCredentialService` (provisión **ACTIVE**) | `SieUserProvisioningService` (provisión **PENDING**) | Provisión ACTIVE activa cuentas sin validación de correo | Evaluar adoptar PENDING (más seguro); decisión de seguridad explícita |
+| Sincronizador SIE (códigos A/E) | — | `SieActiveCodeSyncService` + `sie-active-code-sync.ts` | Falta en PROD | Incorporar si aporta valor (SOLO QA) |
+| Perfiles enriquecidos (nacionalidad/geográfico) | `6aad2e3` (posterior, no desplegado) | — | No en base | Revisar para Fase 3B |
+
+### Plan de integración propuesto (FASE 3A.6) — lotes
+
+1. **Mantener** directorio unificado + auth convergido (ya en base).
+2. **Decidir** provisión ACTIVE (PROD) vs PENDING (QA) — decisión de seguridad.
+3. **Evaluar** incorporar `SieActiveCodeSyncService` (QA) y `sie-historical-profile-enrichment` (PROD `6aad2e3`) si se confirman ausentes.
+4. **Preservar** scripts de migración histórica QA como referencia (no se ejecutan en integración).
+5. **Reconciliar** si procede la variante PENDING de provisión.
+6. Pruebas de regresión (SIE, auth, mustChangePassword, directorio).
+
+### Decisiones pendientes
+
+- Provisión ACTIVE vs PENDING (seguridad).
+- Incorporación de sincronizador A/E (QA) y enriquecimiento de perfiles (PROD `6aad2e3`).
+
+## Cambios de esta fase (Fase 3A)
+
+- Sin cambios de código (auditoría). Solo documentación actualizada (esta sección).
+- Ningún merge/cherry-pick/rebase ejecutado.
