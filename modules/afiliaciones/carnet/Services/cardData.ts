@@ -47,6 +47,8 @@ function permittedCategory(category: { mappedAffiliateType: AffiliateType | null
   return category?.mappedAffiliateType === "ACTIVE" || category?.mappedAffiliateType === "STUDENT";
 }
 
+// Preservada para la reactivación de las validaciones SIE (ver TODO en `eligibility`).
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function categoryLabel(category: { mappedAffiliateType: AffiliateType | null; name: string } | null | undefined): string | null {
   if (!category) return null;
   if (category.mappedAffiliateType) return affiliateTypeLabel(category.mappedAffiliateType);
@@ -83,17 +85,29 @@ function eligibility(
   migrated: PersonWithCardSources["sieAssociateRecords"][number] | undefined,
   completed: PersonWithCardSources["applications"][number] | undefined,
 ): CardEligibility {
-  if (migrated || completed) return { eligible: true, reason: null };
+  // TODO: Reactivar validaciones de elegibilidad institucional/SIE en una siguiente fase.
+  // ===========================================================================
+  // Regla original (conservada, desactivada temporalmente):
+  //   if (migrated || completed) return { eligible: true, reason: null };
+  //   const hasBlockedCategory = person.sieAssociateRecords.some(
+  //     (record) => record.externalCode?.trim() && !permittedCategory(record.category),
+  //   );
+  //   if (hasBlockedCategory) return { eligible: false, reason: "Categoría institucional no permitida para el carnet." };
+  //   const hasCompletedApplication = person.applications.some((application) => application.status === "COMPLETED");
+  //   if (hasCompletedApplication) return { eligible: false, reason: "El código institucional aún no fue confirmado por SIE." };
+  //   return { eligible: false, reason: "No se encontró una membresía institucional elegible." };
+  // ===========================================================================
+  void migrated;
+  void completed;
 
-  const hasBlockedCategory = person.sieAssociateRecords.some(
-    (record) => record.externalCode?.trim() && !permittedCategory(record.category),
-  );
-  if (hasBlockedCategory) return { eligible: false, reason: "Categoría institucional no permitida para el carnet." };
-
-  const hasCompletedApplication = person.applications.some((application) => application.status === "COMPLETED");
-  if (hasCompletedApplication) return { eligible: false, reason: "El código institucional aún no fue confirmado por SIE." };
-
-  return { eligible: false, reason: "No se encontró una membresía institucional elegible." };
+  const completedApplication = person.applications.find((application) => application.status === "COMPLETED");
+  if (completedApplication) {
+    if (completedApplication.affiliateType === AffiliateType.ACTIVE || completedApplication.affiliateType === AffiliateType.STUDENT) {
+      return { eligible: true, reason: null };
+    }
+    return { eligible: false, reason: "La categoría del asociado no es elegible para el carnet." };
+  }
+  return { eligible: false, reason: "La postulación no está completada." };
 }
 
 /**
@@ -142,13 +156,21 @@ export async function resolveCardData(
       application.associateIntegration.externalAssociateCode != null,
   );
 
-  const source: CardSource | null = migrated ? "MIGRATED" : completed ? "NEW" : null;
+  // TODO: Reactivar validaciones de elegibilidad institucional/SIE en una siguiente fase.
+  // REGLA SIMPLIFICADA TEMPORAL: categoría (ACTIVE/STUDENT) + postulación COMPLETED.
+  const completedApplication = person.applications.find((application) => application.status === "COMPLETED");
+  const affiliateType = completedApplication?.affiliateType ?? null;
+  const isActiveOrStudent = affiliateType === AffiliateType.ACTIVE || affiliateType === AffiliateType.STUDENT;
+
+  const source: CardSource | null = completedApplication && isActiveOrStudent ? "NEW" : null;
+  // Código institucional SIE: se conserva solo para presentación (puede ser null;
+  // la UI/PDF mostrarán "Pendiente de sincronización SIE"). Ya no condiciona la elegibilidad.
   const code = migrated
     ? migrated.externalCode.trim()
     : completed
       ? String(completed.associateIntegration!.externalAssociateCode)
       : null;
-  const category = migrated ? categoryLabel(migrated.category) : completed ? affiliateTypeLabel(completed.affiliateType) : null;
+  const category = affiliateType ? affiliateTypeLabel(affiliateType) : null;
 
   const { eligible, reason } = eligibility(person, migrated, completed);
   const photoUrl = await resolvePhotoUrl(person);

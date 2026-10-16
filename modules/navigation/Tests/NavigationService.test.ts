@@ -32,7 +32,21 @@ describe("NavigationService - Application Service", () => {
         const securityNode = tree.find(node => node.id === "group-security");
 
         expect(securityNode).toBeDefined();
-        expect(securityNode?.children?.length).toBe(4);
+        expect(securityNode?.children?.length).toBe(2);
+    });
+
+    it("oculta Roles y Permisos y Auditor├¡a del Sistema para SUPER_ADMIN", async () => {
+        const superAdminProvider = new MockAuthProvider(new Set(["manage:all"]));
+        const service = new NavigationService(superAdminProvider);
+
+        const tree = await service.getAuthorizedTree();
+        const securityNode = tree.find(node => node.id === "group-security");
+        const childIds = (securityNode?.children ?? []).map((child) => child.id);
+
+        expect(childIds).toContain("nav-security-users");
+        expect(childIds).toContain("nav-security-system-settings");
+        expect(childIds).not.toContain("nav-security-roles");
+        expect(childIds).not.toContain("nav-security-audit");
     });
 
     it("Debe podar las rutas no autorizadas para un usuario limitado", async () => {
@@ -57,11 +71,11 @@ describe("NavigationService - Application Service", () => {
         expect(securityNode?.children).toBeUndefined();
     });
 
-    it("retorna Mi perfil, carnet y OneMine para un asociado en modo solo perfil", async () => {
+    it("retorna Mi perfil y OneMine (carnet oculto) para un asociado en modo solo perfil", async () => {
         const service = new NavigationService(new MockAuthProvider(new Set(["read:memberships"]), true));
         const tree = await service.getAuthorizedTree();
         expect(tree.map((node) => node.id)).toEqual(["group-affiliate-account", "group-affiliate-library"]);
-        expect(tree[0].children?.map((node) => node.id)).toEqual(["nav-affiliate-profile", "nav-affiliate-carnet"]);
+        expect(tree[0].children?.map((node) => node.id)).toEqual(["nav-affiliate-profile"]);
         expect(tree[1].children?.map((node) => node.id)).toEqual(["nav-affiliate-onemine"]);
     });
 

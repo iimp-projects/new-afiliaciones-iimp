@@ -20,6 +20,12 @@ variable "smtp_egress_ports" {
   default     = [25, 465, 587]
 }
 
+variable "sie_egress_ports" {
+  description = "Puertos SIE permitidos como salida desde ECS (consulta /ventas/asociados/lista)."
+  type        = list(number)
+  default     = []
+}
+
 variable "tags" {
   description = "Tags comunes."
   type        = map(string)

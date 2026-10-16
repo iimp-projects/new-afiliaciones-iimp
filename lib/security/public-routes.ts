@@ -8,8 +8,11 @@ export const PUBLIC_ROUTE_PREFIXES = [
   "/beneficios",
   "/consulta",
   "/sap",
+  "/verificar-carnet",
 ] as const;
 
 export function isPublicRoute(pathname: string): boolean {
-  return PUBLIC_ROUTE_PREFIXES.some((route) => pathname.startsWith(route));
+  return PUBLIC_ROUTE_PREFIXES.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`),
+  );
 }

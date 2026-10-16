@@ -15,6 +15,9 @@ import { AcademicStudy } from "../Models/AcademicStudy";
 import { MembershipType } from "../Types/MembershipType";
 import { AcademicStudyValidator } from "../Validators/AcademicStudyValidator";
 import { assertStudentAcademicAllowed, persistAcademicInfos } from "../Repositories/AcademicInfoPersistence";
+import { isLegacyTrackingCode } from "../StudentAcademicRules";
+import { findUnauthorizedChange } from "../DraftComparison";
+import { applicationNotificationEvents, type CorrectionReference } from "../../notifications/Services/ApplicationNotificationEvents";
 
 export class UpdateDraftService {
 
@@ -34,10 +37,12 @@ export class UpdateDraftService {
         new ApplicationAccessService().require(Number(application.id), token);
         await this.ensureEditable(application, dto);
 
-        await this.validateStudentAcademicCatalog(dto, application);
+        const isLegacy = isLegacyTrackingCode(application.trackingCode);
+
+        await this.validateStudentAcademicCatalog(dto, application, isLegacy);
 
         if (application.status === "OBSERVED") {
-            this.validateAcademicSync(dto, application);
+            this.validateAcademicSync(dto, application, isLegacy);
         }
 
         const updatedApplication = await this.updateDraft(
@@ -47,14 +52,20 @@ export class UpdateDraftService {
         );
 
         if (application.status === "OBSERVED") {
-            await this.syncPersistedEntities(Number(application.id), dto.draftData);
-            await this.markCorrectionSubmitted(Number(application.id));
+            await this.syncPersistedEntities(Number(application.id), dto.draftData, isLegacy);
+            const corrections = await this.markCorrectionSubmitted(Number(application.id));
 
             try {
                 const notifyService = new NotifyApplicantService();
                 await notifyService.notifyCorrectionReceived(application, dto.draftData);
             } catch (err) {
                 console.error("[UpdateDraftService] Error enviando correo de confirmación de subsanación:", err);
+            }
+
+            try {
+                await applicationNotificationEvents.notifyCorrectionReceived(Number(application.id), corrections);
+            } catch (notificationError) {
+                console.error("[UpdateDraftService] Error generando notificaciones internas de subsanación:", notificationError);
             }
         }
 
@@ -149,20 +160,10 @@ export class UpdateDraftService {
         const current = (application.draftData ?? {}) as Record<string, any>;
         const proposed = dto.draftData as Record<string, any>;
 
-        const compare = (before: any, after: any, path = ""): void => {
-            if (JSON.stringify(before) === JSON.stringify(after)) return;
-            // Si la ruta exacta está en las permitidas, se acepta cualquier cambio en esa rama
-            if (path && allowedToModify.has(path)) return;
-            if (before && after && typeof before === "object" && typeof after === "object") {
-                const keys = new Set([...Object.keys(before), ...Object.keys(after)]);
-                keys.forEach((key) => compare(before[key], after[key], path ? `${path}.${key}` : key));
-                return;
-            }
-            if (!allowedToModify.has(path)) {
-                throw new ApplicationFlowError("APPLICATION_NOT_EDITABLE", "Solo puede modificar los campos solicitados en la observación.");
-            }
-        };
-        Object.keys(proposed).forEach((section) => compare(current[section], proposed[section], section));
+        const unauthorized = findUnauthorizedChange(current, proposed, allowedToModify);
+        if (unauthorized) {
+            throw new ApplicationFlowError("APPLICATION_NOT_EDITABLE", "Solo puede modificar los campos solicitados en la observación.");
+        }
 
         // ── VALIDACIÓN DE CAMPOS OBSERVADOS ATENDIDOS ─────────────────────────────
         // Verificar que TODOS los campos observados fueron efectivamente modificados.
@@ -241,9 +242,16 @@ export class UpdateDraftService {
      * el mismo validador del envío inicial para no duplicar las reglas. Para
      * estudiantes exige especialidad, ciclo y año de ingreso, además de los campos
      * ya obligatorios del flujo estudiantil.
+     *
+     * Para postulaciones Legacy se omite esta revalidación integral: los registros
+     * académicos migrados no disponen de todos los campos del flujo nuevo (p. ej.
+     * `cycle` se migró como `termOrSemester`) y no deben revalidarse contra las
+     * reglas actuales. La restricción de especialidad ya se aplica, con
+     * compatibilidad de familias, en {@link validateStudentAcademicCatalog}.
      */
-    private validateAcademicSync(dto: UpdateDraftDTO, application: Application): void {
+    private validateAcademicSync(dto: UpdateDraftDTO, application: Application, isLegacy: boolean): void {
         if (application.affiliateType !== "STUDENT") return;
+        if (isLegacy) return;
 
         const studies = (dto.draftData as ApplicationDraft | undefined)?.academicStudies;
         if (!studies?.length) return;
@@ -263,15 +271,20 @@ export class UpdateDraftService {
      * (especialidades canónicas y filtro provisional de universidad) cada vez
      * que se guarda información académica, para que la restricción no dependa
      * únicamente del filtro visual del frontend.
+     *
+     * En postulaciones Legacy se permite conservar especialidades históricas de
+     * las familias Minas / Geología / Metalurgia.
      */
-    private async validateStudentAcademicCatalog(dto: UpdateDraftDTO, application: Application): Promise<void> {
+    private async validateStudentAcademicCatalog(dto: UpdateDraftDTO, application: Application, isLegacy: boolean): Promise<void> {
         if (application.affiliateType !== "STUDENT") return;
 
         const studies = (dto.draftData as ApplicationDraft | undefined)?.academicStudies;
         if (!studies?.length) return;
 
         for (const study of studies as AcademicStudy[]) {
-            await assertStudentAcademicAllowed(prisma, study);
+            await assertStudentAcademicAllowed(prisma, study, {
+                allowLegacySpecialtyFamily: isLegacy,
+            });
         }
     }
 
@@ -279,7 +292,7 @@ export class UpdateDraftService {
      * Sincroniza las tablas relacionales (membership_documents, person, etc.)
      * con los datos subsanados del draftData para que el CMS y la BD se actualicen de inmediato.
      */
-    private async syncPersistedEntities(applicationId: number, draftData: any): Promise<void> {
+    private async syncPersistedEntities(applicationId: number, draftData: any, isLegacy: boolean): Promise<void> {
         if (!draftData) return;
         const draft = draftData as Record<string, any>;
 
@@ -382,7 +395,9 @@ export class UpdateDraftService {
             // persistido, para que `cycle` y el resto de campos académicos queden
             // alineados con draftData después de una subsanación.
             if (app.personId) {
-                await persistAcademicInfos(tx, app.personId, app.draftData, app.affiliateType);
+                await persistAcademicInfos(tx, app.personId, app.draftData, app.affiliateType, {
+                    allowLegacySpecialtyFamily: isLegacy,
+                });
             }
         });
     }
@@ -493,9 +508,10 @@ export class UpdateDraftService {
     }
 
     /** Bloquea una subsanación enviada y la deja disponible para reevaluación. */
-    private async markCorrectionSubmitted(applicationId: number): Promise<void> {
+    private async markCorrectionSubmitted(applicationId: number): Promise<CorrectionReference[]> {
         const integrationService = new AssociatesIntegrationService();
         let integrationId: number | undefined;
+        const corrections: CorrectionReference[] = [];
         await prisma.$transaction(async (tx) => {
             const observations = await tx.membershipObservation.findMany({
                 where: { applicationId, status: ObservationStatus.PENDING },
@@ -518,19 +534,21 @@ export class UpdateDraftService {
                     where: { id: validation.id },
                     data: { status: ValidationStatus.RESOLVED, validatedAt: new Date() },
                 });
-                await tx.membershipValidationHistory.create({
+                const history = await tx.membershipValidationHistory.create({
                     data: {
                         validationId: validation.id,
                         action: ValidationAction.SUBMITTED_CORRECTION,
                         comment: "El postulante envió la subsanación solicitada.",
                     },
                 });
+                corrections.push({ departmentCode: validation.department.code, validationHistoryId: history.id });
             }
 
             await new ApplicationStatusCalculatorService(integrationService).recalculate(applicationId, tx, (preparedId) => { integrationId = preparedId; });
         });
         if (integrationId) await integrationService.processAfterCommit(integrationId);
         if (integrationId) await new AssociateProvisioningService().provisionCompletedApplication(applicationId);
+        return corrections;
     }
 
     /**

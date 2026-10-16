@@ -84,4 +84,37 @@ describe("AssociateProvisioningService.provisionCompletedApplication", () => {
     expect(tx.user.create).not.toHaveBeenCalled();
     expect(createAndSendActivation).toHaveBeenCalledWith(55);
   });
+
+  it("sendActivation=false crea la cuenta PENDING sin enviar el correo de activación", async () => {
+    const tx = buildTx();
+    tx.membershipApplication.findUnique.mockResolvedValue(completedApplication("ACTIVE"));
+    tx.role.findUnique.mockResolvedValue({ id: 2, slug: "ASOCIADO_ACTIVO", isActive: true });
+    tx.user.findUnique.mockResolvedValue(null);
+    tx.user.findFirst.mockResolvedValue(null);
+    tx.user.create.mockResolvedValue({ id: 55 });
+    prismaMock.$transaction.mockImplementation((callback: (client: Tx) => unknown) => callback(tx));
+
+    const result = await new AssociateProvisioningService().provisionCompletedApplication(42, { sendActivation: false });
+
+    expect(result).toMatchObject({ userId: 55, created: true, activationRequired: true });
+    expect(tx.user.create).toHaveBeenCalledTimes(1);
+    expect(createAndSendActivation).not.toHaveBeenCalled();
+  });
+
+  it("sendActivation=false al reutilizar cuenta PENDING tampoco envía correo", async () => {
+    const tx = buildTx();
+    tx.membershipApplication.findUnique.mockResolvedValue({
+      ...completedApplication("STUDENT"),
+      person: { ...completedApplication("STUDENT").person, user: { id: 55, status: "PENDING" } },
+    });
+    tx.role.findUnique.mockResolvedValue({ id: 3, slug: "ASOCIADO_ESTUDIANTE", isActive: true });
+    tx.user.findUnique.mockResolvedValue({ id: 55, status: "PENDING" });
+    tx.user.update.mockResolvedValue({ id: 55, status: "PENDING" });
+    prismaMock.$transaction.mockImplementation((callback: (client: Tx) => unknown) => callback(tx));
+
+    const result = await new AssociateProvisioningService().provisionCompletedApplication(42, { sendActivation: false });
+
+    expect(result).toMatchObject({ userId: 55, created: false, activationRequired: true });
+    expect(createAndSendActivation).not.toHaveBeenCalled();
+  });
 });

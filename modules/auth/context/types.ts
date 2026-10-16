@@ -5,6 +5,7 @@ export interface CurrentUserDTO {
   email: string;
   type: UserType;
   status: UserStatus;
+  mustChangePassword: boolean;
   image: string | null;
   person: {
     firstName: string;

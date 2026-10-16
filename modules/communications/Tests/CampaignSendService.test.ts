@@ -22,6 +22,8 @@ function campaign(overrides: Partial<CampaignDetail> = {}): CampaignDetail {
     createdBy: 1,
     createdByName: "Admin",
     recipientCount: 100,
+    pausedUntil: null,
+    pauseReason: null,
     ...overrides,
   };
 }
@@ -38,12 +40,16 @@ function setup() {
     touchCampaign: vi.fn(),
     setStatus: vi.fn(),
     writeAudit: vi.fn().mockResolvedValue(undefined),
+    pauseCampaign: vi.fn().mockResolvedValue(undefined),
+    clearPause: vi.fn().mockResolvedValue(undefined),
+    listSendingCampaignIds: vi.fn().mockResolvedValue([]),
   };
   const deliveryRepository = {
     listPendingRecipients: vi.fn(),
     getCampaignStats: vi.fn(),
     resetErrorRecipientsToPending: vi.fn(),
     recoverStaleDeliveriesForCampaign: vi.fn().mockResolvedValue(0),
+    countConsecutiveAuthErrors: vi.fn().mockResolvedValue(0),
   };
   const mailService = {
     deliverRecipient: vi.fn(),

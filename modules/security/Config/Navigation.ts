@@ -71,6 +71,8 @@ export const securityModuleDefinition: ModuleDefinition = {
                     href: "/intranet/security/roles",
                     icon: "KeyRound",
                     order: 2,
+                    // Ocultado temporalmente del men├║ lateral (reversible).
+                    visibility: "hidden",
                     // Solo visible si el rol tiene permiso de 'read:roles'
                     permission: { action: "read", subject: "roles" }
                 },
@@ -80,6 +82,8 @@ export const securityModuleDefinition: ModuleDefinition = {
                     href: "/intranet/security/audit",
                     icon: "Activity",
                     order: 3,
+                    // Ocultado temporalmente del men├║ lateral (reversible).
+                    visibility: "hidden",
                     // Solo visible si el rol tiene permiso de 'read:audit'
                     permission: { action: "read", subject: "audit" }
                 },
@@ -149,6 +153,13 @@ export const securityModuleDefinition: ModuleDefinition = {
                     icon: "UserRound",
                     order: 1,
                 },
+                {
+                    id: "nav-notifications",
+                    title: "Centro de Notificaciones",
+                    href: "/intranet/notificaciones",
+                    icon: "Bell",
+                    order: 2,
+                },
             ],
         },
         {
@@ -167,7 +178,7 @@ export const securityModuleDefinition: ModuleDefinition = {
             order: 15,
             children: [
                 { id: "nav-affiliate-profile", title: "Mi perfil", href: "/intranet/mi-cuenta/perfil", icon: "UserRound", order: 1 },
-                { id: "nav-affiliate-carnet", title: "Mi carnet virtual", href: "/intranet/mi-cuenta/carnet", icon: "IdCard", order: 2 },
+                { id: "nav-affiliate-carnet", title: "Mi carnet virtual", href: "/intranet/mi-cuenta/carnet", icon: "IdCard", order: 2, visibility: "hidden" },
                 { id: "nav-affiliate-membership", title: "Mi membresía", href: "/intranet/mi-cuenta/membresia", icon: "CreditCard", order: 3 },
                 { id: "nav-affiliate-payments", title: "Pagos y comprobantes", href: "/intranet/mi-cuenta/pagos", icon: "FileText", order: 4 },
                 { id: "nav-affiliate-benefits", title: "Beneficios", href: "/intranet/mi-cuenta/beneficios", icon: "Gift", order: 5 },

@@ -2,7 +2,11 @@ import { Prisma } from "@prisma/client";
 import { ApplicationDraft } from "../Models/ApplicationDraft";
 import { AcademicStudy } from "../Models/AcademicStudy";
 import { ApplicationFlowError } from "../Services/Exceptions/ApplicationFlowError";
-import { isLikelyUniversityName, isStudentAllowedSpecialtyCode } from "../StudentAcademicRules";
+import {
+  isLegacyStudentAllowedSpecialty,
+  isLikelyUniversityName,
+  isStudentAllowedSpecialtyCode,
+} from "../StudentAcademicRules";
 
 /**
  * Persistencia compartida de la formación académica de una postulación.
@@ -11,11 +15,22 @@ import { isLikelyUniversityName, isStudentAllowedSpecialtyCode } from "../Studen
  * `academic_info` permanezca sincronizado con `draftData.academicStudies` sin
  * duplicar la implementación en dos servicios.
  */
+export interface PersistAcademicInfosOptions {
+  /**
+   * Habilita la compatibilidad de especialidades históricas para postulaciones
+   * Legacy (familia Minas / Geología / Metalurgia). Solo debe activarse en
+   * postulaciones migradas; las postulaciones nuevas conservan la restricción
+   * canónica.
+   */
+  allowLegacySpecialtyFamily?: boolean;
+}
+
 export async function persistAcademicInfos(
   tx: Prisma.TransactionClient,
   personId: number,
   draftData: unknown,
   affiliateType: string,
+  options: PersistAcademicInfosOptions = {},
 ): Promise<void> {
   if (!draftData) {
     return;
@@ -45,7 +60,9 @@ export async function persistAcademicInfos(
     }
 
     if (affiliateType === "STUDENT") {
-      await assertStudentAcademicAllowed(tx, study);
+      await assertStudentAcademicAllowed(tx, study, {
+        allowLegacySpecialtyFamily: options.allowLegacySpecialtyFamily,
+      });
     }
 
     await tx.academicInfo.create({
@@ -86,13 +103,17 @@ type AcademicCatalogDb = Pick<Prisma.TransactionClient, "specialty" | "universit
 export async function assertStudentAcademicAllowed(
   db: AcademicCatalogDb,
   study: AcademicStudy,
+  options: PersistAcademicInfosOptions = {},
 ): Promise<void> {
   if (study.specialtyId) {
     const specialty = await db.specialty.findUnique({
       where: { id: study.specialtyId },
-      select: { code: true },
+      select: { code: true, name: true },
     });
-    if (!specialty || !isStudentAllowedSpecialtyCode(specialty.code)) {
+    const allowed = options.allowLegacySpecialtyFamily
+      ? isLegacyStudentAllowedSpecialty(specialty?.code, specialty?.name)
+      : isStudentAllowedSpecialtyCode(specialty?.code);
+    if (!specialty || !allowed) {
       throw new ApplicationFlowError(
         "INVALID_INPUT",
         "La especialidad seleccionada no está permitida para la modalidad Estudiante.",

@@ -1,0 +1,10 @@
+[Unit]
+Description=Run campaign send tick every 20 seconds
+
+[Timer]
+OnBootSec=30s
+OnUnitActiveSec=20s
+Persistent=false
+
+[Install]
+WantedBy=timers.target

@@ -1,7 +1,7 @@
 import type { CurrentUserDTO } from "@/modules/auth/context/types";
 
 const ADMIN_ROLES = new Set(["SUPER_ADMIN", "SYSTEM_ADMIN"]);
-const ROLE_DEPARTMENT: Readonly<Record<string, string>> = {
+export const ROLE_DEPARTMENT: Readonly<Record<string, string>> = {
   LOGISTICA: "LOGISTICA",
   ATENCION_ASOCIADO: "ASOCIADOS",
   COMUNICACIONES: "COMUNICACIONES",

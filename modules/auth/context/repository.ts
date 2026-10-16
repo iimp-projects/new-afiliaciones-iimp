@@ -79,6 +79,7 @@ export class ContextRepository {
       image: finalImageUrl, 
       type: user.type,
       status: user.status,
+      mustChangePassword: user.mustChangePassword === true,
       person: {
         firstName: user.person.firstName,
         paternalLastName: user.person.paternalLastName,
