@@ -298,3 +298,65 @@ La base de integración `e856422` **ya contiene** la implementación canónica d
 
 - Sin cambios de código (auditoría). Solo documentación actualizada (esta sección).
 - Ningún merge/cherry-pick/rebase ejecutado.
+
+## Fase 3B — Integración selectiva SIE/autenticación
+
+### 3B.1 — Políticas de provisión (ACTIVE vs PENDING)
+
+| Aspecto | ACTIVE (PROD `e856422`) | PENDING (QA `a7f55ff`) |
+|---|---|---|
+| Implementación | `activateLegacyAccount` / `provisionLegacyAccount` en `SieLegacyCredentialService.ts` | `SieUserProvisioningService.ts` (archivo separado) |
+| Estado de cuenta creado | `ACTIVE` + `emailVerified` + credencial (bcrypt de la Clave) + `mustChangePassword=true` | `PENDING` + `emailVerified=NULL`, **sin credencial, sin token, sin correo** |
+| Bloqueo idempotente | advisory lock + unicidad person/email | unicidad en INSERT |
+| Scripts de ejecución | `sie-legacy-activate.ts`, `sie-legacy-provision.ts` | `sie-user-provision.ts` |
+| Riesgo de seguridad | Activa cuentas sin validar el correo (mitigado por `mustChangePassword`) | Más seguro: no activa hasta validación |
+
+**Decisión:** conservar **ACTIVE** en integración (comportamiento activo de PROD, ya en base `e856422`). **PENDING** permanece **PRESERVADA EN ORIGEN** (rama QA `a7f55ff`, commits `e6749d9`/`b7e1b5e`), documentada como pendiente. **No se fusionan las dos estrategias** sin un contrato seguro previo.
+
+### 3B.2 — Sincronización de códigos SIE (integrada)
+
+- **`SieActiveCodeSyncService.ts` + `SieActiveCodeSyncService.test.ts`** integrados desde QA (`527e8d2`).
+- Lógica **pura y determinista**, sin acceso a Prisma ni a SIE, sin escrituras: clasifica códigos institucionales A/E (LINK / UNCHANGED / SKIP / CONFLICT), con detección de duplicados y enmascarado PII (`maskDocument`).
+- Comprobado: idempotente, sin sobrescritura de códigos existentes, sin duplicación de personas. No se ejecuta sincronización real.
+
+### 3B.3 — Enriquecimiento histórico (PRESERVADA EN ORIGEN)
+
+- `sie-historical-profile-enrichment.ts` (commit `6aad2e3`, `release/directorio-unificado-prod`, no desplegado) **NO se integró**.
+- Es una **herramienta manual** de enriquecimiento (nacionalidad/datos geográficos); no debe ejecutarse automáticamente por bootstrap/CI/CD/cron/despliegue.
+- Queda **PRESERVADA EN ORIGEN** (`6aad2e3`) con sus riesgos documentados (posible sobrescritura de datos actuales frente a SIE; requiere decisión de idempotencia/reporte de conflictos).
+
+### 3B.4 — Scripts históricos (inventario)
+
+| Script | PROD `e856422` | QA `a7f55ff` | Clasificación |
+|---|---|---|---|
+| `sie-legacy-activate.ts`, `sie-legacy-provision.ts`, `sie-safe-match-link.ts` | SÍ | NO | HISTÓRICO PROD (provisión/activación) |
+| `sie-account-provision.ts` | SÍ | eliminado (`b7e1b5e`) | HISTÓRICO (superado por PENDING) |
+| `sie-active-code-sync.ts`, `sie-user-provision.ts`, `sie-ae-person-migrate-qa.ts`, `sie-dry-run-qa.ts`, `sie-enablement-analysis.ts`, `sie-execution-guard.ts`, `sie-historical-migrate-qa.ts` | NO | SÍ | HISTÓRICO QA (migración/sincronización) |
+| `sie-account-reconciliation.ts`, `sie-coverage-report.ts`, `sie-historical-dry-run.ts`, `sie-historical-migrate.ts`, `sie-legacy-credential.ts`, `sie-ubigeo-forensics.ts`, `credential-sync-dry-run.ts` | SÍ | SÍ | VIGENTE (común) |
+| `sie-historical-profile-enrichment.ts` | NO (en `6aad2e3`) | NO | PENDIENTE (release PROD posterior) |
+
+**Regla:** todos los scripts SIE son herramientas manuales. **Ninguno** se incorpora a procesos automáticos ni se ejecuta durante la consolidación.
+
+### 3B.5 — Autenticación intacta
+
+Sin cambios en `LoginService`, Auth.js, `mustChangePassword`, recuperación/activación de cuenta, validación ACTIVE/PENDING, sesiones, roles, permisos ni credenciales. El código de auth ya estaba convergido entre PROD y QA (Fase 3A).
+
+### 3B.6 — Validación
+
+- TypeScript (`tsc --noEmit`): **0 errores**.
+- ESLint (SIE/auth): **0 errores**.
+- `prisma validate`: **válido** (sin conexión a PROD).
+- Vitest SIE/auth (incluye el nuevo servicio): **121 OK** (18 archivos).
+- Regresión Fases 1–2 (SMTP/correos + subsanación): **357 OK** (22 archivos).
+- Build: no ejecutado (requiere Chromium/red; cubierto por tsc+eslint+validate+tests).
+
+### Decisiones pendientes
+
+- Provisión ACTIVE vs PENDING (seguridad): pendiente de decisión explícita.
+- Enriquecimiento histórico (`6aad2e3`): pendiente de incorporar como herramienta manual si se autoriza.
+
+## Cambios de esta fase (Fase 3B)
+
+- Integrado: `modules/afiliaciones/associates-integration/Services/SieActiveCodeSyncService.ts` + `.../Tests/SieActiveCodeSyncService.test.ts` (lógica pura, sin escrituras).
+- Documentación actualizada (esta sección).
+- Sin cambios de usuarios, credenciales, base de datos ni scripts ejecutados. Ningún merge/cherry-pick/rebase.
