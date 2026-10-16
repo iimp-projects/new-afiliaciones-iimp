@@ -122,3 +122,23 @@ Punto de recuperación creado: `backup/integration-4ec0240` (ref no destructiva)
 - **Provisión PENDING:** contrato de seguridad explícito (activación de cuenta por flujo de verificación de correo); no migrar usuarios existentes.
 - **Enriquecimiento:** ejecución manual con dry-run y reporte de conflictos; idempotencia verificada.
 - **Carnet SIE:** autorización de negocio para re-activar elegibilidad SIE; mantener `CARD_ISSUANCE_ENABLED=false`.
+
+## 12. Resultado Fase 5C (preparación final)
+
+### Simulación de merge (`origin/master` ← `integration`)
+
+- Merge-base: `7ab57e3`. Comandos usados: `git merge-tree --write-tree` (no destructivo, sin refs).
+- **7 conflictos de archivo:** 5 de carnet (add/add: `carnet/page.tsx`, `cardData.ts`, `cardPdf.ts`, `cardData.test.ts`, `CardView.tsx`) + `NavigationService.test.ts` + `Config/Navigation.ts`.
+- `prisma/schema.prisma` auto-merge (sin conflicto; requiere revisión de modelos de carnet).
+- Commits únicos de `origin/master` (NO en integración): `13b26ea` (carnet MVP #20) y `86be950` (CI #21) — **ambos ya presentes en integración como cherry-picks** (`1192d4b`, `5f6971d`).
+- Integración tiene **35 commits** no presentes en `origin/master`.
+- **Riesgo SMTP:** `origin/master` usa `new MailService("PROV")`; la integración usa DEFAULT. El merge debe resolver a DEFAULT.
+
+### Estrategia de PR propuesta
+
+- **Origen:** `integration/afiliaciones-consolidacion-20261016` (`bad5d6c`).
+- **Destino:** `master` (o nueva `main`).
+- **Resolución de conflictos:** mantener carnet de integración (completo) y SMTP DEFAULT. NO usar ours/theirs sin análisis por archivo.
+- **Fuera del PR:** selección SMTP + cuota (`74bb8d8`, solo en master local `e799400`) y sus 3 migraciones; provisión PENDING, enriquecimiento y carnet SIE (preservados en origen).
+- **Reversión:** el PR es un merge; revertir es `git revert -m 1 <merge-commit>` o re-apuntar `master` a `13b26ea` (historial intacto).
+- **Posterior:** alinear `qa` desde la nueva `main` + cambios QA autorizados; mantener `release/*` inmutables.
