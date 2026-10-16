@@ -360,3 +360,57 @@ Sin cambios en `LoginService`, Auth.js, `mustChangePassword`, recuperación/acti
 - Integrado: `modules/afiliaciones/associates-integration/Services/SieActiveCodeSyncService.ts` + `.../Tests/SieActiveCodeSyncService.test.ts` (lógica pura, sin escrituras).
 - Documentación actualizada (esta sección).
 - Sin cambios de usuarios, credenciales, base de datos ni scripts ejecutados. Ningún merge/cherry-pick/rebase.
+
+## Fase 4 — Prisma, Carnet Virtual y Centro de Notificaciones
+
+### 4.1 — Prisma y migraciones
+
+- `schema.prisma` idéntico entre PROD (`e856422`) y QA (`a7f55ff`); idéntico en integración.
+- **40 migraciones** versionadas en la rama de integración (mismas que PROD/QA). Incluyen: `20261010000000_add_notification_center_and_transactional_emails`, `20261010010000_add_associate_card`, `20261012000000_add_email_campaign_recipient_metadata`, `20261013000000_add_email_campaign_pause`, `20261014000000_add_must_change_password`, `20261006000000_add_sie_associate_records`.
+- Única diferencia PROD vs QA: BOM/trailing-newline en `add_must_change_password` (inocuo).
+- No se recrean ni editan migraciones ya aplicadas. No se ejecuta `migrate deploy`/`db push`/`reset`.
+
+### 4.2 — Carnet Virtual (base completa)
+
+- Modelo `AssociateCard` (`associate_cards`) presente; emisión/revocación/regeneración/descarga/verificación pública/QR/PDF presentes en `modules/afiliaciones/carnet`, `app/api/afiliaciones/carnet/*`, `app/verificar-carnet/[token]`.
+- **`CARD_ISSUANCE_ENABLED=false` por defecto** (`getCardIssuanceEnabled` en `lib/config/env.ts` devuelve `true` solo si `CARD_ISSUANCE_ENABLED === "true"`); **no configurado en SSM PROD** → emisión deshabilitada.
+- La verificación pública expone solo datos autorizados (`cardData.ts` + `verificar-carnet`).
+
+### 4.3 — Centro de Notificaciones (base completa)
+
+- `Notification` (`sys_notifications`), `TransactionalEmail` (`sys_transactional_emails`), `NotificationService`, `NotificationDispatcherService`, `NotificationRecipientResolver`, `TransactionalEmailRepository`, `ApplicationNotificationEvents`, campanita Navbar y vista `/intranet/notificaciones` presentes.
+- Aislamiento SMTP: los errores de SMTP se registran como error de `TransactionalEmail` sin destruir la notificación ni romper operaciones críticas (verificado en Fase 1).
+
+### 4.4 — Comparación entre ramas
+
+| Funcionalidad | PROD | QA | master | Integración | Acción |
+|---|---|---|---|---|---|
+| Prisma + migraciones | SÍ | SÍ | parcial | SÍ | YA INTEGRADA |
+| AssociateCard + emisión/revocación/QR/PDF | SÍ | SÍ | NO | SÍ | YA INTEGRADA |
+| Verificación pública de carnet | SÍ | SÍ | NO | SÍ | YA INTEGRADA |
+| Centro de notificaciones + UI | SÍ | SÍ | NO | SÍ | YA INTEGRADA |
+| TransactionalEmail + aislamiento SMTP | SÍ | SÍ | NO | SÍ | YA INTEGRADA |
+
+- Carnet/notificaciones son **idénticos** entre PROD y QA (diff vacío). Master no los contiene (exclusivos de la línea PROD/QA, ya en la base).
+- **Worktree original** (sin commitear) tiene una variante alternativa de `cardData.ts` (validaciones SIE **activas**) y `cardPdf.ts` (sin fallback "Pendiente de sincronización SIE"). Esta variante **NO se integra**: reactiva validaciones SIE que PROD desactivó deliberadamente (`cfbcdc3`) y quedaría **PRESERVADA EN ORIGEN** (respaldo Fase 0).
+
+### 4.5 — Integración selectiva
+
+No hay mejoras exclusivas ausentes: la base ya contiene Prisma + Carnet + Notificaciones completos y convergentes con QA. **Sin cambios de código.**
+
+### 4.6 — Pruebas
+
+- TypeScript **0 errores** · ESLint (carnet+notificaciones) **0 errores** · `prisma validate` **válido**.
+- Pruebas carnet + notificaciones: **29 OK** (6 archivos).
+- Regresión previa (SMTP/correos, subsanación, SIE/auth): ya validada en Fases 1–3B (357 + 121).
+- Build no ejecutado (requiere Chromium/red).
+
+### 4.7 — Riesgos y decisiones pendientes
+
+- Variante alternativa de carnet (validaciones SIE en `cardData.ts`): pendiente de decisión de negocio para re-activar elegibilidad institucional SIE.
+- Sin riesgos nuevos; sin cambios de datos ni usuarios.
+
+## Cambios de esta fase (Fase 4)
+
+- Sin cambios de código (base ya completa). Solo documentación (esta sección).
+- Ningún merge/cherry-pick/rebase. Sin escrituras de BD ni ejecución de scripts.
