@@ -414,3 +414,53 @@ No hay mejoras exclusivas ausentes: la base ya contiene Prisma + Carnet + Notifi
 
 - Sin cambios de código (base ya completa). Solo documentación (esta sección).
 - Ningún merge/cherry-pick/rebase. Sin escrituras de BD ni ejecución de scripts.
+
+## Fase 5A — Auditoría final de convergencia
+
+### Matriz completa de funcionalidades (20 ítems)
+
+| Funcionalidad | Origen | PROD | QA | master | Integración | Decisión |
+|---|---|---|---|---|---|---|
+| Autenticación y sesiones | común | SÍ | SÍ | SÍ | SÍ | YA INTEGRADA |
+| Postulaciones | común | SÍ | SÍ | SÍ | SÍ | YA INTEGRADA |
+| Subsanaciones legacy | PROD `10e73ba`/`f00a5d3` | SÍ | eq. | NO | SÍ | YA INTEGRADA |
+| SIE y directorio unificado | PROD `a2a9925` | SÍ | eq. | NO | SÍ | YA INTEGRADA |
+| Migración histórica SIE | QA scripts | NO | SÍ | NO | NO | PRESERVADA EN ORIGEN |
+| Correos masivos | PROD `1a1c2fe`…`35e2597` | SÍ | eq. | parcial | SÍ | YA INTEGRADA |
+| SMTP DEFAULT y PROV | PROD `38c8fe2` | DEFAULT | DEFAULT | **PROV** | DEFAULT | YA INTEGRADA (DEFAULT) |
+| Selección de cuentas SMTP | master `74bb8d8` | NO | NO | SÍ | NO | PENDIENTE |
+| Cuotas por proveedor | master `74bb8d8` | NO | NO | SÍ | NO | PENDIENTE |
+| Centro de Notificaciones | PROD `302e20b` | SÍ | SÍ | NO | SÍ | YA INTEGRADA |
+| Carnet Virtual | PROD `1192d4b` | SÍ | SÍ | NO | SÍ | YA INTEGRADA |
+| Validaciones SIE para carnet | worktree | simplif. | simplif. | NO | simplif. | PRESERVADA EN ORIGEN |
+| OneMine SSO | común | SÍ | SÍ | SÍ | SÍ | YA INTEGRADA |
+| Membresía y pagos | común | SÍ | SÍ | SÍ | SÍ | YA INTEGRADA |
+| Roles y permisos | común | SÍ | SÍ | SÍ | SÍ | YA INTEGRADA |
+| Fotografías de asociados | común | SÍ | SÍ | SÍ | SÍ | YA INTEGRADA |
+| Migraciones Prisma | — | 40 | 40 | 43 (3 extra) | 40 | VER NOTA |
+| Scripts históricos | PROD/QA | varios | varios | — | parcial | PRESERVADA EN ORIGEN |
+| Terraform y despliegue | — | SÍ | SÍ | difiere | SÍ (PROD) | REQUIERE REVISIÓN |
+| RENIEC / Niubiz | común | SÍ | SÍ | SÍ | SÍ | YA INTEGRADA |
+
+> **Nota migraciones:** PROD/QA comparten 40 migraciones (integración idéntica). master agrega 3 exclusivas del SMTP (`20261009000000_add_email_campaign_smtp_account`, `20261009180000_add_smtp_daily_quota`, `20261009190000_add_email_campaign_paused_by_quota`).
+
+### Decisiones arquitectónicas pendientes
+
+1. **SMTP:** mantener DEFAULT; evaluar selección de cuentas + cuota de master sin activar PROV.
+2. **SIE:** conservar provisión ACTIVE; preservar PENDING de QA; no activar.
+3. **Carnet:** emisión OFF por defecto; evaluar variantes SIE sin activar.
+4. **Prisma:** 40 migraciones versionadas; no editar aplicadas; 3 de master pendientes.
+5. **Infra:** revisar Terraform sin `apply`; no revertir arreglos RDS/SMTP.
+
+### Estado del build
+
+- **BUILD = PASS** en worktree aislado (placeholders `DATABASE_URL`/`AUTH_SECRET`/`JWT_SECRET`/`PAYMENT_AUTH_SECRET` + red). Chromium no bloquea el build (solo runtime PDF). Sin conexiones a PROD/QA.
+
+### Plan de convergencia
+
+Ver `docs/consolidacion/AFILIACIONES_GIT_CONVERGENCE_PLAN.md` (topología, lotes, riesgos, validaciones, archivado).
+
+## Cambios de esta fase (Fase 5A)
+
+- Documentación: matriz actualizada + `AFILIACIONES_GIT_CONVERGENCE_PLAN.md` creado.
+- Sin cambios de código. Sin merges. Sin escrituras de BD ni despliegues.

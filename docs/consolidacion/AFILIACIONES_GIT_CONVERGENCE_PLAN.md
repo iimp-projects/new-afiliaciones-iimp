@@ -1,0 +1,95 @@
+# Plan de Convergencia Git — Afiliaciones IIMP
+
+> Fase 5A (auditoría final). Fecha: 2026-10-16.
+> Rama de integración: `integration/afiliaciones-consolidacion-20261016` (HEAD `97e4ed1`).
+> Este documento es una PROPUESTA. No se han ejecutado merges.
+
+## 1. Topología final propuesta
+
+```
+main (nueva base estable) ── derivada de la línea PROD consolidada
+  └─ qa ─────────────────── validación de cambios antes de producción
+  └─ release/* ──────────── releases inmutables (histórico)
+feature/*  ────────────────── desarrollos temporales
+hotfix/*  ─────────────────── correcciones urgentes
+```
+
+**Fuente de verdad:** la línea PROD (`release/directorio-unificado-prod` → `e856422`), por ser el código desplegado y funcional. `master` y `qa` deben converger hacia ella sin reescribir historial.
+
+## 2. Estado de convergencia (resumen)
+
+| Línea | Commit | Relación con integración |
+|---|---|---|
+| PROD desplegado | `e856422` | **BASE** (integración = e856422 + docs/tests + SieActiveCodeSyncService) |
+| QA desplegado | `a7f55ff` | Convergido en app code; difiere en provisión PENDING + scripts históricos |
+| master local | `e799400` | Divergente: tiene selección SMTP + cuota (3 migraciones extra) |
+| origin/master | `13b26ea` | = master + carnet MVP (#20) + CI (#21); ya reflejado en la base |
+| release PROD posterior | `6aad2e3` | Enriquecimiento histórico (script manual) |
+
+## 3. Funcionalidades PENDIENTES de integración
+
+| Funcionalidad | Origen | Commit | Estado | Bloqueo |
+|---|---|---|---|---|
+| Selección de cuentas SMTP | master | `74bb8d8` | PENDIENTE | Decisión arquitectónica (cuenta fija DEFAULT vs selección); NO activar PROV |
+| Cuota por proveedor | master | `74bb8d8` | PENDIENTE | Decisión; preservar cuota global actual |
+| 3 migraciones SMTP de master | master | `74bb8d8` | PENDIENTE | `20261009000000_add_email_campaign_smtp_account`, `20261009180000_add_smtp_daily_quota`, `20261009190000_add_email_campaign_paused_by_quota` |
+| Provisión PENDING SIE | QA | `e6749d9`/`b7e1b5e` | PRESERVADA EN ORIGEN | Seguridad (ACTIVE vs PENDING) |
+| Enriquecimiento histórico | `6aad2e3` | `sie-historical-profile-enrichment.ts` | PENDIENTE | Herramienta manual; riesgos de sobrescritura |
+| Validaciones SIE de carnet | worktree | (untracked) | PRESERVADA EN ORIGEN | PROD las desactivó (`cfbcdc3`) |
+| Scripts históricos QA | QA | varios | PRESERVADA EN ORIGEN | Herramientas manuales, no automatizar |
+
+## 4. Decisiones arquitectónicas pendientes
+
+1. **SMTP:** mantener DEFAULT activo; evaluar selección de cuentas + cuota de master **sin** activar PROV; no mezclar con la recuperación del error Gmail 535 (separado).
+2. **SIE provisión:** conservar ACTIVE desplegado; documentar contrato PENDING; no activar nuevas políticas.
+3. **Carnet:** emisión deshabilitada por defecto (`CARD_ISSUANCE_ENABLED=false`); evaluar variantes SIE; no emitir.
+4. **Prisma:** 40 migraciones versionadas (PROD/QA) + 3 exclusivas de master (SMTP). Comparar checksums; no editar migraciones aplicadas.
+5. **Infra:** Terraform difiere entre ramas (`pgproxy`, `security`, `campaign-send-tick`). Verificar que ningún merge revierta arreglos de RDS/SMTP; no `terraform apply`.
+
+## 5. Plan de integración por lotes (propuesta)
+
+| Lote | Contenido | Origen | Pruebas | Criterio de aceptación |
+|---|---|---|---|---|
+| 1 | (Ya hecho) Base PROD + SieActiveCodeSyncService + docs | PROD/QA | 478 tests | tsc/eslint/validate/build verdes |
+| 2 | Selección SMTP + cuota (solo si se autoriza) | master `74bb8d8` | smtpQuota.test + regresión correos | No activar PROV; circuit-breaker intacto; 3 migraciones aplicadas solo si se decide |
+| 3 | Provisión PENDING SIE (solo si se autoriza contrato) | QA | SieUserProvisioningService.test | No alterar usuarios; ACTIVE sigue funcionando |
+| 4 | Enriquecimiento histórico (herramienta manual) | `6aad2e3` | manual, dry-run | No auto-ejecutable; reporte de conflictos |
+| 5 | Validaciones SIE de carnet (solo si se autoriza) | worktree | cardData.test | Emisión sigue deshabilitada |
+
+**Condición de rollback local:** cada lote se hace en un commit separado sobre la rama de integración; el rollback es `git reset --hard <commit-anterior>` (local, sin push).
+
+## 6. Riesgos
+
+- Reintroducir `new MailService("PROV")` desde master (rompe campañas, PROV no configurado).
+- Revertir el circuit-breaker (master no lo tiene).
+- Aplicar las 3 migraciones SMTP de master sin decisión (cambio de esquema).
+- Revertir arreglos de RDS/SMTP/Terraform al fusionar infraestructura.
+- Activar la provisión PENDING sin contrato (cambia comportamiento de cuentas).
+- Re-activar validaciones SIE de carnet (cambia elegibilidad de carnets).
+
+## 7. Validaciones obligatorias (previa a cualquier despliegue)
+
+- `tsc --noEmit`, `eslint`, `vitest run` (478+ tests), `prisma validate`.
+- `next build` (verificado viable con placeholders + red).
+- Revisión manual del diff de cada lote; escaneo de secretos.
+- Comparación de `terraform plan` (sin apply) para QA y PROD.
+- Regresión: SMTP DEFAULT, circuit-breaker, subsanaciones, SIE/auth, carnet (emisión OFF), notificaciones.
+
+## 8. Plan para actualizar master y QA (posterior)
+
+1. Converger `main`/`master` a la línea de integración consolidada (merge, no rebase, sin force-push).
+2. Recrear `qa` desde `main` + cambios QA autorizados.
+3. Mantener `release/*` como históricos inmutables.
+4. Actualizar `main` **solo tras** validar contra PROD (nunca asumir paridad).
+
+## 9. Estrategia de archivado (sin eliminación automática)
+
+- Ramas ya fusionadas: etiquetar `archive/` (renombrar) o dejar intactas; NO `branch -D`.
+- Worktrees temporales (detached/prunable): no limpiar en esta fase.
+- Scripts históricos: conservar en `scripts/` con header de "no ejecutar en producción" y listado en la matriz.
+
+## 10. Estado del build
+
+- **BUILD = PASS** en el worktree aislado con `DATABASE_URL`/`AUTH_SECRET`/`JWT_SECRET`/`PAYMENT_AUTH_SECRET` placeholders y red disponible.
+- Chromium **no** es bloqueante del build (solo runtime PDF). El `next/font/google` requiere red (disponible).
+- Sin conexiones a PROD/QA ni efectos externos.
