@@ -104,12 +104,20 @@ export class EmailDeliveryRepository {
 
   /**
    * Cuenta los errores AUTH consecutivos más recientes de una campaña (para el
-   * circuit-breaker). Detiene el conteo en la primera entrega ERROR cuyo mensaje
-   * no sea de autenticación SMTP.
+   * circuit-breaker). Solo considera errores dentro de la ventana `since` y
+   * posteriores al último envío exitoso (SENT), de modo que los errores AUTH
+   * históricos no bloquean una reanudación posterior a la corrección del SMTP.
    */
-  async countConsecutiveAuthErrors(campaignId: number, limit: number): Promise<number> {
+  async countConsecutiveAuthErrors(campaignId: number, limit: number, since: Date): Promise<number> {
+    const lastSent = await this.db.emailDelivery.findFirst({
+      where: { campaignId, status: EmailSendStatus.SENT },
+      orderBy: { id: "desc" },
+      select: { id: true },
+    });
+    const afterId = lastSent?.id ?? 0;
+
     const rows = await this.db.emailDelivery.findMany({
-      where: { campaignId, status: EmailSendStatus.ERROR },
+      where: { campaignId, status: EmailSendStatus.ERROR, id: { gt: afterId }, createdAt: { gte: since } },
       orderBy: { id: "desc" },
       take: limit,
       select: { errorMessage: true },
