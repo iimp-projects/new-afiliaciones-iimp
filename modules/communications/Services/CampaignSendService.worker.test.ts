@@ -108,4 +108,18 @@ describe("CampaignSendService — worker server-side", () => {
     expect(result.campaignsProcessed).toBe(0);
     expect(campaignRepository.getCampaign).not.toHaveBeenCalled();
   });
+
+  it("no reintenta automáticamente una campaña PARTIAL ni sus errores históricos", async () => {
+    const { service, campaignRepository, deliveryRepository } = setup();
+    // El worker solo lista IDs SENDING; aquí simulamos un estado inconsistente
+    // donde el ID devuelto corresponde a una campaña ya en PARTIAL.
+    campaignRepository.listSendingCampaignIds.mockResolvedValue([1]);
+    campaignRepository.getCampaign.mockResolvedValue(campaign({ status: EmailCampaignStatus.PARTIAL }));
+
+    await service.processAllSendingCampaigns(CAMPAIGN_SEND_SYSTEM_ACTOR);
+
+    // retryFailed es la única vía PARTIAL -> SENDING; el tick nunca la invoca.
+    expect(deliveryRepository.resetErrorRecipientsToPending).not.toHaveBeenCalled();
+    expect(campaignRepository.claimCampaignSending).not.toHaveBeenCalled();
+  });
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { Prisma, UserStatus } from "@prisma/client";
+import { EmailCampaignStatus, Prisma, UserStatus } from "@prisma/client";
 import { CampaignRepository } from "../Repositories/CampaignRepository";
 
 const ACTOR = { userId: 1, email: "admin@iimp.org.pe" };
@@ -91,5 +91,23 @@ describe("CampaignRepository.setCampaignRecipients", () => {
     expect(tx.emailRecipient.findMany).not.toHaveBeenCalled();
     expect(tx.emailCampaignRecipient.createMany).not.toHaveBeenCalled();
     expect(tx.auditLog.create).toHaveBeenCalled();
+  });
+});
+
+describe("CampaignRepository.listSendingCampaignIds", () => {
+  it("consulta únicamente campañas SENDING (excluye PARTIAL del tick del worker)", async () => {
+    const emailCampaign = {
+      findMany: vi.fn().mockResolvedValue([{ id: 7 }, { id: 9 }]),
+    };
+    const repository = new CampaignRepository({ emailCampaign } as never);
+
+    const ids = await repository.listSendingCampaignIds();
+
+    expect(emailCampaign.findMany).toHaveBeenCalledWith({
+      where: { status: EmailCampaignStatus.SENDING },
+      select: { id: true },
+      orderBy: { id: "asc" },
+    });
+    expect(ids).toEqual([7, 9]);
   });
 });

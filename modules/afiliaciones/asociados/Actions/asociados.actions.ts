@@ -129,7 +129,7 @@ export async function fetchAsociadosAction(params: FetchAsociadosParams) {
               person: {
                 include: {
                   nationality: true,
-                  addresses: { include: { district: { include: { province: { include: { department: true } } } } } },
+                  addresses: { include: { country: true, district: { include: { province: { include: { department: true } } } } } },
                   contacts: { orderBy: [{ isPrimary: "desc" }, { createdAt: "asc" }] },
                   academicInfos: { include: { specialty: true, university: true, degree: true } },
                   employmentInfos: { orderBy: { updatedAt: "desc" }, include: { company: true, position: true } },
@@ -157,7 +157,7 @@ export async function fetchAsociadosAction(params: FetchAsociadosParams) {
               person: {
                 include: {
                   nationality: true,
-                  addresses: { include: { district: { include: { province: { include: { department: true } } } } } },
+                  addresses: { include: { country: true, district: { include: { province: { include: { department: true } } } } } },
                   contacts: { orderBy: [{ isPrimary: "desc" }, { createdAt: "asc" }] },
                   academicInfos: { include: { specialty: true, university: true, degree: true } },
                   employmentInfos: { orderBy: { updatedAt: "desc" }, include: { company: true, position: true } },
