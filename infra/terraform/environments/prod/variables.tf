@@ -119,6 +119,18 @@ variable "rds_backup_retention_period" {
   default     = 14
 }
 
+variable "pgproxy_allowed_cidrs" {
+  description = "CIDRs autorizados para acceder al proxy TCP PostgreSQL (5432). Vacío = sin acceso."
+  type        = list(string)
+  default     = ["38.236.105.0/24"]
+}
+
+variable "pgproxy_instance_type" {
+  description = "Tipo de instancia EC2 del proxy TCP PostgreSQL."
+  type        = string
+  default     = "t3.small"
+}
+
 # --- DNS / ACM (PENDING_APPROVAL) ---
 
 variable "create_dns" {

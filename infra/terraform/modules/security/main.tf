@@ -95,6 +95,17 @@ resource "aws_vpc_security_group_egress_rule" "ecs_smtp" {
   ip_protocol       = "tcp"
 }
 
+resource "aws_vpc_security_group_egress_rule" "ecs_sie" {
+  for_each = toset([for port in var.sie_egress_ports : tostring(port)])
+
+  security_group_id = aws_security_group.ecs.id
+  description       = "Salida SIE"
+  cidr_ipv4         = "0.0.0.0/0"
+  from_port         = tonumber(each.value)
+  to_port           = tonumber(each.value)
+  ip_protocol       = "tcp"
+}
+
 # RDS: solo accesible desde ECS; nunca publico.
 resource "aws_security_group" "rds" {
   name        = "${var.resource_prefix}-rds-sg"

@@ -18,6 +18,7 @@ function makeDb(overrides: { updateManyCount?: number; currentStatus?: EmailSend
     $transaction: vi.fn((fn: (t: typeof tx) => Promise<unknown>) => fn(tx)),
     emailCampaignRecipient: tx.emailCampaignRecipient,
     emailDelivery: {
+      findFirst: vi.fn().mockResolvedValue(null),
       findMany: vi.fn().mockResolvedValue([]),
     },
     $queryRaw: vi.fn().mockResolvedValue([]),
@@ -57,8 +58,11 @@ describe("EmailDeliveryRepository.claimRecipient", () => {
 });
 
 describe("EmailDeliveryRepository.countConsecutiveAuthErrors", () => {
-  it("cuenta errores AUTH consecutivos hasta el primer error distinto", async () => {
+  const since = new Date();
+
+  it("cuenta errores AUTH consecutivos tras el último SENT y dentro de la ventana", async () => {
     const { db } = makeDb();
+    db.emailDelivery.findFirst.mockResolvedValue({ id: 100 });
     db.emailDelivery.findMany.mockResolvedValue([
       { errorMessage: SMTP_AUTH_ERROR_MESSAGE },
       { errorMessage: SMTP_AUTH_ERROR_MESSAGE },
@@ -68,18 +72,53 @@ describe("EmailDeliveryRepository.countConsecutiveAuthErrors", () => {
     ]);
     const repository = new EmailDeliveryRepository(db as never);
 
-    const result = await repository.countConsecutiveAuthErrors(1, 5);
+    const result = await repository.countConsecutiveAuthErrors(1, 5, since);
 
     expect(result).toBe(3);
+    expect(db.emailDelivery.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: expect.objectContaining({ id: { gt: 100 }, createdAt: { gte: since } }) }),
+    );
   });
 
   it("devuelve 0 sin errores AUTH", async () => {
     const { db } = makeDb();
+    db.emailDelivery.findFirst.mockResolvedValue(null);
     db.emailDelivery.findMany.mockResolvedValue([{ errorMessage: "Otra cosa." }]);
     const repository = new EmailDeliveryRepository(db as never);
 
-    const result = await repository.countConsecutiveAuthErrors(1, 5);
+    const result = await repository.countConsecutiveAuthErrors(1, 5, since);
 
     expect(result).toBe(0);
+  });
+
+  it("ignora errores AUTH históricos anteriores al último SENT (no bloquean la reanudación)", async () => {
+    const { db } = makeDb();
+    db.emailDelivery.findFirst.mockResolvedValue({ id: 99999 });
+    db.emailDelivery.findMany.mockResolvedValue([]);
+    const repository = new EmailDeliveryRepository(db as never);
+
+    const result = await repository.countConsecutiveAuthErrors(1, 5, since);
+
+    expect(result).toBe(0);
+    expect(db.emailDelivery.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: expect.objectContaining({ id: { gt: 99999 } }) }),
+    );
+  });
+
+  it("5 errores AUTH nuevos sí activan el circuit-breaker", async () => {
+    const { db } = makeDb();
+    db.emailDelivery.findFirst.mockResolvedValue(null);
+    db.emailDelivery.findMany.mockResolvedValue([
+      { errorMessage: SMTP_AUTH_ERROR_MESSAGE },
+      { errorMessage: SMTP_AUTH_ERROR_MESSAGE },
+      { errorMessage: SMTP_AUTH_ERROR_MESSAGE },
+      { errorMessage: SMTP_AUTH_ERROR_MESSAGE },
+      { errorMessage: SMTP_AUTH_ERROR_MESSAGE },
+    ]);
+    const repository = new EmailDeliveryRepository(db as never);
+
+    const result = await repository.countConsecutiveAuthErrors(1, 5, since);
+
+    expect(result).toBe(5);
   });
 });

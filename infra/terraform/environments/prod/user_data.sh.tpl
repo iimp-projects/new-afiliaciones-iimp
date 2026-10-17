@@ -140,11 +140,53 @@ docker rm -f "$CONTAINER" 2>/dev/null || true
 docker run -d \
   --name "$CONTAINER" \
   --restart unless-stopped \
+  --cap-add SYS_ADMIN \
   -p "$APP_PORT:3000" \
   --env-file "$ENV_FILE" \
   "$IMAGE"
 
 log "Contenedor iniciado; esperando health local en :$APP_PORT/api/health/live"
+
+# 6.5) systemd timer para el motor de envío masivo (server-side, sin sesión/navegador).
+#      Persistente en cada arranque/instancia nueva (no es instalación manual).
+cat >/usr/local/bin/afiliaciones-campaign-send-tick.sh <<'SCRIPT'
+#!/bin/bash
+set -euo pipefail
+REGION="$${AWS_REGION:-us-east-2}"
+SECRET_PARAM="$${TICK_SECRET_PARAM:-/afiliaciones/prod/campaign-send-tick-secret}"
+TICK_URL="$${TICK_URL:-http://127.0.0.1:3000/api/internal/campaign-send/tick}"
+SECRET="$(aws ssm get-parameter --name "$SECRET_PARAM" --with-decryption --query Parameter.Value --output text --region "$REGION")"
+curl -fsS -X POST "$TICK_URL" -H "x-campaign-send-tick-secret: $SECRET"
+SCRIPT
+chmod +x /usr/local/bin/afiliaciones-campaign-send-tick.sh
+
+cat >/etc/systemd/system/afiliaciones-campaign-send-tick.service <<'UNIT'
+[Unit]
+Description=Afiliaciones campaign send tick (one-shot, server-side)
+After=network-online.target docker.service
+Requires=docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/afiliaciones-campaign-send-tick.sh
+UNIT
+
+cat >/etc/systemd/system/afiliaciones-campaign-send-tick.timer <<'TIMER'
+[Unit]
+Description=Run campaign send tick every 20 seconds
+
+[Timer]
+OnBootSec=30s
+OnUnitActiveSec=20s
+Persistent=false
+
+[Install]
+WantedBy=timers.target
+TIMER
+
+systemctl daemon-reload
+systemctl enable --now afiliaciones-campaign-send-tick.timer
 
 # 7) Esperar health local (hasta ~300s). Liveness = proceso vivo.
 healthy=0

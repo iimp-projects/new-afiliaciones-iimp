@@ -25,6 +25,22 @@ function logOtpFailure(operation: string, channel: VerificationChannel, error: u
   console.error({ operation, channel, provider: OTP_PROVIDER[channel], category: categorizeOtpError(error) });
 }
 
+/**
+ * Trazabilidad de entrega: registra el wamid (messageId) devuelto por Meta al
+ * aceptar el envío OTP por WhatsApp. No registra el código OTP, el token de
+ * Meta ni el número telefónico completo.
+ */
+function logWhatsAppOtpAccepted(correlationId: number, messageId: string | undefined): void {
+  console.info({
+    operation: "WHATSAPP_OTP_ACCEPTED",
+    correlationId,
+    messageId: messageId ?? null,
+    channel: "WHATSAPP",
+    status: "ACCEPTED",
+    timestamp: new Date().toISOString(),
+  });
+}
+
 export type OtpIdentifier =
   | string
   | number
@@ -159,7 +175,8 @@ export class OtpRecoveryService {
       } else if (channel === "SMS") {
         await this.smsService.sendSms(destination, `IIMP: Tu codigo de verificacion es ${code}. Valido por 15 minutos. No lo compartas con nadie.`);
       } else {
-        await this.whatsappService.sendOtp({ phone: destination, code });
+        const result = await this.whatsappService.sendOtp({ phone: destination, code });
+        logWhatsAppOtpAccepted(otp.id, result?.messageId);
       }
     } catch (error) {
       await this.repository.invalidate(otp.id);

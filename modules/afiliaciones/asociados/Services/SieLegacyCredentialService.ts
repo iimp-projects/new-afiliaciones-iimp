@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import { CredentialType, type Prisma } from "@prisma/client";
+import { CredentialType, UserStatus, UserType, type Prisma } from "@prisma/client";
 
 /**
  * Compatibilidad de credenciales históricas SIE.
@@ -52,6 +52,14 @@ export interface SieLegacyCredentialCandidate {
   email: string;
   clave: string;
   externalCode: string;
+}
+
+export interface SieLegacyProvisionCandidate {
+  personId: number;
+  email: string;
+  clave: string;
+  externalCode: string;
+  roleId: number;
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -147,6 +155,118 @@ export class SieLegacyCredentialService {
     });
 
     return { credentialId: credential.id };
+  }
+
+  /**
+   * Activa una cuenta histórica elegible: importa la Clave como bcrypt (cost 12),
+   * marca mustChangePassword=true y transiciona PENDING → ACTIVE con emailVerified.
+   * Idempotente: si ya existe credencial, lanza conflicto y no sobrescribe.
+   */
+  async activateLegacyAccount(
+    tx: Prisma.TransactionClient,
+    candidate: SieLegacyCredentialCandidate,
+    runId: string,
+  ): Promise<{ credentialId: string }> {
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`sie-legacy-activate:${candidate.userId}`}))`;
+
+    const existing = await tx.credential.findFirst({
+      where: { userId: candidate.userId },
+      select: { id: true },
+    });
+    if (existing) {
+      throw new SieLegacyCredentialConflictError(
+        "El usuario ya posee una credencial previa; no se modifica ni sobrescribe.",
+      );
+    }
+
+    const secret = await bcrypt.hash(candidate.clave, SIE_LEGACY_CREDENTIAL_BCRYPT_COST);
+    const credential = await tx.credential.create({
+      data: { userId: candidate.userId, type: CredentialType.PASSWORD, secret, isActive: true },
+    });
+
+    await tx.user.update({
+      where: { id: candidate.userId },
+      data: { mustChangePassword: true, status: "ACTIVE", emailVerified: new Date() },
+    });
+
+    await tx.auditLog.create({
+      data: {
+        action: "SIE_LEGACY_ACCOUNT_ACTIVATION",
+        entity: "auth_users",
+        entityId: String(candidate.userId),
+        newValues: {
+          recoveryRunId: runId,
+          userId: candidate.userId,
+          maskedEmail: maskEmail(candidate.email),
+          externalCode: candidate.externalCode,
+        },
+      },
+    });
+
+    return { credentialId: credential.id };
+  }
+
+  /**
+   * Crea una cuenta V2 para un asociado histórico SIE que aún no posee usuario.
+   * Importa la Clave como bcrypt (cost 12), marca mustChangePassword=true y deja
+   * la cuenta ACTIVE con emailVerificado. Idempotente por bloqueo advisory sobre
+   * personId y verificación de unicidad de person y de correo.
+   */
+  async provisionLegacyAccount(
+    tx: Prisma.TransactionClient,
+    candidate: SieLegacyProvisionCandidate,
+    runId: string,
+  ): Promise<{ userId: number; credentialId: string }> {
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`sie-legacy-provision:${candidate.personId}`}))`;
+
+    const existingByPerson = await tx.user.findFirst({
+      where: { personId: candidate.personId, deletedAt: null },
+      select: { id: true },
+    });
+    if (existingByPerson) {
+      throw new SieLegacyCredentialConflictError("La persona ya posee una cuenta V2.");
+    }
+
+    const existingByEmail = await tx.user.findFirst({
+      where: { email: candidate.email },
+      select: { id: true },
+    });
+    if (existingByEmail) {
+      throw new SieLegacyCredentialConflictError("El correo ya está en uso por otra cuenta.");
+    }
+
+    const secret = await bcrypt.hash(candidate.clave, SIE_LEGACY_CREDENTIAL_BCRYPT_COST);
+    const user = await tx.user.create({
+      data: {
+        email: candidate.email,
+        personId: candidate.personId,
+        roleId: candidate.roleId,
+        type: UserType.AFFILIATE,
+        status: UserStatus.ACTIVE,
+        emailVerified: new Date(),
+        mustChangePassword: true,
+      },
+    });
+    const credential = await tx.credential.create({
+      data: { userId: user.id, type: CredentialType.PASSWORD, secret, isActive: true },
+    });
+
+    await tx.auditLog.create({
+      data: {
+        action: "SIE_LEGACY_ACCOUNT_PROVISION",
+        entity: "auth_users",
+        entityId: String(user.id),
+        newValues: {
+          recoveryRunId: runId,
+          userId: user.id,
+          personId: candidate.personId,
+          maskedEmail: maskEmail(candidate.email),
+          externalCode: candidate.externalCode,
+        },
+      },
+    });
+
+    return { userId: user.id, credentialId: credential.id };
   }
 
   /**

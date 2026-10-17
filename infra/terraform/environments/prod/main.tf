@@ -54,6 +54,7 @@ module "security" {
   vpc_id            = module.network.vpc_id
   app_port          = 3000
   smtp_egress_ports = [25, 465, 587]
+  sie_egress_ports  = [8443]
   tags              = local.common_tags
 }
 
@@ -123,6 +124,23 @@ module "rds" {
   db_name                 = "afiliaciones"
   master_username         = "afiliaciones_admin"
   tags                    = local.common_tags
+}
+
+# --- Proxy TCP PostgreSQL para pgAdmin (HAProxy passthrough) ---
+
+module "pgproxy" {
+  source = "../../modules/pgproxy"
+
+  resource_prefix       = local.resource_prefix
+  aws_region            = var.aws_region
+  subnet_id             = module.network.public_subnet_ids[0]
+  vpc_id                = module.network.vpc_id
+  instance_type         = var.pgproxy_instance_type
+  allowed_cidrs         = var.pgproxy_allowed_cidrs
+  rds_security_group_id = module.security.rds_sg_id
+  rds_address           = module.rds.db_address
+  rds_port              = 5432
+  tags                  = local.common_tags
 }
 
 # --- ACM ALB (us-east-2) ---
