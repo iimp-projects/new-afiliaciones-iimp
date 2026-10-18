@@ -300,6 +300,7 @@ module "autoscaling" {
   app_security_group_id     = module.security.ecs_sg_id
   target_group_arns         = [module.alb.target_group_arn]
   instance_type             = var.instance_type
+  ami_id                    = var.app_ami_id
   root_volume_size_gb       = var.root_volume_size_gb
   min_size                  = var.asg_min_size
   max_size                  = var.asg_max_size

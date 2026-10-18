@@ -85,6 +85,12 @@ variable "app_image_tag" {
   default     = "pending"
 }
 
+variable "app_ami_id" {
+  description = "AMI fija de la instancia de aplicación. Evita reemplazos por cambios en la AMI 'latest' de Amazon Linux 2023."
+  type        = string
+  default     = "ami-03e224e4dbc21f89e"
+}
+
 # --- Observabilidad ---
 
 variable "log_retention_days" {
