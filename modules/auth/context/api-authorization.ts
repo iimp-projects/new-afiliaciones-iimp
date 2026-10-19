@@ -18,7 +18,7 @@ export class ApiAuthorizationError extends Error {
  */
 export async function getInternalApiUser(): Promise<CurrentUserDTO | null> {
   const user = await contextService.getCurrentUser();
-  if (!user || user.status !== "ACTIVE" || isAffiliateUser(user)) return null;
+  if (!user || user.status !== "ACTIVE" || user.mustChangePassword || isAffiliateUser(user)) return null;
   return user;
 }
 
@@ -26,6 +26,9 @@ export async function requireApiPermission(action: string, subject: string): Pro
   const user = await contextService.getCurrentUser();
   if (!user || user.status !== "ACTIVE") {
     throw new ApiAuthorizationError("No autenticado.", 401);
+  }
+  if (user.mustChangePassword) {
+    throw new ApiAuthorizationError("Debe cambiar la contraseña antes de continuar.", 403);
   }
   if (isAffiliateUser(user)) {
     throw new ApiAuthorizationError("No autorizado.", 403);

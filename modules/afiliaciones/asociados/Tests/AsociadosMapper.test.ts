@@ -5,7 +5,7 @@ import { shouldShowEvaluationContext } from "@/modules/shared/Components/SmartCa
 describe("AsociadosMapper", () => {
   it("mantiene filas compactas para un asociado activo", () => {
     const card = AsociadosMapper.toCardData({ id: 9, status: "ACTIVE", updatedAt: new Date("2026-09-03T10:00:00.000Z"), role: { slug: "ASOCIADO_ACTIVO" }, person: { firstName: "Andrea", paternalLastName: "Paredes", documentNumber: "41000057", contacts: [{ email: "andrea@example.com", phoneNumber: "999999999", isPrimary: true }], professionalExperiences: [{ company: { name: "Minera IIMP" }, isCurrent: true }], applications: [{ status: "COMPLETED", updatedAt: new Date("2026-08-07T10:00:00.000Z"), history: [{ newStatus: "COMPLETED", createdAt: new Date("2026-08-07T10:00:00.000Z") }], payments: [{ status: "PAID", totalAmount: "300" }] }] } });
-    expect(card.atomicValidations?.map((item) => item.label)).toEqual(["Código", "Miembro desde", "Empresa", "Inscripción"]);
+    expect(card.atomicValidations?.map((item) => item.label)).toEqual(["Código de asociado", "Miembro desde", "Empresa", "Inscripción"]);
     expect(card.identity.email).toBe("andrea@example.com");
     expect(card.identity.phone).toBe("999999999");
     expect(card.hideContactDetails).toBe(true);
@@ -15,7 +15,7 @@ describe("AsociadosMapper", () => {
   it("muestra Institución para estudiantes y admite nombres largos", () => {
     const institution = "Universidad Nacional Mayor de San Marcos";
     const card = AsociadosMapper.toCardData({ id: 10, status: "ACTIVE", updatedAt: new Date(), role: { slug: "ASOCIADO_ESTUDIANTE" }, person: { firstName: "Ana", paternalLastName: "Ríos", documentNumber: "70000001", academicInfos: [{ university: { name: institution } }], applications: [{ status: "COMPLETED", history: [], payments: [] }] } });
-    expect(card.atomicValidations?.map((item) => item.label)).toEqual(["Código", "Miembro desde", "Institución", "Inscripción"]);
+    expect(card.atomicValidations?.map((item) => item.label)).toEqual(["Código de asociado", "Miembro desde", "Institución", "Inscripción"]);
     expect(card.atomicValidations?.[2].statusLabel).toBe(institution);
     expect(card.atomicValidations?.at(-1)?.statusLabel).toBe("Gratuita");
     expect(card.atomicValidations?.at(-1)?.assignee).toBeUndefined();
@@ -95,5 +95,24 @@ describe("AsociadosMapper", () => {
   it("muestra Documento cuando el tipo no está registrado", () => {
     const card = AsociadosMapper.toCardData(user(null, "P11219869"));
     expect(card.identity.subtitle).toBe("Documento P11219869");
+  });
+
+  it("muestra el código institucional confirmado y 'No disponible' cuando no existe", () => {
+    const withoutCode = AsociadosMapper.toCardData(user("DNI", "41000057"));
+    expect(withoutCode.atomicValidations?.[0].statusLabel).toBe("No disponible");
+
+    const withCode = AsociadosMapper.toCardData({ ...user("DNI", "41000057"), institutionalCode: "12345" });
+    expect(withCode.atomicValidations?.[0].statusLabel).toBe("12345");
+  });
+
+  it("reconoce un asociado histórico SIE sin expediente como COMPLETADO con origen y código visible", () => {
+    const card = AsociadosMapper.toCardData({ id: 900, source: "SIE_HISTORICAL", status: "COMPLETED", updatedAt: new Date(), role: { slug: "ASOCIADO_ACTIVO" }, institutionalCode: "00212", sieCode: "00212", person: { firstName: "Jose", paternalLastName: "Briceno", documentType: "DNI", documentNumber: "10000022", contacts: [], professionalExperiences: [], applications: [] } });
+    expect(card.generalStatus).toBe("COMPLETED");
+    expect(card.subStatus).toBe("Membresía histórica SIE");
+    expect(card.identity.categoryBadge?.label).toBe("SIE · Histórico");
+    expect(card.identity.subtitle).toBe("DNI 10000022");
+    expect(card.trackingCode).toBe("00212");
+    expect(card.atomicValidations?.[0].statusLabel).toBe("00212");
+    expect(card.atomicValidations?.[0].assignee?.name).toBe("SIE");
   });
 });

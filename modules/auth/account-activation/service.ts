@@ -22,7 +22,31 @@ export class AccountActivationService {
   }
 
   async createAndSendActivation(userId: number): Promise<void> {
-    const activation = await prisma.$transaction(async (tx) => {
+    const activation = await this.mintActivation(userId);
+    if (!activation) return;
+
+    try {
+      await new MailService().sendMail({ to: activation.email, subject: "Bienvenido al IIMP | Activa tu cuenta", html: activationEmailTemplate(activation.name, activation.email, activation.role, resolveActivationUrl(activation.rawToken)) });
+      console.info("[ACCOUNT_ACTIVATION_EMAIL] SENT", { userId, recipient: activation.email });
+    } catch (error) {
+      console.error("[ACCOUNT_ACTIVATION_EMAIL] FAILED", { userId, recipient: activation.email, error: error instanceof Error ? error.message : "unknown" });
+    }
+  }
+
+  /**
+   * Emite (y persiste) un token de activación para una cuenta PENDING y
+   * devuelve la URL oficial de activación SIN enviar correo. Se usa desde
+   * correos masivos para resolver {{enlace_activacion}} en el momento del envío.
+   * Devuelve null si la cuenta no está en estado activable.
+   */
+  async createActivationUrl(userId: number): Promise<{ email: string; url: string } | null> {
+    const activation = await this.mintActivation(userId);
+    if (!activation) return null;
+    return { email: activation.email, url: resolveActivationUrl(activation.rawToken) };
+  }
+
+  private async mintActivation(userId: number): Promise<{ rawToken: string; email: string; name: string; role: string } | null> {
+    return prisma.$transaction(async (tx) => {
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`${ACTIVATION_PREFIX}${userId}`}))`;
       const user = await tx.user.findUnique({ where: { id: userId }, include: { person: true, role: { select: { slug: true } }, credentials: { where: { type: CredentialType.PASSWORD, isActive: true }, select: { id: true } } } });
       if (!user || user.deletedAt || user.status === UserStatus.ACTIVE || user.credentials.length) return null;
@@ -32,14 +56,6 @@ export class AccountActivationService {
       await tx.verificationToken.create({ data: { identifier, token: hashToken(rawToken), expires: new Date(Date.now() + ACTIVATION_TTL_MS) } });
       return { rawToken, email: user.email, name: [user.person?.firstName, user.person?.paternalLastName].filter(Boolean).join(" ") || "Usuario", role: user.role?.slug ?? "USUARIO" };
     });
-    if (!activation) return;
-
-    try {
-      await new MailService().sendMail({ to: activation.email, subject: "Bienvenido al IIMP | Activa tu cuenta", html: activationEmailTemplate(activation.name, activation.email, activation.role, resolveActivationUrl(activation.rawToken)) });
-      console.info("[ACCOUNT_ACTIVATION_EMAIL] SENT", { userId, recipient: activation.email });
-    } catch (error) {
-      console.error("[ACCOUNT_ACTIVATION_EMAIL] FAILED", { userId, recipient: activation.email, error: error instanceof Error ? error.message : "unknown" });
-    }
   }
 
   async getActivationDetails(rawToken: string): Promise<{ email: string } | null> {

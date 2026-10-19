@@ -361,3 +361,28 @@ export function getWhatsAppConfig(env: EnvSource = process.env): WhatsAppConfig 
 export function isSubsanacionSyncDisabled(env: EnvSource = process.env): boolean {
   return env.SUBSANACION_SYNC_DISABLED?.trim().toLowerCase() === "true";
 }
+
+/**
+ * Control server-side de la emisión oficial de carnets virtuales.
+ *
+ * Deshabilitada por defecto; se habilita explícitamente con
+ * `CARD_ISSUANCE_ENABLED=true`. Reutiliza el mismo mecanismo de configuración
+ * por entorno que el resto de integraciones (validación al usarse, sin bloquear
+ * el arranque).
+ */
+export function getCardIssuanceEnabled(env: EnvSource = process.env): boolean {
+  return env.CARD_ISSUANCE_ENABLED?.trim().toLowerCase() === "true";
+}
+
+/**
+ * Token técnico de autenticación servidor a servidor para la API institucional
+ * de verificación de asociados (`POST /api/integrations/v1/associates/verify`).
+ * Solo se lee en servidor; nunca se expone al cliente ni se registra completo.
+ */
+export function getIntegrationsV1AssociatesToken(env: EnvSource = process.env): string {
+  const value = env.INTEGRATIONS_V1_ASSOCIATES_TOKEN;
+  if (!value || value.length < 32) {
+    throw new ConfigurationError([{ variable: "INTEGRATIONS_V1_ASSOCIATES_TOKEN", reason: "debe tener al menos 32 caracteres" }]);
+  }
+  return value;
+}

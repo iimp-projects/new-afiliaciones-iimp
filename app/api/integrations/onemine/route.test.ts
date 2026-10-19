@@ -50,7 +50,11 @@ describe("GET /api/integrations/onemine", () => {
     expect(url.searchParams.get("secureCode")).toMatch(/^[A-Za-z0-9+/]{22}==$/);
     expect(location).toContain("secureCode=");
     expect(location).not.toContain("test-secret");
-    expect(location).not.toContain("42");
+    // No debe exponerse el ID del usuario ni otros datos personales: la URL
+    // solo debe contener los parámetros SSO esperados (ts + secureCode).
+    expect(url.searchParams.get("id")).toBeNull();
+    expect(url.searchParams.get("user")).toBeNull();
+    expect([...url.searchParams.keys()].sort()).toEqual(["secureCode", "ts"]);
   });
 
   it("returns a controlled response when the server secret is absent", async () => {

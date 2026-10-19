@@ -6,8 +6,9 @@ const quota = { concepto: "CUOTA" as const, numero: 4, monto: 150, moneda: "S/" 
 
 describe("AssociateSieProfileService", () => {
   const findFirst = vi.fn();
+  const findUnique = vi.fn();
   const getAssociateState = vi.fn();
-  const service = () => new AssociateSieProfileService({ membershipApplication: { findFirst } }, { getAssociateState }, () => new Date("2026-02-01T10:00:00.000Z"));
+  const service = () => new AssociateSieProfileService({ membershipApplication: { findFirst }, person: { findUnique } }, { getAssociateState }, () => new Date("2026-02-01T10:00:00.000Z"));
 
   beforeEach(() => { vi.clearAllMocks(); });
 
@@ -39,10 +40,25 @@ describe("AssociateSieProfileService", () => {
     vi.stubEnv("ASSOCIATES_API_PASSWORD", "");
     findFirst.mockResolvedValue({ person: { documentType: "DNI", documentNumber: "12345678", deletedAt: null } });
 
-    expect(() => new AssociateSieProfileService({ membershipApplication: { findFirst } })).not.toThrow();
-    await expect(new AssociateSieProfileService({ membershipApplication: { findFirst } }).getByApplicationId(19))
+    expect(() => new AssociateSieProfileService({ membershipApplication: { findFirst }, person: { findUnique } })).not.toThrow();
+    await expect(new AssociateSieProfileService({ membershipApplication: { findFirst }, person: { findUnique } }).getByApplicationId(19))
       .rejects.toBeInstanceOf(AssociatesApiConfigurationError);
     expect(getAssociateState).not.toHaveBeenCalled();
     vi.unstubAllEnvs();
+  });
+
+  it("resolves SIE identity by person for historical associates without an application", async () => {
+    findUnique.mockResolvedValue({ documentType: "DNI", documentNumber: "08200623", deletedAt: null });
+    getAssociateState.mockResolvedValue({ status: true, cuotas: [quota] });
+
+    await expect(service().getByPersonId(2351)).resolves.toEqual({ registered: true, checkedAt: "2026-02-01T10:00:00.000Z", quotas: [quota] });
+    expect(getAssociateState).toHaveBeenCalledWith({ tipoDocumento: "1", numDocumento: "08200623" });
+    expect(findUnique).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ id: 2351, deletedAt: null }) }));
+  });
+
+  it("rechaza una persona histórica ausente sin consultar SIE", async () => {
+    findUnique.mockResolvedValue(null);
+    await expect(service().getByPersonId(99999)).rejects.toMatchObject({ status: 404 } satisfies Partial<AssociateSieProfileError>);
+    expect(getAssociateState).not.toHaveBeenCalled();
   });
 });

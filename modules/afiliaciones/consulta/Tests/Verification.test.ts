@@ -96,6 +96,40 @@ describe("registered destinations and shared OTP delivery", () => {
   });
 });
 
+describe("WhatsApp OTP accepted traceability", () => {
+  it("logs WHATSAPP_OTP_ACCEPTED with the wamid and no sensitive fields", async () => {
+    const infoSpy = vi.spyOn(console, "info").mockImplementation(() => undefined);
+    const whatsapp = { sendOtp: vi.fn().mockResolvedValue({ accepted: true, messageId: "wamid.abc123" }) };
+    const service = new OtpRecoveryService(repository, { sendMail: vi.fn() } as never, { sendSms: vi.fn() } as never, whatsapp as never);
+    await service.generateAndSendOtp(7, "WHATSAPP", "APPLICATION_QUERY");
+
+    const accepted = infoSpy.mock.calls.map((call) => call[0]).find((event) => event?.operation === "WHATSAPP_OTP_ACCEPTED");
+    expect(accepted).toMatchObject({
+      operation: "WHATSAPP_OTP_ACCEPTED",
+      correlationId: 12,
+      messageId: "wamid.abc123",
+      channel: "WHATSAPP",
+      status: "ACCEPTED",
+    });
+    expect(accepted).toHaveProperty("timestamp");
+    expect(accepted).not.toHaveProperty("code");
+    expect(accepted).not.toHaveProperty("destination");
+    expect(accepted).not.toHaveProperty("phone");
+    expect(accepted).not.toHaveProperty("token");
+    expect(accepted).not.toHaveProperty("accessToken");
+    infoSpy.mockRestore();
+  });
+
+  it("does not log WHATSAPP_OTP_ACCEPTED when Meta rejects the send", async () => {
+    const infoSpy = vi.spyOn(console, "info").mockImplementation(() => undefined);
+    const whatsapp = { sendOtp: vi.fn().mockRejectedValue(Object.assign(new Error("reject"), { name: "WhatsAppServiceError", code: "AUTH_ERROR" })) };
+    const service = new OtpRecoveryService(repository, { sendMail: vi.fn() } as never, { sendSms: vi.fn() } as never, whatsapp as never);
+    await expect(service.generateAndSendOtp(7, "WHATSAPP", "APPLICATION_QUERY")).rejects.toThrow("No pudimos enviar");
+    expect(infoSpy).not.toHaveBeenCalledWith(expect.objectContaining({ operation: "WHATSAPP_OTP_ACCEPTED" }));
+    infoSpy.mockRestore();
+  });
+});
+
 describe("OTP lifetime, attempts and resend", () => {
   const otp = () => ({ id: 12, channel: "EMAIL", destination: "maria@example.com", code: "APPLICATION_QUERY:123456", attempts: 0, expiresAt: new Date(Date.now() + 60000) });
   it("accepts the correct OTP once and consumes it", async () => {

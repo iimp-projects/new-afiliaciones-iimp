@@ -7,7 +7,7 @@ export interface AssociateProvisioningResult { userId: number; created: boolean;
 
 /** Provisions one already-completed application. It is intentionally not a batch job. */
 export class AssociateProvisioningService {
-  async provisionCompletedApplication(applicationId: number): Promise<AssociateProvisioningResult | null> {
+  async provisionCompletedApplication(applicationId: number, options: { sendActivation?: boolean } = {}): Promise<AssociateProvisioningResult | null> {
     const result = await prisma.$transaction(async (tx) => {
       const application = await tx.membershipApplication.findUnique({ where: { id: applicationId }, include: { person: { include: { contacts: { orderBy: [{ isPrimary: "desc" }, { createdAt: "asc" }] }, user: true } } } });
       if (!application || application.deletedAt || application.status !== ApplicationStatus.COMPLETED) return null;
@@ -38,7 +38,7 @@ export class AssociateProvisioningService {
       }
     });
 
-    if (result?.activationRequired) {
+    if (result?.activationRequired && options.sendActivation !== false) {
       await accountActivationService.createAndSendActivation(result.userId);
     }
 

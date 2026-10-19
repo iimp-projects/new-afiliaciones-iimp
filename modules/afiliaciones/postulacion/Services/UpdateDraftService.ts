@@ -18,6 +18,7 @@ import { assertStudentAcademicAllowed, persistAcademicInfos } from "../Repositor
 import { isLegacyTrackingCode } from "../StudentAcademicRules";
 import { findUnauthorizedChange } from "../DraftComparison";
 import { isSubsanacionSyncDisabled } from "@/lib/config/env";
+import { applicationNotificationEvents, type CorrectionReference } from "../../notifications/Services/ApplicationNotificationEvents";
 
 export class UpdateDraftService {
 
@@ -60,13 +61,19 @@ export class UpdateDraftService {
 
         if (application.status === "OBSERVED") {
             await this.syncPersistedEntities(Number(application.id), updatedApplication.draftData, isLegacy);
-            await this.markCorrectionSubmitted(Number(application.id));
+            const corrections = await this.markCorrectionSubmitted(Number(application.id));
 
             try {
                 const notifyService = new NotifyApplicantService();
                 await notifyService.notifyCorrectionReceived(application, dto.draftData);
             } catch (err) {
                 console.error("[UpdateDraftService] Error enviando correo de confirmación de subsanación:", err);
+            }
+
+            try {
+                await applicationNotificationEvents.notifyCorrectionReceived(Number(application.id), corrections);
+            } catch (notificationError) {
+                console.error("[UpdateDraftService] Error generando notificaciones internas de subsanación:", notificationError);
             }
         }
 
@@ -538,9 +545,10 @@ export class UpdateDraftService {
     }
 
     /** Bloquea una subsanación enviada y la deja disponible para reevaluación. */
-    private async markCorrectionSubmitted(applicationId: number): Promise<void> {
+    private async markCorrectionSubmitted(applicationId: number): Promise<CorrectionReference[]> {
         const integrationService = new AssociatesIntegrationService();
         let integrationId: number | undefined;
+        const corrections: CorrectionReference[] = [];
         await prisma.$transaction(async (tx) => {
             const observations = await tx.membershipObservation.findMany({
                 where: { applicationId, status: ObservationStatus.PENDING },
@@ -563,19 +571,21 @@ export class UpdateDraftService {
                     where: { id: validation.id },
                     data: { status: ValidationStatus.RESOLVED, validatedAt: new Date() },
                 });
-                await tx.membershipValidationHistory.create({
+                const history = await tx.membershipValidationHistory.create({
                     data: {
                         validationId: validation.id,
                         action: ValidationAction.SUBMITTED_CORRECTION,
                         comment: "El postulante envió la subsanación solicitada.",
                     },
                 });
+                corrections.push({ departmentCode: validation.department.code, validationHistoryId: history.id });
             }
 
             await new ApplicationStatusCalculatorService(integrationService).recalculate(applicationId, tx, (preparedId) => { integrationId = preparedId; });
         });
         if (integrationId) await integrationService.processAfterCommit(integrationId);
         if (integrationId) await new AssociateProvisioningService().provisionCompletedApplication(applicationId);
+        return corrections;
     }
 
     /**

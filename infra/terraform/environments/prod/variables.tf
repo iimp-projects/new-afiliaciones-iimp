@@ -85,6 +85,12 @@ variable "app_image_tag" {
   default     = "pending"
 }
 
+variable "app_ami_id" {
+  description = "AMI fija de la instancia de aplicación. Evita reemplazos por cambios en la AMI 'latest' de Amazon Linux 2023."
+  type        = string
+  default     = "ami-03e224e4dbc21f89e"
+}
+
 # --- Observabilidad ---
 
 variable "log_retention_days" {
@@ -117,6 +123,18 @@ variable "rds_backup_retention_period" {
   description = "Retención de backups automáticos de RDS (días)."
   type        = number
   default     = 14
+}
+
+variable "pgproxy_allowed_cidrs" {
+  description = "CIDRs autorizados para acceder al proxy TCP PostgreSQL (5432). Vacío = sin acceso."
+  type        = list(string)
+  default     = ["38.236.105.0/24"]
+}
+
+variable "pgproxy_instance_type" {
+  description = "Tipo de instancia EC2 del proxy TCP PostgreSQL."
+  type        = string
+  default     = "t3.small"
 }
 
 # --- DNS / ACM (PENDING_APPROVAL) ---

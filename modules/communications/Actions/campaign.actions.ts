@@ -3,7 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { contextService } from "@/modules/auth/context/service";
 import { CampaignService, CampaignServiceError, type SetRecipientsInput } from "../Services/CampaignService";
+import { bienvenidaAccesoContent } from "../Templates/BienvenidaAccesoTemplate";
 import type { CampaignInput } from "../Models/Campaign";
+import type { AssociateExcludedItem, AssociateRecipientSelection, AssociateSourceFilter } from "../Models/AssociateRecipient";
 
 async function requireActor(): Promise<{ userId: number; email: string }> {
   await contextService.requireRole(["SUPER_ADMIN"]);
@@ -81,6 +83,37 @@ export async function cancelCampaignAction(id: number): Promise<{ success: true 
     await new CampaignService().cancel(id, actor);
     revalidatePath(`/intranet/correos-masivos/campanas/${id}`);
     return { success: true };
+  } catch (error) {
+    return failure(error);
+  }
+}
+
+export async function previewAssociateRecipientsAction(filter: AssociateSourceFilter): Promise<{ success: true; selection: AssociateRecipientSelection } | { success: false; message: string; status?: number }> {
+  try {
+    await contextService.requireRole(["SUPER_ADMIN"]);
+    const selection = await new CampaignService().getAssociateSelection(filter);
+    return { success: true, selection };
+  } catch (error) {
+    return failure(error);
+  }
+}
+
+export async function setCampaignRecipientsFromAssociatesAction(campaignId: number, filter: AssociateSourceFilter): Promise<{ success: true; count: number; excluded: AssociateExcludedItem[]; excludedTotal: number } | { success: false; message: string; status?: number }> {
+  try {
+    const actor = await requireActor();
+    const result = await new CampaignService().setRecipientsFromAssociates(campaignId, filter, actor);
+    revalidatePath(`/intranet/correos-masivos/campanas/${campaignId}`);
+    return { success: true, count: result.count, excluded: result.excluded, excludedTotal: result.excludedTotal };
+  } catch (error) {
+    return failure(error);
+  }
+}
+
+export async function loadInstitutionalTemplateAction(): Promise<{ success: true; name: string; subject: string; htmlContent: string; textContent: string } | { success: false; message: string; status?: number }> {
+  try {
+    await contextService.requireRole(["SUPER_ADMIN"]);
+    const content = bienvenidaAccesoContent();
+    return { success: true, name: content.name, subject: content.subject, htmlContent: content.htmlContent, textContent: content.textContent };
   } catch (error) {
     return failure(error);
   }

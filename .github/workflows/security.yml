@@ -16,6 +16,8 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      DATABASE_URL: postgresql://ci@127.0.0.1:1/ci?schema=public
     steps:
       - uses: actions/checkout@v4
         with:
@@ -25,6 +27,13 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+
+      # El cliente Prisma debe generarse explícitamente antes del typecheck:
+      # prisma.config.ts exige DATABASE_URL (sintética) para cargar la config.
+      # Sin este paso, `npm run check` (tsc) falla con tipos Prisma ausentes.
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
       - run: npm run security:secrets
 
       # SECURITY_RUNTIME_GATE = BLOCKING.
@@ -139,7 +148,7 @@ jobs:
           docker exec -i artifact-smoke node - <<'EOF'
           const puppeteer = require('puppeteer');
           (async () => {
-            const browser = await puppeteer.launch({ headless: true });
+            const browser = await puppeteer.launch({ headless: true, args: ["--no-sandbox", "--disable-setuid-sandbox"] });
             const page = await browser.newPage();
             await page.setContent('<html><body><h1>ci</h1></body></html>');
             const pdf = await page.pdf({ format: 'A4' });

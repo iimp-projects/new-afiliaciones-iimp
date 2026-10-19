@@ -106,6 +106,12 @@ export const permissionsData: Prisma.PermissionCreateManyInput[] = [
   { action: "read", subject: "associates", description: "Consultar el directorio de asociados." },
 
   // ===========================================================================
+  // CARDS (carnet virtual)
+  // ===========================================================================
+  { action: "read", subject: "cards", description: "Consultar carnets virtuales." },
+  { action: "revoke", subject: "cards", description: "Revocar o regenerar carnets virtuales." },
+
+  // ===========================================================================
   // CATALOGS
   // ===========================================================================
   { action: "create", subject: "catalogs", description: "Crear catálogos." },

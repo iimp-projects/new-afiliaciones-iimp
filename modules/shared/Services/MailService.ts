@@ -22,19 +22,46 @@ export interface SendMailResult {
   messageId?: string;
 }
 
+/** Clasificación de errores de envío para decidir reintentos y pausas. */
+export type MailErrorKind =
+  | "AUTH"
+  | "CONNECTION"
+  | "RATE_LIMITED"
+  | "QUOTA_EXCEEDED"
+  | "PERMANENT"
+  | "UNKNOWN";
+
 /** Error de envío sanitizado: nunca expone credenciales ni configuración SMTP. */
 export class MailServiceError extends Error {
-  constructor(message: string) { super(message); this.name = "MailServiceError"; }
+  constructor(message: string, readonly kind: MailErrorKind = "UNKNOWN") {
+    super(message);
+    this.name = "MailServiceError";
+  }
 }
 
-function sanitizeMailError(error: unknown): string {
+const TEMPORARY_SMTP_CODES = new Set([421, 429, 450, 451, 452]);
+const QUOTA_TEXT = /daily user sending limit|limit exceeded|sending quota|quota/i;
+
+/** Mensaje sanitizado canónico para fallos de autenticación SMTP (usado también por el circuit-breaker). */
+export const SMTP_AUTH_ERROR_MESSAGE = "Error de autenticación SMTP.";
+
+function sanitizeMailError(error: unknown): { message: string; kind: MailErrorKind } {
   const code = (error as { code?: string })?.code;
   const responseCode = (error as { responseCode?: number })?.responseCode;
-  if (code === "EAUTH" || responseCode === 535) return "Error de autenticación SMTP.";
+  const response = String((error as { response?: string })?.response ?? "");
+
+  if (code === "EAUTH" || responseCode === 535) return { message: SMTP_AUTH_ERROR_MESSAGE, kind: "AUTH" };
   if (code === "ECONNECTION" || code === "ESOCKET" || code === "ETIMEDOUT" || code === "ENOTFOUND" || code === "ECONNREFUSED") {
-    return "Conexión SMTP no disponible.";
+    return { message: "Conexión SMTP no disponible.", kind: "CONNECTION" };
   }
-  return "No se pudo enviar el correo.";
+  if (QUOTA_TEXT.test(response)) return { message: "Cuota diaria de envío del proveedor alcanzada.", kind: "QUOTA_EXCEEDED" };
+  if (responseCode != null && TEMPORARY_SMTP_CODES.has(responseCode)) {
+    return { message: "Límite temporal de envío del proveedor alcanzado.", kind: "RATE_LIMITED" };
+  }
+  if (responseCode != null && (responseCode >= 500 || (responseCode >= 400 && responseCode < 500))) {
+    return { message: "El proveedor rechazó el correo de forma permanente.", kind: "PERMANENT" };
+  }
+  return { message: "No se pudo enviar el correo.", kind: "UNKNOWN" };
 }
 
 export class MailService {
@@ -79,7 +106,8 @@ export class MailService {
       });
       return { messageId: info.messageId };
     } catch (error) {
-      throw new MailServiceError(sanitizeMailError(error));
+      const sanitized = sanitizeMailError(error);
+      throw new MailServiceError(sanitized.message, sanitized.kind);
     }
   }
 

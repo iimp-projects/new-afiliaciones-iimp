@@ -6,6 +6,7 @@ import { mapSieDocumentType } from "../modules/afiliaciones/associates-integrati
 import { buildDryRunReport, buildPlan } from "../modules/afiliaciones/associates-integration/Services/SieHistoricalMigrationService";
 import type { ExistingPerson, GeoResolution, MigrationPlan } from "../modules/afiliaciones/associates-integration/Services/SieHistoricalMigrationService";
 import type { SanitizedSieAssociate } from "../modules/afiliaciones/associates-integration/Models/SieAssociateList";
+import { assertExecutionTarget } from "./sie-execution-guard";
 
 const PAGE_SIZE = 500;
 const HISTORICAL = ["T", "V", "H", "F", "R", "X", "U"];
@@ -172,6 +173,7 @@ async function executeRecord(tx: Prisma.TransactionClient, record: SanitizedSieA
 
 async function main(): Promise<void> {
   const mode = process.argv[2] === "execute" ? "execute" : "dry-run";
+  assertExecutionTarget(process.argv);
   const prisma = new PrismaClient();
   const result: Record<string, unknown> = { r69_5_status: "FAIL", mode, error: null };
   try {
