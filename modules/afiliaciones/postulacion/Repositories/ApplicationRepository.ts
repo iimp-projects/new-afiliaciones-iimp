@@ -10,6 +10,7 @@ import { normalizeEmploymentInformation } from "../Models/EmploymentInformation"
 import { ContactUniquenessService } from "../Services/ContactUniquenessService";
 import { sponsorEligibilityWhere } from "../Services/SponsorEligibility";
 import { persistAcademicInfos } from "./AcademicInfoPersistence";
+import { deepMergeDraft } from "../utils/deepMerge";
 
 export class ApplicationRepository implements IApplicationRepository {
   constructor(private readonly db = prisma) {}
@@ -163,7 +164,10 @@ export class ApplicationRepository implements IApplicationRepository {
       if (!application || application.deletedAt || !canEditApplication(application.status) || (expectedStatus && application.status !== expectedStatus)) {
         throw new ApplicationFlowError("APPLICATION_NOT_EDITABLE", "El estado de tu solicitud cambió. Revisa las acciones disponibles desde Consultar.");
       }
-      const mergedDraft = { ...((application.draftData as Record<string, unknown>) ?? {}), ...dto.draftData };
+      const mergedDraft = deepMergeDraft(
+        (application.draftData as Record<string, unknown>) ?? {},
+        dto.draftData as unknown as Record<string, unknown>,
+      ) as Record<string, unknown>;
       if (mergedDraft.employmentInformation && typeof mergedDraft.employmentInformation === "object") {
         mergedDraft.employmentInformation = normalizeEmploymentInformation(mergedDraft.employmentInformation as ApplicationDraft["employmentInformation"] extends infer T ? NonNullable<T> : never);
       }
@@ -611,6 +615,40 @@ export class ApplicationRepository implements IApplicationRepository {
     }
   }
 
+  /**
+   * Inserta una referencia documental solo si aún no existe para ese expediente
+   * y URL. Nunca elimina registros existentes: la sincronización es selectiva e
+   * idempotente (un reintento no genera duplicados y no destruye documentos
+   * legacy, categorías históricas ni múltiples archivos válidos por categoría).
+   */
+  private async ensureDocument(
+    tx: Prisma.TransactionClient,
+    applicationId: number,
+    category: "ID_DOCUMENT" | "OTHER" | "SWORN_DECLARATION",
+    fileUrl: string,
+    fileName: string,
+    mimeType: string,
+  ): Promise<void> {
+    if (!fileUrl) return;
+
+    const existing = await tx.applicationDocument.findFirst({
+      where: { applicationId, fileUrl },
+      select: { id: true },
+    });
+    if (existing) return;
+
+    await tx.applicationDocument.create({
+      data: {
+        applicationId,
+        category,
+        fileUrl,
+        fileName,
+        mimeType,
+        sizeBytes: BigInt(0),
+      },
+    });
+  }
+
   private async persistDocuments(
     tx: Prisma.TransactionClient,
     application: Prisma.MembershipApplicationGetPayload<Record<string, never>>,
@@ -621,71 +659,58 @@ export class ApplicationRepository implements IApplicationRepository {
 
     const draft = application.draftData as unknown as ApplicationDraft;
 
-    await tx.applicationDocument.deleteMany({
-      where: {
-        applicationId: application.id,
-      },
-    });
-
     const identityDoc = draft.personalInformation?.identityDocument as any;
-    if (identityDoc && identityDoc.url) {
-      await tx.applicationDocument.create({
-        data: {
-          applicationId: application.id,
-          category: "ID_DOCUMENT",
-          fileUrl: identityDoc.url,
-          fileName:
-            identityDoc.name ||
-            `Documento_Identidad_${draft.personalInformation?.documentNumber}`,
-          mimeType: identityDoc.type || "application/pdf",
-          sizeBytes: BigInt(0),
-        },
-      });
+    const identityUrl = typeof identityDoc === "string" ? identityDoc : identityDoc?.url;
+    if (identityUrl) {
+      await this.ensureDocument(
+        tx,
+        application.id,
+        "ID_DOCUMENT",
+        identityUrl,
+        (typeof identityDoc === "object" && identityDoc?.name) ||
+          `Documento_Identidad_${draft.personalInformation?.documentNumber}`,
+        (typeof identityDoc === "object" && identityDoc?.type) || "application/pdf",
+      );
     }
 
     const photoDoc = draft.personalInformation?.photo as any;
-    if (photoDoc && photoDoc.url) {
-      await tx.applicationDocument.create({
-        data: {
-          applicationId: application.id,
-          category: "OTHER",
-          fileUrl: photoDoc.url,
-          fileName:
-            photoDoc.name ||
-            `Foto_${draft.personalInformation?.documentNumber}`,
-          mimeType: photoDoc.type || "image/jpeg",
-          sizeBytes: BigInt(0),
-        },
-      });
+    const photoUrl = typeof photoDoc === "string" ? photoDoc : photoDoc?.url;
+    if (photoUrl) {
+      await this.ensureDocument(
+        tx,
+        application.id,
+        "OTHER",
+        photoUrl,
+        (typeof photoDoc === "object" && photoDoc?.name) ||
+          `Foto_${draft.personalInformation?.documentNumber}`,
+        (typeof photoDoc === "object" && photoDoc?.type) || "image/jpeg",
+      );
     }
 
     const declarationUrl = draft.endorsements?.declarationDocumentId;
     if (declarationUrl) {
-      await tx.applicationDocument.create({
-        data: {
-          applicationId: application.id,
-          category: "SWORN_DECLARATION",
-          fileUrl: declarationUrl,
-          fileName: "Declaracion_Jurada_Firmada.pdf",
-          mimeType: "application/pdf",
-          sizeBytes: BigInt(0),
-        },
-      });
+      await this.ensureDocument(
+        tx,
+        application.id,
+        "SWORN_DECLARATION",
+        declarationUrl,
+        "Declaracion_Jurada_Firmada.pdf",
+        "application/pdf",
+      );
     }
 
     const universityLetter = draft.academicStudies?.[0]
       ?.universityLetter as any;
-    if (universityLetter && universityLetter.url) {
-      await tx.applicationDocument.create({
-        data: {
-          applicationId: application.id,
-          category: "OTHER",
-          fileUrl: universityLetter.url,
-          fileName: universityLetter.name || "Constancia_Estudios.pdf",
-          mimeType: universityLetter.type || "application/pdf",
-          sizeBytes: BigInt(0),
-        },
-      });
+    const letterUrl = typeof universityLetter === "string" ? universityLetter : universityLetter?.url;
+    if (letterUrl) {
+      await this.ensureDocument(
+        tx,
+        application.id,
+        "OTHER",
+        letterUrl,
+        (typeof universityLetter === "object" && universityLetter?.name) || "Constancia_Estudios.pdf",
+        (typeof universityLetter === "object" && universityLetter?.type) || "application/pdf",
+      );
     }
   }
 

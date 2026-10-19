@@ -351,3 +351,13 @@ export function getWhatsAppConfig(env: EnvSource = process.env): WhatsAppConfig 
   if (issues.length) throw new ConfigurationError(issues);
   return { phoneNumberId: phoneNumberId as string, accessToken: accessToken as string, graphApiVersion };
 }
+
+/**
+ * Contención temporal del flujo de subsanación. Cuando está activo
+ * (`SUBSANACION_SYNC_DISABLED=true`), el PATCH de subsanación responde con un
+ * error controlado sin persistir nada, protegiendo los documentos existentes
+ * mientras se resuelve una incidencia de pérdida documental.
+ */
+export function isSubsanacionSyncDisabled(env: EnvSource = process.env): boolean {
+  return env.SUBSANACION_SYNC_DISABLED?.trim().toLowerCase() === "true";
+}
