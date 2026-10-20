@@ -29,6 +29,14 @@ describe("NiubizPaymentProvider", () => {
         serviceLocationCountryCode: "PE",
         serviceLocationPostalCode: "15024",
       },
+      cardholderDataMap: {
+        city: "Lima",
+        country: "PE",
+        address: "Calle Los Canarios 155-157, La Molina",
+        postalCode: "15024",
+        state: "Lima",
+        phone: "5111234567",
+      },
     }, "TEST");
 
     expect(() => provider.assertReady()).not.toThrow();

@@ -15,6 +15,14 @@ export type NiubizAuthorizationCommand = Pick<PaymentProviderCommand, "paymentId
 export class NiubizProviderConfigurationError extends Error {}
 export class NiubizProviderNotReadyError extends Error {}
 
+const MIN_SESSION_EXPIRATION_MINUTES = 1;
+const MAX_SESSION_EXPIRATION_MINUTES = 20;
+
+const CARDHOLDER_DATA_MAP_FIELDS = ["cardholderCity", "cardholderCountry", "cardholderAddress", "cardholderPostalCode", "cardholderState", "cardholderPhoneNumber"] as const;
+
+const REGISTERED_CUSTOMER_STATES = ["Registrado", "Invitado", "Empleado"] as const;
+type RegisteredCustomerState = (typeof REGISTERED_CUSTOMER_STATES)[number];
+
 /**
  * Orquesta el contrato funcional legado sin ejecutar tráfico de red todavía.
  * Las llamadas se habilitarán únicamente tras validar el entorno TEST real.
@@ -33,6 +41,7 @@ export class NiubizPaymentProvider implements PaymentProvider {
 
   assertReady(): void {
     this.assertConfigured();
+    this.assertCardholderDataConfigured();
   }
 
   assertAuthorizationReady(): void {
@@ -59,13 +68,16 @@ export class NiubizPaymentProvider implements PaymentProvider {
     dataMap?: NiubizDataMap;
   }): NiubizSessionRequest {
     this.assertConfigured();
+    const merchantDefineData = options?.merchantDefineData ?? this.buildMerchantDefineData(command);
+    const dataMap = options?.dataMap ?? this.buildCardholderDataMap(command);
+    this.assertSessionDataComplete(merchantDefineData, dataMap);
     return this.sessionService.buildRequest(this.config, {
       merchantId: this.config.merchantId!,
       securityToken,
       amount: command.amount,
       clientIp: command.customer.clientIp,
-      merchantDefineData: options?.merchantDefineData ?? this.buildMerchantDefineData(command),
-      dataMap: options?.dataMap,
+      merchantDefineData,
+      dataMap,
     });
   }
 
@@ -80,7 +92,7 @@ export class NiubizPaymentProvider implements PaymentProvider {
       checkoutUrl: this.config.checkoutUrl!,
       callbackUrl: this.config.callbackUrl!,
       timeoutUrl: this.config.timeoutUrl!,
-      expirationMinutes: this.config.sessionExpirationMinutes ?? 5,
+      expirationMinutes: this.clampedSessionExpirationMinutes(),
       merchantName: this.config.merchantName!,
       formButtonColor: this.config.formButtonColor!,
       ...(this.config.merchantLogoUrl ? { merchantLogoUrl: this.config.merchantLogoUrl } : {}),
@@ -127,12 +139,16 @@ export class NiubizPaymentProvider implements PaymentProvider {
   async initiate(command: PaymentProviderCommand): Promise<PaymentGatewayResult> {
     this.assertReady();
     const security = await this.securityService.getAccessToken(this.config);
+    const merchantDefineData = this.buildMerchantDefineData(command);
+    const dataMap = this.buildCardholderDataMap(command);
+    this.assertSessionDataComplete(merchantDefineData, dataMap);
     const { session } = await this.sessionService.createSession(this.config, {
       merchantId: this.config.merchantId!,
       securityToken: security.accessToken,
       amount: command.amount,
       clientIp: command.customer.clientIp,
-      merchantDefineData: this.buildMerchantDefineData(command),
+      merchantDefineData,
+      dataMap,
     });
 
     return {
@@ -188,12 +204,63 @@ export class NiubizPaymentProvider implements PaymentProvider {
     };
   }
 
-  private buildMerchantDefineData(command: PaymentProviderCommand): NiubizDataMap | undefined {
+  private buildMerchantDefineData(command: PaymentProviderCommand): NiubizDataMap {
     const data: NiubizDataMap = {};
     if (command.customer.email) data.MDD4 = command.customer.email;
     if (command.customer.phone) data.MDD31 = command.customer.phone;
-    if (command.customer.personId) data.MDD32 = String(command.customer.personId);
+    const customerId = command.customer.personId ? String(command.customer.personId) : command.customer.documentNumber;
+    if (customerId) data.MDD32 = customerId;
     if (command.customer.documentNumber) data.MDD34 = command.customer.documentNumber;
-    return Object.keys(data).length > 0 ? data : undefined;
+    const registeredState: RegisteredCustomerState = command.customer.personId ? "Registrado" : "Invitado";
+    data.MDD75 = registeredState;
+    if (registeredState === "Invitado") data.MDD77 = 1;
+    return data;
+  }
+
+  private buildCardholderDataMap(command: PaymentProviderCommand): NiubizDataMap {
+    const fallback = this.config.cardholderDataMap ?? {};
+    const dataMap: NiubizDataMap = {};
+    const phone = command.customer.phone ?? fallback.phone;
+    if (phone) dataMap.cardholderPhoneNumber = phone;
+    if (fallback.city) dataMap.cardholderCity = fallback.city;
+    if (fallback.country) dataMap.cardholderCountry = fallback.country;
+    if (fallback.address) dataMap.cardholderAddress = fallback.address;
+    if (fallback.postalCode) dataMap.cardholderPostalCode = fallback.postalCode;
+    if (fallback.state) dataMap.cardholderState = fallback.state;
+    return dataMap;
+  }
+
+  private assertCardholderDataConfigured(): void {
+    const fallback = this.config.cardholderDataMap ?? {};
+    const missing = [
+      !fallback.city && "NIUBIZ_CARDHOLDER_CITY",
+      !fallback.country && "NIUBIZ_CARDHOLDER_COUNTRY",
+      !fallback.address && "NIUBIZ_CARDHOLDER_ADDRESS",
+      !fallback.postalCode && "NIUBIZ_CARDHOLDER_POSTAL_CODE",
+      !fallback.state && "NIUBIZ_CARDHOLDER_STATE",
+    ].filter(Boolean);
+    if (missing.length > 0) {
+      throw new NiubizProviderConfigurationError(`Sesión Niubiz incompleta. Faltan: ${missing.join(", ")}.`);
+    }
+  }
+
+  private assertSessionDataComplete(merchantDefineData: NiubizDataMap, dataMap: NiubizDataMap): void {
+    const missing: string[] = [];
+    if (!merchantDefineData.MDD4) missing.push("MDD4");
+    if (!merchantDefineData.MDD32) missing.push("MDD32");
+    const registeredState = merchantDefineData.MDD75;
+    if (!REGISTERED_CUSTOMER_STATES.includes(registeredState as RegisteredCustomerState)) missing.push("MDD75");
+    if (registeredState === "Invitado" && merchantDefineData.MDD77 !== 1) missing.push("MDD77");
+    for (const field of CARDHOLDER_DATA_MAP_FIELDS) {
+      if (!dataMap[field]) missing.push(field);
+    }
+    if (missing.length > 0) {
+      throw new NiubizProviderConfigurationError(`Sesión Niubiz incompleta. Faltan: ${missing.join(", ")}.`);
+    }
+  }
+
+  private clampedSessionExpirationMinutes(): number {
+    const configured = this.config.sessionExpirationMinutes ?? 5;
+    return Math.min(Math.max(configured, MIN_SESSION_EXPIRATION_MINUTES), MAX_SESSION_EXPIRATION_MINUTES);
   }
 }

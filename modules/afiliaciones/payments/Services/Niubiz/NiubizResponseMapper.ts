@@ -3,6 +3,8 @@ import type { NiubizAuthorizationResponse } from "../../DTOs/Niubiz/NiubizAuthor
 import type { PaymentGatewayResult } from "../../Repositories/Interfaces/IPaymentRepository";
 import { NiubizAuthorizationResultClassifier } from "./NiubizAuthorizationResultClassifier";
 
+const AMERICA_LIMA_UTC_OFFSET_MS = 5 * 60 * 60 * 1000;
+
 export interface NiubizMappedAuthorizationResponse extends PaymentGatewayResult {
   gatewayPayload?: Prisma.InputJsonValue;
   gatewayAmount?: number;
@@ -59,11 +61,9 @@ export class NiubizResponseMapper {
   }
 
   /**
-   * Parses the Niubiz `yyMMddHHmmss` timestamp as UTC; invalid values are omitted.
-   *
-   * TODO(timezone): Niubiz `TRANSACTION_DATE` is Lima local time, but this
-   * parser treats it as UTC, producing a ~-5h offset in `gatewayTransactionDate`.
-   * Tracked separately; not fixed in the payment-method change.
+   * Parses the Niubiz `yyMMddHHmmss` timestamp, expressed in America/Lima
+   * local time (UTC-5, sin horario de verano), as the corresponding UTC instant.
+   * Invalid or out-of-range components are omitted.
    */
   parseTransactionDate(value: string | undefined): Date | undefined {
     if (!value || !/^\d{12}$/.test(value)) return undefined;
@@ -73,15 +73,15 @@ export class NiubizResponseMapper {
     const hour = Number(value.slice(6, 8));
     const minute = Number(value.slice(8, 10));
     const second = Number(value.slice(10, 12));
-    const date = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
-    return date.getUTCFullYear() === year
-      && date.getUTCMonth() === month - 1
-      && date.getUTCDate() === day
-      && date.getUTCHours() === hour
-      && date.getUTCMinutes() === minute
-      && date.getUTCSeconds() === second
-      ? date
-      : undefined;
+    const wallClock = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+    const isValidWallClock = wallClock.getUTCFullYear() === year
+      && wallClock.getUTCMonth() === month - 1
+      && wallClock.getUTCDate() === day
+      && wallClock.getUTCHours() === hour
+      && wallClock.getUTCMinutes() === minute
+      && wallClock.getUTCSeconds() === second;
+    if (!isValidWallClock) return undefined;
+    return new Date(wallClock.getTime() + AMERICA_LIMA_UTC_OFFSET_MS);
   }
 
   private sanitizeMetadata(response: NiubizAuthorizationResponse): Record<string, string> {

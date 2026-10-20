@@ -23,6 +23,19 @@ export interface NiubizTestConfig {
     serviceLocationCountryCode?: string;
     serviceLocationPostalCode?: string;
   };
+  /**
+   * Datos institucionales (fallback) para el `dataMap` de Session cuando el
+   * titular no dispone de un dato real. Solo se pueblan desde variables de
+   * entorno del servidor; nunca se exponen al navegador.
+   */
+  cardholderDataMap?: {
+    city?: string;
+    country?: string;
+    address?: string;
+    postalCode?: string;
+    state?: string;
+    phone?: string;
+  };
 }
 
 const provider = (process.env.PAYMENT_PROVIDER || "MOCK").toUpperCase();
@@ -70,6 +83,14 @@ export const paymentConfig = {
       serviceLocationCountrySubdivisionCode: environment === "TEST" ? process.env.NIUBIZ_TEST_SERVICE_LOCATION_COUNTRY_SUBDIVISION_CODE : environment === "PRODUCTION" ? process.env.NIUBIZ_PROD_SERVICE_LOCATION_COUNTRY_SUBDIVISION_CODE : undefined,
       serviceLocationCountryCode: environment === "TEST" ? process.env.NIUBIZ_TEST_SERVICE_LOCATION_COUNTRY_CODE : environment === "PRODUCTION" ? process.env.NIUBIZ_PROD_SERVICE_LOCATION_COUNTRY_CODE : undefined,
       serviceLocationPostalCode: environment === "TEST" ? process.env.NIUBIZ_TEST_SERVICE_LOCATION_POSTAL_CODE : environment === "PRODUCTION" ? process.env.NIUBIZ_PROD_SERVICE_LOCATION_POSTAL_CODE : undefined,
+    },
+    cardholderDataMap: {
+      city: environment === "TEST" ? process.env.NIUBIZ_TEST_CARDHOLDER_CITY : environment === "PRODUCTION" ? process.env.NIUBIZ_PROD_CARDHOLDER_CITY : undefined,
+      country: environment === "TEST" ? process.env.NIUBIZ_TEST_CARDHOLDER_COUNTRY : environment === "PRODUCTION" ? process.env.NIUBIZ_PROD_CARDHOLDER_COUNTRY : undefined,
+      address: environment === "TEST" ? process.env.NIUBIZ_TEST_CARDHOLDER_ADDRESS : environment === "PRODUCTION" ? process.env.NIUBIZ_PROD_CARDHOLDER_ADDRESS : undefined,
+      postalCode: environment === "TEST" ? process.env.NIUBIZ_TEST_CARDHOLDER_POSTAL_CODE : environment === "PRODUCTION" ? process.env.NIUBIZ_PROD_CARDHOLDER_POSTAL_CODE : undefined,
+      state: environment === "TEST" ? process.env.NIUBIZ_TEST_CARDHOLDER_STATE : environment === "PRODUCTION" ? process.env.NIUBIZ_PROD_CARDHOLDER_STATE : undefined,
+      phone: environment === "TEST" ? process.env.NIUBIZ_TEST_CARDHOLDER_PHONE : environment === "PRODUCTION" ? process.env.NIUBIZ_PROD_CARDHOLDER_PHONE : undefined,
     },
   } satisfies NiubizTestConfig,
 } as const;

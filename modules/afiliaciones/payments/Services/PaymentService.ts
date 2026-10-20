@@ -59,7 +59,7 @@ export class PaymentService {
     });
 
     const { payment, application, resumed } = startedPayment;
-    const providerResult = await provider.initiate({
+    const providerResult = await this.initiateWithProvider(provider, {
       paymentId: payment.id,
       applicationId: payment.applicationId,
       billingData,
@@ -80,6 +80,17 @@ export class PaymentService {
       ? { ...providerResult, checkout: { ...providerResult.checkout, callbackUrl: await this.withCallbackReference(providerResult.checkout.callbackUrl, payment) } }
       : providerResult;
     return this.toResponse(updatedPayment, responseProviderResult);
+  }
+
+  private async initiateWithProvider(provider: PaymentProvider, command: Parameters<PaymentProvider["initiate"]>[0]): Promise<PaymentGatewayResult> {
+    try {
+      return await provider.initiate(command);
+    } catch (error) {
+      if (error instanceof NiubizProviderConfigurationError || error instanceof NiubizProviderNotReadyError) {
+        throw new PaymentServiceError(error.message, 503);
+      }
+      throw error;
+    }
   }
 
   private async resolveBillingData(input: BillingDataInput, authorizedDocumentNumber?: string): Promise<{ billingData: BillingDataInput; billingTraceability: BillingTraceability }> {
