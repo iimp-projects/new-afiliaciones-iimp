@@ -572,7 +572,7 @@
 
 "use client";
 
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState, useRef, useMemo } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -583,16 +583,165 @@ import {
   CheckCircle2,
   Award,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   FileText,
   Volume2,
   VolumeX,
+  Quote,
+  LayoutGrid,
+  Sparkles,
+  X,
+  MessageSquareQuote,
+  Search,
+  Pause,
+  Play,
+  GraduationCap,
+  Briefcase,
 } from "lucide-react";
 import { PublicFooter } from "@/modules/shared/Components/PublicFooter";
 
+// Definición de tipos para los testimonios públicos (provenientes de la base de datos)
+interface TestimonioItem {
+  id: number;
+  nombre: string;
+  categoria: "ASOCIADO ACTIVO" | "ASOCIADO ESTUDIANTE";
+  carrera: string;
+  institucion: string;
+  testimonio: string;
+  avatarUrl: string;
+  destacado?: boolean;
+}
+
+
+// Componente reutilizable para cada tarjeta de testimonio
+function TestimonioCard({ item }: { item: TestimonioItem }) {
+  const isActivo = item.categoria === "ASOCIADO ACTIVO";
+
+  return (
+    <div
+      className={`group w-full h-full bg-white p-7 rounded-3xl border transition-all duration-300 flex flex-col justify-between relative shadow-sm hover:shadow-xl ${
+        isActivo
+          ? "border-[#C39254]/50 hover:border-[#C39254] bg-gradient-to-b from-[#C39254]/5 to-white shadow-md shadow-[#C39254]/10"
+          : "border-gray-200/90 hover:border-[#C39254]/40 hover:-translate-y-1"
+      }`}
+    >
+      {/* Glow decorativo sutil en hover */}
+      <div className="absolute top-0 right-0 w-28 h-28 bg-[#C39254]/5 rounded-full blur-2xl pointer-events-none group-hover:bg-[#C39254]/10 transition-colors"></div>
+
+      <div>
+        {/* Rating + Badge */}
+        <div className="flex items-center justify-between gap-2 mb-4">
+          <div className="flex text-[#C39254] shrink-0">
+            {[...Array(5)].map((_, i) => (
+              <svg key={i} className="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+            ))}
+          </div>
+
+          {isActivo ? (
+            <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#936629] bg-[#C39254]/15 border border-[#C39254]/30 px-3 py-1 rounded-full flex items-center gap-1.5 shrink-0">
+              <Briefcase size={12} className="text-[#C39254]" />
+              Asociado Activo
+            </span>
+          ) : (
+            <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#3E3E3D] bg-gray-100 border border-gray-200/80 px-3 py-1 rounded-full flex items-center gap-1.5 shrink-0">
+              <GraduationCap size={12} className="text-[#C39254]" />
+              ASOCIADO ESTUDIANTE
+            </span>
+          )}
+        </div>
+
+        {/* Icono de comillas */}
+        <Quote className="w-7 h-7 text-[#C39254]/30 mb-2 -scale-x-100" />
+
+        {/* Texto del testimonio */}
+        <p className="text-[#3E3E3D] font-normal leading-relaxed italic text-sm mb-6">
+          "{item.testimonio}"
+        </p>
+      </div>
+
+      {/* Info del Asociado */}
+      <div className="flex items-center gap-3.5 pt-4 border-t border-gray-100 mt-auto">
+        <img
+          src={item.avatarUrl}
+          alt={item.nombre}
+          className={`w-12 h-12 rounded-full object-cover shrink-0 border-2 shadow-xs ${
+            isActivo ? "border-[#C39254]" : "border-gray-200"
+          }`}
+          onError={(e) => {
+            const target = e.currentTarget;
+            target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+              item.nombre
+            )}&background=C39254&color=ffffff&bold=true`;
+          }}
+        />
+        <div className="min-w-0 flex-1">
+          <h4
+            className="font-extrabold text-[#3E3E3D] text-sm leading-tight truncate"
+            title={item.nombre}
+          >
+            {item.nombre}
+          </h4>
+          <p
+            className="text-xs text-[#C39254] font-semibold mt-0.5 truncate"
+            title={item.carrera}
+          >
+            {item.carrera}
+          </p>
+          <p
+            className="text-[11px] text-gray-500 font-medium truncate mt-0.5"
+            title={item.institucion}
+          >
+            {item.institucion}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function PostulacionLandingPage() {
   const [isVideoMuted, setIsVideoMuted] = useState(true);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  // Lista de testimonios (cargada dinámicamente desde la BD vía /api/testimonios)
+  const [testimoniosList, setTestimoniosList] = useState<TestimonioItem[]>([]);
+  const [isLoadingTestimonios, setIsLoadingTestimonios] = useState(true);
+
+  // Estados para Testimonios (Carrusel Fluctuante y Modal Completo)
+  const [currentTestimonialIndex, setCurrentTestimonialIndex] = useState(0);
+  const [itemsPerPage, setItemsPerPage] = useState(3);
+  const [isTestimonialsAutoPlay, setIsTestimonialsAutoPlay] = useState(true);
+  const [isTestimonialsHovered, setIsTestimonialsHovered] = useState(false);
+  const [isTestimonialsModalOpen, setIsTestimonialsModalOpen] = useState(false);
+  const [filterCategory, setFilterCategory] = useState<"TODOS" | "ASOCIADO ACTIVO" | "ASOCIADO ESTUDIANTE">("TODOS");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+
+  // Carga dinámica exclusiva desde la base de datos (con fotos resueltas de S3)
+  useEffect(() => {
+    let isMounted = true;
+    async function loadTestimonials() {
+      try {
+        const res = await fetch("/api/testimonios");
+        if (!res.ok) return;
+        const result = await res.json();
+        if (result.success && Array.isArray(result.data) && isMounted) {
+          setTestimoniosList(result.data);
+        }
+      } catch (err) {
+        console.error("Error al cargar testimonios desde BD:", err);
+      } finally {
+        if (isMounted) setIsLoadingTestimonios(false);
+      }
+    }
+    loadTestimonials();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const toggleSound = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -605,6 +754,104 @@ export default function PostulacionLandingPage() {
         videoRef.current.play().catch(() => {});
       }
     }
+  };
+
+  // Ajuste responsivo de items visibles en el carrusel
+  useEffect(() => {
+    const handleResize = () => {
+      let count = 3;
+      if (window.innerWidth < 768) {
+        count = 1;
+      } else if (window.innerWidth < 1024) {
+        count = 2;
+      }
+      setItemsPerPage(count);
+      setCurrentTestimonialIndex((prev) =>
+        Math.min(prev, Math.max(0, testimoniosList.length - count))
+      );
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [testimoniosList.length]);
+
+  const maxTestimonialIndex = Math.max(0, testimoniosList.length - itemsPerPage);
+
+  // Efecto de fluctuación automática cada 4.5 segundos
+  useEffect(() => {
+    if (!isTestimonialsAutoPlay || isTestimonialsHovered) {
+      return;
+    }
+    const interval = setInterval(() => {
+      setCurrentTestimonialIndex((prev) =>
+        prev >= maxTestimonialIndex ? 0 : prev + 1
+      );
+    }, 4500);
+    return () => clearInterval(interval);
+  }, [isTestimonialsAutoPlay, isTestimonialsHovered, maxTestimonialIndex]);
+
+  const handlePrevTestimonial = () => {
+    setCurrentTestimonialIndex((prev) =>
+      prev <= 0 ? maxTestimonialIndex : prev - 1
+    );
+  };
+
+  const handleNextTestimonial = () => {
+    setCurrentTestimonialIndex((prev) =>
+      prev >= maxTestimonialIndex ? 0 : prev + 1
+    );
+  };
+
+  // Manejo de scroll-lock y tecla Escape en el modal
+  useEffect(() => {
+    if (isTestimonialsModalOpen) {
+      document.body.style.overflow = "hidden";
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          setIsTestimonialsModalOpen(false);
+        }
+      };
+      window.addEventListener("keydown", handleKeyDown);
+      return () => {
+        document.body.style.overflow = "";
+        window.removeEventListener("keydown", handleKeyDown);
+      };
+    } else {
+      document.body.style.overflow = "";
+    }
+  }, [isTestimonialsModalOpen]);
+
+  // Filtro de testimonios para la vista cuadrícula y el modal
+  const filteredTestimonios = useMemo(() => {
+    return testimoniosList.filter((item) => {
+      const matchCategory =
+        filterCategory === "TODOS" || item.categoria === filterCategory;
+      const q = searchQuery.toLowerCase().trim();
+      const matchSearch =
+        !q ||
+        item.nombre.toLowerCase().includes(q) ||
+        item.carrera.toLowerCase().includes(q) ||
+        item.institucion.toLowerCase().includes(q) ||
+        item.testimonio.toLowerCase().includes(q);
+      return matchCategory && matchSearch;
+    });
+  }, [testimoniosList, filterCategory, searchQuery]);
+
+  // Soporte de deslizamiento táctil (swipe) en móviles
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX === null) return;
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (diff > 40) {
+      handleNextTestimonial();
+    } else if (diff < -40) {
+      handlePrevTestimonial();
+    }
+    setTouchStartX(null);
   };
 
   // Manejar el scroll si vienen desde otra página con el hash #planes-afiliacion
@@ -889,128 +1136,137 @@ export default function PostulacionLandingPage() {
             </div>
           </div>
 
-          {/* Grid de Testimonios Estilo Ejecutivo */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
+          {/* Barra de Controles del Carrusel y Muro Completo */}
+          <div className="flex items-center justify-end gap-3 mb-8">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsTestimonialsAutoPlay((prev) => !prev)}
+                className="p-2.5 rounded-xl bg-white border border-gray-200 text-gray-600 hover:text-[#C39254] hover:border-[#C39254]/50 shadow-xs transition-all"
+                title={isTestimonialsAutoPlay ? "Pausar fluctuación automática" : "Reanudar fluctuación automática"}
+              >
+                {isTestimonialsAutoPlay ? <Pause size={15} /> : <Play size={15} />}
+              </button>
 
-            {/* Testimonio 1: Geólogo / Senior */}
-            <div className="bg-white p-8 rounded-3xl border border-gray-200/80 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
-              <div>
-                {/* Rating + Badge */}
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex text-[#C39254]">
-                    {[...Array(5)].map((_, i) => (
-                      <svg key={i} className="w-4 h-4 fill-current" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
-                    ))}
-                  </div>
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#C39254] bg-[#C39254]/10 px-3 py-1 rounded-full">
-                    Asociado Senior
-                  </span>
-                </div>
-
-                <p className="text-[#3E3E3D] font-medium leading-relaxed italic text-sm mb-8">
-                  "El acceso a OneMine y a las ponencias de los Jueves Mineros le da un valor altísimo a la membresía. Es la mejor plataforma para mantenerte actualizado con estándares globales."
-                </p>
-              </div>
-
-              {/* User Info */}
-              <div className="flex items-center gap-4 pt-4 border-t border-gray-100">
-                <img
-                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150"
-                  alt="Ing. Carlos Mendoza"
-                  className="w-12 h-12 rounded-full object-cover border-2 border-[#C39254]"
-                />
-                <div>
-                  <h4 className="font-extrabold text-[#3E3E3D] text-sm">
-                    Ing. Carlos Mendoza
-                  </h4>
-                  <p className="text-xs text-gray-500 font-medium">
-                    Geólogo Principal • Las Bambas
-                  </p>
-                </div>
+              <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-xl p-1 shadow-xs">
+                <button
+                  type="button"
+                  onClick={handlePrevTestimonial}
+                  className="p-2 rounded-lg text-gray-700 hover:text-white hover:bg-[#C39254] transition-all"
+                  title="Testimonio anterior"
+                  aria-label="Testimonio anterior"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleNextTestimonial}
+                  className="p-2 rounded-lg text-gray-700 hover:text-white hover:bg-[#C39254] transition-all"
+                  title="Siguiente testimonio"
+                  aria-label="Siguiente testimonio"
+                >
+                  <ChevronRight size={16} />
+                </button>
               </div>
             </div>
 
-            {/* Testimonio 2: Tarjeta Destacada Primary (#C39254) */}
-            <div className="bg-[#C39254] text-white p-8 rounded-3xl shadow-xl shadow-[#C39254]/20 flex flex-col justify-between relative overflow-hidden transform md:-translate-y-2">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-
-              <div className="relative z-10">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex text-white">
-                    {[...Array(5)].map((_, i) => (
-                      <svg key={i} className="w-4 h-4 fill-current" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
-                    ))}
-                  </div>
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-white bg-black/20 px-3 py-1 rounded-full border border-white/20">
-                    Líder Sectorial
-                  </span>
-                </div>
-
-                <p className="text-white/95 font-medium leading-relaxed italic text-sm mb-8">
-                  "El networking presencial en eventos como proEXPLO y PERUMIN me permitió conectar directamente con tomadores de decisión y potenciar proyectos tecnológicos clave."
-                </p>
-              </div>
-
-              <div className="flex items-center gap-4 pt-4 border-t border-white/20 relative z-10">
-                <img
-                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150"
-                  alt="Ing. John Morón"
-                  className="w-12 h-12 rounded-full object-cover border-2 border-white/40"
-                />
-                <div>
-                  <h4 className="font-extrabold text-white text-sm">
-                    Ing. John Morón
-                  </h4>
-                  <p className="text-xs text-white/80 font-medium">
-                    Especialista en Innovación Mining
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Testimonio 3: Estudiante Pre-grado / Cantera */}
-            <div className="bg-white p-8 rounded-3xl border border-gray-200/80 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex text-[#C39254]">
-                    {[...Array(5)].map((_, i) => (
-                      <svg key={i} className="w-4 h-4 fill-current" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
-                    ))}
-                  </div>
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#3E3E3D] bg-gray-100 px-3 py-1 rounded-full">
-                    Estudiante / Mentoring
-                  </span>
-                </div>
-
-                <p className="text-[#3E3E3D] font-medium leading-relaxed italic text-sm mb-8">
-                  "El Programa Mentoring del IIMP fue decisivo para orientar mi carrera y conseguir mi primera práctica en mina. Además, las tarifas estudiantiles para conferencias valen totalmente la pena."
-                </p>
-              </div>
-
-              <div className="flex items-center gap-4 pt-4 border-t border-gray-100">
-                <img
-                  src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=150"
-                  alt="Valeria Torres"
-                  className="w-12 h-12 rounded-full object-cover border-2 border-gray-300"
-                />
-                <div>
-                  <h4 className="font-extrabold text-[#3E3E3D] text-sm">
-                    Valeria Torres
-                  </h4>
-                  <p className="text-xs text-gray-500 font-medium">
-                    Ingeniería de Minas • UNI
-                  </p>
-                </div>
-              </div>
-            </div>
-
+            {/* Botón para abrir el Muro Completo en Modal */}
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery("");
+                setFilterCategory("TODOS");
+                setIsTestimonialsModalOpen(true);
+              }}
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#3E3E3D] hover:bg-black text-white text-xs font-bold rounded-xl shadow-xs transition-all hover:scale-105"
+            >
+              <MessageSquareQuote size={15} />
+              <span>Abrir muro completo</span>
+            </button>
           </div>
+
+          {/* CARRUSEL FLUCTUANTE */}
+          {isLoadingTestimonios ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 py-2">
+              {[1, 2, 3].map((n) => (
+                <div
+                  key={n}
+                  className="w-full h-72 bg-white p-7 rounded-3xl border border-gray-200/80 animate-pulse flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex justify-between items-center mb-4">
+                      <div className="w-20 h-4 bg-gray-200 rounded"></div>
+                      <div className="w-28 h-5 bg-gray-200 rounded-full"></div>
+                    </div>
+                    <div className="space-y-2.5 mt-6">
+                      <div className="w-full h-3 bg-gray-200 rounded"></div>
+                      <div className="w-5/6 h-3 bg-gray-200 rounded"></div>
+                      <div className="w-4/6 h-3 bg-gray-200 rounded"></div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
+                    <div className="w-12 h-12 bg-gray-200 rounded-full shrink-0"></div>
+                    <div className="space-y-2 flex-1">
+                      <div className="w-32 h-3.5 bg-gray-200 rounded"></div>
+                      <div className="w-24 h-2.5 bg-gray-200 rounded"></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : testimoniosList.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-3xl border border-gray-200/80 p-8">
+              <Quote className="w-10 h-10 text-gray-300 mx-auto mb-2" />
+              <p className="text-sm text-gray-500 font-medium">No hay testimonios disponibles en este momento.</p>
+            </div>
+          ) : (
+            <div
+              className="relative"
+              onMouseEnter={() => setIsTestimonialsHovered(true)}
+              onMouseLeave={() => setIsTestimonialsHovered(false)}
+            >
+              <div
+                className="overflow-hidden py-2 -mx-3"
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
+              >
+                <div
+                  className="flex transition-transform duration-500 ease-out"
+                  style={{
+                    transform: `translateX(-${
+                      currentTestimonialIndex * (100 / itemsPerPage)
+                    }%)`,
+                  }}
+                >
+                  {testimoniosList.map((item) => (
+                    <div
+                      key={`carousel-${item.id}`}
+                      className="w-full md:w-1/2 lg:w-1/3 px-3 shrink-0 flex"
+                    >
+                      <TestimonioCard item={item} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Paginación con dots interactivos */}
+              <div className="flex items-center justify-center gap-2 mt-8">
+                {Array.from({ length: maxTestimonialIndex + 1 }).map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentTestimonialIndex(i)}
+                    className={`h-2.5 rounded-full transition-all duration-300 ${
+                      currentTestimonialIndex === i
+                        ? "w-8 bg-[#C39254]"
+                        : "w-2.5 bg-gray-300 hover:bg-gray-400"
+                    }`}
+                    title={`Ir al testimonio ${i + 1}`}
+                    aria-label={`Ir al testimonio ${i + 1}`}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -1175,6 +1431,126 @@ export default function PostulacionLandingPage() {
           </div>
         </div>
       </section>
+
+      {/* MODAL / MURO COMPLETO DE TESTIMONIOS */}
+      {isTestimonialsModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-8 bg-black/60 backdrop-blur-sm animate-fadeIn"
+          onClick={() => setIsTestimonialsModalOpen(false)}
+        >
+          <div
+            className="bg-white w-full max-w-6xl max-h-[90vh] rounded-3xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="p-6 md:p-8 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-gray-50/50 to-white">
+              <div>
+                <span className="text-[11px] font-black uppercase tracking-widest text-[#C39254] block mb-1">
+                  Comunidad y Experiencias IIMP
+                </span>
+                <h3 className="text-2xl md:text-3xl font-extrabold text-[#3E3E3D] tracking-tight">
+                  Muro de Testimonios ({testimoniosList.length})
+                </h3>
+                <p className="text-xs md:text-sm text-gray-500 mt-1">
+                  Experiencias reales de asociados activos y estudiantes en programas del IIMP.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsTestimonialsModalOpen(false)}
+                  className="p-2.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-black transition-colors"
+                  title="Cerrar ventana"
+                  aria-label="Cerrar modal"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+
+            {/* Filtros y Búsqueda */}
+            <div className="px-6 md:px-8 py-4 bg-gray-50/80 border-b border-gray-200/80 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+              {/* Pills de categorías */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
+                {(
+                  [
+                    { id: "TODOS", label: `Todos (${testimoniosList.length})` },
+                    {
+                      id: "ASOCIADO ACTIVO",
+                      label: `Asociados Activos (${
+                        testimoniosList.filter((t) => t.categoria === "ASOCIADO ACTIVO").length
+                      })`,
+                    },
+                    {
+                      id: "ASOCIADO ESTUDIANTE",
+                      label: `Asociados Estudiantes (${
+                        testimoniosList.filter((t) => t.categoria === "ASOCIADO ESTUDIANTE").length
+                      })`,
+                    },
+                  ] as const
+                ).map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setFilterCategory(tab.id)}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
+                      filterCategory === tab.id
+                        ? "bg-[#C39254] text-white shadow-xs"
+                        : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Input de Búsqueda */}
+              <div className="relative min-w-[240px]">
+                <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Buscar por nombre, carrera o universidad..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-1.5 bg-white border border-gray-200 rounded-xl text-xs text-[#3E3E3D] placeholder:text-gray-400 focus:outline-hidden focus:border-[#C39254] focus:ring-2 focus:ring-[#C39254]/20 transition-all"
+                />
+              </div>
+            </div>
+
+            {/* Contenido scrolleable con Grid */}
+            <div className="p-6 md:p-8 overflow-y-auto max-h-[calc(90vh-180px)]">
+              {filteredTestimonios.length === 0 ? (
+                <div className="text-center py-16">
+                  <Quote className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-600 font-semibold text-sm">
+                    No se encontraron testimonios para "{searchQuery}"
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery("");
+                      setFilterCategory("TODOS");
+                    }}
+                    className="mt-3 text-xs font-bold text-[#C39254] hover:underline"
+                  >
+                    Restablecer filtros
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
+                  {filteredTestimonios.map((item) => (
+                    <TestimonioCard key={`modal-${item.id}`} item={item} />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <PublicFooter />
     </main>
   );

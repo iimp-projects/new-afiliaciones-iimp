@@ -151,7 +151,10 @@ export class S3StorageService {
         throw new Error("No tiene acceso a este archivo.");
       }
 
-      const command = new GetObjectCommand({ Bucket: this.bucket, Key: key });
+      const command = new GetObjectCommand({
+        Bucket: this.bucket,
+        Key: this.toPhysicalStorageKey(key),
+      });
       const response = await this.client.send(command);
       return await this.bodyToBuffer(response.Body);
     } catch (error) {
@@ -195,10 +198,22 @@ export class S3StorageService {
     }
   }
 
+  /**
+   * Traduce una clave lógica de documento legacy a su ubicación física en S3.
+   * Los documentos históricos migraron bajo `legacy_docs/`, mientras que en BD
+   * y alcance lógico se identifican bajo `afiliaciones/legacy/documents/`.
+   */
+  public toPhysicalStorageKey(key: string): string {
+    if (key.startsWith("afiliaciones/legacy/documents/")) {
+      return key.replace("afiliaciones/legacy/documents/", "legacy_docs/");
+    }
+    return key;
+  }
+
   private async signKey(key: string): Promise<string> {
     const command = new GetObjectCommand({
       Bucket: this.bucket,
-      Key: key,
+      Key: this.toPhysicalStorageKey(key),
     });
 
     return getSignedUrl(this.client, command, { expiresIn: 900 });

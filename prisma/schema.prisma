@@ -225,6 +225,7 @@ model Person {
   professionalExperiences ProfessionalExperience[]
   sieAssociateRecords     SieAssociateRecord[]
   associateCards          AssociateCard[]
+  testimonials            AssociateTestimonial[]
 
   @@unique([documentType, documentNumber])
   @@index([documentNumber])
@@ -1600,3 +1601,29 @@ model AssociateCard {
 
   @@map("associate_cards")
 }
+
+model AssociateTestimonial {
+  id             Int      @id @default(autoincrement())
+  personId       Int?     @map("person_id")
+  documentNumber String   @map("document_number") @db.VarChar(50)
+  fullName       String   @map("full_name") @db.VarChar(150)
+  category       String   @db.VarChar(50)
+  role           String   @db.VarChar(150)
+  institution    String   @db.VarChar(150)
+  content        String   @db.Text
+  avatarUrl      String?  @map("avatar_url") @db.VarChar(500)
+  isApproved     Boolean  @default(true) @map("is_approved")
+  isFeatured     Boolean  @default(false) @map("is_featured")
+  displayOrder   Int      @default(0) @map("display_order")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  person Person? @relation(fields: [personId], references: [id], onDelete: SetNull)
+
+  @@index([documentNumber])
+  @@index([personId])
+  @@index([isApproved])
+  @@index([displayOrder])
+  @@map("associate_testimonials")
+}
+
