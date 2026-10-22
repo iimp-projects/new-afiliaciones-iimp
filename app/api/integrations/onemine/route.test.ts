@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   requireAffiliate: vi.fn(),
@@ -14,6 +14,14 @@ describe("GET /api/integrations/onemine", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubEnv("ONEMINE_SSO_SECRET", "test-secret");
+    // Deterministic time: evita que el timestamp (ts) contenga "42" de forma
+    // incidental y haga fallar la aserción de no-PII.
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-01-01T00:00:00Z"));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("rejects a request without a valid session", async () => {

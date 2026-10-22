@@ -376,3 +376,13 @@ export function getIntegrationsV1AssociatesToken(env: EnvSource = process.env): 
   }
   return value;
 }
+
+/**
+ * Contención temporal del flujo de subsanación. Cuando está activo
+ * (`SUBSANACION_SYNC_DISABLED=true`), el PATCH de subsanación responde con un
+ * error controlado sin persistir nada, protegiendo los documentos existentes
+ * mientras se resuelve una incidencia de pérdida documental.
+ */
+export function isSubsanacionSyncDisabled(env: EnvSource = process.env): boolean {
+  return env.SUBSANACION_SYNC_DISABLED?.trim().toLowerCase() === "true";
+}
