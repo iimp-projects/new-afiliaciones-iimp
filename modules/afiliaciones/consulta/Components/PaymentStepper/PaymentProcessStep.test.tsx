@@ -11,7 +11,7 @@ vi.mock("@/modules/afiliaciones/payments/Components/PaymentLoadingOverlay", () =
 import PaymentProcessStep from "./PaymentProcessStep";
 
 const billingData = { tipoDocumento: "RUC" as const, numeroDocumento: "20107972090", razonSocial: "Razón social real", direccionFiscal: "Av. Principal 123", responsable: "Responsable real", emailFacturacion: "facturacion@example.com" };
-const props = { billingData, accepted: false, onAcceptedChange: vi.fn(), onStartCheckout: vi.fn(), result: null, loading: false, error: null, onRetry: vi.fn(), paymentUiState: "PAYMENT_FAILED" as const, onCheckoutStateChange: vi.fn(), failureCode: "116", failureMessage: "No cuentas con fondos suficientes para completar la compra. Intenta nuevamente con otra tarjeta.", affiliateType: "ASOCIADO ACTIVO" };
+const props = { billingData, accepted: false, onAcceptedChange: vi.fn(), onStartCheckout: vi.fn(), amountInfo: null, result: null, loading: false, error: null, onRetry: vi.fn(), paymentUiState: "PAYMENT_FAILED" as const, onCheckoutStateChange: vi.fn(), failureCode: "116", failureMessage: "No cuentas con fondos suficientes para completar la compra. Intenta nuevamente con otra tarjeta.", affiliateType: "ASOCIADO ACTIVO" };
 const checkoutResult = { success: true, paymentId: 2, status: "PENDING" as const, amount: 300, registrationAmount: 150, membershipFeeAmount: 150, currency: "PEN" as const, message: "Sesión Niubiz creada.", checkout: { sessionToken: "token", merchantId: "merchant", purchaseNumber: "2", amount: 300, currency: "PEN" as const, checkoutUrl: "https://checkout.example.invalid", callbackUrl: "https://example.invalid/callback", expirationMinutes: 10, timeoutUrl: "https://example.invalid/timeout", merchantName: "IIMP", formButtonColor: "#C5A059" } };
 
 describe("PaymentProcessStep", () => {
@@ -62,6 +62,13 @@ describe("PaymentProcessStep", () => {
   it.each(["PAYMENT_UNCERTAIN", "PROCESSING_PAYMENT", "PAYMENT_SUCCESS"] as const)("no ofrece un nuevo checkout en %s", (paymentUiState) => {
     const markup = renderToStaticMarkup(<PaymentProcessStep {...props} paymentUiState={paymentUiState} result={null} />);
     expect(markup).not.toContain("PAGA AQUÍ");
+  });
+
+  it("muestra el monto real desde la resolución del servidor antes de iniciar el pago", () => {
+    const markup = renderToStaticMarkup(<PaymentProcessStep {...props} amountInfo={{ registrationAmount: 150, membershipFeeAmount: 150, totalAmount: 300 }} paymentUiState="IDLE" />);
+    expect(markup).toContain("S/ 300.00");
+    expect(markup).toContain("S/ 150.00");
+    expect(markup).not.toContain("Monto protegido en el servidor");
   });
 
   it("muestra los datos reales de facturación en la confirmación unificada", () => {
