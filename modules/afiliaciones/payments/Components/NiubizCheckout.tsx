@@ -51,7 +51,7 @@ export function NiubizCheckout({ config, disabled = false, onStateChange, onRequ
 
     if (!resolvedConfig) {
       openingRef.current = false;
-      onStateChange?.("CHECKOUT_ERROR");
+      if (!onRequestSession) onStateChange?.("CHECKOUT_ERROR");
       return;
     }
 
@@ -75,6 +75,7 @@ export function NiubizCheckout({ config, disabled = false, onStateChange, onRequ
         completedResultRef.current = null;
         checkout.configure({ sessiontoken: resolvedConfig.sessionToken, channel: "web", merchantid: resolvedConfig.merchantId, purchasenumber: resolvedConfig.purchaseNumber, amount: resolvedConfig.amount, expirationminutes: resolvedConfig.expirationMinutes, timeouturl: resolvedConfig.timeoutUrl, action: resolvedConfig.callbackUrl, merchantname: resolvedConfig.merchantName, ...(resolvedConfig.merchantLogoUrl ? { merchantlogo: resolvedConfig.merchantLogoUrl } : {}), cardholdername: resolvedConfig.cardholderName, cardholderlastname: resolvedConfig.cardholderLastName, cardholderemail: resolvedConfig.cardholderEmail, formbuttoncolor: resolvedConfig.formButtonColor, complete: (params: unknown) => { completedResultRef.current = params; setCheckoutCompleted(true); onStateChange?.("PROCESSING_PAYMENT"); } });
         checkout.open();
+        openingRef.current = false;
         onStateChange?.("CHECKOUT_OPEN");
       } catch {
         openingRef.current = false;
