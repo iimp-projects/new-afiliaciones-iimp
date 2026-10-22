@@ -1,7 +1,7 @@
 "use client";
 
 import { LockKeyhole } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import type { NiubizCheckoutConfig } from "../DTOs/Niubiz/NiubizCheckout.dto";
 
 type CheckoutState = "IDLE" | "PREPARING_CHECKOUT" | "CHECKOUT_OPEN" | "PROCESSING_PAYMENT" | "CHECKOUT_ERROR";
@@ -27,46 +27,49 @@ function loadCheckoutLibrary(checkoutUrl: string): Promise<void> {
   return promise;
 }
 
-interface Props { config: NiubizCheckoutConfig; disabled?: boolean; onStateChange?: (state: CheckoutState) => void; }
+interface Props { config: NiubizCheckoutConfig | null; disabled?: boolean; onStateChange?: (state: CheckoutState) => void; onRequestSession?: () => Promise<NiubizCheckoutConfig | null>; }
 
 /** Opción 2 de Niubiz: biblioteca global + configure() + open(). */
-export function NiubizCheckout({ config, disabled = false, onStateChange }: Props) {
+export function NiubizCheckout({ config, disabled = false, onStateChange, onRequestSession }: Props) {
   const completedResultRef = useRef<unknown>(null);
   const openingRef = useRef(false);
-  const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
-  const [error, setError] = useState<string | null>(null);
   const [checkoutCompleted, setCheckoutCompleted] = useState(false);
-  const [loadAttempt, setLoadAttempt] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let active = true;
-    onStateChange?.("PREPARING_CHECKOUT");
-    void loadCheckoutLibrary(config.checkoutUrl).then(() => {
-      if (!active) return;
-      setStatus("ready");
-      onStateChange?.("IDLE");
-      console.info("Niubiz checkout.js loaded");
-    }).catch(() => {
-      if (!active) return;
-      setStatus("error");
-      setError("No pudimos abrir la pasarela. Intenta nuevamente en unos segundos.");
-      onStateChange?.("CHECKOUT_ERROR");
-      console.error("Niubiz checkout.js failed");
-    });
-    return () => { active = false; };
-  }, [config.checkoutUrl, loadAttempt, onStateChange]);
-
-  const openCheckout = () => {
-    if (disabled || status !== "ready" || openingRef.current) return;
+  const openCheckout = async () => {
+    if (disabled || openingRef.current) return;
     openingRef.current = true;
     onStateChange?.("PREPARING_CHECKOUT");
 
-    // Cede un frame al navegador para que el overlay se pinte antes de llamar al SDK externo.
+    let resolvedConfig = config;
+    if (!resolvedConfig && onRequestSession) {
+      try {
+        resolvedConfig = await onRequestSession();
+      } catch {
+        resolvedConfig = null;
+      }
+    }
+
+    if (!resolvedConfig) {
+      openingRef.current = false;
+      setError("No pudimos abrir la pasarela. Intenta nuevamente en unos segundos.");
+      onStateChange?.("CHECKOUT_ERROR");
+      return;
+    }
+
+    try {
+      await loadCheckoutLibrary(resolvedConfig.checkoutUrl);
+    } catch {
+      openingRef.current = false;
+      setError("No pudimos abrir la pasarela. Intenta nuevamente en unos segundos.");
+      onStateChange?.("CHECKOUT_ERROR");
+      return;
+    }
+
     requestAnimationFrame(() => {
       const checkout = window.VisanetCheckout;
       if (!checkout) {
         openingRef.current = false;
-        setStatus("error");
         setError("No pudimos abrir la pasarela. Intenta nuevamente en unos segundos.");
         onStateChange?.("CHECKOUT_ERROR");
         return;
@@ -74,12 +77,11 @@ export function NiubizCheckout({ config, disabled = false, onStateChange }: Prop
 
       try {
         completedResultRef.current = null;
-        checkout.configure({ sessiontoken: config.sessionToken, channel: "web", merchantid: config.merchantId, purchasenumber: config.purchaseNumber, amount: config.amount, expirationminutes: config.expirationMinutes, timeouturl: config.timeoutUrl, action: config.callbackUrl, merchantname: config.merchantName, ...(config.merchantLogoUrl ? { merchantlogo: config.merchantLogoUrl } : {}), cardholdername: config.cardholderName, cardholderlastname: config.cardholderLastName, cardholderemail: config.cardholderEmail, formbuttoncolor: config.formButtonColor, complete: (params: unknown) => { completedResultRef.current = params; setCheckoutCompleted(true); onStateChange?.("PROCESSING_PAYMENT"); } });
+        checkout.configure({ sessiontoken: resolvedConfig.sessionToken, channel: "web", merchantid: resolvedConfig.merchantId, purchasenumber: resolvedConfig.purchaseNumber, amount: resolvedConfig.amount, expirationminutes: resolvedConfig.expirationMinutes, timeouturl: resolvedConfig.timeoutUrl, action: resolvedConfig.callbackUrl, merchantname: resolvedConfig.merchantName, ...(resolvedConfig.merchantLogoUrl ? { merchantlogo: resolvedConfig.merchantLogoUrl } : {}), cardholdername: resolvedConfig.cardholderName, cardholderlastname: resolvedConfig.cardholderLastName, cardholderemail: resolvedConfig.cardholderEmail, formbuttoncolor: resolvedConfig.formButtonColor, complete: (params: unknown) => { completedResultRef.current = params; setCheckoutCompleted(true); onStateChange?.("PROCESSING_PAYMENT"); } });
         checkout.open();
         onStateChange?.("CHECKOUT_OPEN");
       } catch {
         openingRef.current = false;
-        setStatus("error");
         setError("No pudimos abrir la pasarela. Intenta nuevamente en unos segundos.");
         onStateChange?.("CHECKOUT_ERROR");
       }
@@ -87,9 +89,8 @@ export function NiubizCheckout({ config, disabled = false, onStateChange }: Prop
   };
 
   return <div className="space-y-3 rounded-2xl border border-[#E8D09E] bg-white p-5" data-niubiz-complete={checkoutCompleted ? "true" : "false"}>
-    {status === "loading" && <p className="text-sm font-bold text-slate-700">Preparando formulario seguro de pago...</p>}
-    {status === "ready" && <p className="text-sm font-bold text-slate-800">Complete el pago en el formulario seguro de Niubiz.</p>}
-    {status !== "error" && <><button type="button" onClick={openCheckout} disabled={disabled || status !== "ready"} className="h-13 w-full rounded-xl bg-[#C5A059] px-8 py-3 text-sm font-extrabold text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:hover:brightness-100 sm:w-[320px]">PAGA AQUÍ</button><p className="flex items-center gap-1.5 text-[10px] font-black tracking-wide text-slate-500"><LockKeyhole size={12} />PASARELA DE PAGO SEGURA DE NIUBIZ</p></>}
-    {status === "error" && <><p className="text-sm font-bold text-red-700">{error}</p><button type="button" onClick={() => { setError(null); setStatus("loading"); setLoadAttempt((attempt) => attempt + 1); }} className="rounded-xl border border-[#C5A059] px-4 py-2 text-sm font-bold text-[#9A7739]">Reintentar</button></>}
+    {error && <p className="text-sm font-bold text-red-700">{error}</p>}
+    <button type="button" onClick={openCheckout} disabled={disabled} className="h-13 w-full rounded-xl bg-[#C5A059] px-8 py-3 text-sm font-extrabold text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:hover:brightness-100 sm:w-[320px]">PAGA AQUÍ</button>
+    <p className="flex items-center gap-1.5 text-[10px] font-black tracking-wide text-slate-500"><LockKeyhole size={12} />PASARELA DE PAGO SEGURA DE NIUBIZ</p>
   </div>;
 }
