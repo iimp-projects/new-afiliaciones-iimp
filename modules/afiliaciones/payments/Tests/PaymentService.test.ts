@@ -45,6 +45,9 @@ const input: CreatePaymentInput = {
     responsable: "Responsable de prueba",
     emailFacturacion: "facturacion@example.com",
   },
+  billingConfirmed: true,
+  termsAccepted: true,
+  majorityAccepted: true,
 };
 
 const callbackPayload = { paymentId: 99, applicationId: input.applicationId, expiresAt: Date.now() + 60_000, purpose: "payment_callback" as const, jti: "test-jti" };
@@ -144,6 +147,24 @@ describe("PaymentService", () => {
 
     await expect(service.initiate(input, "expired-token"))
       .rejects.toMatchObject({ status: 403, code: "PAYMENT_AUTH_INVALID_OR_EXPIRED" } satisfies Partial<PaymentServiceError>);
+  });
+
+  it("rechaza el inicio cuando no se confirmó la facturación", async () => {
+    const service = new PaymentService(undefined, new MockPaymentProvider("PAID"), new PaymentRepositoryFake(), undefined, authorizedPayment);
+    await expect(service.initiate({ ...input, billingConfirmed: false }, "authorized"))
+      .rejects.toMatchObject({ status: 422, code: "PAYMENT_BILLING_NOT_CONFIRMED" } satisfies Partial<PaymentServiceError>);
+  });
+
+  it("rechaza el inicio cuando no se aceptaron los términos y condiciones", async () => {
+    const service = new PaymentService(undefined, new MockPaymentProvider("PAID"), new PaymentRepositoryFake(), undefined, authorizedPayment);
+    await expect(service.initiate({ ...input, termsAccepted: false }, "authorized"))
+      .rejects.toMatchObject({ status: 422, code: "PAYMENT_TERMS_NOT_ACCEPTED" } satisfies Partial<PaymentServiceError>);
+  });
+
+  it("rechaza el inicio cuando no se confirmó la mayoría de edad", async () => {
+    const service = new PaymentService(undefined, new MockPaymentProvider("PAID"), new PaymentRepositoryFake(), undefined, authorizedPayment);
+    await expect(service.initiate({ ...input, majorityAccepted: false }, "authorized"))
+      .rejects.toMatchObject({ status: 422, code: "PAYMENT_MAJORITY_NOT_CONFIRMED" } satisfies Partial<PaymentServiceError>);
   });
 
   it("provisiona la cuenta del asociado tras un pago PAID", async () => {

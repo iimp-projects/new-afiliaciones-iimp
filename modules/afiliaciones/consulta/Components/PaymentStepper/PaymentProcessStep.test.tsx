@@ -11,7 +11,7 @@ vi.mock("@/modules/afiliaciones/payments/Components/PaymentLoadingOverlay", () =
 import PaymentProcessStep from "./PaymentProcessStep";
 
 const billingData = { tipoDocumento: "RUC" as const, numeroDocumento: "20107972090", razonSocial: "Razón social real", direccionFiscal: "Av. Principal 123", responsable: "Responsable real", emailFacturacion: "facturacion@example.com" };
-const props = { billingData, confirmed: false, onConfirmedChange: vi.fn(), result: null, loading: false, error: null, onRetry: vi.fn(), paymentUiState: "PAYMENT_FAILED" as const, onCheckoutStateChange: vi.fn(), failureCode: "116", failureMessage: "No cuentas con fondos suficientes para completar la compra. Intenta nuevamente con otra tarjeta.", affiliateType: "ASOCIADO ACTIVO" };
+const props = { billingData, confirmed: false, onConfirmedChange: vi.fn(), termsAccepted: false, onTermsAcceptedChange: vi.fn(), majorityAccepted: false, onMajorityAcceptedChange: vi.fn(), result: null, loading: false, error: null, onRetry: vi.fn(), paymentUiState: "PAYMENT_FAILED" as const, onCheckoutStateChange: vi.fn(), failureCode: "116", failureMessage: "No cuentas con fondos suficientes para completar la compra. Intenta nuevamente con otra tarjeta.", affiliateType: "ASOCIADO ACTIVO" };
 const checkoutResult = { success: true, paymentId: 2, status: "PENDING" as const, amount: 300, registrationAmount: 150, membershipFeeAmount: 150, currency: "PEN" as const, message: "Sesión Niubiz creada.", checkout: { sessionToken: "token", merchantId: "merchant", purchaseNumber: "2", amount: 300, currency: "PEN" as const, checkoutUrl: "https://checkout.example.invalid", callbackUrl: "https://example.invalid/callback", expirationMinutes: 10, timeoutUrl: "https://example.invalid/timeout", merchantName: "IIMP", formButtonColor: "#C5A059" } };
 
 describe("PaymentProcessStep", () => {
@@ -27,6 +27,40 @@ describe("PaymentProcessStep", () => {
   it("mantiene el botón normal bloqueado hasta confirmar la facturación", () => {
     const markup = renderToStaticMarkup(<PaymentProcessStep {...props} paymentUiState="IDLE" result={checkoutResult} />);
     expect(markup).toContain('<button disabled="">PAGA AQUÍ</button>');
+  });
+
+  it("mantiene el botón bloqueado hasta aceptar términos y mayoría de edad", () => {
+    const markup = renderToStaticMarkup(<PaymentProcessStep {...props} confirmed paymentUiState="IDLE" result={checkoutResult} />);
+    expect(markup).toContain('<button disabled="">PAGA AQUÍ</button>');
+  });
+
+  it("habilita el botón cuando facturación, términos y mayoría de edad están aceptados", () => {
+    const markup = renderToStaticMarkup(<PaymentProcessStep {...props} confirmed termsAccepted majorityAccepted paymentUiState="IDLE" result={checkoutResult} />);
+    expect(markup).toContain("<button>PAGA AQUÍ</button>");
+  });
+
+  it("muestra los checkboxes de términos y mayoría de edad", () => {
+    const markup = renderToStaticMarkup(<PaymentProcessStep {...props} paymentUiState="IDLE" />);
+    expect(markup).toContain("He leído y acepto los");
+    expect(markup).toContain("Términos y Condiciones de Afiliación y Pago del IIMP");
+    expect(markup).toContain("Declaro ser mayor de edad");
+    expect(markup).toContain('type="checkbox"');
+  });
+
+  it("enlaza el PDF de Términos y Condiciones en una pestaña nueva", () => {
+    const markup = renderToStaticMarkup(<PaymentProcessStep {...props} paymentUiState="IDLE" />);
+    expect(markup).toContain('href="/docs/terminos-condiciones.pdf"');
+    expect(markup).toContain('target="_blank"');
+    expect(markup).toContain('rel="noopener noreferrer"');
+    expect(markup).toContain("Leer Términos y Condiciones");
+  });
+
+  it("incluye la sección de contacto institucional con correo y teléfono", () => {
+    const markup = renderToStaticMarkup(<PaymentProcessStep {...props} paymentUiState="IDLE" />);
+    expect(markup).toContain("¿Necesitas ayuda con tu afiliación?");
+    expect(markup).toContain("mailto:liset.otoya@iimp.org.pe");
+    expect(markup).toContain("tel:+51982097019");
+    expect(markup).toContain("Los Canarios 155, Lima 15021, Perú");
   });
 
   it.each(["PAYMENT_UNCERTAIN", "PROCESSING_PAYMENT", "PAYMENT_SUCCESS"] as const)("no ofrece un nuevo checkout en %s", (paymentUiState) => {

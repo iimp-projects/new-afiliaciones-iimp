@@ -41,6 +41,7 @@ export class PaymentService {
 
   async initiate(input: CreatePaymentInput, authorization: string | undefined, clientIp?: string): Promise<CreatePaymentResponse> {
     if (!this.authorizationService.verify(authorization, input.applicationId)) throw new PaymentServiceError("La autorización temporal de pago no es válida o expiró.", 403, "PAYMENT_AUTH_INVALID_OR_EXPIRED");
+    this.assertCheckoutRequirementsAccepted(input);
     const applicationForBilling = await this.repository.findApplicationById(input.applicationId);
     const resolvedBilling = await this.resolveBillingData(input.billingData, applicationForBilling?.documentNumber);
     const billingData = resolvedBilling.billingData;
@@ -210,6 +211,12 @@ export class PaymentService {
     const url = new URL(callbackUrl);
     url.searchParams.set("payment_callback", await this.authorizationService.createCallbackReference(payment.id, payment.applicationId, paymentConfig.authorizationTtlSeconds));
     return url.toString();
+  }
+
+  private assertCheckoutRequirementsAccepted(input: CreatePaymentInput): void {
+    if (input.billingConfirmed !== true) throw new PaymentServiceError("Debes confirmar los datos de facturación antes de continuar.", 422, "PAYMENT_BILLING_NOT_CONFIRMED");
+    if (input.termsAccepted !== true) throw new PaymentServiceError("Debes aceptar los Términos y Condiciones antes de continuar.", 422, "PAYMENT_TERMS_NOT_ACCEPTED");
+    if (input.majorityAccepted !== true) throw new PaymentServiceError("Debes confirmar que eres mayor de edad antes de continuar.", 422, "PAYMENT_MAJORITY_NOT_CONFIRMED");
   }
 
   private assertPaymentEligible(application: Awaited<ReturnType<IPaymentRepository["findApplicationById"]>>): asserts application is NonNullable<typeof application> {

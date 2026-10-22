@@ -5,7 +5,7 @@ import { PaymentAuthorizationRecoveryError, createPaymentWithAuthorizationRecove
 import { PAYMENT_AUTH_INVALID_OR_EXPIRED, PaymentApiError } from "../Services/PaymentApi";
 import { QueryApiError } from "../../consulta/Services/QueryApi";
 
-const payload: CreatePaymentRequest = { applicationId: 31, billingData: { tipoDocumento: "DNI", numeroDocumento: "12345678", razonSocial: "Ana Pérez", direccionFiscal: "Av. Prueba 123", responsable: "Ana Pérez", emailFacturacion: "ana@example.com" } };
+const payload: CreatePaymentRequest = { applicationId: 31, billingData: { tipoDocumento: "DNI", numeroDocumento: "12345678", razonSocial: "Ana Pérez", direccionFiscal: "Av. Prueba 123", responsable: "Ana Pérez", emailFacturacion: "ana@example.com" }, billingConfirmed: true, termsAccepted: true, majorityAccepted: true };
 const response: CreatePaymentResponse = { success: true, paymentId: 99, status: "PENDING", amount: 300, currency: "PEN", message: "Pago iniciado." };
 const readyApplication = { applicationId: 31, status: "READY_FOR_PAYMENT" } as never;
 const authError = () => new PaymentApiError("La autorización temporal de pago no es válida o expiró.", 403, PAYMENT_AUTH_INVALID_OR_EXPIRED);

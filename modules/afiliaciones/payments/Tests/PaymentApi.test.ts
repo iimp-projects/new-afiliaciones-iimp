@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { PAYMENT_AUTH_INVALID_OR_EXPIRED, PaymentApiError, paymentApi } from "../Services/PaymentApi";
 import type { CreatePaymentRequest } from "../Models/PaymentRequest";
 
-const payload: CreatePaymentRequest = { applicationId: 31, billingData: { tipoDocumento: "DNI", numeroDocumento: "12345678", razonSocial: "Ana Pérez", direccionFiscal: "Av. Prueba 123", responsable: "Ana Pérez", emailFacturacion: "ana@example.com" } };
+const payload: CreatePaymentRequest = { applicationId: 31, billingData: { tipoDocumento: "DNI", numeroDocumento: "12345678", razonSocial: "Ana Pérez", direccionFiscal: "Av. Prueba 123", responsable: "Ana Pérez", emailFacturacion: "ana@example.com" }, billingConfirmed: true, termsAccepted: true, majorityAccepted: true };
 
 describe("paymentApi", () => {
   it("preserva status, code y mensaje de un error de autorización temporal", async () => {
