@@ -27,7 +27,11 @@ export interface PaymentApplicationSnapshot {
   email: string;
   phone: string;
   documentNumber: string;
-  person: { firstName: string; paternalLastName: string } | null;
+  person: {
+    firstName: string;
+    paternalLastName: string;
+    address: { street: string; city: string; state: string; countryCode: string; postalCode: string | null } | null;
+  } | null;
 }
 
 export interface PendingPaymentData {

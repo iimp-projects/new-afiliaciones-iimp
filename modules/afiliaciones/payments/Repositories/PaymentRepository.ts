@@ -21,7 +21,7 @@ export class PaymentRepository implements IPaymentRepository, IPaymentSandboxRes
   }
 
   async findApplicationById(applicationId: number, tx?: PaymentTransaction): Promise<PaymentApplicationSnapshot | null> {
-    return this.client(tx).membershipApplication.findUnique({
+    const application = await this.client(tx).membershipApplication.findUnique({
       where: { id: applicationId },
       select: {
         id: true,
@@ -31,9 +31,52 @@ export class PaymentRepository implements IPaymentRepository, IPaymentSandboxRes
         email: true,
         phone: true,
         documentNumber: true,
-        person: { select: { firstName: true, paternalLastName: true } },
+        person: {
+          select: {
+            firstName: true,
+            paternalLastName: true,
+            addresses: {
+              where: { isPrimary: true },
+              orderBy: { createdAt: "desc" },
+              take: 1,
+              select: {
+                street: true,
+                zipCode: true,
+                district: { select: { name: true, province: { select: { department: { select: { name: true } } } } } },
+                country: { select: { isoCode: true } },
+              },
+            },
+          },
+        },
       },
     });
+    if (!application) return null;
+
+    const address = application.person?.addresses?.[0];
+    return {
+      id: application.id,
+      personId: application.personId,
+      status: application.status,
+      deletedAt: application.deletedAt,
+      email: application.email,
+      phone: application.phone,
+      documentNumber: application.documentNumber,
+      person: application.person
+        ? {
+            firstName: application.person.firstName,
+            paternalLastName: application.person.paternalLastName,
+            address: address
+              ? {
+                  street: address.street,
+                  city: address.district?.name ?? "",
+                  state: address.district?.province?.department?.name ?? "",
+                  countryCode: address.country?.isoCode ?? "",
+                  postalCode: address.zipCode,
+                }
+              : null,
+          }
+        : null,
+    };
   }
 
   async findActivePayment(applicationId: number, tx?: PaymentTransaction): Promise<PersistedPayment | null> {

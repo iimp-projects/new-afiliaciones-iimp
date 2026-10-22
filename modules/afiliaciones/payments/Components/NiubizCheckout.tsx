@@ -34,7 +34,6 @@ export function NiubizCheckout({ config, disabled = false, onStateChange, onRequ
   const completedResultRef = useRef<unknown>(null);
   const openingRef = useRef(false);
   const [checkoutCompleted, setCheckoutCompleted] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const openCheckout = async () => {
     if (disabled || openingRef.current) return;
@@ -52,7 +51,6 @@ export function NiubizCheckout({ config, disabled = false, onStateChange, onRequ
 
     if (!resolvedConfig) {
       openingRef.current = false;
-      setError("No pudimos abrir la pasarela. Intenta nuevamente en unos segundos.");
       onStateChange?.("CHECKOUT_ERROR");
       return;
     }
@@ -61,7 +59,6 @@ export function NiubizCheckout({ config, disabled = false, onStateChange, onRequ
       await loadCheckoutLibrary(resolvedConfig.checkoutUrl);
     } catch {
       openingRef.current = false;
-      setError("No pudimos abrir la pasarela. Intenta nuevamente en unos segundos.");
       onStateChange?.("CHECKOUT_ERROR");
       return;
     }
@@ -70,7 +67,6 @@ export function NiubizCheckout({ config, disabled = false, onStateChange, onRequ
       const checkout = window.VisanetCheckout;
       if (!checkout) {
         openingRef.current = false;
-        setError("No pudimos abrir la pasarela. Intenta nuevamente en unos segundos.");
         onStateChange?.("CHECKOUT_ERROR");
         return;
       }
@@ -82,14 +78,12 @@ export function NiubizCheckout({ config, disabled = false, onStateChange, onRequ
         onStateChange?.("CHECKOUT_OPEN");
       } catch {
         openingRef.current = false;
-        setError("No pudimos abrir la pasarela. Intenta nuevamente en unos segundos.");
         onStateChange?.("CHECKOUT_ERROR");
       }
     });
   };
 
-  return <div className="space-y-3 rounded-2xl border border-[#E8D09E] bg-white p-5" data-niubiz-complete={checkoutCompleted ? "true" : "false"}>
-    {error && <p className="text-sm font-bold text-red-700">{error}</p>}
+  return <div className="space-y-3" data-niubiz-complete={checkoutCompleted ? "true" : "false"}>
     <button type="button" onClick={openCheckout} disabled={disabled} className="h-13 w-full rounded-xl bg-[#C5A059] px-8 py-3 text-sm font-extrabold text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:hover:brightness-100 sm:w-[320px]">PAGA AQUÍ</button>
     <p className="flex items-center gap-1.5 text-[10px] font-black tracking-wide text-slate-500"><LockKeyhole size={12} />PASARELA DE PAGO SEGURA DE NIUBIZ</p>
   </div>;

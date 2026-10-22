@@ -37,8 +37,7 @@ export default function PaymentProcessStep({ billingData, accepted, onAcceptedCh
     {paymentUiState === "PAYMENT_UNCERTAIN" && <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800"><p className="font-black">Estamos verificando tu pago</p><p>No pudimos confirmar inmediatamente el resultado. No realices otro pago todavía.</p></div>}
     {paymentUiState === "PAYMENT_SUCCESS" && result && <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5"><p className="font-black">Pago realizado correctamente</p><p>Monto: {total}</p><p>Operación: {restoredPayment?.transactionId ?? "No disponible"}</p><p>Código de autorización: {restoredPayment?.authorizationCode ?? "No disponible"}</p><button type="button" onClick={onFinish}>Finalizar</button></div>}
     {loading && paymentUiState !== "PREPARING_CHECKOUT" && <p>Preparando pago...</p>}
-    {paymentUiState === "CHECKOUT_ERROR" && <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm font-bold text-red-700"><p>No pudimos abrir la pasarela</p><p>Intenta nuevamente en unos segundos.</p></div>}
-    {error && <p>{error}</p>}
+    {paymentUiState === "CHECKOUT_ERROR" && <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm font-bold text-red-700"><p>No pudimos iniciar la pasarela de pago. Intenta nuevamente en unos segundos. Si el problema continúa, contacta con soporte.</p></div>}
     <InstitutionalContactCard />
   </div>{paymentUiState === "PREPARING_CHECKOUT" && <PaymentLoadingOverlay title="Preparando pago" description="Estamos conectando con la pasarela segura de Niubiz." secondaryText="Esto puede tardar unos segundos." />}{paymentUiState === "PROCESSING_PAYMENT" && <PaymentLoadingOverlay title="Procesando tu pago" description="Estamos confirmando la operación con Niubiz." secondaryText="No cierres esta ventana ni actualices la página." />}</section>;
 }

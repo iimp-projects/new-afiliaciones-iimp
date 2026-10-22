@@ -74,6 +74,7 @@ export class PaymentService {
         ...(application.phone ? { phone: application.phone } : {}),
         ...(application.personId ? { personId: application.personId } : {}),
         ...(application.documentNumber ? { documentNumber: application.documentNumber } : {}),
+        ...(application.person?.address ? { address: { street: application.person.address.street, city: application.person.address.city, state: application.person.address.state, countryCode: application.person.address.countryCode, postalCode: application.person.address.postalCode ?? undefined } } : {}),
       },
     });
     const updatedPayment = resumed && providerResult.status === PaymentStatus.PENDING ? payment : await this.persistPaymentResult(payment, providerResult);
@@ -88,7 +89,8 @@ export class PaymentService {
       return await provider.initiate(command);
     } catch (error) {
       if (error instanceof NiubizProviderConfigurationError || error instanceof NiubizProviderNotReadyError) {
-        throw new PaymentServiceError(error.message, 503);
+        console.error("[PAYMENTS] No se pudo iniciar la sesión Niubiz.", { errorName: error.name, errorMessage: error.message });
+        throw new PaymentServiceError("La pasarela de pago no está disponible en este momento. Intenta nuevamente más tarde.", 503);
       }
       throw error;
     }
@@ -261,7 +263,10 @@ export class PaymentService {
   private assertProviderReady(provider: PaymentProvider): void {
     try { provider.assertReady(); }
     catch (error) {
-      if (error instanceof NiubizProviderConfigurationError || error instanceof NiubizProviderNotReadyError) throw new PaymentServiceError(error.message, 503);
+      if (error instanceof NiubizProviderConfigurationError || error instanceof NiubizProviderNotReadyError) {
+        console.error("[PAYMENTS] Niubiz no está listo para iniciar sesión.", { errorName: error.name, errorMessage: error.message });
+        throw new PaymentServiceError("La pasarela de pago no está disponible en este momento. Intenta nuevamente más tarde.", 503);
+      }
       throw error;
     }
   }

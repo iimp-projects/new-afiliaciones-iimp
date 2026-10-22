@@ -26,14 +26,6 @@ const config: NiubizTestConfig = {
     serviceLocationCountryCode: "PE",
     serviceLocationPostalCode: "15024",
   },
-  cardholderDataMap: {
-    city: "Lima",
-    country: "PE",
-    address: "Calle Los Canarios 155-157, La Molina",
-    postalCode: "15024",
-    state: "Lima",
-    phone: "5111234567",
-  },
 };
 
 describe("Niubiz request builders", () => {
@@ -131,6 +123,7 @@ describe("Niubiz request builders", () => {
         phone: "999999999",
         personId: 7,
         documentNumber: "12345678",
+        address: { street: "Calle Los Canarios 155-157, La Molina", city: "Lima", state: "Lima", countryCode: "PE", postalCode: "15024" },
       },
     }, "security-token");
 

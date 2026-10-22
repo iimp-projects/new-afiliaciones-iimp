@@ -41,7 +41,6 @@ export class NiubizPaymentProvider implements PaymentProvider {
 
   assertReady(): void {
     this.assertConfigured();
-    this.assertCardholderDataConfigured();
   }
 
   assertAuthorizationReady(): void {
@@ -218,30 +217,15 @@ export class NiubizPaymentProvider implements PaymentProvider {
   }
 
   private buildCardholderDataMap(command: PaymentProviderCommand): NiubizDataMap {
-    const fallback = this.config.cardholderDataMap ?? {};
+    const address = command.customer.address;
     const dataMap: NiubizDataMap = {};
-    const phone = command.customer.phone ?? fallback.phone;
-    if (phone) dataMap.cardholderPhoneNumber = phone;
-    if (fallback.city) dataMap.cardholderCity = fallback.city;
-    if (fallback.country) dataMap.cardholderCountry = fallback.country;
-    if (fallback.address) dataMap.cardholderAddress = fallback.address;
-    if (fallback.postalCode) dataMap.cardholderPostalCode = fallback.postalCode;
-    if (fallback.state) dataMap.cardholderState = fallback.state;
+    if (command.customer.phone) dataMap.cardholderPhoneNumber = command.customer.phone;
+    if (address?.street) dataMap.cardholderAddress = address.street;
+    if (address?.city) dataMap.cardholderCity = address.city;
+    if (address?.state) dataMap.cardholderState = address.state;
+    if (address?.countryCode) dataMap.cardholderCountry = address.countryCode;
+    if (address?.postalCode) dataMap.cardholderPostalCode = address.postalCode;
     return dataMap;
-  }
-
-  private assertCardholderDataConfigured(): void {
-    const fallback = this.config.cardholderDataMap ?? {};
-    const missing = [
-      !fallback.city && "NIUBIZ_CARDHOLDER_CITY",
-      !fallback.country && "NIUBIZ_CARDHOLDER_COUNTRY",
-      !fallback.address && "NIUBIZ_CARDHOLDER_ADDRESS",
-      !fallback.postalCode && "NIUBIZ_CARDHOLDER_POSTAL_CODE",
-      !fallback.state && "NIUBIZ_CARDHOLDER_STATE",
-    ].filter(Boolean);
-    if (missing.length > 0) {
-      throw new NiubizProviderConfigurationError(`Sesión Niubiz incompleta. Faltan: ${missing.join(", ")}.`);
-    }
   }
 
   private assertSessionDataComplete(merchantDefineData: NiubizDataMap, dataMap: NiubizDataMap): void {

@@ -25,14 +25,6 @@ const config: NiubizTestConfig = {
     serviceLocationCountryCode: "PE",
     serviceLocationPostalCode: "15024",
   },
-  cardholderDataMap: {
-    city: "Lima",
-    country: "PE",
-    address: "Calle Los Canarios 155-157, La Molina",
-    postalCode: "15024",
-    state: "Lima",
-    phone: "5111234567",
-  },
 };
 
 const command = {
@@ -41,7 +33,7 @@ const command = {
   billingData: {} as never,
   amount: 300,
   currency: "PEN" as const,
-  customer: { email: "applicant@example.com", phone: "999999999", personId: 7, documentNumber: "12345678" },
+  customer: { email: "applicant@example.com", phone: "999999999", personId: 7, documentNumber: "12345678", address: { street: "Calle Los Canarios 155-157, La Molina", city: "Lima", state: "Lima", countryCode: "PE", postalCode: "15024" } },
 };
 
 describe("FASE 01 — Security", () => {
@@ -81,7 +73,7 @@ describe("FASE 02 — Session", () => {
   it("usa documentNumber como identificador único cuando no hay personId", () => {
     const request = new NiubizPaymentProvider(config, "TEST").buildSessionRequest({
       ...command,
-      customer: { email: "applicant@example.com", documentNumber: "12345678" },
+      customer: { email: "applicant@example.com", documentNumber: "12345678", phone: "999999999", address: { street: "Calle Los Canarios 155-157, La Molina", city: "Lima", state: "Lima", countryCode: "PE", postalCode: "15024" } },
     }, "security-token");
     expect(request.body.antifraud.merchantDefineData).toMatchObject({
       MDD32: "12345678",
@@ -90,7 +82,7 @@ describe("FASE 02 — Session", () => {
     });
   });
 
-  it("envía el dataMap con los seis campos obligatorios", () => {
+  it("envía el dataMap con los seis campos del titular reales", () => {
     const request = new NiubizPaymentProvider(config, "TEST").buildSessionRequest(command, "security-token");
     expect(request.body.dataMap).toEqual({
       cardholderCity: "Lima",
@@ -102,6 +94,12 @@ describe("FASE 02 — Session", () => {
     });
   });
 
+  it("no usa datos institucionales como dirección del titular", () => {
+    const request = new NiubizPaymentProvider({ ...config }, "TEST").buildSessionRequest(command, "security-token");
+    expect(request.body.dataMap?.cardholderAddress).toBe("Calle Los Canarios 155-157, La Molina");
+    expect(request.body.dataMap?.cardholderAddress).not.toBe(config.authorizationDataMap?.urlAddress);
+  });
+
   it("impiden enviar una sesión incompleta sin MDD32", () => {
     const provider = new NiubizPaymentProvider(config, "TEST");
     expect(() => provider.buildSessionRequest({
@@ -111,8 +109,11 @@ describe("FASE 02 — Session", () => {
   });
 
   it("impiden enviar una sesión cuando falta un campo del dataMap", () => {
-    const provider = new NiubizPaymentProvider({ ...config, cardholderDataMap: { ...config.cardholderDataMap, postalCode: undefined } }, "TEST");
-    expect(() => provider.buildSessionRequest(command, "security-token")).toThrow(/cardholderPostalCode/);
+    const provider = new NiubizPaymentProvider(config, "TEST");
+    expect(() => provider.buildSessionRequest({
+      ...command,
+      customer: { ...command.customer, address: { ...command.customer.address, postalCode: undefined } },
+    }, "security-token")).toThrow(/cardholderPostalCode/);
   });
 
   it("no usa el número de pedido como identificador de cliente", () => {

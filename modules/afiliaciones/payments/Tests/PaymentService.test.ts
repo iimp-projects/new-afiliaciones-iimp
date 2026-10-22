@@ -98,7 +98,7 @@ class PaymentRepositoryFake implements IPaymentRepository {
       email: "applicant@example.com",
       phone: "999999999",
       documentNumber: "12345678",
-      person: { firstName: "Ana", paternalLastName: "Pérez" },
+      person: { firstName: "Ana", paternalLastName: "Pérez", address: { street: "Av. Prueba 123", city: "Lima", state: "Lima", countryCode: "PE", postalCode: "15024" } },
     };
   }
 
