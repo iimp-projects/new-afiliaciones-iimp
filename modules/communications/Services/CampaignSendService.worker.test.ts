@@ -22,6 +22,7 @@ function campaign(overrides: Partial<CampaignDetail> = {}): CampaignDetail {
     createdBy: 1,
     createdByName: "Admin",
     recipientCount: 100,
+    smtpAccount: "DEFAULT",
     pausedUntil: null,
     pauseReason: null,
     ...overrides,

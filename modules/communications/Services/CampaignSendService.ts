@@ -75,13 +75,13 @@ export class CampaignSendService {
       throw new CampaignMailError("La campaña no tiene destinatarios.", 422);
     }
     this.mailService.assertReplyToValid(campaign.replyTo);
-    this.mailService.validateSendConfiguration();
+    this.mailService.validateSendConfiguration(campaign.smtpAccount);
 
     const claimed = await this.campaignRepository.claimCampaignSending(campaignId, EmailCampaignStatus.READY);
     if (!claimed) {
       throw new CampaignMailError("La campaña ya fue iniciada por otro proceso.", 409, "CAMPAIGN_ALREADY_STARTED");
     }
-    await this.campaignRepository.writeAudit(actor, "CAMPAIGN_SEND_STARTED", campaignId, campaign.name, { recipientCount: campaign.recipientCount });
+    await this.campaignRepository.writeAudit(actor, "CAMPAIGN_SEND_STARTED", campaignId, campaign.name, { recipientCount: campaign.recipientCount, smtpAccount: campaign.smtpAccount });
     return { recipientCount: campaign.recipientCount };
   }
 
@@ -175,7 +175,7 @@ export class CampaignSendService {
       throw new CampaignMailError("Solo se pueden reintentar destinatarios de una campaña con errores.", 409);
     }
     this.mailService.assertReplyToValid(campaign.replyTo);
-    this.mailService.validateSendConfiguration();
+    this.mailService.validateSendConfiguration(campaign.smtpAccount);
 
     const claimed = await this.campaignRepository.claimCampaignSending(campaignId, EmailCampaignStatus.PARTIAL);
     if (!claimed) {
@@ -188,7 +188,7 @@ export class CampaignSendService {
       throw new CampaignMailError("No hay destinatarios con errores para reintentar.", 422);
     }
 
-    await this.campaignRepository.writeAudit(actor, "CAMPAIGN_RETRY_STARTED", campaignId, campaign.name, { retryCount });
+    await this.campaignRepository.writeAudit(actor, "CAMPAIGN_RETRY_STARTED", campaignId, campaign.name, { retryCount, smtpAccount: campaign.smtpAccount });
     return { retryCount };
   }
 

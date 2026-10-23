@@ -22,6 +22,7 @@ function campaign(overrides: Partial<CampaignDetail> = {}): CampaignDetail {
     createdBy: 1,
     createdByName: "Admin",
     recipientCount: 100,
+    smtpAccount: "DEFAULT",
     pausedUntil: null,
     pauseReason: null,
     ...overrides,
@@ -104,6 +105,16 @@ describe("CampaignSendService.start", () => {
     await expect(service.start(1, ACTOR)).rejects.toMatchObject({ code: SMTP_CONFIG_UNAVAILABLE_CODE, status: 503 });
     expect(campaignRepository.claimCampaignSending).not.toHaveBeenCalled();
     expect(campaignRepository.writeAudit).not.toHaveBeenCalled();
+  });
+
+  it("valida la configuración de la cuenta SMTP seleccionada en la campaña", async () => {
+    const { service, campaignRepository, mailService } = setup();
+    campaignRepository.getCampaign.mockResolvedValue(campaign({ smtpAccount: "PROV" }));
+    campaignRepository.claimCampaignSending.mockResolvedValue(true);
+
+    await service.start(1, ACTOR);
+
+    expect(mailService.validateSendConfiguration).toHaveBeenCalledWith("PROV");
   });
 
   it("validación de replyTo se ejecuta antes del claim", async () => {

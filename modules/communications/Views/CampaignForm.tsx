@@ -5,28 +5,28 @@ import { useRouter } from "next/navigation";
 import { Eye, Loader2, Mail, Save } from "lucide-react";
 import { createCampaignAction, loadInstitutionalTemplateAction, updateCampaignAction } from "../Actions/campaign.actions";
 import { CampaignPreviewModal } from "./CampaignPreviewModal";
-import type { CampaignDetail } from "../Models/Campaign";
+import { SMTP_ACCOUNT_LABEL, type CampaignDetail } from "../Models/Campaign";
+import type { SmtpAccount, SmtpAccountOption } from "@/lib/config/env";
 
 const EMPTY = {
   name: "",
   subject: "",
   senderName: "",
-  senderEmail: "",
   replyTo: "",
   htmlContent: "",
   textContent: "",
 };
 
-export function CampaignForm({ campaignId, initial }: { campaignId?: number; initial?: CampaignDetail }) {
+export function CampaignForm({ campaignId, initial, availableAccounts }: { campaignId?: number; initial?: CampaignDetail; availableAccounts: SmtpAccountOption[] }) {
   const router = useRouter();
   const [form, setForm] = useState({
     name: initial?.name ?? EMPTY.name,
     subject: initial?.subject ?? EMPTY.subject,
     senderName: initial?.senderName ?? EMPTY.senderName,
-    senderEmail: initial?.senderEmail ?? EMPTY.senderEmail,
     replyTo: initial?.replyTo ?? EMPTY.replyTo,
     htmlContent: initial?.htmlContent ?? EMPTY.htmlContent,
     textContent: initial?.textContent ?? EMPTY.textContent,
+    smtpAccount: (initial?.smtpAccount ?? "DEFAULT") as SmtpAccount,
   });
   const [saving, setSaving] = useState(false);
   const [loadingTemplate, setLoadingTemplate] = useState(false);
@@ -61,10 +61,10 @@ export function CampaignForm({ campaignId, initial }: { campaignId?: number; ini
       name: form.name,
       subject: form.subject,
       senderName: form.senderName || null,
-      senderEmail: form.senderEmail || null,
       replyTo: form.replyTo || null,
       htmlContent: form.htmlContent,
       textContent: form.textContent || null,
+      smtpAccount: form.smtpAccount,
     };
     if (campaignId) {
       const response = await updateCampaignAction(campaignId, payload);
@@ -93,19 +93,35 @@ export function CampaignForm({ campaignId, initial }: { campaignId?: number; ini
           <span className="text-xs font-bold uppercase text-slate-500">Asunto *</span>
           <input value={form.subject} onChange={set("subject")} className={field} placeholder="Asunto del correo" />
         </label>
-        <label className="block">
+        <label className="block sm:col-span-2">
           <span className="text-xs font-bold uppercase text-slate-500">Nombre del remitente</span>
           <input value={form.senderName} onChange={set("senderName")} className={field} placeholder="Instituto de Ingenieros de Minas del Perú" />
         </label>
-        <label className="block">
-          <span className="text-xs font-bold uppercase text-slate-500">Correo remitente</span>
-          <input value={form.senderEmail} onChange={set("senderEmail")} className={field} placeholder="no-reply@iimp.org.pe" />
-        </label>
-        <label className="block sm:col-span-2">
-          <span className="text-xs font-bold uppercase text-slate-500">Reply-To</span>
-          <input value={form.replyTo} onChange={set("replyTo")} className={field} placeholder="asociados@iimp.org.pe" />
-        </label>
       </div>
+
+      <div>
+        <span className="text-xs font-bold uppercase text-slate-500">Cuenta de envío *</span>
+        <div className="mt-2 grid gap-3 sm:grid-cols-2">
+          {availableAccounts.map((option) => {
+            const selected = form.smtpAccount === option.account;
+            return (
+              <label key={option.account} className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors ${selected ? "border-[#C5A059] bg-[#fdfaf5]" : "border-slate-200 hover:bg-slate-50"}`}>
+                <input type="radio" name="smtpAccount" value={option.account} checked={selected} onChange={() => setForm((prev) => ({ ...prev, smtpAccount: option.account }))} className="mt-0.5 h-4 w-4 shrink-0 accent-[#C5A059]" />
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-slate-800">{SMTP_ACCOUNT_LABEL[option.account]}</p>
+                  <p className="truncate text-xs font-semibold text-slate-500">{option.from}</p>
+                </div>
+              </label>
+            );
+          })}
+        </div>
+        {availableAccounts.length === 0 && <p className="mt-2 text-xs font-semibold text-amber-700">No hay cuentas SMTP configuradas.</p>}
+      </div>
+
+      <label className="block">
+        <span className="text-xs font-bold uppercase text-slate-500">Reply-To</span>
+        <input value={form.replyTo} onChange={set("replyTo")} className={field} placeholder="asociados@iimp.org.pe" />
+      </label>
 
       <label className="block">
         <span className="text-xs font-bold uppercase text-slate-500">Contenido HTML</span>
@@ -155,13 +171,14 @@ export function CampaignForm({ campaignId, initial }: { campaignId?: number; ini
             htmlContent: form.htmlContent,
             textContent: form.textContent || null,
             senderName: form.senderName || null,
-            senderEmail: form.senderEmail || null,
+            senderEmail: null,
             replyTo: form.replyTo || null,
+            smtpAccount: form.smtpAccount,
           }}
           campaignId={null}
           status={null}
           previewRecipients={[]}
-          fromEmail={form.senderEmail || null}
+          fromEmail={availableAccounts.find((a) => a.account === form.smtpAccount)?.from ?? null}
           demo={true}
           onClose={() => setPreviewOpen(false)}
         />

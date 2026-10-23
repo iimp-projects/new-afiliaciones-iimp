@@ -1,6 +1,6 @@
 import { EmailCampaignStatus, Prisma, UserStatus } from "@prisma/client";
 import { MailService, MailServiceError } from "@/modules/shared/Services/MailService";
-import { ConfigurationError, getAppBaseUrl } from "@/lib/config/env";
+import { ConfigurationError, getAppBaseUrl, getSmtpConfig, type SmtpAccount } from "@/lib/config/env";
 import { accountActivationService } from "@/modules/auth/account-activation/service";
 import { escapeHtml } from "@/modules/shared/Email/EmailEscaping";
 import { renderTemplate, type TemplateRecipient } from "./TemplateRenderer";
@@ -16,6 +16,15 @@ const SEND_IN_PROGRESS_MESSAGE = "Ya existe un envío en curso para este destina
 const INVALID_REPLY_TO_MESSAGE = "El correo Reply-To no tiene un formato válido.";
 const SMTP_CONFIG_UNAVAILABLE_MESSAGE = "Configuración de correo no disponible.";
 export const SMTP_CONFIG_UNAVAILABLE_CODE = "SMTP_CONFIGURATION_UNAVAILABLE";
+
+/**
+ * Normaliza la cuenta SMTP persistida en la campaña. Las campañas históricas
+ * sin cuenta explícita (valor nulo/ausente) resuelven a DEFAULT. Nunca se
+ * cambia de proveedor automáticamente.
+ */
+export function resolveSmtpAccount(value: SmtpAccount | null | undefined): SmtpAccount {
+  return value === "PROV" ? "PROV" : "DEFAULT";
+}
 
 export class CampaignMailError extends Error {
   constructor(message: string, readonly status = 400, readonly code?: string) {
@@ -78,10 +87,25 @@ export class CampaignMailService {
   constructor(
     private readonly campaignRepository = new CampaignRepository(),
     private readonly deliveryRepository = new EmailDeliveryRepository(),
-    private readonly mailService = new MailService(),
+    private readonly defaultMailService: MailService = new MailService("DEFAULT"),
     private readonly associateRepository = new AssociateRecipientRepository(),
     private readonly accountActivation = accountActivationService,
+    private readonly provMailService: MailService = new MailService("PROV"),
   ) {}
+
+  /** Resuelve el MailService con las credenciales de la cuenta indicada. */
+  private mailForAccount(account: SmtpAccount): MailService {
+    return account === "PROV" ? this.provMailService : this.defaultMailService;
+  }
+
+  /** Remitente verificado de la cuenta (solo para auditoría; no expone credenciales). */
+  private fromEmailForAccount(account: SmtpAccount): string {
+    try {
+      return getSmtpConfig(process.env, account).from;
+    } catch {
+      return "";
+    }
+  }
 
   async sendTest(campaignId: number, toEmail: string, referenceRecipientId: number | null, actor: { userId: number; email: string }): Promise<{ messageId?: string }> {
     if (!isValidEmail(toEmail.trim().toLowerCase())) throw new CampaignMailError("Correo destinatario inválido.", 422, "INVALID_TO_EMAIL");
@@ -116,8 +140,9 @@ export class CampaignMailService {
     const html = renderTemplate(campaign.htmlContent, reference);
     const text = campaign.textContent ? renderTemplate(campaign.textContent, reference) : undefined;
 
-    const result = await this.deliver({ to: toEmail.trim(), subject, html, text, fromName: campaign.senderName ?? undefined, replyTo: campaign.replyTo ?? undefined });
-    await this.deliveryRepository.writeAudit(actor, "EMAIL_TEST_SENT", { campaignId, testRecipient: toEmail.trim().toLowerCase(), referenceRecipientId: referenceRecipientId ?? null });
+    const account = resolveSmtpAccount(campaign.smtpAccount);
+    const result = await this.deliver({ to: toEmail.trim(), subject, html, text, fromName: campaign.senderName ?? undefined, replyTo: campaign.replyTo ?? undefined }, account);
+    await this.deliveryRepository.writeAudit(actor, "EMAIL_TEST_SENT", { campaignId, testRecipient: toEmail.trim().toLowerCase(), referenceRecipientId: referenceRecipientId ?? null, smtpAccount: account, fromEmail: this.fromEmailForAccount(account) });
     return result;
   }
 
@@ -126,6 +151,7 @@ export class CampaignMailService {
     if (!campaign) throw new CampaignMailError("La campaña no existe.", 404);
     if (campaign.status !== EmailCampaignStatus.READY) throw new CampaignMailError("La campaña debe estar lista para enviar.", 409);
     this.assertReplyToValid(campaign.replyTo);
+    const account = resolveSmtpAccount(campaign.smtpAccount);
 
     const result = await this.deliverRecipient(campaign, campaignId, recipientId);
 
@@ -137,13 +163,13 @@ export class CampaignMailService {
 
     if (result.outcome === "ERROR") {
       await this.deliveryRepository.writeAudit(actor, "EMAIL_FAILED", {
-        campaignId, recipientId, email: result.email, deliveryId: result.deliveryId, attemptNumber: result.attemptNumber, result: "ERROR",
+        campaignId, recipientId, email: result.email, deliveryId: result.deliveryId, attemptNumber: result.attemptNumber, result: "ERROR", smtpAccount: account, fromEmail: this.fromEmailForAccount(account),
       });
       throw new CampaignMailError(result.errorMessage ?? "No se pudo enviar el correo.", 502);
     }
 
     await this.deliveryRepository.writeAudit(actor, (result.priorSendCount ?? 0) > 0 ? "EMAIL_RESENT" : "EMAIL_SENT", {
-      campaignId, recipientId, email: result.email, deliveryId: result.deliveryId, attemptNumber: result.attemptNumber, result: "SENT",
+      campaignId, recipientId, email: result.email, deliveryId: result.deliveryId, attemptNumber: result.attemptNumber, result: "SENT", smtpAccount: account, fromEmail: this.fromEmailForAccount(account),
     });
     return { messageId: result.messageId };
   }
@@ -217,8 +243,9 @@ export class CampaignMailService {
     const html = renderTemplate(campaign.htmlContent, context);
     const text = campaign.textContent ? renderTemplate(campaign.textContent, context) : undefined;
 
+    const account = resolveSmtpAccount(campaign.smtpAccount);
     try {
-      const result = await this.deliver({ to: recipient.email, subject, html, text, fromName: campaign.senderName ?? undefined, replyTo: campaign.replyTo ?? undefined });
+      const result = await this.deliver({ to: recipient.email, subject, html, text, fromName: campaign.senderName ?? undefined, replyTo: campaign.replyTo ?? undefined }, account);
       await this.deliveryRepository.markDeliverySent(delivery.id, result.messageId);
       await this.deliveryRepository.markRecipientSent(campaignId, recipientId);
       return { outcome: "SENT", email: recipient.email, deliveryId: delivery.id, attemptNumber: delivery.attemptNumber, priorSendCount: membership.sendCount, messageId: result.messageId };
@@ -331,13 +358,13 @@ export class CampaignMailService {
   }
 
   /**
-   * Fail-fast de configuración: valida que la cuenta SMTP institucional tenga
-   * las variables requeridas, sin abrir conexión. Lanza CampaignMailError con
+   * Fail-fast de configuración: valida que la cuenta SMTP indicada tenga las
+   * variables requeridas, sin abrir conexión. Lanza CampaignMailError con
    * SMTP_CONFIGURATION_UNAVAILABLE si falta configuración.
    */
-  validateSendConfiguration(): void {
+  validateSendConfiguration(account: SmtpAccount = "DEFAULT"): void {
     try {
-      this.mailService.validateConfiguration();
+      this.mailForAccount(account).validateConfiguration();
     } catch (error) {
       if (error instanceof ConfigurationError) {
         throw new CampaignMailError(SMTP_CONFIG_UNAVAILABLE_MESSAGE, 503, SMTP_CONFIG_UNAVAILABLE_CODE);
@@ -352,9 +379,9 @@ export class CampaignMailService {
     }
   }
 
-  private async deliver(options: { to: string; subject: string; html: string; text?: string; fromName?: string; replyTo?: string }): Promise<{ messageId?: string }> {
+  private async deliver(options: { to: string; subject: string; html: string; text?: string; fromName?: string; replyTo?: string }, account: SmtpAccount): Promise<{ messageId?: string }> {
     try {
-      return await this.mailService.sendMail(options);
+      return await this.mailForAccount(account).sendMail(options);
     } catch (error) {
       if (error instanceof ConfigurationError) throw new CampaignMailError(SMTP_CONFIG_UNAVAILABLE_MESSAGE, 503, SMTP_CONFIG_UNAVAILABLE_CODE);
       throw error;
