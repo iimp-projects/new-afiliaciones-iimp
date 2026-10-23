@@ -11,6 +11,7 @@ import {
   getPaymentAuthSecret,
   getSapConfig,
   getS3Config,
+  getSmtpAccountOptions,
   getSmtpConfig,
   validateStartupConfig,
 } from "./env";
@@ -162,6 +163,48 @@ describe("feature configuration (lazy)", () => {
     }, "PROV");
     expect(config.from).toBe("boletin@iimp.org.pe");
     expect(config.secure).toBe(true);
+  });
+
+  it("getSmtpAccountOptions omite cuentas no configuradas", () => {
+    expect(getSmtpAccountOptions({})).toEqual([]);
+  });
+
+  it("getSmtpAccountOptions expone DEFAULT cuando SMTP_* está completo", () => {
+    const options = getSmtpAccountOptions({
+      SMTP_HOST: "smtp.example",
+      SMTP_PORT: "587",
+      SMTP_USER: "user@example",
+      SMTP_PASS: "pass",
+      SMTP_FROM: "no-reply@iimp.org.pe",
+    });
+    expect(options).toEqual([{ account: "DEFAULT", from: "no-reply@iimp.org.pe" }]);
+  });
+
+  it("getSmtpAccountOptions expone solo PROV cuando DEFAULT no está configurado", () => {
+    const options = getSmtpAccountOptions({
+      PROV_MAIL_HOST: "smtp.prov",
+      PROV_MAIL_PORT: "465",
+      PROV_MAIL_USERNAME: "prov@example",
+      PROV_MAIL_PASSWORD: "provpass",
+      PROV_MAIL_FROM: "boletin@iimp.org.pe",
+    });
+    expect(options).toEqual([{ account: "PROV", from: "boletin@iimp.org.pe" }]);
+  });
+
+  it("getSmtpAccountOptions nunca expone credenciales (solo remitente)", () => {
+    const options = getSmtpAccountOptions({
+      SMTP_HOST: "smtp.example",
+      SMTP_PORT: "587",
+      SMTP_USER: "user@example",
+      SMTP_PASS: "s3cret-pass",
+      SMTP_FROM: "no-reply@iimp.org.pe",
+      PROV_MAIL_HOST: "smtp.prov",
+      PROV_MAIL_PORT: "465",
+      PROV_MAIL_USERNAME: "prov@example",
+      PROV_MAIL_PASSWORD: "prov-s3cret",
+      PROV_MAIL_FROM: "boletin@iimp.org.pe",
+    });
+    expect(JSON.stringify(options)).not.toContain("s3cret");
   });
 
   it("getSapConfig falla sin configuración (sin fallback silencioso)", () => {

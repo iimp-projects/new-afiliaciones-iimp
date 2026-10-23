@@ -1423,6 +1423,11 @@ enum EmailSendStatus {
   ERROR
 }
 
+enum EmailSmtpAccount {
+  DEFAULT
+  PROV
+}
+
 model EmailCampaign {
   id          Int                 @id @default(autoincrement())
   name        String              @db.VarChar(200)
@@ -1433,6 +1438,7 @@ model EmailCampaign {
   senderEmail String?             @map("sender_email") @db.VarChar(200)
   replyTo     String?             @map("reply_to") @db.VarChar(200)
   status      EmailCampaignStatus @default(DRAFT)
+  smtpAccount EmailSmtpAccount    @default(DEFAULT) @map("smtp_account")
   createdBy   Int?                @map("created_by")
   pausedUntil DateTime?           @map("paused_until")
   pauseReason String?             @map("pause_reason") @db.VarChar(500)

@@ -67,6 +67,7 @@ export class CampaignRepository {
       htmlContent: row.htmlContent,
       textContent: row.textContent,
       status: row.status,
+      smtpAccount: row.smtpAccount,
       createdAt: row.createdAt.toISOString(),
       updatedAt: row.updatedAt.toISOString(),
       createdBy: row.createdBy,
@@ -88,6 +89,7 @@ export class CampaignRepository {
         htmlContent: data.htmlContent,
         textContent: data.textContent?.trim() || null,
         status: EmailCampaignStatus.DRAFT,
+        smtpAccount: data.smtpAccount === "PROV" ? "PROV" : "DEFAULT",
         createdBy: actorId,
       },
       select: { id: true },
@@ -106,6 +108,7 @@ export class CampaignRepository {
         replyTo: data.replyTo?.trim() || null,
         htmlContent: data.htmlContent,
         textContent: data.textContent?.trim() || null,
+        smtpAccount: data.smtpAccount === "PROV" ? "PROV" : "DEFAULT",
       },
     });
   }

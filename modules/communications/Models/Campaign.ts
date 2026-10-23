@@ -1,4 +1,5 @@
 import type { EmailCampaignStatus } from "@prisma/client";
+import type { SmtpAccount } from "@/lib/config/env";
 
 export interface CampaignListItem {
   id: number;
@@ -24,6 +25,8 @@ export interface CampaignDetail {
   createdBy: number | null;
   createdByName: string | null;
   recipientCount: number;
+  /** Cuenta SMTP seleccionada para la campaña (DEFAULT = institucional). */
+  smtpAccount: SmtpAccount;
   /** Pausa por cuota/rate-limit del proveedor (null = sin pausa). */
   pausedUntil: string | null;
   pauseReason: string | null;
@@ -37,6 +40,8 @@ export interface CampaignInput {
   replyTo?: string | null;
   htmlContent: string;
   textContent?: string | null;
+  /** Cuenta SMTP a usar para el envío (DEFAULT si se omite). */
+  smtpAccount?: SmtpAccount;
 }
 
 export interface CampaignRecipientSelection {
@@ -59,3 +64,9 @@ export interface CampaignRecipientPreview {
   enlaceAcceso?: string | null;
   enlaceActivacion?: string | null;
 }
+
+/** Etiqueta legible de cada cuenta SMTP (usada en selector y vista previa). */
+export const SMTP_ACCOUNT_LABEL: Record<SmtpAccount, string> = {
+  DEFAULT: "DEFAULT — Correo institucional",
+  PROV: "PROV — Correo alternativo",
+};
