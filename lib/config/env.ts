@@ -247,6 +247,31 @@ export interface SmtpConfig {
 
 export type SmtpAccount = "DEFAULT" | "PROV";
 
+/** Cuenta SMTP disponible para envío, con su dirección remitente verificada. */
+export interface SmtpAccountOption {
+  readonly account: SmtpAccount;
+  readonly from: string;
+}
+
+/**
+ * Devuelve únicamente las cuentas SMTP configuradas y completas (habilitadas).
+ * La cuenta DEFAULT (institucional) y la cuenta PROV (alternativa) se exponen
+ * solo cuando `getSmtpConfig` resuelve sin errores. No expone credenciales;
+ * solo el remitente verificado.
+ */
+export function getSmtpAccountOptions(env: EnvSource = process.env): SmtpAccountOption[] {
+  const options: SmtpAccountOption[] = [];
+  for (const account of ["DEFAULT", "PROV"] as const) {
+    try {
+      const config = getSmtpConfig(env, account);
+      options.push({ account, from: config.from });
+    } catch {
+      // Cuenta no configurada o incompleta: se omite de las opciones disponibles.
+    }
+  }
+  return options;
+}
+
 /**
  * Resuelve la configuración SMTP de una cuenta. La cuenta DEFAULT usa el
  * prefijo `SMTP_*` (comportamiento histórico). La cuenta PROV usa el prefijo

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { contextService } from "@/modules/auth/context/service";
-import { getSmtpConfig } from "@/lib/config/env";
+import { getSmtpAccountOptions } from "@/lib/config/env";
 import { CampaignService } from "@/modules/communications/Services/CampaignService";
 import { CampaignSendService } from "@/modules/communications/Services/CampaignSendService";
 import { EmailDeliveryRepository } from "@/modules/communications/Repositories/EmailDeliveryRepository";
@@ -25,15 +25,10 @@ export default async function CampanaPage({ params }: { params: Promise<{ id: st
   ]);
   if (!campaign) notFound();
 
-  let senderEmail: string | null = null;
-  try {
-    senderEmail = getSmtpConfig(process.env).from;
-  } catch {
-    senderEmail = campaign.senderEmail;
-  }
+  const smtpAccounts = getSmtpAccountOptions(process.env);
 
   const sendProgress = await new CampaignSendService().getProgress(campaignId);
   const initialPause = { paused: sendProgress.paused, pauseReason: sendProgress.pauseReason, resumeAt: sendProgress.resumeAt };
 
-  return <CampaignWorkspace campaign={campaign} selection={selection} previewRecipients={previewRecipients} campaignRecipients={campaignRecipients} stats={stats} senderEmail={senderEmail} initialPause={initialPause} />;
+  return <CampaignWorkspace campaign={campaign} selection={selection} previewRecipients={previewRecipients} campaignRecipients={campaignRecipients} stats={stats} smtpAccounts={smtpAccounts} initialPause={initialPause} />;
 }

@@ -1,4 +1,5 @@
 import { EmailCampaignStatus } from "@prisma/client";
+import type { SmtpAccount } from "@/lib/config/env";
 import { CampaignRepository } from "../Repositories/CampaignRepository";
 import { AssociateRecipientSourceService } from "./AssociateRecipientSourceService";
 import { isValidEmail } from "./Import/EmailProcessing";
@@ -7,6 +8,15 @@ import type { AssociateExcludedItem, AssociateRecipientSelection, AssociateSourc
 
 export class CampaignServiceError extends Error {
   constructor(message: string, readonly status = 400, readonly fields: string[] = []) { super(message); }
+}
+
+const SMTP_ACCOUNTS: readonly SmtpAccount[] = ["DEFAULT", "PROV"];
+
+/** Normaliza la cuenta SMTP enviada por el cliente; un valor inválido se rechaza. */
+function resolveSmtpAccount(value: unknown): SmtpAccount {
+  if (value === undefined || value === null || value === "") return "DEFAULT";
+  if (SMTP_ACCOUNTS.includes(value as SmtpAccount)) return value as SmtpAccount;
+  throw new CampaignServiceError("La cuenta de envío no es válida.", 422, ["smtpAccount"]);
 }
 
 export interface SetRecipientsInput {
@@ -26,17 +36,19 @@ export class CampaignService {
   }
 
   async createCampaign(input: CampaignInput, actor: { userId: number; email: string }): Promise<{ id: number }> {
+    const smtpAccount = resolveSmtpAccount(input.smtpAccount);
     if (!input.name.trim()) throw new CampaignServiceError("El nombre de la campaña es obligatorio.", 422, ["name"]);
     if (!input.subject.trim()) throw new CampaignServiceError("El asunto es obligatorio.", 422, ["subject"]);
     if (input.replyTo?.trim() && !isValidEmail(input.replyTo.trim())) {
       throw new CampaignServiceError("El correo Reply-To no tiene un formato válido.", 422, ["replyTo"]);
     }
-    const created = await this.repository.createCampaign(input, actor.userId);
-    await this.repository.writeAudit(actor, "CAMPAIGN_CREATED", created.id, input.name.trim());
+    const created = await this.repository.createCampaign({ ...input, smtpAccount }, actor.userId);
+    await this.repository.writeAudit(actor, "CAMPAIGN_CREATED", created.id, input.name.trim(), { smtpAccount });
     return created;
   }
 
   async updateCampaign(id: number, input: CampaignInput, actor: { userId: number; email: string }): Promise<void> {
+    const smtpAccount = resolveSmtpAccount(input.smtpAccount);
     const campaign = await this.repository.getCampaign(id);
     if (!campaign) throw new CampaignServiceError("La campaña no existe.", 404);
     if (campaign.status !== EmailCampaignStatus.DRAFT) {
@@ -47,8 +59,8 @@ export class CampaignService {
     if (input.replyTo?.trim() && !isValidEmail(input.replyTo.trim())) {
       throw new CampaignServiceError("El correo Reply-To no tiene un formato válido.", 422, ["replyTo"]);
     }
-    await this.repository.updateCampaign(id, input);
-    await this.repository.writeAudit(actor, "CAMPAIGN_UPDATED", id, input.name.trim());
+    await this.repository.updateCampaign(id, { ...input, smtpAccount });
+    await this.repository.writeAudit(actor, "CAMPAIGN_UPDATED", id, input.name.trim(), { smtpAccount });
   }
 
   async getSelection(campaignId: number): Promise<CampaignRecipientSelection> {
