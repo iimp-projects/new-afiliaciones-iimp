@@ -42,12 +42,12 @@
     "exceljs": "^4.4.0",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^1.25.0",
-    "next": "16.3.8",
+    "next": "16.4.3",
     "next-auth": "^5.0.0-beta.32",
     "nodemailer": "^10.0.13",
     "pdf-lib": "^1.17.1",
     "pg": "^8.23.0",
-    "puppeteer": "^25.3.0",
+    "puppeteer": "^25.16.0",
     "qrcode": "^1.5.4",
     "react": "19.2.4",
     "react-dom": "19.2.4",
@@ -55,7 +55,7 @@
     "recharts": "^3.10.1",
     "sonner": "^2.0.8",
     "topojson-client": "^3.1.0",
-    "zod": "^4.4.3"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -72,7 +72,7 @@
     "@types/react-simple-maps": "^3.0.6",
     "@types/topojson-client": "^3.1.5",
     "eslint": "^9",
-    "eslint-config-next": "16.3.5",
+    "eslint-config-next": "16.4.3",
     "prisma": "^6.19.3",
     "tailwindcss": "^4",
     "tsx": "^4.23.12",
@@ -85,6 +85,7 @@
     },
     "next-auth": {
       "nodemailer": "$nodemailer"
-    }
+    },
+    "follow-redirects": "1.16.1"
   }
 }

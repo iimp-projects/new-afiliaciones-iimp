@@ -21,6 +21,7 @@ function campaign(): CampaignDetail {
     createdBy: 1,
     createdByName: "Admin",
     recipientCount: 1,
+    smtpAccount: "DEFAULT",
     pausedUntil: null,
     pauseReason: null,
   };

@@ -7,7 +7,8 @@ import { renderTemplate, type TemplateRecipient } from "../Services/TemplateRend
 import { isValidEmail } from "../Services/Import/EmailProcessing";
 import { sendTestEmailAction } from "../Actions/send.actions";
 import { ProcessLoadingOverlay } from "@/modules/shared/Components/ProcessLoadingOverlay";
-import type { CampaignRecipientPreview } from "../Models/Campaign";
+import { SMTP_ACCOUNT_LABEL, type CampaignRecipientPreview } from "../Models/Campaign";
+import type { SmtpAccount } from "@/lib/config/env";
 import type { EmailCampaignStatus } from "@prisma/client";
 
 const subscribe = () => () => {};
@@ -23,6 +24,7 @@ export interface CampaignPreviewData {
   senderName: string | null;
   senderEmail: string | null;
   replyTo: string | null;
+  smtpAccount?: SmtpAccount;
 }
 
 const DEMO_RECIPIENT: TemplateRecipient = {
@@ -104,6 +106,7 @@ export function CampaignPreviewModal({
 
   const fromName = data.senderName || "Instituto de Ingenieros de Minas del Perú";
   const fromLabel = fromEmail ? `${fromName} <${fromEmail}>` : fromName;
+  const accountLabel = data.smtpAccount ? SMTP_ACCOUNT_LABEL[data.smtpAccount] : null;
   const toLabel = demo
     ? `${DEMO_RECIPIENT.name} <${DEMO_RECIPIENT.email}>`
     : recipient
@@ -128,6 +131,7 @@ export function CampaignPreviewModal({
             <div className="mt-3 space-y-1 rounded-2xl border border-slate-200 bg-white p-3 text-xs text-slate-600">
               <p className="truncate"><span className="font-bold text-slate-400">Asunto:</span> {renderedSubject}</p>
               <p className="truncate"><span className="font-bold text-slate-400">De:</span> {fromLabel}</p>
+              {accountLabel ? <p className="truncate"><span className="font-bold text-slate-400">Cuenta de envío:</span> {accountLabel} {fromEmail ? `· ${fromEmail}` : ""}</p> : null}
               <p className="truncate"><span className="font-bold text-slate-400">Para:</span> {toLabel}</p>
               {data.replyTo ? <p className="truncate"><span className="font-bold text-slate-400">Reply-To:</span> {data.replyTo}</p> : null}
             </div>
