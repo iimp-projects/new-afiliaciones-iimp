@@ -237,12 +237,19 @@ jobs:
           TF_VAR_enable_sns_publish: "true"
         run: terraform apply -input=false prod.tfplan
 
-      - name: Instance refresh (controlled)
+      - name: Temporarily increase ASG max to 2 (blue/green)
+        run: |
+          aws autoscaling update-auto-scaling-group \
+            --region "$AWS_REGION" \
+            --auto-scaling-group-name afiliaciones-prod-asg \
+            --max-size 2
+
+      - name: Instance refresh (blue/green, keep one healthy)
         run: |
           aws autoscaling start-instance-refresh \
             --region "$AWS_REGION" \
             --auto-scaling-group-name afiliaciones-prod-asg \
-            --preferences '{"MinHealthyPercentage":0,"InstanceWarmup":60}'
+            --preferences '{"MinHealthyPercentage":100,"MaxHealthyPercentage":200,"InstanceWarmup":60}'
 
       - name: Wait for instance refresh completion
         run: |
@@ -260,6 +267,21 @@ jobs:
             sleep 5
           done
           echo "Instance refresh no termino en 15 minutos."; exit 1
+
+      - name: Restore ASG max to 1
+        run: |
+          aws autoscaling update-auto-scaling-group \
+            --region "$AWS_REGION" \
+            --auto-scaling-group-name afiliaciones-prod-asg \
+            --max-size 1
+
+      - name: Verify ASG capacity (min=1, max=1, desired=1)
+        run: |
+          aws autoscaling describe-auto-scaling-groups \
+            --region "$AWS_REGION" \
+            --auto-scaling-group-name afiliaciones-prod-asg \
+            --query 'AutoScalingGroups[0].{min:MinSize,max:MaxSize,desired:DesiredCapacity}' \
+            --output json
 
       - name: Verify health (live + ready)
         run: |
