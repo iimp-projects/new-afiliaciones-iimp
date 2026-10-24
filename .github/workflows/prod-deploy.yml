@@ -3,8 +3,13 @@ name: Deploy PROD
 on:
   workflow_dispatch:
     inputs:
-      confirm_deploy:
-        description: "Confirm controlled deployment to PROD (build, publish and deploy)"
+      build_publish:
+        description: "Build and publish the image to ECR (no deploy)"
+        required: true
+        default: false
+        type: boolean
+      deploy:
+        description: "Deploy to PROD (terraform apply + instance refresh). Requires prior build."
         required: true
         default: false
         type: boolean
@@ -28,7 +33,7 @@ env:
 jobs:
   build-and-publish:
     name: Build, test and publish
-    if: inputs.confirm_deploy
+    if: inputs.build_publish
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
@@ -128,6 +133,7 @@ jobs:
 
   deploy-prod:
     name: Deploy to PROD
+    if: inputs.deploy
     needs: build-and-publish
     runs-on: ubuntu-latest
     timeout-minutes: 45
