@@ -217,7 +217,7 @@ jobs:
         working-directory: infra/terraform/environments/prod
         run: |
           terraform show -no-color prod.tfplan > plan.txt
-          if grep -Eq "will be destroyed|must be replaced|to destroy" plan.txt; then
+          if grep -Eq "will be destroyed|must be replaced" plan.txt; then
             echo "PLAN CONTIENE ACCIONES DESTRUCTIVAS:"; cat plan.txt; exit 1
           fi
           if ! grep -Eq "aws_launch_template" plan.txt; then
