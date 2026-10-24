@@ -135,7 +135,6 @@ jobs:
   deploy-prod:
     name: Deploy to PROD
     if: inputs.deploy
-    needs: build-and-publish
     runs-on: ubuntu-latest
     timeout-minutes: 45
     environment: prod
@@ -143,7 +142,7 @@ jobs:
       AWS_REGION: us-east-2
       ECR_REPOSITORY: afiliaciones-prod-app
       AUTHORIZED_COMMIT_SHA: a71072a8a5963806f93baa2e5c8622b68188cdf0
-      IMAGE_TAG: ${{ needs.build-and-publish.outputs.image_tag }}
+      IMAGE_TAG: prod-a71072a8a5963806f93baa2e5c8622b68188cdf0
       PROD_DOMAIN_NAME: afiliaciones.iimp.org.pe
       HOSTED_ZONE_ID: Z2EVMBK8QMV35W
       PROD_BASE_URL: https://afiliaciones.iimp.org.pe
