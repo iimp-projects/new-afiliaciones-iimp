@@ -35,6 +35,7 @@ jobs:
     name: Build, test and publish
     if: inputs.build_publish
     runs-on: ubuntu-latest
+    environment: prod
     timeout-minutes: 45
     env:
       DATABASE_URL: postgresql://ci@127.0.0.1:1/ci?schema=public
