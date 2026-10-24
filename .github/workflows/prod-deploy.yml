@@ -1,0 +1,267 @@
+name: Deploy PROD
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_deploy:
+        description: "Confirm controlled deployment to PROD (build, publish and deploy)"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: us-east-2
+  ECR_REPOSITORY: afiliaciones-prod-app
+  AUTHORIZED_COMMIT_SHA: a71072a8a5963806f93baa2e5c8622b68188cdf0
+  PROD_DOMAIN_NAME: afiliaciones.iimp.org.pe
+  HOSTED_ZONE_ID: Z2EVMBK8QMV35W
+  PROD_BASE_URL: https://afiliaciones.iimp.org.pe
+
+jobs:
+  build-and-publish:
+    name: Build, test and publish
+    if: inputs.confirm_deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      DATABASE_URL: postgresql://ci@127.0.0.1:1/ci?schema=public
+    steps:
+      - name: Checkout authorized commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.AUTHORIZED_COMMIT_SHA }}
+          persist-credentials: false
+
+      - name: Verify authorized commit SHA
+        run: |
+          actual="$(git rev-parse HEAD)"
+          test "$actual" = "$AUTHORIZED_COMMIT_SHA" || {
+            echo "Commit no autorizado. Esperado: $AUTHORIZED_COMMIT_SHA, obtenido: $actual"
+            exit 1
+          }
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Scan for committed secrets
+        run: npm run security:secrets
+
+      - name: Check runtime dependencies (SECURITY_RUNTIME_GATE)
+        run: npm run security:runtime
+
+      - name: Typecheck, lint and test
+        run: npm run check
+
+      - name: Build application
+        run: npm run build
+
+      - name: Configure AWS credentials through OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.PROD_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: afiliaciones-prod-publish-${{ github.run_id }}
+
+      - name: Log in to Amazon ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Resolve immutable image reference
+        id: image
+        env:
+          ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+        run: |
+          image_tag="prod-${AUTHORIZED_COMMIT_SHA}"
+          image_uri="${ECR_REGISTRY}/${ECR_REPOSITORY}:${image_tag}"
+          echo "tag=${image_tag}" >> "$GITHUB_OUTPUT"
+          echo "uri=${image_uri}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push immutable image (linux/amd64)
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64
+          tags: ${{ steps.image.outputs.uri }}
+          provenance: false
+
+      - name: Verify image digest in ECR
+        env:
+          EXPECTED_DIGEST: ${{ steps.build.outputs.digest }}
+          IMAGE_TAG: ${{ steps.image.outputs.tag }}
+        run: |
+          actual="$(aws ecr describe-images \
+            --region "$AWS_REGION" \
+            --repository-name "$ECR_REPOSITORY" \
+            --image-ids "imageTag=$IMAGE_TAG" \
+            --query 'imageDetails[0].imageDigest' \
+            --output text)"
+          test "$actual" = "$EXPECTED_DIGEST" || {
+            echo "Digest mismatch: ECR=$actual build=$EXPECTED_DIGEST"
+            exit 1
+          }
+          echo "Published digest: $actual"
+
+    outputs:
+      image_tag: ${{ steps.image.outputs.tag }}
+
+  deploy-prod:
+    name: Deploy to PROD
+    needs: build-and-publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: prod
+    env:
+      AWS_REGION: us-east-2
+      ECR_REPOSITORY: afiliaciones-prod-app
+      AUTHORIZED_COMMIT_SHA: a71072a8a5963806f93baa2e5c8622b68188cdf0
+      IMAGE_TAG: ${{ needs.build-and-publish.outputs.image_tag }}
+      PROD_DOMAIN_NAME: afiliaciones.iimp.org.pe
+      HOSTED_ZONE_ID: Z2EVMBK8QMV35W
+      PROD_BASE_URL: https://afiliaciones.iimp.org.pe
+    steps:
+      - name: Checkout authorized commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.AUTHORIZED_COMMIT_SHA }}
+          persist-credentials: false
+
+      - name: Configure AWS credentials through OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.PROD_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: afiliaciones-prod-deploy-${{ github.run_id }}
+
+      - name: Verify published image and resolve digest
+        id: verify-image
+        run: |
+          digest="$(aws ecr describe-images \
+            --region "$AWS_REGION" \
+            --repository-name "$ECR_REPOSITORY" \
+            --image-ids "imageTag=$IMAGE_TAG" \
+            --query 'imageDetails[0].imageDigest' \
+            --output text)"
+          test -n "$digest" || { echo "Imagen no encontrada: $IMAGE_TAG"; exit 1; }
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+          echo "Image $IMAGE_TAG digest $digest"
+
+      - name: Confirm current launch template and ASG state
+        run: |
+          aws autoscaling describe-auto-scaling-groups \
+            --region "$AWS_REGION" \
+            --auto-scaling-group-names afiliaciones-prod-asg \
+            --query 'AutoScalingGroups[0].{name:AutoScalingGroupName,min:MinSize,max:MaxSize,desired:DesiredCapacity}'
+          current="$(aws ec2 describe-launch-template-versions \
+            --region "$AWS_REGION" \
+            --launch-template-name afiliaciones-prod-lt-20261002165621212700000001 \
+            --query 'LaunchTemplateVersions[0].LaunchTemplateData.UserData' \
+            --output text | base64 -d | grep '^IMAGE=' || true)"
+          echo "Current image: $current"
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.11.4
+
+      - name: Terraform init
+        working-directory: infra/terraform/environments/prod
+        run: terraform init -input=false
+
+      - name: Terraform plan (only app_image_tag)
+        id: plan
+        working-directory: infra/terraform/environments/prod
+        env:
+          TF_VAR_app_image_tag: ${{ env.IMAGE_TAG }}
+          TF_VAR_origin_protect_header_value: ${{ secrets.ORIGIN_PROTECT_HEADER_VALUE }}
+          TF_VAR_create_dns: "true"
+          TF_VAR_prod_domain_name: ${{ env.PROD_DOMAIN_NAME }}
+          TF_VAR_hosted_zone_id: ${{ env.HOSTED_ZONE_ID }}
+        run: |
+          set +e
+          terraform plan -input=false -out=prod.tfplan -detailed-exitcode
+          code=$?
+          set -e
+          if [ "$code" = "1" ]; then exit 1; fi
+          # code 0 = sin cambios; code 2 = cambios (esperado).
+
+      - name: Verify plan scope (sin destroy/replace, solo imagen)
+        working-directory: infra/terraform/environments/prod
+        run: |
+          terraform show -no-color prod.tfplan > plan.txt
+          if grep -Eq "will be destroyed|must be replaced|to destroy" plan.txt; then
+            echo "PLAN CONTIENE ACCIONES DESTRUCTIVAS:"; cat plan.txt; exit 1
+          fi
+          if ! grep -Eq "aws_launch_template" plan.txt; then
+            echo "PLAN NO LIMITADO AL LAUNCH TEMPLATE:"; cat plan.txt; exit 1
+          fi
+          cat plan.txt
+
+      - name: Terraform apply
+        working-directory: infra/terraform/environments/prod
+        env:
+          TF_VAR_app_image_tag: ${{ env.IMAGE_TAG }}
+          TF_VAR_origin_protect_header_value: ${{ secrets.ORIGIN_PROTECT_HEADER_VALUE }}
+          TF_VAR_create_dns: "true"
+          TF_VAR_prod_domain_name: ${{ env.PROD_DOMAIN_NAME }}
+          TF_VAR_hosted_zone_id: ${{ env.HOSTED_ZONE_ID }}
+        run: terraform apply -input=false prod.tfplan
+
+      - name: Instance refresh (controlled)
+        run: |
+          aws autoscaling start-instance-refresh \
+            --region "$AWS_REGION" \
+            --auto-scaling-group-name afiliaciones-prod-asg \
+            --preferences '{"MinHealthyPercentage":0,"InstanceWarmup":60}'
+
+      - name: Wait for instance refresh completion
+        run: |
+          for attempt in $(seq 1 180); do
+            status="$(aws autoscaling describe-instance-refreshes \
+              --region "$AWS_REGION" \
+              --auto-scaling-group-name afiliaciones-prod-asg \
+              --query 'InstanceRefreshes[0].Status' \
+              --output text 2>/dev/null || true)"
+            case "$status" in
+              Successful) exit 0 ;;
+              Failed|Cancelled|Cancelling)
+                echo "Instance refresh fallo: $status"; exit 1 ;;
+            esac
+            sleep 5
+          done
+          echo "Instance refresh no termino en 15 minutos."; exit 1
+
+      - name: Verify health (live + ready)
+        run: |
+          for attempt in $(seq 1 60); do
+            live=$(curl -s -o /dev/null -w "%{http_code}" "$PROD_BASE_URL/api/health/live" || true)
+            ready=$(curl -s -o /dev/null -w "%{http_code}" "$PROD_BASE_URL/api/health/ready" || true)
+            echo "live=$live ready=$ready"
+            if [ "$live" = "200" ] && [ "$ready" = "200" ]; then
+              echo "HEALTH OK"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Health checks no pasaron."; exit 1
