@@ -1,5 +1,9 @@
 # Plataforma de Afiliaciones IIMP — guía de trabajo
 
+## Política operativa de desarrollo y despliegues
+
+> **Antes de modificar, integrar o desplegar Afiliaciones IIMP, leer `docs/release-engineering/DEV-WORKFLOW-OPT-01.md` y aplicar su checklist. Si entra en conflicto con protecciones, reglas de seguridad o autorizaciones, respetar el control más estricto.**
+
 ## Contexto y fuentes de verdad
 
 Esta aplicación administra postulaciones, evaluaciones, avales, expedientes, asociados, seguridad y consulta pública del IIMP. El código y `prisma/schema.prisma` son la fuente de verdad cuando difieran de la documentación. No inventar reglas, campos, endpoints, credenciales ni contratos de proveedores.
