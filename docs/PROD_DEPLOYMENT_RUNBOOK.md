@@ -1,10 +1,31 @@
 # RUNBOOK — PRIMER DESPLIEGUE PROD AFILIACIONES IIMP
 
-> Procedimiento operativo real y numerado para el primer provisioning de AWS PROD.
-> Estado: `DRAFT_APPROVED_PENDING_EXECUTION`. No ejecutar sin aprobación humana de cada fase mutante.
-> Última actualización: 02 de octubre de 2026.
+> **⚠️ HISTÓRICO / NO VIGENTE PARA RELEASES POSTERIORES.** Este runbook describe el
+> **primer provisioning** de AWS PROD (plan 69/0/0/0, commit congelado `c3a7127`, imagen
+> `prod-c3a7127`, migraciones 34, seeds). Ya fue superado: PROD está operativo desde
+> 2026-10-24 con despliegues blue/green automatizados por `prod-deploy.yml`.
+>
+> Para releases incrementales usar `docs/DEPLOYMENT.md` → "Procedimiento de release
+> incremental (QA → PROD)" (R1–R9). Estado de este documento: `HISTORICAL_SUPERSEDED`.
+> Última actualización (histórico): 02 de octubre de 2026. Marcado: 2026-10-26.
 
-## Contexto congelado
+## Estado actual de PROD (AFILIACIONES-RELEASE-AUDIT-01)
+
+- **Commit desplegado:** `ba591b4` (merge PR #26 — SMTP multiproveedor + seguridad).
+- **Imagen ECR:** `prod-ba591b49b5e6827237167922951adc9e65c77779` (digest `sha256:3d8e09f4…`).
+- **Launch Template:** `afiliaciones-prod-lt-20261002165621212700000001` (`$Latest`).
+- **ASG:** `afiliaciones-prod-asg` (min 1 / desired 1 / max 1) — blue/green vía `start-instance-refresh`.
+- **Workflow:** `.github/workflows/prod-deploy.yml` (OIDC, roles `PROD_PUBLISH_ROLE_ARN` / `PROD_DEPLOY_ROLE_ARN`).
+- **Entorno GitHub `prod`:** protection `required_reviewers` (`maxichajaya2`); `deployment_branch_policy: null`.
+- **Dependencias:** `next 16.4.3`, `zod 4.6.7`, `puppeteer 25.16.0`, `follow-redirects 1.16.1`.
+- **Prisma:** incluye `enum EmailSmtpAccount` + migración `20261023000000_add_email_campaign_smtp_account`.
+
+> Las PHASE 0–9 siguientes se conservan como referencia del primer provisioning y **no**
+> deben re-ejecutarse sobre PROD en producción.
+
+---
+
+## Contexto congelado (histórico)
 
 ```text
 ACCOUNT_ID        = 564914947461

@@ -1,8 +1,33 @@
 # Plan de Convergencia Git — Afiliaciones IIMP
 
+> **⚠️ HISTÓRICO / ACTUALIZADO.** El plan Fase 5A–5D siguiente (2026-10-16, rama
+> `integration/afiliaciones-consolidacion-20261016`, base `e856422`/`13b26ea`) describe un
+> estado ya superado. La convergencia real se ejecutó vía PRs #22–#26 y hoy `origin/master`
+> (`a204222`, PROD = `ba591b4`) y `origin/development` (`184dfb5`) están **divergidas**.
+> Ver abajo "Estado actual (2026-10-26)" y `docs/auditorias/AFILIACIONES-RELEASE-AUDIT-01.md`.
+
 > Fase 5A (auditoría final). Fecha: 2026-10-16.
 > Rama de integración: `integration/afiliaciones-consolidacion-20261016` (HEAD `97e4ed1`).
 > Este documento es una PROPUESTA. No se han ejecutado merges.
+
+## Estado actual (2026-10-26)
+
+- **PROD (`origin/master` `a204222`):** despliega `ba591b4` (PR #26) = SMTP multiproveedor + parches de seguridad (`next 16.4.3`, `zod 4.6.7`, `puppeteer 25.16.0`, `follow-redirects 1.16.1`, aval por asociado activo).
+- **DEV (`origin/development` `184dfb5`):** Niubiz CERT-02 + sincronización documental no destructiva + importe real/código postal. **Falta** el bump de seguridad y el enum/migración SMTP.
+- **Divergencia `master ↔ development`:** master +11 (CI/seguridad/SMTP) vs development +8 (Niubiz/pagos/sync). Ya no es cadena lineal.
+
+### Secuencia de PRs recomendada (sin ejecutar)
+
+1. **PR-A — Seguridad:** realinear `development` a `master` (deps + `schema.prisma` `EmailSmtpAccount` + migración `20261023000000`).
+2. **PR-B — Niubiz CERT-02 + pagos** (`dd0aecb`→`0345d13` + `184dfb5`).
+3. **PR-C — Sincronización documental** (`8c4de8e` ≡ `8fe8b9f`).
+4. **PR-D — Aval histórico SIE** (`0157765`, reconciliado con `1a06033`).
+5. **PR-E (decidir):** `feature/actualizar-contenido` (#19), `hotfix/qa-whatsapp-wamid-tracing`, `hotfix/aval-prod-minimal`.
+
+Detalle completo en `docs/auditorias/AFILIACIONES-RELEASE-AUDIT-01.md`. Documento original (histórico) a continuación.
+
+---
+
 
 ## 1. Topología final propuesta
 
