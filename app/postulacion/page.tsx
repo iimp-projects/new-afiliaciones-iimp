@@ -583,11 +583,120 @@ import {
   CheckCircle2,
   Award,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   FileText,
   Volume2,
   VolumeX,
 } from "lucide-react";
 import { PublicFooter } from "@/modules/shared/Components/PublicFooter";
+
+type Testimonio = {
+  nombre: string;
+  categoria: "ASOCIADO ACTIVO" | "ASOCIADO ESTUDIANTE";
+  comentario: string;
+  detalle: string;
+  imagen: string | null;
+};
+
+const TESTIMONIOS: Testimonio[] = [
+  {
+    nombre: "Juan Rojas",
+    categoria: "ASOCIADO ACTIVO",
+    comentario:
+      "Para mí, ser asociado activo del IIMP es mantener vivo el compromiso con la excelencia profesional y con el desarrollo de nuestra región. Pasco es minería por historia y por futuro. Ser parte del Instituto nos permite actualizarnos permanentemente, compartir experiencias y trabajar juntos para que la minería siga siendo motor de desarrollo con responsabilidad social y ambiental.",
+    detalle: "Coordinador de la seccional Pasco",
+    imagen: "/images/testimonios/Juan_Rojas_Quispe.jpeg",
+  },
+  {
+    nombre: "Erick Ronaldo Romani Pongo",
+    categoria: "ASOCIADO ESTUDIANTE",
+    comentario:
+      "Como asociado estudiante del IIMP, me permitió participar en el programa Cantera de Talentos, el cual, fortaleció mi compromiso con una minería productiva, sostenible, ética y tecnológica. Hoy, desde Cerro Verde, llevo con orgullo sus enseñanzas. ¡Gracias al IIMP por ser parte de mi crecimiento profesional!",
+    detalle: "Ingeniería Geológica • Universidad Nacional de Ingeniería (UNI)",
+    imagen: "/images/testimonios/Erick_Ronaldo_Romani_Pongo.jpeg",
+  },
+  {
+    nombre: "Nicole Aissa Quispe Manayay",
+    categoria: "ASOCIADO ESTUDIANTE",
+    comentario:
+      "El programa Cantera de Talentos es una experiencia de compromiso, conexiones y desarrollo profesional. Orgullosa de ser parte de una generación que transforma la minería.",
+    detalle: "Ingeniería de Minas • Universidad Nacional de San Agustín de Arequipa (UNSA)",
+    imagen: "/images/testimonios/Nicole_Aissa_Quispe_Manayay.jpeg",
+  },
+  {
+    nombre: "Jorge Miguel Soncco Soncco",
+    categoria: "ASOCIADO ESTUDIANTE",
+    comentario:
+      "Ser asociado estudiante y participar de los programas del IIMP, fortaleció mis habilidades de liderazgo, pensamiento crítico y desarrollo profesional, ampliando mi panorama sobre la metalurgia y su importancia en la industria minera. Asimismo, el aprendizaje impartido por docentes altamente calificados enriqueció mis conocimientos y reafirmó mi compromiso con el desarrollo de una minería innovadora y sostenible.",
+    detalle: "Ingeniería Metalúrgica • Universidad Nacional de San Agustín de Arequipa (UNSA)",
+    imagen: "/images/testimonios/Jorge_Miguel_Soncco_Soncco.jpeg",
+  },
+  {
+    nombre: "Jean Beckhan Flores Vilca",
+    categoria: "ASOCIADO ESTUDIANTE",
+    comentario:
+      "Mi experiencia en la V Cantera de Talentos del IIMP fue sumamente enriquecedora. Amplié mis conocimientos técnicos, aprendí de destacados profesionales y fortalecí mi red de contactos, complementándolo con el desarrollo de un trabajo de investigación clave para el sector.",
+    detalle: "Ingeniería de Minas • Universidad Nacional Jorge Basadre Grohmann",
+    imagen: "/images/testimonios/Jean_Beckhan_Flores_Vilca.jpeg",
+  },
+  {
+    nombre: "Diana Quispe Larreategui",
+    categoria: "ASOCIADO ESTUDIANTE",
+    comentario:
+      "El programa Cantera de Talentos para la Minería me permitió fortalecer mis conocimientos en Ingeniería Geológica y ampliar mi visión del sector minero. Esta experiencia impulsó mi desarrollo profesional y contribuyó a mi incorporación a Prime Frontier Group, empresa internacional donde desarrolló proyectos de exploración geológica en África y Sudamérica.",
+    detalle: "Ingeniería Geológica • Universidad Privada del Norte (UPN), sede Cajamarca",
+    imagen: "/images/testimonios/Diana_Quispe_Larreategui.jpeg",
+  },
+  {
+    nombre: "Luiguy Palacios Alemán",
+    categoria: "ASOCIADO ESTUDIANTE",
+    comentario:
+      "Formar parte de Cantera de Talentos consolidó mis aspiraciones profesionales al conectar el aprendizaje académico con las exigencias del sector minero. El programa potenció mi capacidad de análisis, trabajo en equipo y visión estratégica, marcando un impulso decisivo en mi inicio profesional.",
+    detalle: "Ingeniería Geológica • Universidad Nacional de Piura (UNP)",
+    imagen: "/images/testimonios/Luiguy_Palacios_Alemán.jpeg",
+  },
+  {
+    nombre: "Yorlin Almir Chiguala Carranza",
+    categoria: "ASOCIADO ESTUDIANTE",
+    comentario:
+      "Ser parte de la V cantera de talentos fue una experiencia muy fructífera que superó mis expectativas, adicional a ello pude aprender sobre ingenieros con gran experiencia del sector minería.",
+    detalle: "Ingeniería de Minas • Universidad Privada del Norte",
+    imagen: "/images/testimonios/Yorlin_Almir_Chiguala_Carranza.jpeg",
+  },
+  {
+    nombre: "Elizbeth Zuleyka Champi Rimachi",
+    categoria: "ASOCIADO ESTUDIANTE",
+    comentario:
+      "Ser parte de Cantera de Talentos para la Minería me ayudó a abrir los ojos y entender que la minería va mucho más allá de lo que aprendemos en las aulas. Me permitió tener una visión más global de la industria, conocer otras áreas y comprender cómo se conectan entre sí. Sobre todo, me motivó a seguir aprendiendo, salir de mi zona de confort y buscar nuevas formas de aportar a una minería cada vez más innovadora.",
+    detalle: "Ingeniería Metalúrgica • Universidad Nacional de San Agustín de Arequipa (UNSA)",
+    imagen: "/images/testimonios/Elizbeth_Zuleyka_Champi_Rimachi.jpeg",
+  },
+  {
+    nombre: "Madilen Huamán Quispe",
+    categoria: "ASOCIADO ESTUDIANTE",
+    comentario:
+      "Participar en Cantera de Talentos para la Minería fortaleció mi liderazgo y crecimiento profesional. Me permitió aprender de grandes referentes del sector y afrontar nuevos desafíos con confianza, pasión y compromiso por una minería segura, innovadora y sostenible.",
+    detalle: "Ingeniería Metalúrgica y de Materiales • Universidad Nacional del Centro del Perú (UNCP)",
+    imagen: "/images/testimonios/Madilen_Huamán_Quispe.jpeg",
+  },
+  {
+    nombre: "Ruth Karina Ccallo Condori",
+    categoria: "ASOCIADO ESTUDIANTE",
+    comentario:
+      "Mi paso por la Cantera de Talentos fue un punto de quiebre en mi formación. Más allá de la teoría, me llevo lecciones de vida, consejos de líderes reales y un crecimiento profesional increíble.",
+    detalle: "Ingeniería Metalurgia • Universidad Nacional Jorge Basadre Grohmann (UNJBG)",
+    imagen: "/images/testimonios/Ruth_Karina_Ccallo_Condori.jpeg",
+  },
+  {
+    nombre: "Brayan Chuquihuaccha Mendoza",
+    categoria: "ASOCIADO ESTUDIANTE",
+    comentario:
+      "Como asociado estudiante, participar en el Programa Cantera de Talentos del IIMP fue una experiencia enriquecedora que fortaleció mis conocimientos teóricos y técnicos, como mi visión de la minería moderna. Aprendí de grandes especialistas del sector y mejoré mis competencias profesionales. Esta capacitación ha sido clave para mi desarrollo y proyección en la industria minera.",
+    detalle: "Ingeniería de Minas • Universidad Nacional San Luis Gonzaga",
+    imagen: "/images/testimonios/Brayan_Chuquihuaccha_Mendoza.jpeg",
+  },
+];
 
 
 export default function PostulacionLandingPage() {
@@ -624,6 +733,16 @@ export default function PostulacionLandingPage() {
     document
       .getElementById("planes-afiliacion")
       ?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const testimoniosRef = useRef<HTMLDivElement | null>(null);
+
+  const scrollTestimonios = (direction: 1 | -1) => {
+    const container = testimoniosRef.current;
+    if (!container) return;
+    const card = container.querySelector<HTMLElement>("article");
+    const amount = card ? card.offsetWidth + 24 : container.clientWidth;
+    container.scrollBy({ left: direction * amount, behavior: "smooth" });
   };
 
   return (
@@ -889,127 +1008,88 @@ export default function PostulacionLandingPage() {
             </div>
           </div>
 
-          {/* Grid de Testimonios Estilo Ejecutivo */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
+          {/* Carrusel de Testimonios */}
+          <div className="relative">
+            <div
+              ref={testimoniosRef}
+              className="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              {TESTIMONIOS.map((t) => (
+                <article
+                  key={t.nombre}
+                  className="snap-start shrink-0 w-full md:w-[calc((100%-3rem)/3)] bg-white p-8 rounded-3xl border border-gray-200/80 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+                >
+                  <div>
+                    {/* Rating + Badge */}
+                    <div className="flex items-center justify-between gap-3 mb-6">
+                      <div className="flex text-[#C39254]">
+                        {[...Array(5)].map((_, i) => (
+                          <svg key={i} className="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                        ))}
+                      </div>
+                      <span
+                        className={`text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full whitespace-nowrap ${
+                          t.categoria === "ASOCIADO ACTIVO"
+                            ? "text-[#C39254] bg-[#C39254]/10"
+                            : "text-[#3E3E3D] bg-gray-100"
+                        }`}
+                      >
+                        {t.categoria}
+                      </span>
+                    </div>
 
-            {/* Testimonio 1: Geólogo / Senior */}
-            <div className="bg-white p-8 rounded-3xl border border-gray-200/80 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
-              <div>
-                {/* Rating + Badge */}
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex text-[#C39254]">
-                    {[...Array(5)].map((_, i) => (
-                      <svg key={i} className="w-4 h-4 fill-current" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
-                    ))}
+                    <p className="text-[#3E3E3D] font-medium leading-relaxed italic text-sm mb-8">
+                      "{t.comentario}"
+                    </p>
                   </div>
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#C39254] bg-[#C39254]/10 px-3 py-1 rounded-full">
-                    Asociado Senior
-                  </span>
-                </div>
 
-                <p className="text-[#3E3E3D] font-medium leading-relaxed italic text-sm mb-8">
-                  "El acceso a OneMine y a las ponencias de los Jueves Mineros le da un valor altísimo a la membresía. Es la mejor plataforma para mantenerte actualizado con estándares globales."
-                </p>
-              </div>
-
-              {/* User Info */}
-              <div className="flex items-center gap-4 pt-4 border-t border-gray-100">
-                <img
-                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150"
-                  alt="Ing. Carlos Mendoza"
-                  className="w-12 h-12 rounded-full object-cover border-2 border-[#C39254]"
-                />
-                <div>
-                  <h4 className="font-extrabold text-[#3E3E3D] text-sm">
-                    Ing. Carlos Mendoza
-                  </h4>
-                  <p className="text-xs text-gray-500 font-medium">
-                    Geólogo Principal • Las Bambas
-                  </p>
-                </div>
-              </div>
+                  {/* User Info */}
+                  <div className="flex items-center gap-4 pt-4 border-t border-gray-100">
+                    {t.imagen ? (
+                      <img
+                        src={t.imagen}
+                        alt={t.nombre}
+                        className="w-12 h-12 rounded-full object-cover border-2 border-[#C39254]"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full border-2 border-[#C39254] bg-gradient-to-br from-[#C39254] to-[#8C6215] flex items-center justify-center text-white font-black text-sm shrink-0">
+                        {t.nombre.split(" ").map((n) => n[0]).slice(0, 2).join("")}
+                      </div>
+                    )}
+                    <div>
+                      <h4 className="font-extrabold text-[#3E3E3D] text-sm">
+                        {t.nombre}
+                      </h4>
+                      <p className="text-xs text-gray-500 font-medium">
+                        {t.detalle}
+                      </p>
+                    </div>
+                  </div>
+                </article>
+              ))}
             </div>
 
-            {/* Testimonio 2: Tarjeta Destacada Primary (#C39254) */}
-            <div className="bg-[#C39254] text-white p-8 rounded-3xl shadow-xl shadow-[#C39254]/20 flex flex-col justify-between relative overflow-hidden transform md:-translate-y-2">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-
-              <div className="relative z-10">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex text-white">
-                    {[...Array(5)].map((_, i) => (
-                      <svg key={i} className="w-4 h-4 fill-current" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
-                    ))}
-                  </div>
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-white bg-black/20 px-3 py-1 rounded-full border border-white/20">
-                    Líder Sectorial
-                  </span>
-                </div>
-
-                <p className="text-white/95 font-medium leading-relaxed italic text-sm mb-8">
-                  "El networking presencial en eventos como proEXPLO y PERUMIN me permitió conectar directamente con tomadores de decisión y potenciar proyectos tecnológicos clave."
-                </p>
-              </div>
-
-              <div className="flex items-center gap-4 pt-4 border-t border-white/20 relative z-10">
-                <img
-                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150"
-                  alt="Ing. John Morón"
-                  className="w-12 h-12 rounded-full object-cover border-2 border-white/40"
-                />
-                <div>
-                  <h4 className="font-extrabold text-white text-sm">
-                    Ing. John Morón
-                  </h4>
-                  <p className="text-xs text-white/80 font-medium">
-                    Especialista en Innovación Mining
-                  </p>
-                </div>
-              </div>
+            {/* Navegación del carrusel */}
+            <div className="flex items-center justify-center gap-3 mt-6">
+              <button
+                type="button"
+                onClick={() => scrollTestimonios(-1)}
+                aria-label="Testimonios anteriores"
+                className="w-11 h-11 rounded-full bg-white border border-gray-200 text-[#3E3E3D] shadow-sm hover:bg-[#C39254] hover:text-white hover:border-[#C39254] transition-colors flex items-center justify-center"
+              >
+                <ChevronLeft size={20} strokeWidth={2.2} />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollTestimonios(1)}
+                aria-label="Testimonios siguientes"
+                className="w-11 h-11 rounded-full bg-white border border-gray-200 text-[#3E3E3D] shadow-sm hover:bg-[#C39254] hover:text-white hover:border-[#C39254] transition-colors flex items-center justify-center"
+              >
+                <ChevronRight size={20} strokeWidth={2.2} />
+              </button>
             </div>
-
-            {/* Testimonio 3: Estudiante Pre-grado / Cantera */}
-            <div className="bg-white p-8 rounded-3xl border border-gray-200/80 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex text-[#C39254]">
-                    {[...Array(5)].map((_, i) => (
-                      <svg key={i} className="w-4 h-4 fill-current" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
-                    ))}
-                  </div>
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#3E3E3D] bg-gray-100 px-3 py-1 rounded-full">
-                    Estudiante / Mentoring
-                  </span>
-                </div>
-
-                <p className="text-[#3E3E3D] font-medium leading-relaxed italic text-sm mb-8">
-                  "El Programa Mentoring del IIMP fue decisivo para orientar mi carrera y conseguir mi primera práctica en mina. Además, las tarifas estudiantiles para conferencias valen totalmente la pena."
-                </p>
-              </div>
-
-              <div className="flex items-center gap-4 pt-4 border-t border-gray-100">
-                <img
-                  src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=150"
-                  alt="Valeria Torres"
-                  className="w-12 h-12 rounded-full object-cover border-2 border-gray-300"
-                />
-                <div>
-                  <h4 className="font-extrabold text-[#3E3E3D] text-sm">
-                    Valeria Torres
-                  </h4>
-                  <p className="text-xs text-gray-500 font-medium">
-                    Ingeniería de Minas • UNI
-                  </p>
-                </div>
-              </div>
-            </div>
-
           </div>
         </div>
       </section>
