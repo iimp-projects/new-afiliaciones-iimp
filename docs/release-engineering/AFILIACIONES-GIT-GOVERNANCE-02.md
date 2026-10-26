@@ -202,3 +202,38 @@ Reglas:
 - Despliegue ordinario: **solo** desde la rama `qa` (no desde `feature/*`, no solo por SHA).
 - Rollback controlado: vía `rollback_image_tag` (imagen previamente aprobada), sin saltarse el guard.
 - No se modifica el mecanismo de seguridad; solo se restringe el ref permitido.
+
+---
+
+## 9. Depuración de ramas históricas (GIT-CLEANUP-06)
+
+### 9.1 Inventario
+- Ramas remotas: **37 → 19** (18 eliminadas).
+- Worktrees: **32** (sin cambios en esta fase).
+
+### 9.2 Ramas eliminadas (18, equivalencia demostrada)
+- **15 MERGED** (`ahead=0`, contenido 100% en master): `feature/carnet-visualizacion-directa`, `feature/correos-masivos-worker`, `feature/sie-code-sync`, `fix/afiliaciones-subsanacion-legacy-qa`, `fix/correos-masivos-contadores`, `fix/correos-masivos-personalizacion`, `fix/correos-masivos-smtp`, `hotfix/fijar-ami-prod`, `integration/pr-consolidacion-master`, `integration/prod-qa-consolidacion-20261017`, `integration/qa-consolidacion-20261017`, `release/correos-masivos-worker-prod`, `release/legacy-specialty-compatibility-prod`, `release/smtp-multiprovider-prod`, `release/subsanacion-legacy-prod`.
+- **3 EQUIVALENTE** (`git cherry` = 0 exclusivos, patches ya en master): `feature/smtp-multiprovider-qa`, `feature/smtp-security-patch-qa`, `fix/ci-prisma-generate`.
+
+### 9.3 Ramas conservadas (19)
+
+| Clasificación | Ramas |
+|---|---|
+| PERMANENTE | `master`, `qa` |
+| RESPALDO/ARCHIVO | `backup/local-master-e799400`, `archive/qa-stable-20261026` |
+| PENDIENTE (trabajo real) | `development`, `consolidation/afiliaciones-consolidacion-03`, `integration/niubiz-cert-02-qa`, `integration/recuperar-api-asociados`, `feature/carnet-virtual-mvp`, `feature/actualizar-contenido` (PR #19), `docs/afiliaciones-release-audit-01` (PR #27), `docs/git-governance-05` (PR #32) |
+| EXCLUSIVO (por verificar) | `feature/actualizar-postulacion`, `fix/afiliaciones-legacy-specialty-compatibility`, `hotfix/aval-fix-01`, `hotfix/aval-prod-minimal`, `hotfix/containment-subsanacion`, `recovery10-subsanacion-integration`, `release/aval-next-16.4.3` |
+
+> Las 7 ramas "EXCLUSIVO" contienen commits no-merge fuera de master (aval SIE, Niubiz/pagos, subsanación, ci(prod) de infraestructura). Se conservan porque su equivalencia no está demostrada (podrían ser trabajo real o duplicados de `integration/niubiz-cert-02-qa`); se requiere patch-id/tree por commit antes de decidir su borrado.
+
+### 9.4 Protección de ramas (propuesta, no aplicada)
+`master` y `qa` **no tienen branch protection** (API 404) ni rulesets (`[]`). Propuesta de ruleset para ambas:
+- Bloquear force-push y eliminación.
+- PR obligatorio + checks requeridos (`verify`, `docker-artifact`, `pr-title-validation`).
+- CODEOWNERS para cambios sensibles (Prisma, Terraform, workflows, dependencias, auth, pagos).
+
+### 9.5 SHAs preservados (referencia)
+- `master` = `qa` = `27e8e0eb171ea7afb74d0357f8e63058c37d346c`.
+- `archive/qa-stable-20261026` = `869a117` (qa/stable histórico).
+- `backup/local-master-e799400` = `e799400`.
+- PROD `AUTHORIZED_COMMIT_SHA` = `a6289b46…`.
