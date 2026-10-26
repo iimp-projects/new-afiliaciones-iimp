@@ -10,6 +10,7 @@ import { normalizeEmploymentInformation } from "../Models/EmploymentInformation"
 import { ContactUniquenessService } from "../Services/ContactUniquenessService";
 import { sponsorEligibilityWhere } from "../Services/SponsorEligibility";
 import { persistAcademicInfos } from "./AcademicInfoPersistence";
+import { deepMergeDraft } from "../utils/deepMerge";
 
 export class ApplicationRepository implements IApplicationRepository {
   constructor(private readonly db = prisma) {}
@@ -163,7 +164,10 @@ export class ApplicationRepository implements IApplicationRepository {
       if (!application || application.deletedAt || !canEditApplication(application.status) || (expectedStatus && application.status !== expectedStatus)) {
         throw new ApplicationFlowError("APPLICATION_NOT_EDITABLE", "El estado de tu solicitud cambió. Revisa las acciones disponibles desde Consultar.");
       }
-      const mergedDraft = { ...((application.draftData as Record<string, unknown>) ?? {}), ...dto.draftData };
+      const mergedDraft = deepMergeDraft(
+        (application.draftData as Record<string, unknown>) ?? {},
+        dto.draftData as unknown as Record<string, unknown>,
+      ) as Record<string, unknown>;
       if (mergedDraft.employmentInformation && typeof mergedDraft.employmentInformation === "object") {
         mergedDraft.employmentInformation = normalizeEmploymentInformation(mergedDraft.employmentInformation as ApplicationDraft["employmentInformation"] extends infer T ? NonNullable<T> : never);
       }

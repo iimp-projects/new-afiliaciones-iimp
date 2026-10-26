@@ -52,7 +52,7 @@ export class UpdateDraftService {
         );
 
         if (application.status === "OBSERVED") {
-            await this.syncPersistedEntities(Number(application.id), dto.draftData, isLegacy);
+            await this.syncPersistedEntities(Number(application.id), updatedApplication.draftData, isLegacy);
             const corrections = await this.markCorrectionSubmitted(Number(application.id));
 
             try {
@@ -302,78 +302,72 @@ export class UpdateDraftService {
             });
             if (!app) return;
 
-            // 1. Sincronizar membership_documents
-            await tx.applicationDocument.deleteMany({
-                where: { applicationId },
-            });
-
+            // 1. Sincronizar membership_documents (selectivo, idempotente, NO destructivo).
+            //    No se elimina ningún documento preexistente: se agregan/actualizan
+            //    únicamente las referencias presentes en el draft.
             const identityDoc = draft.personalInformation?.identityDocument;
             const identityUrl = typeof identityDoc === "string" ? identityDoc : identityDoc?.url;
-            if (identityUrl) {
-                await tx.applicationDocument.create({
-                    data: {
-                        applicationId,
-                        category: "ID_DOCUMENT",
-                        fileUrl: identityUrl,
-                        fileName:
-                            (typeof identityDoc === "object" && identityDoc?.name) ||
-                            `Documento_Identidad_${draft.personalInformation?.documentNumber || app.documentNumber || ""}`,
-                        mimeType: (typeof identityDoc === "object" && identityDoc?.type) || "application/pdf",
-                        sizeBytes: BigInt(0),
-                    },
-                });
-            }
+            const identityInserted = await this.ensureDocument(
+                tx,
+                applicationId,
+                "ID_DOCUMENT",
+                identityUrl,
+                (typeof identityDoc === "object" && identityDoc?.name) ||
+                    `Documento_Identidad_${draft.personalInformation?.documentNumber || app.documentNumber || ""}`,
+                (typeof identityDoc === "object" && identityDoc?.type) || "application/pdf",
+            );
 
             const photoDoc = draft.personalInformation?.photo;
             const photoUrl = typeof photoDoc === "string" ? photoDoc : photoDoc?.url;
-            if (photoUrl) {
-                await tx.applicationDocument.create({
-                    data: {
-                        applicationId,
-                        category: "OTHER",
-                        fileUrl: photoUrl,
-                        fileName:
-                            (typeof photoDoc === "object" && photoDoc?.name) ||
-                            `Foto_${draft.personalInformation?.documentNumber || app.documentNumber || ""}`,
-                        mimeType: (typeof photoDoc === "object" && photoDoc?.type) || "image/jpeg",
-                        sizeBytes: BigInt(0),
-                    },
-                });
-            }
+            const photoInserted = await this.ensureDocument(
+                tx,
+                applicationId,
+                "OTHER",
+                photoUrl,
+                (typeof photoDoc === "object" && photoDoc?.name) ||
+                    `Foto_${draft.personalInformation?.documentNumber || app.documentNumber || ""}`,
+                (typeof photoDoc === "object" && photoDoc?.type) || "image/jpeg",
+            );
 
             const declarationDoc = draft.endorsements?.declarationDocumentId;
             const declarationUrl = typeof declarationDoc === "string" ? declarationDoc : declarationDoc?.url;
-            if (declarationUrl) {
-                await tx.applicationDocument.create({
-                    data: {
-                        applicationId,
-                        category: "SWORN_DECLARATION",
-                        fileUrl: declarationUrl,
-                        fileName:
-                            (typeof declarationDoc === "object" && declarationDoc?.name) ||
-                            "Declaracion_Jurada_Firmada.pdf",
-                        mimeType: (typeof declarationDoc === "object" && declarationDoc?.type) || "application/pdf",
-                        sizeBytes: BigInt(0),
-                    },
-                });
-            }
+            const declarationInserted = await this.ensureDocument(
+                tx,
+                applicationId,
+                "SWORN_DECLARATION",
+                declarationUrl,
+                (typeof declarationDoc === "object" && declarationDoc?.name) ||
+                    "Declaracion_Jurada_Firmada.pdf",
+                (typeof declarationDoc === "object" && declarationDoc?.type) || "application/pdf",
+            );
 
             const universityLetter = draft.academicStudies?.[0]?.universityLetter;
             const letterUrl = typeof universityLetter === "string" ? universityLetter : universityLetter?.url;
-            if (letterUrl) {
-                await tx.applicationDocument.create({
-                    data: {
-                        applicationId,
-                        category: "OTHER",
-                        fileUrl: letterUrl,
-                        fileName:
-                            (typeof universityLetter === "object" && universityLetter?.name) ||
-                            "Constancia_Estudios.pdf",
-                        mimeType: (typeof universityLetter === "object" && universityLetter?.type) || "application/pdf",
-                        sizeBytes: BigInt(0),
+            const letterInserted = await this.ensureDocument(
+                tx,
+                applicationId,
+                "OTHER",
+                letterUrl,
+                (typeof universityLetter === "object" && universityLetter?.name) ||
+                    "Constancia_Estudios.pdf",
+                (typeof universityLetter === "object" && universityLetter?.type) || "application/pdf",
+            );
+
+            await tx.auditLog.create({
+                data: {
+                    action: "SUBSANACION_DOCUMENT_SYNC",
+                    entity: "MembershipApplication",
+                    entityId: String(applicationId),
+                    newValues: {
+                        addedDocuments: [
+                            identityInserted ? identityUrl : null,
+                            photoInserted ? photoUrl : null,
+                            declarationInserted ? declarationUrl : null,
+                            letterInserted ? letterUrl : null,
+                        ].filter((url): url is string => typeof url === "string"),
                     },
-                });
-            }
+                },
+            });
 
             // 2. Sincronizar datos de la persona si existe
             if (app.personId && draft.personalInformation) {
@@ -400,6 +394,39 @@ export class UpdateDraftService {
                 });
             }
         });
+    }
+
+    /**
+     * Inserta una referencia documental solo si aún no existe para ese expediente
+     * y URL. No elimina registros existentes (selectivo e idempotente).
+     */
+    private async ensureDocument(
+        tx: Prisma.TransactionClient,
+        applicationId: number,
+        category: "ID_DOCUMENT" | "OTHER" | "SWORN_DECLARATION",
+        fileUrl: string | undefined,
+        fileName: string,
+        mimeType: string,
+    ): Promise<boolean> {
+        if (!fileUrl) return false;
+
+        const existing = await tx.applicationDocument.findFirst({
+            where: { applicationId, fileUrl },
+            select: { id: true },
+        });
+        if (existing) return false;
+
+        await tx.applicationDocument.create({
+            data: {
+                applicationId,
+                category,
+                fileUrl,
+                fileName,
+                mimeType,
+                sizeBytes: BigInt(0),
+            },
+        });
+        return true;
     }
 
     private async persistPrimaryAddress(tx: Prisma.TransactionClient, personId: number, personal: PersonalInformation): Promise<void> {
