@@ -119,3 +119,86 @@ CI_VALIDATION           = workflows verificados (sin cambios)
 QA_MODIFIED             = NO
 PROD_MODIFIED           = NO
 ```
+
+---
+
+## 8. Estado final (GIT-CLEANUP-04 / GIT-GOVERNANCE-05)
+
+### 8.1 Ramas permanentes
+
+| Rama | HEAD |
+|---|---|
+| `master` | `27e8e0eb171ea7afb74d0357f8e63058c37d346c` |
+| `qa` | `27e8e0eb171ea7afb74d0357f8e63058c37d346c` (creada desde master, mismo árbol) |
+
+- `qa` se creó desde `master` (no desde `qa/stable`), que coincide con el contenido realmente desplegado en QA.
+- `qa/stable` se archivó como `archive/qa-stable-20261026` (era ancestro de master, sin commits exclusivos).
+
+### 8.2 Ramas eliminadas
+
+**Remotas (13):**
+- `perf/ci-cd-build-cache`, `perf/ci-cd-registry-cache` (NO-GO, solo workflows).
+- `feat/postulacion-testimonios-avatares`, `feat/postulacion-testimonios-master` (superadas/mergeadas por #29).
+- `qa/adjuntos-opcionales`, `qa/carnet-virtual-qa`, `qa/correos-masivos`, `qa/correos-masivos-contadores`, `qa/correos-masivos-personalizacion`, `qa/correos-masivos-smtp`, `qa/notificaciones-sobre-carnet`, `qa/ocultar-menu-seguridad`, `qa/stable` (mergeadas en master; namespace `qa/` liberado).
+
+**Locales (9):**
+- `feat/postulacion-testimonios-asociados`, `-avatares`, `-master`, `-prod`, `-qa`, `ci/prod-testimonios`, `perf/ci-cd-build-cache`, `perf/ci-cd-registry-cache`, `chore/git-governance`.
+
+### 8.3 Worktrees
+Reducción de **51 → 32** (10 `prune` de prunables + 9 `worktree remove` de temporales limpios, sin `--force`). El worktree principal (`integration/niubiz-cert-02-qa`) con **64 cambios WIP de Niubiz/pagos se conserva intacto**.
+
+### 8.4 Ramas pendientes conservadas
+`development`, `consolidation/afiliaciones-consolidacion-03`, `integration/niubiz-cert-02-qa`, `integration/recuperar-api-asociados`, `feature/carnet-virtual-mvp`, `feature/actualizar-contenido` (PR #19), `docs/afiliaciones-release-audit-01` (PR #27), `fix/ci-prisma-generate`, `backup/local-master-e799400`, `archive/qa-stable-20261026`.
+
+### 8.5 Política de auto-delete
+`delete_branch_on_merge = true` habilitado en el repositorio. Las ramas temporales de PR se eliminan automáticamente tras el merge; `master`, `qa` y ramas de respaldo/archivo se preservan.
+
+### 8.6 Flujo de cambios
+
+```text
+feature/* (rama temporal, Conventional Commits)
+   └─ PR → qa   (CI + aprobación) → merge → qa-deploy.yml (solo desde 'qa')
+        └─ QA PASS (SHA + digest + run + health verificados)
+             └─ PR → master → merge → ci(prod) fija AUTHORIZED_COMMIT_SHA + IMAGE_TAG
+                  └─ prod-deploy.yml (build_publish → deploy, aprobación environment: prod)
+```
+
+**Registro obligatorio de despliegue:** commit (SHA), digest de imagen ECR, workflow/run ID y ambiente (QA/PROD). La rama Git (`qa`/`master`) y la imagen realmente desplegada son cosas distintas: el SHA desplegado se registra aparte de la rama.
+
+### 8.7 Guard propuesto para QA (QA_BRANCH_GUARD = READY)
+
+`qa-deploy.yml` es `workflow_dispatch` sin ref fijo: hoy acepta cualquier rama `feature/*`. Propuesta (no aplicada en esta fase, sin despliegue de prueba):
+
+```yaml
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_deploy:
+        description: "Confirm controlled deployment to QA"
+        required: true
+        default: false
+        type: boolean
+      rollback_image_tag:
+        description: "Tag inmutable de imagen QA ya aprobada para rollback (vacío = despliegue normal)"
+        required: false
+        type: string
+```
+
+Guard (primer paso del job `build-and-deploy`):
+
+```yaml
+      - name: Verificar rama autorizada (qa) o rollback aprobado
+        run: |
+          if [ "$GITHUB_REF_NAME" != "qa" ]; then
+            if [ -z "${{ inputs.rollback_image_tag }}" ]; then
+              echo "Despliegue QA ordinario solo desde la rama 'qa' (actual: $GITHUB_REF_NAME)."
+              exit 1
+            fi
+            echo "Rollback autorizado con imagen ${{ inputs.rollback_image_tag }}"
+          fi
+```
+
+Reglas:
+- Despliegue ordinario: **solo** desde la rama `qa` (no desde `feature/*`, no solo por SHA).
+- Rollback controlado: vía `rollback_image_tag` (imagen previamente aprobada), sin saltarse el guard.
+- No se modifica el mecanismo de seguridad; solo se restringe el ref permitido.
