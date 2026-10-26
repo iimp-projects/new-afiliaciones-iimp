@@ -111,6 +111,8 @@ jobs:
           platforms: linux/amd64
           tags: ${{ steps.image.outputs.uri }}
           provenance: false
+          cache-from: type=gha,scope=prod-web-image
+          cache-to: type=gha,mode=max,scope=prod-web-image
 
       - name: Verify image digest in ECR
         env:

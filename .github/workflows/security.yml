@@ -64,8 +64,20 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker
+
       - name: Build production image
-        run: docker build --tag afiliaciones-iimp:${{ github.sha }} .
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: afiliaciones-iimp:${{ github.sha }}
+          provenance: false
+          cache-from: type=gha,scope=ci-web-image
+          cache-to: type=gha,mode=max,scope=ci-web-image
 
       # Fail-fast: sin configuración crítica el contenedor debe terminar (exit 1)
       # en lugar de servir en estado roto.
