@@ -1,0 +1,27 @@
+name: PR title validation
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  validate-title:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Validar título Conventional Commits
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          # Prefijos permitidos: feat, fix, hotfix, refactor, perf, chore, docs, test, ci
+          pattern='^(feat|fix|hotfix|refactor|perf|chore|docs|test|ci)(\([a-z0-9._/-]+\))?: .{5,}$'
+          if ! echo "$TITLE" | grep -Eq "$pattern"; then
+            echo "Título de PR inválido: '$TITLE'"
+            echo "Debe seguir Conventional Commits: <tipo>(<alcance>): <descripción>"
+            echo "Tipos: feat, fix, hotfix, refactor, perf, chore, docs, test, ci"
+            exit 1
+          fi
+          echo "Título válido: $TITLE"
