@@ -1,0 +1,22 @@
+# Code Owners — Afiliaciones IIMP
+# Revisión obligatoria de cambios sensibles. Orden: última coincidencia gana.
+
+# Infraestructura / Terraform / CI-CD
+infra/**                 @iimp-projects/core
+.github/workflows/**     @iimp-projects/core
+Dockerfile               @iimp-projects/core
+.dockerignore            @iimp-projects/core
+
+# Base de datos / Prisma
+prisma/**                @iimp-projects/core
+
+# Seguridad / auth
+modules/auth/**          @iimp-projects/core
+modules/security/**      @iimp-projects/core
+
+# Pagos
+modules/afiliaciones/payments/**  @iimp-projects/core
+
+# Dependencias
+package.json             @iimp-projects/core
+package-lock.json        @iimp-projects/core
