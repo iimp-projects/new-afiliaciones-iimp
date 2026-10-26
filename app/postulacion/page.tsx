@@ -606,7 +606,7 @@ const TESTIMONIOS: Testimonio[] = [
     comentario:
       "Para mí, ser asociado activo del IIMP es mantener vivo el compromiso con la excelencia profesional y con el desarrollo de nuestra región. Pasco es minería por historia y por futuro. Ser parte del Instituto nos permite actualizarnos permanentemente, compartir experiencias y trabajar juntos para que la minería siga siendo motor de desarrollo con responsabilidad social y ambiental.",
     detalle: "Coordinador de la seccional Pasco",
-    imagen: null,
+    imagen: "/images/testimonios/Juan_Rojas_Quispe.jpeg",
   },
   {
     nombre: "Erick Ronaldo Romani Pongo",
@@ -614,7 +614,7 @@ const TESTIMONIOS: Testimonio[] = [
     comentario:
       "Como asociado estudiante del IIMP, me permitió participar en el programa Cantera de Talentos, el cual, fortaleció mi compromiso con una minería productiva, sostenible, ética y tecnológica. Hoy, desde Cerro Verde, llevo con orgullo sus enseñanzas. ¡Gracias al IIMP por ser parte de mi crecimiento profesional!",
     detalle: "Ingeniería Geológica • Universidad Nacional de Ingeniería (UNI)",
-    imagen: null,
+    imagen: "/images/testimonios/Erick_Ronaldo_Romani_Pongo.jpeg",
   },
   {
     nombre: "Nicole Aissa Quispe Manayay",
@@ -630,7 +630,7 @@ const TESTIMONIOS: Testimonio[] = [
     comentario:
       "Ser asociado estudiante y participar de los programas del IIMP, fortaleció mis habilidades de liderazgo, pensamiento crítico y desarrollo profesional, ampliando mi panorama sobre la metalurgia y su importancia en la industria minera. Asimismo, el aprendizaje impartido por docentes altamente calificados enriqueció mis conocimientos y reafirmó mi compromiso con el desarrollo de una minería innovadora y sostenible.",
     detalle: "Ingeniería Metalúrgica • Universidad Nacional de San Agustín de Arequipa (UNSA)",
-    imagen: null,
+    imagen: "/images/testimonios/Jorge_Miguel_Soncco_Soncco.jpeg",
   },
   {
     nombre: "Jean Beckhan Flores Vilca",
@@ -638,7 +638,7 @@ const TESTIMONIOS: Testimonio[] = [
     comentario:
       "Mi experiencia en la V Cantera de Talentos del IIMP fue sumamente enriquecedora. Amplié mis conocimientos técnicos, aprendí de destacados profesionales y fortalecí mi red de contactos, complementándolo con el desarrollo de un trabajo de investigación clave para el sector.",
     detalle: "Ingeniería de Minas • Universidad Nacional Jorge Basadre Grohmann",
-    imagen: null,
+    imagen: "/images/testimonios/Jean_Beckhan_Flores_Vilca.jpeg",
   },
   {
     nombre: "Diana Quispe Larreategui",
@@ -646,7 +646,7 @@ const TESTIMONIOS: Testimonio[] = [
     comentario:
       "El programa Cantera de Talentos para la Minería me permitió fortalecer mis conocimientos en Ingeniería Geológica y ampliar mi visión del sector minero. Esta experiencia impulsó mi desarrollo profesional y contribuyó a mi incorporación a Prime Frontier Group, empresa internacional donde desarrolló proyectos de exploración geológica en África y Sudamérica.",
     detalle: "Ingeniería Geológica • Universidad Privada del Norte (UPN), sede Cajamarca",
-    imagen: null,
+    imagen: "/images/testimonios/Diana_Quispe_Larreategui.jpeg",
   },
   {
     nombre: "Luiguy Palacios Alemán",
@@ -654,7 +654,7 @@ const TESTIMONIOS: Testimonio[] = [
     comentario:
       "Formar parte de Cantera de Talentos consolidó mis aspiraciones profesionales al conectar el aprendizaje académico con las exigencias del sector minero. El programa potenció mi capacidad de análisis, trabajo en equipo y visión estratégica, marcando un impulso decisivo en mi inicio profesional.",
     detalle: "Ingeniería Geológica • Universidad Nacional de Piura (UNP)",
-    imagen: null,
+    imagen: "/images/testimonios/Luiguy_Palacios_Alemán.jpeg",
   },
   {
     nombre: "Yorlin Almir Chiguala Carranza",
@@ -662,7 +662,7 @@ const TESTIMONIOS: Testimonio[] = [
     comentario:
       "Ser parte de la V cantera de talentos fue una experiencia muy fructífera que superó mis expectativas, adicional a ello pude aprender sobre ingenieros con gran experiencia del sector minería.",
     detalle: "Ingeniería de Minas • Universidad Privada del Norte",
-    imagen: null,
+    imagen: "/images/testimonios/Yorlin_Almir_Chiguala_Carranza.jpeg",
   },
   {
     nombre: "Elizbeth Zuleyka Champi Rimachi",
@@ -670,7 +670,7 @@ const TESTIMONIOS: Testimonio[] = [
     comentario:
       "Ser parte de Cantera de Talentos para la Minería me ayudó a abrir los ojos y entender que la minería va mucho más allá de lo que aprendemos en las aulas. Me permitió tener una visión más global de la industria, conocer otras áreas y comprender cómo se conectan entre sí. Sobre todo, me motivó a seguir aprendiendo, salir de mi zona de confort y buscar nuevas formas de aportar a una minería cada vez más innovadora.",
     detalle: "Ingeniería Metalúrgica • Universidad Nacional de San Agustín de Arequipa (UNSA)",
-    imagen: null,
+    imagen: "/images/testimonios/Elizbeth_Zuleyka_Champi_Rimachi.jpeg",
   },
   {
     nombre: "Madilen Huamán Quispe",
@@ -678,7 +678,7 @@ const TESTIMONIOS: Testimonio[] = [
     comentario:
       "Participar en Cantera de Talentos para la Minería fortaleció mi liderazgo y crecimiento profesional. Me permitió aprender de grandes referentes del sector y afrontar nuevos desafíos con confianza, pasión y compromiso por una minería segura, innovadora y sostenible.",
     detalle: "Ingeniería Metalúrgica y de Materiales • Universidad Nacional del Centro del Perú (UNCP)",
-    imagen: null,
+    imagen: "/images/testimonios/Madilen_Huamán_Quispe.jpeg",
   },
   {
     nombre: "Ruth Karina Ccallo Condori",
@@ -686,7 +686,7 @@ const TESTIMONIOS: Testimonio[] = [
     comentario:
       "Mi paso por la Cantera de Talentos fue un punto de quiebre en mi formación. Más allá de la teoría, me llevo lecciones de vida, consejos de líderes reales y un crecimiento profesional increíble.",
     detalle: "Ingeniería Metalurgia • Universidad Nacional Jorge Basadre Grohmann (UNJBG)",
-    imagen: null,
+    imagen: "/images/testimonios/Ruth_Karina_Ccallo_Condori.jpeg",
   },
   {
     nombre: "Brayan Chuquihuaccha Mendoza",
@@ -694,7 +694,7 @@ const TESTIMONIOS: Testimonio[] = [
     comentario:
       "Como asociado estudiante, participar en el Programa Cantera de Talentos del IIMP fue una experiencia enriquecedora que fortaleció mis conocimientos teóricos y técnicos, como mi visión de la minería moderna. Aprendí de grandes especialistas del sector y mejoré mis competencias profesionales. Esta capacitación ha sido clave para mi desarrollo y proyección en la industria minera.",
     detalle: "Ingeniería de Minas • Universidad Nacional San Luis Gonzaga",
-    imagen: null,
+    imagen: "/images/testimonios/Brayan_Chuquihuaccha_Mendoza.jpeg",
   },
 ];
 
