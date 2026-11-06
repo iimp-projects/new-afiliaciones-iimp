@@ -20,6 +20,20 @@ export interface ExpedienteFilters {
   orderBy?: string;
 }
 
+const LIST_INCLUDE = {
+  person: true,
+  payments: { orderBy: { createdAt: "desc" }, take: 1 },
+  approvals: { include: { sponsorPerson: true } },
+  observations: { where: { status: "PENDING" }, orderBy: { createdAt: "desc" } },
+  documents: true,
+  areaValidations: { include: { validatedBy: { include: { person: true } } } },
+  history: { orderBy: { createdAt: "desc" }, take: 5 },
+  validations: {
+    include: { department: true, validatedBy: { include: { person: true } } },
+    orderBy: { department: { displayOrder: "asc" } },
+  },
+} satisfies Prisma.MembershipApplicationInclude;
+
 export class ExpedienteRepository {
   // ============================================================
   // RESOLVER CÓDIGO ISO DEL PAÍS (Ej. Perú -> PE)
@@ -41,16 +55,15 @@ export class ExpedienteRepository {
   }
 
   // ============================================================
-  // PAGINACIÓN Y FILTROS
+  // FILTROS COMPARTIDOS (listado y exportación)
   // ============================================================
-  async getPaginated(filters: ExpedienteFilters) {
+  private buildWhere(filters: Omit<ExpedienteFilters, "page" | "pageSize">): Prisma.MembershipApplicationWhereInput {
     const {
-      page, pageSize, search, status, modality, dateFrom, dateTo,
-      orderBy, logisticValidation, associateValidation, comiteValidation,
+      search, status, modality, dateFrom, dateTo,
+      logisticValidation, associateValidation, comiteValidation,
       legalValidation, comunicacionesValidation, paymentStatus,
     } = filters;
 
-    const skip = (page - 1) * pageSize;
     const where: Prisma.MembershipApplicationWhereInput = {
       deletedAt: null,
       status: { not: ApplicationStatus.DRAFT },
@@ -77,7 +90,7 @@ export class ExpedienteRepository {
     if (status && status !== "Todos") {
       where.status = status as ApplicationStatus;
     }
-    
+
     // 👇 AQUÍ ESTÁ LA CORRECCIÓN: Le pasamos directamente el valor que envía el frontend ("ACTIVE" o "STUDENT")
     if (modality && modality !== "Todos") {
       where.affiliateType = modality as "ACTIVE" | "STUDENT";
@@ -106,6 +119,18 @@ export class ExpedienteRepository {
 
     if (areaConditions.length > 0) where.AND = areaConditions;
 
+    return where;
+  }
+
+  // ============================================================
+  // PAGINACIÓN Y FILTROS
+  // ============================================================
+  async getPaginated(filters: ExpedienteFilters) {
+    const { page, pageSize, orderBy } = filters;
+
+    const skip = (page - 1) * pageSize;
+    const where = this.buildWhere(filters);
+
     // --- ORDEN ---
     const orderByInput: Prisma.MembershipApplicationOrderByWithRelationInput = {
       createdAt: orderBy === "Más antiguos" ? "asc" : "desc",
@@ -116,19 +141,7 @@ export class ExpedienteRepository {
       prisma.membershipApplication.count({ where }),
       prisma.membershipApplication.findMany({
         where, skip, take: pageSize, orderBy: orderByInput,
-        include: {
-          person: true,
-          payments: { orderBy: { createdAt: "desc" }, take: 1 },
-          approvals: { include: { sponsorPerson: true } },
-          observations: { where: { status: "PENDING" }, orderBy: { createdAt: "desc" } },
-          documents: true,
-          areaValidations: { include: { validatedBy: { include: { person: true } } } },
-          history: { orderBy: { createdAt: "desc" }, take: 5 },
-          validations: {
-            include: { department: true, validatedBy: { include: { person: true } } },
-            orderBy: { department: { displayOrder: "asc" } },
-          },
-        },
+        include: LIST_INCLUDE,
       }),
     ]);
 
@@ -136,6 +149,26 @@ export class ExpedienteRepository {
       data: items,
       meta: { total, page, pageSize, totalPages: Math.ceil(total / pageSize) },
     };
+  }
+
+  // ============================================================
+  // TODOS LOS REGISTROS FILTRADOS (para exportación)
+  // ============================================================
+  async getAllFiltered(filters: Omit<ExpedienteFilters, "page" | "pageSize">) {
+    const { orderBy } = filters;
+    const where = this.buildWhere(filters);
+
+    const orderByInput: Prisma.MembershipApplicationOrderByWithRelationInput = {
+      createdAt: orderBy === "Más antiguos" ? "asc" : "desc",
+    };
+
+    const items = await prisma.membershipApplication.findMany({
+      where,
+      orderBy: orderByInput,
+      include: LIST_INCLUDE,
+    });
+
+    return items;
   }
 
   // ============================================================
