@@ -51,6 +51,7 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
 
   const [toastMessage, setToastMessage] = useState<{ title: string; type: "success" | "error" } | null>(null);
   const [filters, setFilters] = useState({ search: "", status: "Todos", modality: "Todos", assignedTo: "Todos", logisticValidation: "Todos", associateValidation: "Todos", comiteValidation: "Todos", legalValidation: "Todos", comunicacionesValidation: "Todos", paymentStatus: "Todos", dateFrom: "", dateTo: "", orderBy: "Más recientes" });
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => { setIsMounted(true); }, []);
 
@@ -100,6 +101,36 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
   const handleClearFilters = () => {
     setFilters({ search: "", status: "Todos", modality: "Todos", assignedTo: "Todos", logisticValidation: "Todos", associateValidation: "Todos", comiteValidation: "Todos", legalValidation: "Todos", comunicacionesValidation: "Todos", paymentStatus: "Todos", dateFrom: "", dateTo: "", orderBy: "Más recientes" });
     setMeta((prev) => ({ ...prev, page: 1 }));
+  };
+
+  const handleExportExcel = async () => {
+    setIsExporting(true);
+    try {
+      const queryParams = new URLSearchParams();
+      Object.entries(filters).forEach(([key, value]) => { if (value && value !== "Todos") queryParams.append(key, value); });
+      const response = await fetch(`/api/afiliaciones/expedientes/export?${queryParams.toString()}`);
+      if (!response.ok) {
+        const result = await response.json().catch(() => null);
+        showToast(result?.message || "No se pudo exportar el Excel.", "error");
+        return;
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      const disposition = response.headers.get("Content-Disposition") || "";
+      const filenameMatch = disposition.match(/filename="?([^"]+)"?/);
+      link.download = filenameMatch?.[1] || "Expedientes_Afiliacion.xlsx";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error(error);
+      showToast("Error de conexión al exportar.", "error");
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const handleOpenDrawer = async (cardData: SmartCaseCardData, forceTab?: string) => {
@@ -374,7 +405,7 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button className="flex items-center justify-center gap-1.5 px-4 h-9 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-lg text-xs font-bold transition-all shadow-sm focus:outline-none"><Download size={14} strokeWidth={2.5} /> Exportar Excel</button>
+            <button onClick={handleExportExcel} disabled={isExporting} className="flex items-center justify-center gap-1.5 px-4 h-9 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-lg text-xs font-bold transition-all shadow-sm focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"><Download size={14} strokeWidth={2.5} /> {isExporting ? "Exportando..." : "Exportar Excel"}</button>
             <button onClick={() => setShowWorkflowGuide(true)} className="flex items-center justify-center gap-1.5 px-4 h-9 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded-lg text-xs font-bold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"><Info size={14} strokeWidth={2.5} /> Ver flujo</button>
           </div>
         </div>
