@@ -1,5 +1,7 @@
 # Plan de Convergencia Git — Afiliaciones IIMP
 
+> **Estado actual (2026-10-26):** ver `docs/release-engineering/AFILIACIONES-GIT-GOVERNANCE-02.md`. Política de ramas permanente: `qa` + `master` con ramas temporales y Conventional Commits. `qa/stable` está 17 commits detrás de `master`; la rama plana `qa` aún no existe.
+
 > Fase 5A (auditoría final). Fecha: 2026-10-16.
 > Rama de integración: `integration/afiliaciones-consolidacion-20261016` (HEAD `97e4ed1`).
 > Este documento es una PROPUESTA. No se han ejecutado merges.

@@ -1,5 +1,7 @@
 # RUNBOOK — PRIMER DESPLIEGUE PROD AFILIACIONES IIMP
 
+> **Gobernanza vigente:** promoción a PROD solo desde `master` con `AUTHORIZED_COMMIT_SHA`/`IMAGE_TAG` autorizados, aprobación `environment: prod`, ECR inmutable y blue/green. Ver `docs/release-engineering/AFILIACIONES-GIT-GOVERNANCE-02.md` y `docs/release-engineering/DEV-WORKFLOW-OPT-01.md`.
+
 > Procedimiento operativo real y numerado para el primer provisioning de AWS PROD.
 > Estado: `DRAFT_APPROVED_PENDING_EXECUTION`. No ejecutar sin aprobación humana de cada fase mutante.
 > Última actualización: 02 de octubre de 2026.

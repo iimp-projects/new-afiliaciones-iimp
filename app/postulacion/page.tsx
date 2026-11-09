@@ -622,7 +622,7 @@ const TESTIMONIOS: Testimonio[] = [
     comentario:
       "El programa Cantera de Talentos es una experiencia de compromiso, conexiones y desarrollo profesional. Orgullosa de ser parte de una generación que transforma la minería.",
     detalle: "Ingeniería de Minas • Universidad Nacional de San Agustín de Arequipa (UNSA)",
-    imagen: null,
+    imagen: "/images/testimonios/Nicole_Aissa_Quispe_Manayay.jpeg",
   },
   {
     nombre: "Jorge Miguel Soncco Soncco",

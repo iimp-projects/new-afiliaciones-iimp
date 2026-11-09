@@ -1,5 +1,7 @@
 # Despliegue y preflight
 
+> **Política de ramas:** dos ramas permanentes (`qa`, `master`) + ramas temporales (`feature/*`, `fix/*`, `hotfix/*`, `perf/*`, `docs/*`, `chore/*`). Promoción QA → PROD por SHA autorizado (`AUTHORIZED_COMMIT_SHA`/`IMAGE_TAG`). Ver `docs/release-engineering/AFILIACIONES-GIT-GOVERNANCE-02.md`.
+
 La plataforma de hosting, CI/CD y estrategia de rollback no están documentadas como contrato definitivo. Este archivo define comprobaciones independientes de proveedor.
 
 ## Preflight obligatorio
