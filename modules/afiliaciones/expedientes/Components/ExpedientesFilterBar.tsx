@@ -90,7 +90,7 @@ const CustomDropdown = ({ value, options, onChange, topLabel, className = "", he
         type="button"
         disabled={disabled}
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full ${heightClass} pl-4 pr-10 border border-slate-200 rounded-xl text-sm font-bold focus:outline-none focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059] transition-all flex items-center justify-between ${disabled ? 'bg-slate-50 text-slate-400 cursor-not-allowed border-slate-100' : 'bg-white text-slate-700'}`}
+        className={`w-full ${heightClass} pl-4 pr-10 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059] transition-all flex items-center justify-between ${disabled ? 'bg-slate-50 text-slate-400 cursor-not-allowed border-slate-100' : 'bg-white text-slate-700'}`}
       >
         <span className="truncate">{selectedOption.label}</span>
         <ChevronDown size={16} className={`absolute right-3.5 transition-transform duration-300 ${isOpen ? 'rotate-180 text-[#C5A059]' : 'text-slate-400'}`} />
@@ -199,8 +199,13 @@ export function ExpedientesFilterBar({ filters, onFilterChange, totalResults }: 
             placeholder="Buscar por DNI, Nombre o APP..."
             value={filters.search}
             onChange={(e) => onFilterChange("search", e.target.value)}
-            className="w-full pl-10 pr-4 h-10 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059] transition-all placeholder:text-slate-400"
+            className="w-full pl-10 pr-10 h-10 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059] transition-all placeholder:text-slate-400"
           />
+          {filters.search && (
+            <button type="button" onClick={() => onFilterChange("search", "")} aria-label="Limpiar búsqueda" className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-200 hover:text-slate-600">
+              <X size={14} strokeWidth={2.5} />
+            </button>
+          )}
         </div>
 
         {/* CONTROLES */}
@@ -284,11 +289,11 @@ export function ExpedientesFilterBar({ filters, onFilterChange, totalResults }: 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="relative">
                       <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest z-10">Desde</span>
-                      <input type="date" value={filters.dateFrom} onChange={(e) => onFilterChange("dateFrom", e.target.value)} className="w-full h-10 px-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:border-[#C5A059] transition-all" />
+                      <input type="date" value={filters.dateFrom} onChange={(e) => onFilterChange("dateFrom", e.target.value)} className="w-full h-10 px-2 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:border-[#C5A059] transition-all" />
                     </div>
                     <div className="relative">
                       <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest z-10">Hasta</span>
-                      <input type="date" value={filters.dateTo} onChange={(e) => onFilterChange("dateTo", e.target.value)} className="w-full h-10 px-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:border-[#C5A059] transition-all" />
+                      <input type="date" value={filters.dateTo} onChange={(e) => onFilterChange("dateTo", e.target.value)} className="w-full h-10 px-2 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:border-[#C5A059] transition-all" />
                     </div>
                   </div>
                 </div>

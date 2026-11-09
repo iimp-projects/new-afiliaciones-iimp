@@ -2,6 +2,7 @@
 import { shouldShowEvaluationContext, type AtomicValidation, type AtomicValidationStatus, type PrimaryBadgeIcon, type SmartCaseCardData } from "@/modules/shared/Components/SmartCaseCard/types";
 import { formatPeruDate } from "@/modules/shared/Utils/formatPeruDateTime";
 import { documentTypeLabel } from "@/modules/shared/Utils/documentType";
+import { formatFullName } from "@/modules/shared/Utils/personName";
 
 export class AsociadosMapper {
   static toCardData(user: any): SmartCaseCardData {
@@ -12,7 +13,7 @@ export class AsociadosMapper {
     const completion = application?.history?.find((item: any) => item.newStatus === "COMPLETED");
     const paidPayment = application?.payments?.find((item: any) => item.status === "PAID");
     const memberSince = completion?.createdAt ?? application?.updatedAt;
-    const fullName = `${user.person?.firstName ?? ""} ${user.person?.paternalLastName ?? ""} ${user.person?.maternalLastName ?? ""}`.trim();
+    const fullName = formatFullName(user.person?.firstName, user.person?.paternalLastName, user.person?.maternalLastName);
     const initials = `${user.person?.firstName?.charAt(0) ?? ""}${user.person?.paternalLastName?.charAt(0) ?? ""}`.toUpperCase();
     const documentNumber = user.person?.documentNumber ?? "No registrado";
     const institutionalCode = user.institutionalCode ?? null;
