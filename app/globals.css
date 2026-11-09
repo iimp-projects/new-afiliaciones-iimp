@@ -23,12 +23,24 @@
   /* Animación Sweep mantenida */
   --animate-sweep: sweep 3.5s infinite;
 
+  /* Shimmer para esqueletos de carga */
+  --animate-shimmer: shimmer 1.8s infinite;
+
   @keyframes sweep {
     0% {
       transform: translateX(-150%) skewX(-15deg);
     }
     100% {
       transform: translateX(300%) skewX(-15deg);
+    }
+  }
+
+  @keyframes shimmer {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(100%);
     }
   }
 

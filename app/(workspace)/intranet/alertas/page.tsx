@@ -1,9 +1,11 @@
+import { redirect } from "next/navigation";
 import { contextService } from "@/modules/auth/context/service";
-import { OperationalAlertsWorkspace } from "@/modules/afiliaciones/alerts/Views/OperationalAlertsWorkspace";
 
 export const metadata = { title: "Centro de alertas | Intranet IIMP" };
 
-export default async function AlertsPage() {
+export default async function AlertsPage({ searchParams }: { searchParams: Promise<{ applicationId?: string }> }) {
   await contextService.requirePermission("read", "alerts");
-  return <OperationalAlertsWorkspace />;
+  const { applicationId } = await searchParams;
+  const target = `/intranet/notificaciones?tab=alerts${applicationId ? `&applicationId=${encodeURIComponent(applicationId)}` : ""}`;
+  redirect(target);
 }

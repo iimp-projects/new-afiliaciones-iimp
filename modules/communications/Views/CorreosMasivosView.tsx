@@ -2,13 +2,36 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Mail, Plus, Search, Upload, Users } from "lucide-react";
+import { BookOpen, Info, Mail, Plus, Search, Upload, Users, X } from "lucide-react";
 import type { EmailOverview } from "../Models/EmailCampaign";
 import type { CampaignListItem } from "../Models/Campaign";
 import type { RecipientDetail, RecipientListItem, RecipientListOption } from "../Models/Recipient";
 import { ImportRecipientsWizard } from "./ImportRecipientsWizard";
 import { fetchRecipientDetailAction } from "../Actions/recipient.actions";
 import { formatDateTimeEsPe } from "@/modules/shared/Utils/formatDateTime";
+
+const INSTRUCTIONS: Array<{ title: string; desc: string }> = [
+  {
+    title: "Importa o selecciona destinatarios",
+    desc: "En la pestaña \"Destinatarios\" importa tu base desde un archivo (Excel/CSV) con el botón \"Importar destinatarios\", o usa el origen \"Asociados del sistema\". Organiza los contactos en listas para reutilizarlos en futuras campañas.",
+  },
+  {
+    title: "Crea la campaña",
+    desc: "Pulsa \"Nueva campaña\" y completa el nombre, asunto, remitente, cuenta de envío (SMTP DEFAULT o PROV), Reply-To y el contenido HTML. Puedes usar variables como {{nombre}}, {{empresa}} o {{enlace_acceso}}, o cargar la plantilla institucional. Al guardar quedará como Borrador.",
+  },
+  {
+    title: "Asigna los destinatarios",
+    desc: "Dentro de la campaña, elige los destinatarios desde listas, contactos individuales o asociados del sistema. La campaña guarda una copia (snapshot) de los datos de cada destinatario para personalizar el correo.",
+  },
+  {
+    title: "Previsualiza y envía",
+    desc: "Revisa el correo con \"Previsualizar\". Cuando esté listo, envía la campaña: pasará a estado \"Enviando\" y se procesará de forma independiente del navegador.",
+  },
+  {
+    title: "Haz seguimiento",
+    desc: "En \"Resumen\" verás el conteo de enviados, pendientes y errores. La campaña terminará en Completada, Parcial o Cancelada; puedes pausarla o reanudarla en cualquier momento.",
+  },
+];
 
 const campaignStatus: Record<string, { label: string; className: string }> = {
   DRAFT: { label: "Borrador", className: "bg-slate-100 text-slate-600" },
@@ -38,6 +61,7 @@ export function CorreosMasivosView({
 }) {
   const [tab, setTab] = useState<"resumen" | "campanas" | "destinatarios">("resumen");
   const [importOpen, setImportOpen] = useState(false);
+  const [instructionsOpen, setInstructionsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [listFilter, setListFilter] = useState<string>("all");
   const [selected, setSelected] = useState<RecipientDetail | null>(null);
@@ -67,11 +91,33 @@ export function CorreosMasivosView({
   ];
 
   return (
-    <main className="mx-auto w-full max-w-[1600px] p-6 md:p-8">
+    <main className="mx-auto w-full max-w-[1600px]">
+      <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-blue-200 bg-blue-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-3 sm:items-center">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-100">
+            <Info size={18} className="text-blue-600" strokeWidth={2.2} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-extrabold text-blue-900">¿Cómo funciona Correos Masivos?</p>
+            <p className="mt-0.5 text-[13px] font-medium leading-snug text-blue-900/70">
+              Importa destinatarios, crea campañas de correo institucional, asígnales contactos y envíalas desde aquí.
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => setInstructionsOpen(true)}
+          className="inline-flex h-10 shrink-0 items-center gap-2 rounded-xl border border-blue-300 bg-white px-4 text-sm font-black text-blue-700 shadow-sm transition-colors hover:bg-blue-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/50"
+        >
+          <BookOpen size={16} strokeWidth={2.2} />
+          Ver instrucciones
+        </button>
+      </div>
+
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-[11px] font-black uppercase tracking-[.18em] text-[#C79A3B]">Comunicaciones</p>
-          <h1 className="text-3xl font-black tracking-tight text-slate-800">Correos Masivos</h1>
+          <h1 className="text-3xl font-medium tracking-tight text-slate-800">Correos Masivos</h1>
           <p className="text-sm text-slate-500">Gestión de campañas, destinatarios y envíos de correo.</p>
         </div>
         <div className="flex gap-3">
@@ -114,7 +160,7 @@ export function CorreosMasivosView({
           <section className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200">
             <header className="flex items-center gap-2 border-b border-slate-100 px-6 py-4">
               <Mail size={17} className="text-[#C5A059]" />
-              <h2 className="text-sm font-black uppercase tracking-wide text-slate-700">Campañas recientes</h2>
+              <h2 className="text-sm font-medium uppercase tracking-wide text-slate-700">Campañas recientes</h2>
             </header>
             {overview.recent.length === 0 ? (
               <div className="flex flex-col items-center justify-center gap-2 px-6 py-14 text-center">
@@ -148,7 +194,7 @@ export function CorreosMasivosView({
         <section className="mt-6 rounded-3xl bg-white shadow-sm ring-1 ring-slate-200">
           <header className="flex items-center gap-2 border-b border-slate-100 px-6 py-4">
             <Mail size={17} className="text-[#C5A059]" />
-            <h2 className="text-sm font-black uppercase tracking-wide text-slate-700">Campañas</h2>
+            <h2 className="text-sm font-medium uppercase tracking-wide text-slate-700">Campañas</h2>
           </header>
           {campaigns.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-2 px-6 py-14 text-center">
@@ -191,11 +237,16 @@ export function CorreosMasivosView({
         <section className="mt-6 rounded-3xl bg-white shadow-sm ring-1 ring-slate-200">
           <header className="flex flex-wrap items-center gap-3 border-b border-slate-100 px-6 py-4">
             <Users size={17} className="text-[#C5A059]" />
-            <h2 className="text-sm font-black uppercase tracking-wide text-slate-700">Destinatarios</h2>
+            <h2 className="text-sm font-medium uppercase tracking-wide text-slate-700">Destinatarios</h2>
             <div className="ml-auto flex flex-wrap items-center gap-2">
               <div className="relative">
                 <Search size={15} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar nombre, empresa, correo" className="h-9 w-64 rounded-lg border border-slate-200 pl-8 pr-3 text-xs outline-none focus:border-[#C5A059]" />
+                <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar nombre, empresa, correo" className="h-9 w-64 rounded-lg border border-slate-200 pl-8 pr-8 text-xs outline-none focus:border-[#C5A059]" />
+                {search && (
+                  <button type="button" onClick={() => setSearch("")} aria-label="Limpiar búsqueda" className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-200 hover:text-slate-600">
+                    <X size={13} strokeWidth={2.5} />
+                  </button>
+                )}
               </div>
               <select value={listFilter} onChange={(event) => setListFilter(event.target.value)} className="h-9 rounded-lg border border-slate-200 px-2 text-xs font-semibold">
                 <option value="all">Todas las listas</option>
@@ -275,6 +326,42 @@ export function CorreosMasivosView({
       )}
 
       {importOpen && <ImportRecipientsWizard onClose={() => setImportOpen(false)} onImported={() => window.location.reload()} />}
+
+      {instructionsOpen && (
+        <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" onClick={() => setInstructionsOpen(false)}>
+          <div className="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-[24px] bg-white shadow-2xl" onClick={(event) => event.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+              <div className="flex items-center gap-2">
+                <BookOpen size={18} className="text-[#C5A059]" strokeWidth={2.2} />
+                <h3 className="text-lg font-black text-slate-800">Cómo funciona Correos Masivos</h3>
+              </div>
+              <button type="button" onClick={() => setInstructionsOpen(false)} aria-label="Cerrar instrucciones" className="rounded-full p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600">
+                <X size={18} strokeWidth={2.5} />
+              </button>
+            </div>
+
+            <div className="overflow-y-auto px-6 py-5">
+              <ol className="space-y-5">
+                {INSTRUCTIONS.map((step, index) => (
+                  <li key={step.title} className="flex gap-3">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#C5A059] text-xs font-black text-white">{index + 1}</span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-extrabold text-slate-800">{step.title}</p>
+                      <p className="mt-0.5 text-[13px] font-medium leading-snug text-slate-600">{step.desc}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+
+            <div className="flex justify-end border-t border-slate-100 px-6 py-4">
+              <button type="button" onClick={() => setInstructionsOpen(false)} className="rounded-xl bg-[#C5A059] px-5 py-2.5 text-sm font-black text-white shadow-md transition-colors hover:bg-[#b28d4c]">
+                Entendido
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

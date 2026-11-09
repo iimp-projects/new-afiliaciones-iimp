@@ -71,13 +71,13 @@ export function SmartCaseCard({
       {/* HEADER: ESTADO Y SUB-ESTADO UNIDOS EN UNA SOLA CAJA VISUAL */}
       <div className={`flex items-start justify-between mt-1 relative ${hideContactDetails ? "mb-5" : "mb-6"}`}>
         {primaryBadge && (
-            <div className={`flex flex-col px-3 py-1.5 rounded-xl w-max ${primaryBadge.colorClass}`}>
+            <div className={`flex flex-col w-max px-2.5 py-1 rounded-lg ${primaryBadge.colorClass}`}>
             <div className="flex items-center gap-1.5">
               <StatusIcon status={primaryBadge.icon} className="shrink-0" />
-              <span className="text-[11px] font-black uppercase tracking-wider">{primaryBadge.label}</span>
+              <span className="text-[11px] font-semibold uppercase tracking-wider">{primaryBadge.label}</span>
             </div>
             {subStatus && (
-              <span className="text-[11px] font-semibold mt-0.5 opacity-80">
+              <span className="mt-0.5 text-[10px] font-normal opacity-80">
                 {subStatus}
               </span>
             )}
@@ -189,11 +189,11 @@ export function SmartCaseCard({
           )}
         </div>
         <div className="flex flex-col min-w-0">
-          <h3 className="text-[14px] font-extrabold text-slate-800 leading-tight capitalize line-clamp-2" title={identity.title}>
+          <h3 className="text-[14px] font-semibold text-slate-800 leading-tight capitalize line-clamp-2" title={identity.title}>
             {identity.title.toLowerCase()}
           </h3>
-          <p className="text-[11px] font-semibold text-slate-500 mt-1">{identity.categoryBadge?.label}</p>
-          <p className="mt-0.5 text-[10px] font-bold text-slate-400 font-mono break-words [overflow-wrap:anywhere]">{identity.subtitle}</p>
+          <p className="text-[11px] font-normal text-slate-500 mt-1">{identity.categoryBadge?.label}</p>
+          <p className="mt-0.5 text-[10px] font-normal text-slate-400 font-mono break-words [overflow-wrap:anywhere]">{identity.subtitle}</p>
           {!hideContactDetails && identity.email && <p className="mt-0.5 flex min-w-0 items-center gap-1 text-[10px] font-medium text-slate-500 break-words [overflow-wrap:anywhere]"><Mail size={11} className="shrink-0" /><span className="min-w-0 break-words [overflow-wrap:anywhere]">{identity.email}</span></p>}
           {!hideContactDetails && identity.phone && <p className="mt-0.5 flex items-center gap-1 text-[10px] font-medium text-slate-500"><Phone size={11} className="shrink-0" />{identity.phone}</p>}
         </div>
@@ -208,12 +208,12 @@ export function SmartCaseCard({
               {/* Columna 1: Icono e Identificador del Área */}
               <div className="flex min-w-0 items-center gap-1.5">
                 <DynamicIcon name={val.icon} size={15} className="text-slate-500 shrink-0" />
-                <span className="text-left text-[12px] font-bold leading-tight text-slate-700 whitespace-nowrap">{!isExpedienteLayout && val.label === "Miembro desde" ? "Desde" : val.label}</span>
+                <span className="text-left text-[12px] font-medium leading-tight text-slate-600 whitespace-nowrap">{!isExpedienteLayout && val.label === "Miembro desde" ? "Desde" : val.label}</span>
               </div>
               
               {/* Columna 2: Estado */}
               <div className="flex min-w-0 items-center justify-start">
-                <span className={`${isExpedienteLayout ? "max-w-[125px] px-1.5" : "max-w-full px-2"} inline-flex min-w-0 items-start justify-start gap-1 rounded py-0.5 text-left text-[10px] font-bold leading-tight ${val.statusColorClass} ${!isExpedienteLayout && ["Código", "Miembro desde", "Inscripción"].includes(val.label) ? "whitespace-nowrap" : "whitespace-normal break-words [overflow-wrap:anywhere]"}`}>
+                <span className={`${isExpedienteLayout ? "max-w-[125px] gap-0.5 rounded-md px-1 py-0.5" : "max-w-full gap-0.5 rounded-md px-1 py-0.5"} inline-flex min-w-0 items-start justify-start text-left text-[10px] font-bold leading-tight ${val.statusColorClass} ${!isExpedienteLayout && ["Código", "Miembro desde", "Inscripción"].includes(val.label) ? "whitespace-nowrap" : "whitespace-normal break-words [overflow-wrap:anywhere]"}`}>
                   <StatusIcon status={val.status} className="w-3 h-3 shrink-0" />
                   <span className="min-w-0 break-words [overflow-wrap:anywhere]">{val.statusLabel}</span>
                 </span>
@@ -256,7 +256,7 @@ export function SmartCaseCard({
       )}
 
       {/* FOOTER */}
-      <div className={`flex items-center gap-1.5 border-t border-slate-100 text-[11px] font-medium text-slate-500 mt-auto ${hideContactDetails ? "pt-3" : "pt-4"}`}>
+      <div className={`flex items-center gap-1.5 border-t border-slate-100 mt-auto text-[10px] font-normal text-slate-400 ${hideContactDetails ? "pt-3" : "pt-4"}`}>
         <Clock size={14} className="text-slate-400" /> {metadata.lastUpdatedRelative}
       </div>
 

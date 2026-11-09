@@ -381,7 +381,7 @@ export function DashboardWorkspace({ currentUser }: { currentUser: any }) {
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-[1400px] h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300 relative">
              <div className="px-8 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 shrink-0">
                <div>
-                  <h2 className="text-xl font-black text-slate-800 flex items-center gap-2">
+                  <h2 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
                     <MapPin className="text-[#c39254]" /> Mapa Geográfico Detallado
                   </h2>
                   <p className="text-sm text-slate-500 mt-1">Explora la distribución de tus afiliados a nivel {geoMode === "PERU" ? "nacional" : "mundial"}.</p>
@@ -402,7 +402,7 @@ export function DashboardWorkspace({ currentUser }: { currentUser: any }) {
                    {!activeGeoData ? (geoLoadFailed ? <div className="text-slate-400 text-sm font-medium">Mapa no disponible.</div> : <div className="animate-spin w-12 h-12 border-4 border-[#c39254] border-t-transparent rounded-full"></div>) : renderMapSVG(true)}
                 </div>
                 <div className="w-full lg:w-96 bg-white border-l border-slate-200 p-6 flex flex-col shrink-0">
-                   <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-6">Top Regiones</h3>
+                   <h3 className="text-sm font-medium text-slate-400 uppercase tracking-widest mb-6">Top Regiones</h3>
                    <div className="flex-1 overflow-y-auto space-y-5 pr-2 scrollbar-thin scrollbar-thumb-slate-200">
                     {currentDistribution.length > 0 ? (
                       currentDistribution.map((loc: any, idx: number) => {
@@ -412,7 +412,7 @@ export function DashboardWorkspace({ currentUser }: { currentUser: any }) {
                           <div key={idx} className="w-full">
                             <div className="flex justify-between items-end mb-1.5">
                               <span className="text-sm font-bold text-slate-700 capitalize truncate">{loc.name.toLowerCase()} <span className="text-slate-400 font-medium text-xs ml-1">({loc.count})</span></span>
-                              <span className="text-sm font-black text-[#7f561e]">{truePercentage}%</span>
+                              <span className="text-sm font-semibold text-[#7f561e]">{truePercentage}%</span>
                             </div>
                             <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
                               <div className="bg-gradient-to-r from-[#dca45c] to-[#7f561e] h-2 rounded-full" style={{ width: `${visualWidth}%` }}></div>
@@ -443,7 +443,7 @@ export function DashboardWorkspace({ currentUser }: { currentUser: any }) {
 
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-2">
         <div>
-          <h1 className="text-[22px] font-black text-slate-800 tracking-tight">
+          <h1 className="text-[22px] font-semibold text-slate-800 tracking-tight">
              {greeting}, {currentUser?.person.firstName}!
             </h1>
           <p className="text-[13px] font-medium text-slate-500 mt-1">Métricas y estado general de la plataforma de afiliaciones.</p>
@@ -477,7 +477,7 @@ export function DashboardWorkspace({ currentUser }: { currentUser: any }) {
         {/* ✅ NUEVOS FILTROS DORADOS Y ROL-BASED */}
         <div className="p-5 border-b border-slate-100 bg-slate-50/50 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
           <div>
-            <h3 className="text-[16px] font-black text-slate-800">Actividad y gestión del área</h3>
+            <h3 className="text-[16px] font-semibold text-slate-800">Actividad y gestión del área</h3>
             <p className="text-[12px] font-medium text-slate-500 mt-0.5">Seguimiento de expedientes procesados por responsable</p>
           </div>
 
@@ -590,7 +590,7 @@ export function DashboardWorkspace({ currentUser }: { currentUser: any }) {
           {/* Lado Derecho: Gráfica Principal */}
           <div className="flex-1 p-6 relative flex flex-col min-h-[450px]">
             <div className="flex justify-between items-center mb-6">
-              <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
+              <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
                 <span>Expedientes procesados</span>
                 <Info size={14} className="text-slate-400" />
               </div>
@@ -655,7 +655,7 @@ export function DashboardWorkspace({ currentUser }: { currentUser: any }) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-3 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col relative overflow-hidden">
           <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-            <h3 className="text-[15px] font-bold text-slate-800 flex items-center gap-2">
+            <h3 className="text-[15px] font-semibold text-slate-800 flex items-center gap-2">
               <MapPin size={18} className="text-[#c39254]"/> Distribución Geográfica Global
             </h3>
             <button onClick={() => setIsMapExpanded(true)} className="text-sm font-bold text-[#c39254] hover:underline flex items-center gap-1">
@@ -698,7 +698,7 @@ export function DashboardWorkspace({ currentUser }: { currentUser: any }) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
           <div className="flex justify-between items-center mb-6">
-             <h3 className="text-[15px] font-bold text-slate-800">Actividad Reciente</h3>
+             <h3 className="text-[15px] font-semibold text-slate-800">Actividad Reciente</h3>
              <MoreHorizontal size={18} className="text-slate-400 cursor-pointer hover:text-[#c39254]" />
           </div>
           <div className="relative border-l-2 border-slate-100 ml-3 space-y-6">
@@ -725,7 +725,7 @@ export function DashboardWorkspace({ currentUser }: { currentUser: any }) {
 
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col">
           <div className="flex justify-between items-center mb-6">
-             <h3 className="text-[15px] font-bold text-slate-800">Requiere Atención</h3>
+             <h3 className="text-[15px] font-semibold text-slate-800">Requiere Atención</h3>
              <span className="bg-red-50 text-red-600 text-[10px] font-black px-2.5 py-1 rounded-md border border-red-100">{requiresAttention.length} urgentes</span>
           </div>
           <div className="flex-1 overflow-y-auto">
@@ -759,7 +759,7 @@ export function DashboardWorkspace({ currentUser }: { currentUser: any }) {
 
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
            <div className="flex justify-between items-center mb-6">
-             <h3 className="text-[15px] font-bold text-slate-800">Perfil Profesional</h3>
+             <h3 className="text-[15px] font-semibold text-slate-800">Perfil Profesional</h3>
              <MoreHorizontal size={18} className="text-slate-400 cursor-pointer hover:text-[#c39254]" />
           </div>
           <div className="space-y-5">
@@ -796,7 +796,7 @@ function VelzonKpiCard({ title, value, trend, trendUp, linkText, icon: Icon, col
   return (
     <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_40px_-15px_rgba(127,86,30,0.2)] group">
       <div className="flex justify-between items-center mb-4">
-        <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{title}</h4>
+        <h4 className="text-[11px] font-medium text-slate-400 uppercase tracking-widest">{title}</h4>
         <span className={`text-[11px] font-bold flex items-center gap-1 ${trendUp ? 'text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-md' : 'text-red-600 bg-red-50 border border-red-100 px-2 py-0.5 rounded-md'}`}>
           {trendUp ? <TrendingUp size={12} strokeWidth={3} /> : <TrendingDown size={12} strokeWidth={3} />}
           {trend}
@@ -804,7 +804,7 @@ function VelzonKpiCard({ title, value, trend, trendUp, linkText, icon: Icon, col
       </div>
       <div className="flex justify-between items-end">
         <div>
-          <h2 className="text-3xl font-black text-slate-800 mb-1 tracking-tight group-hover:text-[#7f561e] transition-colors">{value}</h2>
+          <h2 className="text-3xl font-semibold text-slate-800 mb-1 tracking-tight group-hover:text-[#7f561e] transition-colors">{value}</h2>
           <p className="text-[11px] font-bold text-slate-400 hover:text-[#c39254] underline decoration-slate-200 hover:decoration-[#c39254] underline-offset-4 cursor-pointer transition-colors">
             {linkText}
           </p>
