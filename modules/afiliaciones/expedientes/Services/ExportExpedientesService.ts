@@ -3,7 +3,6 @@ import { ExpedienteRepository } from "../Repositories/ExpedienteRepository";
 import type { ExpedienteFilters } from "../Repositories/ExpedienteRepository";
 import { documentTypeLabel } from "@/modules/shared/Utils/documentType";
 import { formatPeruDateTime } from "@/modules/shared/Utils/formatPeruDateTime";
-import { formatFullName } from "@/modules/shared/Utils/personName";
 
 type ExpedienteRecord = Awaited<ReturnType<ExpedienteRepository["getAllFiltered"]>>[number];
 
@@ -64,7 +63,9 @@ export class ExportExpedientesService {
 
   private mapRow(record: ExpedienteRecord): Record<string, string | number> {
     const person = record.person;
-    const fullName = formatFullName(person?.firstName, person?.paternalLastName, person?.maternalLastName) || "Postulante desconocido";
+    const fullName = person
+      ? `${person.firstName} ${person.paternalLastName} ${person.maternalLastName || ""}`.trim()
+      : "Postulante desconocido";
 
     const isStudent = record.affiliateType === "STUDENT";
     const lastPayment = record.payments?.[0];

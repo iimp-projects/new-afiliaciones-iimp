@@ -368,6 +368,11 @@ export class NiubizPaymentProvider implements PaymentProvider {
       missing.push("MDD75");
     if (registeredState === "Invitado" && merchantDefineData.MDD77 !== 1)
       missing.push("MDD77");
+    const mdd77 = merchantDefineData.MDD77;
+    if (mdd77 !== undefined && mdd77 !== null) {
+      const numeric = typeof mdd77 === "number" ? mdd77 : Number(mdd77);
+      if (!Number.isInteger(numeric) || numeric <= 0) missing.push("MDD77");
+    }
     for (const field of CARDHOLDER_DATA_MAP_FIELDS) {
       if (!dataMap[field]) missing.push(field);
     }
