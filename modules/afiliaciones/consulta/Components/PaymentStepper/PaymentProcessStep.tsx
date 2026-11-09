@@ -1,7 +1,9 @@
 "use client";
 import { CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
 import { NiubizCheckout } from "@/modules/afiliaciones/payments/Components/NiubizCheckout";
+import { NiubizSessionDiagnostic } from "@/modules/afiliaciones/payments/Components/NiubizSessionDiagnostic";
 import type { NiubizCheckoutConfig } from "@/modules/afiliaciones/payments/DTOs/Niubiz/NiubizCheckout.dto";
+import type { NiubizSessionDiagnostic as NiubizSessionDiagnosticDto } from "@/modules/afiliaciones/payments/DTOs/Niubiz/NiubizSessionDiagnostic.dto";
 import { PaymentLoadingOverlay } from "@/modules/afiliaciones/payments/Components/PaymentLoadingOverlay";
 import type { BillingDataInput } from "@/modules/afiliaciones/payments/DTOs/billing.schema";
 import type { CreatePaymentResponse } from "@/modules/afiliaciones/payments/Models/PaymentResponse";
@@ -9,10 +11,10 @@ import { PAYMENT_TERMS_URL } from "../../Constants/paymentTerms";
 import { InstitutionalContactCard } from "./InstitutionalContactCard";
 export type PaymentUiState = "IDLE" | "PREPARING_CHECKOUT" | "CHECKOUT_OPEN" | "PROCESSING_PAYMENT" | "CHECKOUT_ERROR" | "INIT_FAILED" | "PAYMENT_FAILED" | "PAYMENT_SUCCESS" | "PAYMENT_UNCERTAIN";
 interface Details { transactionId?: string; authorizationCode?: string; }
-interface Props { billingData: BillingDataInput; accepted: boolean; onAcceptedChange: (v: boolean) => void; onStartCheckout: () => Promise<NiubizCheckoutConfig | null>; amountInfo: { registrationAmount: number; membershipFeeAmount: number; totalAmount: number } | null; result: CreatePaymentResponse | null; loading: boolean; error: string | null; onRetry: () => void; paymentUiState: PaymentUiState; onCheckoutStateChange: (s: PaymentUiState) => void; failureMessage?: string | null; failureCode?: string | null; showRestoredFailure?: boolean; restoredPayment?: Details | null; affiliateType?: string; onFinish?: () => void; }
+interface Props { billingData: BillingDataInput; accepted: boolean; onAcceptedChange: (v: boolean) => void; onStartCheckout: () => Promise<NiubizCheckoutConfig | null>; amountInfo: { registrationAmount: number; membershipFeeAmount: number; totalAmount: number } | null; result: CreatePaymentResponse | null; loading: boolean; error: string | null; onRetry: () => void; paymentUiState: PaymentUiState; onCheckoutStateChange: (s: PaymentUiState) => void; failureMessage?: string | null; failureCode?: string | null; showRestoredFailure?: boolean; restoredPayment?: Details | null; affiliateType?: string; onFinish?: () => void; diagnostic?: NiubizSessionDiagnosticDto | null; resumeCheckout?: boolean; onContinueToCheckout?: () => void; onCancelDiagnostic?: () => void; }
 const TERMS_LABEL = "Términos y Condiciones de Afiliación y Pago del IIMP";
 const NO_CHECKOUT_STATES = ["PROCESSING_PAYMENT", "PAYMENT_SUCCESS", "PAYMENT_UNCERTAIN"] as const;
-export default function PaymentProcessStep({ billingData, accepted, onAcceptedChange, onStartCheckout, amountInfo, result, loading, error, onRetry, paymentUiState, onCheckoutStateChange, failureMessage, failureCode, showRestoredFailure = false, restoredPayment, affiliateType, onFinish }: Props) {
+export default function PaymentProcessStep({ billingData, accepted, onAcceptedChange, onStartCheckout, amountInfo, result, loading, error, onRetry, paymentUiState, onCheckoutStateChange, failureMessage, failureCode, showRestoredFailure = false, restoredPayment, affiliateType, onFinish, diagnostic = null, resumeCheckout = false, onContinueToCheckout, onCancelDiagnostic }: Props) {
   const isInvoice = billingData.tipoDocumento === "RUC";
   const totalAmount = result?.amount ?? amountInfo?.totalAmount ?? null;
   const total = totalAmount != null ? `S/ ${totalAmount.toFixed(2)}` : "Monto protegido en el servidor";
@@ -35,7 +37,9 @@ export default function PaymentProcessStep({ billingData, accepted, onAcceptedCh
         <input type="checkbox" disabled={locked} checked={accepted} onChange={(event) => onAcceptedChange(event.target.checked)} className="mt-0.5 h-5 w-5 accent-[#C5A059] disabled:cursor-not-allowed"/>
         <span className="text-xs font-bold text-slate-700">Confirmo que mis datos de facturación son correctos, asumo la responsabilidad de su emisión, he leído y acepto los{" "}{PAYMENT_TERMS_URL ? <a href={PAYMENT_TERMS_URL} target="_blank" rel="noopener noreferrer" className="text-[#9A7739] underline hover:text-[#7f561e]">{TERMS_LABEL}</a> : <strong>{TERMS_LABEL}</strong>}, y declaro ser mayor de edad y estar facultado/a para realizar este pago.</span>
       </label>
-      {shouldOfferCheckout && <div className="mt-5 border-t border-[#E8D09E]/60 pt-5"><NiubizCheckout config={result?.checkout ?? null} disabled={!accepted || locked} onStateChange={onCheckoutStateChange} onRequestSession={onStartCheckout}/></div>}
+      {diagnostic && !resumeCheckout && <div className="mt-5 border-t border-[#E8D09E]/60 pt-5"><NiubizSessionDiagnostic diagnostic={diagnostic} onContinue={() => onContinueToCheckout?.()} onCancel={() => onCancelDiagnostic?.()} /></div>}
+      {shouldOfferCheckout && !diagnostic && <div className="mt-5 border-t border-[#E8D09E]/60 pt-5"><NiubizCheckout config={result?.checkout ?? null} disabled={!accepted || locked} onStateChange={onCheckoutStateChange} onRequestSession={onStartCheckout} autoOpen={resumeCheckout}/></div>}
+      {diagnostic && resumeCheckout && <div className="mt-5 border-t border-[#E8D09E]/60 pt-5"><NiubizCheckout config={result?.checkout ?? null} disabled={locked} onStateChange={onCheckoutStateChange} autoOpen/></div>}
     </div>
     {paymentUiState === "PAYMENT_UNCERTAIN" && <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800"><p className="font-black">Estamos verificando tu pago</p><p>No pudimos confirmar inmediatamente el resultado. No realices otro pago todavía.</p></div>}
     {paymentUiState === "PAYMENT_SUCCESS" && result && <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5"><p className="font-black">Pago realizado correctamente</p><p>Monto: {total}</p><p>Operación: {restoredPayment?.transactionId ?? "No disponible"}</p><p>Código de autorización: {restoredPayment?.authorizationCode ?? "No disponible"}</p><button type="button" onClick={onFinish}>Finalizar</button></div>}

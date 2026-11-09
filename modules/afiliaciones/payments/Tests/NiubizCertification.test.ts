@@ -167,3 +167,62 @@ describe("FASE 05 — Fecha de operación", () => {
     expect(result).toMatchObject({ status: PaymentStatus.FAILED, failureCode: "116", failureReason: "Fondos insuficientes" });
   });
 });
+
+describe("MDD77 — corrección puntual (bloqueo Registrado/Empleado)", () => {
+  const registeredMerchantDefineData = {
+    MDD4: "applicant@example.com",
+    MDD31: "999999999",
+    MDD32: "7",
+    MDD34: "12345678",
+    MDD75: "Registrado",
+  };
+
+  it("cliente invitado conserva MDD77 = 1", () => {
+    const request = new NiubizPaymentProvider(config, "TEST").buildSessionRequest({
+      ...command,
+      customer: { email: "applicant@example.com", documentNumber: "12345678", phone: "999999999", address: command.customer.address },
+    }, "security-token");
+
+    expect(request.body.antifraud.merchantDefineData).toMatchObject({ MDD75: "Invitado", MDD77: 1 });
+  });
+
+  it("cliente registrado con fecha de registro omite MDD77 (bloqueo documentado, no rompe el pago)", () => {
+    const request = new NiubizPaymentProvider(config, "TEST").buildSessionRequest({
+      ...command,
+      customer: { ...command.customer, registeredAt: new Date("2026-01-15T12:00:00Z") },
+    }, "security-token");
+
+    expect(request.body.antifraud.merchantDefineData).toMatchObject({ MDD75: "Registrado" });
+    expect(request.body.antifraud.merchantDefineData).not.toHaveProperty("MDD77");
+  });
+
+  it("cliente registrado sin fecha omite MDD77 sin lanzar error", () => {
+    const request = new NiubizPaymentProvider(config, "TEST").buildSessionRequest(command, "security-token");
+
+    expect(request.body.antifraud.merchantDefineData).not.toHaveProperty("MDD77");
+  });
+
+  it("rechaza una sesión Invitado sin MDD77", () => {
+    const provider = new NiubizPaymentProvider(config, "TEST");
+
+    expect(() => provider.buildSessionRequest(command, "security-token", {
+      merchantDefineData: { ...registeredMerchantDefineData, MDD75: "Invitado" },
+    })).toThrow(/MDD77/);
+  });
+
+  it.each([0, -3, 1.5])("rechaza MDD77 no válido (no entero positivo): %s", (value) => {
+    const provider = new NiubizPaymentProvider(config, "TEST");
+
+    expect(() => provider.buildSessionRequest(command, "security-token", {
+      merchantDefineData: { ...registeredMerchantDefineData, MDD77: value },
+    })).toThrow(/MDD77/);
+  });
+
+  it("acepta MDD77 entero positivo presente en un cliente Registrado", () => {
+    const request = new NiubizPaymentProvider(config, "TEST").buildSessionRequest(command, "security-token", {
+      merchantDefineData: { ...registeredMerchantDefineData, MDD77: 15 },
+    });
+
+    expect(request.body.antifraud.merchantDefineData?.MDD77).toBe(15);
+  });
+});

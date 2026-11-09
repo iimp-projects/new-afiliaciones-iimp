@@ -1,5 +1,6 @@
 import type { PaymentStatus } from "./Payment";
 import type { NiubizCheckoutConfig } from "../DTOs/Niubiz/NiubizCheckout.dto";
+import type { NiubizSessionDiagnostic } from "../DTOs/Niubiz/NiubizSessionDiagnostic.dto";
 
 export interface CreatePaymentResponse {
   success: boolean;
@@ -13,5 +14,6 @@ export interface CreatePaymentResponse {
   membershipFeeAmount?: number | null;
   currency: "PEN";
   checkout?: NiubizCheckoutConfig;
+  diagnostic?: NiubizSessionDiagnostic;
   message: string;
 }

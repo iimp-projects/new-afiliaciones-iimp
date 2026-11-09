@@ -1,16 +1,38 @@
 import { PaymentGateway } from "@prisma/client";
-import type { NiubizTestConfig, PaymentEnvironment } from "../Config/PaymentConfig";
+import type {
+  NiubizTestConfig,
+  PaymentEnvironment,
+} from "../Config/PaymentConfig";
 import type { NiubizAuthorizationResponse } from "../DTOs/Niubiz/NiubizAuthorization.dto";
 import type { NiubizCheckoutConfig } from "../DTOs/Niubiz/NiubizCheckout.dto";
-import type { NiubizDataMap, NiubizSessionRequest } from "../DTOs/Niubiz/NiubizSession.dto";
+import type {
+  NiubizDataMap,
+  NiubizSessionRequest,
+} from "../DTOs/Niubiz/NiubizSession.dto";
+import type { NiubizStageTrace } from "../DTOs/Niubiz/NiubizSessionDiagnostic.dto";
 import type { PaymentGatewayResult } from "../Repositories/Interfaces/IPaymentRepository";
 import { NiubizAuthorizationService } from "../Services/Niubiz/NiubizAuthorizationService";
-import { NiubizResponseMapper, type NiubizMappedAuthorizationResponse } from "../Services/Niubiz/NiubizResponseMapper";
+import {
+  NiubizResponseMapper,
+  type NiubizMappedAuthorizationResponse,
+} from "../Services/Niubiz/NiubizResponseMapper";
 import { NiubizSecurityService } from "../Services/Niubiz/NiubizSecurityService";
 import { NiubizSessionService } from "../Services/Niubiz/NiubizSessionService";
-import type { PaymentProvider, PaymentProviderCommand } from "./PaymentProvider";
+import {
+  buildSessionDiagnostic,
+  isCertPauseEnabled,
+  isSessionDiagnosticsEnabled,
+} from "../Services/Niubiz/NiubizSessionDiagnostics";
+import { persistSessionEvidence } from "../Services/Niubiz/NiubizSessionEvidence";
+import type {
+  PaymentProvider,
+  PaymentProviderCommand,
+} from "./PaymentProvider";
 
-export type NiubizAuthorizationCommand = Pick<PaymentProviderCommand, "paymentId" | "applicationId" | "amount" | "currency">;
+export type NiubizAuthorizationCommand = Pick<
+  PaymentProviderCommand,
+  "paymentId" | "applicationId" | "amount" | "currency"
+>;
 
 export class NiubizProviderConfigurationError extends Error {}
 export class NiubizProviderNotReadyError extends Error {}
@@ -18,9 +40,20 @@ export class NiubizProviderNotReadyError extends Error {}
 const MIN_SESSION_EXPIRATION_MINUTES = 1;
 const MAX_SESSION_EXPIRATION_MINUTES = 20;
 
-const CARDHOLDER_DATA_MAP_FIELDS = ["cardholderCity", "cardholderCountry", "cardholderAddress", "cardholderPostalCode", "cardholderState", "cardholderPhoneNumber"] as const;
+const CARDHOLDER_DATA_MAP_FIELDS = [
+  "cardholderCity",
+  "cardholderCountry",
+  "cardholderAddress",
+  "cardholderPostalCode",
+  "cardholderState",
+  "cardholderPhoneNumber",
+] as const;
 
-const REGISTERED_CUSTOMER_STATES = ["Registrado", "Invitado", "Empleado"] as const;
+const REGISTERED_CUSTOMER_STATES = [
+  "Registrado",
+  "Invitado",
+  "Empleado",
+] as const;
 type RegisteredCustomerState = (typeof REGISTERED_CUSTOMER_STATES)[number];
 
 /**
@@ -47,14 +80,22 @@ export class NiubizPaymentProvider implements PaymentProvider {
     this.assertAuthorizationConfigured();
   }
 
-  withCheckoutSettings(settings: { merchantName: string; logoUrl?: string; formButtonColor: string; expirationMinutes: number }): NiubizPaymentProvider {
-    return new NiubizPaymentProvider({
-      ...this.config,
-      merchantName: settings.merchantName,
-      merchantLogoUrl: settings.logoUrl,
-      formButtonColor: settings.formButtonColor,
-      sessionExpirationMinutes: settings.expirationMinutes,
-    }, this.environment);
+  withCheckoutSettings(settings: {
+    merchantName: string;
+    logoUrl?: string;
+    formButtonColor: string;
+    expirationMinutes: number;
+  }): NiubizPaymentProvider {
+    return new NiubizPaymentProvider(
+      {
+        ...this.config,
+        merchantName: settings.merchantName,
+        merchantLogoUrl: settings.logoUrl,
+        formButtonColor: settings.formButtonColor,
+        sessionExpirationMinutes: settings.expirationMinutes,
+      },
+      this.environment,
+    );
   }
 
   buildSecurityRequest() {
@@ -62,12 +103,17 @@ export class NiubizPaymentProvider implements PaymentProvider {
     return this.securityService.buildRequest(this.config);
   }
 
-  buildSessionRequest(command: PaymentProviderCommand, securityToken: string, options?: {
-    merchantDefineData?: NiubizDataMap;
-    dataMap?: NiubizDataMap;
-  }): NiubizSessionRequest {
+  buildSessionRequest(
+    command: PaymentProviderCommand,
+    securityToken: string,
+    options?: {
+      merchantDefineData?: NiubizDataMap;
+      dataMap?: NiubizDataMap;
+    },
+  ): NiubizSessionRequest {
     this.assertConfigured();
-    const merchantDefineData = options?.merchantDefineData ?? this.buildMerchantDefineData(command);
+    const merchantDefineData =
+      options?.merchantDefineData ?? this.buildMerchantDefineData(command);
     const dataMap = options?.dataMap ?? this.buildCardholderDataMap(command);
     this.assertSessionDataComplete(merchantDefineData, dataMap);
     return this.sessionService.buildRequest(this.config, {
@@ -80,7 +126,10 @@ export class NiubizPaymentProvider implements PaymentProvider {
     });
   }
 
-  buildCheckoutConfig(command: PaymentProviderCommand, sessionToken: string): NiubizCheckoutConfig {
+  buildCheckoutConfig(
+    command: PaymentProviderCommand,
+    sessionToken: string,
+  ): NiubizCheckoutConfig {
     this.assertConfigured();
     return {
       sessionToken,
@@ -89,19 +138,35 @@ export class NiubizPaymentProvider implements PaymentProvider {
       amount: command.amount,
       currency: command.currency,
       checkoutUrl: this.config.checkoutUrl!,
-      callbackUrl: this.config.callbackUrl!,
+      callbackUrl: this.withPurchaseNumberInCallback(
+        this.config.callbackUrl!,
+        String(command.paymentId),
+      ),
       timeoutUrl: this.config.timeoutUrl!,
       expirationMinutes: this.clampedSessionExpirationMinutes(),
       merchantName: this.config.merchantName!,
       formButtonColor: this.config.formButtonColor!,
-      ...(this.config.merchantLogoUrl ? { merchantLogoUrl: this.config.merchantLogoUrl } : {}),
-      ...(command.customer.email ? { cardholderEmail: command.customer.email } : {}),
-      ...(command.customer.firstName ? { cardholderName: command.customer.firstName } : {}),
-      ...(command.customer.lastName ? { cardholderLastName: command.customer.lastName } : {}),
+      ...(this.config.merchantLogoUrl
+        ? { merchantLogoUrl: this.config.merchantLogoUrl }
+        : {}),
+      ...(command.customer.email
+        ? { cardholderEmail: command.customer.email }
+        : {}),
+      ...(command.customer.firstName
+        ? { cardholderName: command.customer.firstName }
+        : {}),
+      ...(command.customer.lastName
+        ? { cardholderLastName: command.customer.lastName }
+        : {}),
     };
   }
 
-  buildAuthorizationRequest(command: PaymentProviderCommand, securityToken: string, tokenId: string, dataMap?: NiubizDataMap) {
+  buildAuthorizationRequest(
+    command: PaymentProviderCommand,
+    securityToken: string,
+    tokenId: string,
+    dataMap?: NiubizDataMap,
+  ) {
     this.assertConfigured();
     return this.authorizationService.buildRequest(this.config, {
       merchantId: this.config.merchantId!,
@@ -114,34 +179,63 @@ export class NiubizPaymentProvider implements PaymentProvider {
     });
   }
 
-  mapAuthorizationResponse(response: NiubizAuthorizationResponse, paymentChannel?: string, httpStatus = 200): NiubizMappedAuthorizationResponse {
-    return this.responseMapper.mapAuthorization(response, paymentChannel, httpStatus);
+  mapAuthorizationResponse(
+    response: NiubizAuthorizationResponse,
+    paymentChannel?: string,
+    httpStatus = 200,
+  ): NiubizMappedAuthorizationResponse {
+    return this.responseMapper.mapAuthorization(
+      response,
+      paymentChannel,
+      httpStatus,
+    );
   }
 
-  async authorize(command: NiubizAuthorizationCommand, transactionToken: string, paymentChannel?: string): Promise<{ result: NiubizMappedAuthorizationResponse; status: number }> {
+  async authorize(
+    command: NiubizAuthorizationCommand,
+    transactionToken: string,
+    paymentChannel?: string,
+  ): Promise<{ result: NiubizMappedAuthorizationResponse; status: number }> {
     this.assertAuthorizationConfigured();
     const security = await this.securityService.getAccessToken(this.config);
-    const authorization = await this.authorizationService.authorize(this.config, {
-      merchantId: this.config.merchantId!,
-      securityToken: security.accessToken,
-      amount: command.amount,
-      currency: command.currency,
-      purchaseNumber: String(command.paymentId),
-      tokenId: transactionToken,
-      captureType: "manual",
-      countable: true,
-      dataMap: this.buildAuthorizationDataMap(),
-    });
-    return { result: this.mapAuthorizationResponse(authorization.response, paymentChannel, authorization.status), status: authorization.status };
+    const authorization = await this.authorizationService.authorize(
+      this.config,
+      {
+        merchantId: this.config.merchantId!,
+        securityToken: security.accessToken,
+        amount: command.amount,
+        currency: command.currency,
+        purchaseNumber: String(command.paymentId),
+        tokenId: transactionToken,
+        captureType: "manual",
+        countable: true,
+        dataMap: this.buildAuthorizationDataMap(),
+      },
+    );
+    return {
+      result: this.mapAuthorizationResponse(
+        authorization.response,
+        paymentChannel,
+        authorization.status,
+      ),
+      status: authorization.status,
+    };
   }
 
-  async initiate(command: PaymentProviderCommand): Promise<PaymentGatewayResult> {
+  async initiate(
+    command: PaymentProviderCommand,
+  ): Promise<PaymentGatewayResult> {
     this.assertReady();
+    const capture = isSessionDiagnosticsEnabled() || isCertPauseEnabled();
+    const stages: NiubizStageTrace[] = [];
+
     const security = await this.securityService.getAccessToken(this.config);
+    stages.push({ stage: "SECURITY", result: "SUCCESS", httpStatus: security.status });
+
     const merchantDefineData = this.buildMerchantDefineData(command);
     const dataMap = this.buildCardholderDataMap(command);
     this.assertSessionDataComplete(merchantDefineData, dataMap);
-    const { session } = await this.sessionService.createSession(this.config, {
+    const { session, status, request, responseBody, correlationId } = await this.sessionService.createSession(this.config, {
       merchantId: this.config.merchantId!,
       securityToken: security.accessToken,
       amount: command.amount,
@@ -149,10 +243,23 @@ export class NiubizPaymentProvider implements PaymentProvider {
       merchantDefineData,
       dataMap,
     });
+    stages.push({ stage: "SESSION", result: "SUCCESS", httpStatus: status });
+
+    const checkout = this.buildCheckoutConfig(command, session.sessionKey);
+    stages.push({ stage: "CHECKOUT", result: "SUCCESS" });
+    stages.push({ stage: "AUTHORIZATION", result: "NOT_EXECUTED", message: "La autorización se ejecuta en el flujo posterior al Checkout." });
+
+    const diagnostic = capture
+      ? buildSessionDiagnostic(request, status, responseBody, correlationId, stages)
+      : undefined;
+    if (diagnostic && isCertPauseEnabled()) {
+      await persistSessionEvidence(diagnostic);
+    }
 
     return {
       status: "PENDING",
-      checkout: this.buildCheckoutConfig(command, session.sessionKey),
+      checkout,
+      ...(diagnostic ? { diagnostic } : {}),
     };
   }
 
@@ -185,11 +292,17 @@ export class NiubizPaymentProvider implements PaymentProvider {
     const missing = [
       !dataMap?.urlAddress && "NIUBIZ_URL_ADDRESS",
       !dataMap?.serviceLocationCityName && "NIUBIZ_SERVICE_LOCATION_CITY_NAME",
-      !dataMap?.serviceLocationCountrySubdivisionCode && "NIUBIZ_SERVICE_LOCATION_COUNTRY_SUBDIVISION_CODE",
-      !dataMap?.serviceLocationCountryCode && "NIUBIZ_SERVICE_LOCATION_COUNTRY_CODE",
-      !dataMap?.serviceLocationPostalCode && "NIUBIZ_SERVICE_LOCATION_POSTAL_CODE",
+      !dataMap?.serviceLocationCountrySubdivisionCode &&
+        "NIUBIZ_SERVICE_LOCATION_COUNTRY_SUBDIVISION_CODE",
+      !dataMap?.serviceLocationCountryCode &&
+        "NIUBIZ_SERVICE_LOCATION_COUNTRY_CODE",
+      !dataMap?.serviceLocationPostalCode &&
+        "NIUBIZ_SERVICE_LOCATION_POSTAL_CODE",
     ].filter(Boolean);
-    if (missing.length > 0) throw new NiubizProviderConfigurationError(`Niubiz Authorization no está configurado. Faltan: ${missing.join(", ")}.`);
+    if (missing.length > 0)
+      throw new NiubizProviderConfigurationError(
+        `Niubiz Authorization no está configurado. Faltan: ${missing.join(", ")}.`,
+      );
   }
 
   private buildAuthorizationDataMap(): NiubizDataMap {
@@ -197,29 +310,40 @@ export class NiubizPaymentProvider implements PaymentProvider {
     return {
       urlAddress: dataMap.urlAddress!,
       serviceLocationCityName: dataMap.serviceLocationCityName!,
-      serviceLocationCountrySubdivisionCode: dataMap.serviceLocationCountrySubdivisionCode!,
+      serviceLocationCountrySubdivisionCode:
+        dataMap.serviceLocationCountrySubdivisionCode!,
       serviceLocationCountryCode: dataMap.serviceLocationCountryCode!,
       serviceLocationPostalCode: dataMap.serviceLocationPostalCode!,
     };
   }
 
-  private buildMerchantDefineData(command: PaymentProviderCommand): NiubizDataMap {
+  private buildMerchantDefineData(
+    command: PaymentProviderCommand,
+  ): NiubizDataMap {
     const data: NiubizDataMap = {};
     if (command.customer.email) data.MDD4 = command.customer.email;
     if (command.customer.phone) data.MDD31 = command.customer.phone;
-    const customerId = command.customer.personId ? String(command.customer.personId) : command.customer.documentNumber;
+    const customerId = command.customer.personId
+      ? String(command.customer.personId)
+      : command.customer.documentNumber;
     if (customerId) data.MDD32 = customerId;
-    if (command.customer.documentNumber) data.MDD34 = command.customer.documentNumber;
-    const registeredState: RegisteredCustomerState = command.customer.personId ? "Registrado" : "Invitado";
+    if (command.customer.documentNumber)
+      data.MDD34 = command.customer.documentNumber;
+    const registeredState: RegisteredCustomerState = command.customer.personId
+      ? "Registrado"
+      : "Invitado";
     data.MDD75 = registeredState;
     if (registeredState === "Invitado") data.MDD77 = 1;
     return data;
   }
 
-  private buildCardholderDataMap(command: PaymentProviderCommand): NiubizDataMap {
+  private buildCardholderDataMap(
+    command: PaymentProviderCommand,
+  ): NiubizDataMap {
     const address = command.customer.address;
     const dataMap: NiubizDataMap = {};
-    if (command.customer.phone) dataMap.cardholderPhoneNumber = command.customer.phone;
+    if (command.customer.phone)
+      dataMap.cardholderPhoneNumber = command.customer.phone;
     if (address?.street) dataMap.cardholderAddress = address.street;
     if (address?.city) dataMap.cardholderCity = address.city;
     if (address?.state) dataMap.cardholderState = address.state;
@@ -228,23 +352,52 @@ export class NiubizPaymentProvider implements PaymentProvider {
     return dataMap;
   }
 
-  private assertSessionDataComplete(merchantDefineData: NiubizDataMap, dataMap: NiubizDataMap): void {
+  private assertSessionDataComplete(
+    merchantDefineData: NiubizDataMap,
+    dataMap: NiubizDataMap,
+  ): void {
     const missing: string[] = [];
     if (!merchantDefineData.MDD4) missing.push("MDD4");
     if (!merchantDefineData.MDD32) missing.push("MDD32");
     const registeredState = merchantDefineData.MDD75;
-    if (!REGISTERED_CUSTOMER_STATES.includes(registeredState as RegisteredCustomerState)) missing.push("MDD75");
-    if (registeredState === "Invitado" && merchantDefineData.MDD77 !== 1) missing.push("MDD77");
+    if (
+      !REGISTERED_CUSTOMER_STATES.includes(
+        registeredState as RegisteredCustomerState,
+      )
+    )
+      missing.push("MDD75");
+    if (registeredState === "Invitado" && merchantDefineData.MDD77 !== 1)
+      missing.push("MDD77");
     for (const field of CARDHOLDER_DATA_MAP_FIELDS) {
       if (!dataMap[field]) missing.push(field);
     }
     if (missing.length > 0) {
-      throw new NiubizProviderConfigurationError(`Sesión Niubiz incompleta. Faltan: ${missing.join(", ")}.`);
+      throw new NiubizProviderConfigurationError(
+        `Sesión Niubiz incompleta. Faltan: ${missing.join(", ")}.`,
+      );
     }
   }
 
   private clampedSessionExpirationMinutes(): number {
     const configured = this.config.sessionExpirationMinutes ?? 5;
-    return Math.min(Math.max(configured, MIN_SESSION_EXPIRATION_MINUTES), MAX_SESSION_EXPIRATION_MINUTES);
+    return Math.min(
+      Math.max(configured, MIN_SESSION_EXPIRATION_MINUTES),
+      MAX_SESSION_EXPIRATION_MINUTES,
+    );
+  }
+
+  /**
+   * Concatena el ID de transacción (purchaseNumber) al callback URL para que el
+   * campo `action` del Checkout de Niubiz lo muestre, como exige la certificación.
+   * Se usa un parámetro de query legible (`purchaseNumber`) y no se sustituye la
+   * referencia firmada `payment_callback` que añade PaymentService después.
+   */
+  private withPurchaseNumberInCallback(
+    callbackUrl: string,
+    purchaseNumber: string,
+  ): string {
+    const url = new URL(callbackUrl);
+    url.searchParams.set("purchaseNumber", purchaseNumber);
+    return url.toString();
   }
 }

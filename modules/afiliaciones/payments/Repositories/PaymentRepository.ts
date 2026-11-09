@@ -35,6 +35,7 @@ export class PaymentRepository implements IPaymentRepository, IPaymentSandboxRes
           select: {
             firstName: true,
             paternalLastName: true,
+            createdAt: true,
             addresses: {
               where: { isPrimary: true },
               orderBy: { createdAt: "desc" },
@@ -65,6 +66,7 @@ export class PaymentRepository implements IPaymentRepository, IPaymentSandboxRes
         ? {
             firstName: application.person.firstName,
             paternalLastName: application.person.paternalLastName,
+            createdAt: application.person.createdAt,
             address: address
               ? {
                   street: address.street,

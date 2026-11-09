@@ -98,7 +98,7 @@ class PaymentRepositoryFake implements IPaymentRepository {
       email: "applicant@example.com",
       phone: "999999999",
       documentNumber: "12345678",
-      person: { firstName: "Ana", paternalLastName: "Pérez", address: { street: "Av. Prueba 123", city: "Lima", state: "Lima", countryCode: "PE", postalCode: "15024" } },
+      person: { firstName: "Ana", paternalLastName: "Pérez", createdAt: new Date("2026-01-15T12:00:00Z"), address: { street: "Av. Prueba 123", city: "Lima", state: "Lima", countryCode: "PE", postalCode: "15024" } },
     };
   }
 
@@ -355,6 +355,18 @@ describe("PaymentService", () => {
     expect(repository.paymentCreateCalls).toBe(0);
     expect(repository.billingCreateCalls).toBe(0);
     expect(repository.result).toBeUndefined();
+  });
+
+  it("propaga la fecha de registro de Person al comando del proveedor sin usarla como MDD77", async () => {
+    const repository = new PaymentRepositoryFake();
+    const provider: PaymentProvider = { gateway: PaymentGateway.MOCK, assertReady: vi.fn(), initiate: vi.fn().mockResolvedValue({ status: PaymentStatus.PAID }) };
+    const service = new PaymentService(undefined, provider, repository, { recalculate: vi.fn() }, authorizedPayment);
+
+    await service.initiate(input, "authorized");
+
+    expect(provider.initiate).toHaveBeenCalledWith(expect.objectContaining({
+      customer: expect.objectContaining({ personId: 7, registeredAt: expect.any(Date) }),
+    }));
   });
 
   it("mantiene bloqueado un Payment Niubiz PROCESSING en TEST", async () => {

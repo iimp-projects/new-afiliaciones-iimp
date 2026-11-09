@@ -48,6 +48,15 @@ migracion-fase2.ts
 migracion-fase3.ts
 migracion-parche.ts
 
+# Infrastructure / IaC (Terraform) — not required at build or runtime.
+# Excludes provider binaries (.terraform/*) and local state that would otherwise
+# bloat the build context and be copied into the builder stage by `COPY . .`.
+infra
+**/.terraform
+*.tfstate
+*.tfstate.*
+*.tfplan
+
 # Docker metadata itself
 Dockerfile
 .dockerignore

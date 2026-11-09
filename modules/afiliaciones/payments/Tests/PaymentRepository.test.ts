@@ -108,4 +108,28 @@ describe("PaymentRepository", () => {
       }),
     }));
   });
+
+  it("incluye la fecha de registro (createdAt) de la persona en el snapshot de aplicación", async () => {
+    const createdAt = new Date("2026-01-15T12:00:00Z");
+    const findUnique = vi.fn().mockResolvedValue({
+      id: 42,
+      personId: 7,
+      status: "READY_FOR_PAYMENT",
+      deletedAt: null,
+      email: "applicant@example.com",
+      phone: "999999999",
+      documentNumber: "12345678",
+      person: { firstName: "Ana", paternalLastName: "Pérez", createdAt, addresses: [] },
+    });
+    const repository = new PaymentRepository({ membershipApplication: { findUnique } } as unknown as PrismaClient);
+
+    const snapshot = await repository.findApplicationById(42);
+
+    expect(snapshot?.person?.createdAt).toEqual(createdAt);
+    expect(findUnique).toHaveBeenCalledWith(expect.objectContaining({
+      select: expect.objectContaining({
+        person: expect.objectContaining({ select: expect.objectContaining({ createdAt: true }) }),
+      }),
+    }));
+  });
 });
