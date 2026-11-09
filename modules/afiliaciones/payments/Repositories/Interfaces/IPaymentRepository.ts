@@ -15,6 +15,7 @@ export interface BillingTraceability {
   verifiedAt?: Date;
 }
 import type { NiubizCheckoutConfig } from "../../DTOs/Niubiz/NiubizCheckout.dto";
+import type { NiubizSessionDiagnostic } from "../../DTOs/Niubiz/NiubizSessionDiagnostic.dto";
 import type { AssociateSnapshotSource } from "../../../associates-integration/Services/AssociateIntegrationSnapshotBuilder";
 
 export type PaymentTransaction = Prisma.TransactionClient;
@@ -27,7 +28,12 @@ export interface PaymentApplicationSnapshot {
   email: string;
   phone: string;
   documentNumber: string;
-  person: { firstName: string; paternalLastName: string } | null;
+  person: {
+    firstName: string;
+    paternalLastName: string;
+    createdAt: Date;
+    address: { street: string; city: string; state: string; countryCode: string; postalCode: string | null } | null;
+  } | null;
 }
 
 export interface PendingPaymentData {
@@ -60,6 +66,7 @@ export interface PaymentGatewayResult {
   paymentBrand?: string | null;
   gatewayPayload?: Prisma.InputJsonValue;
   checkout?: NiubizCheckoutConfig;
+  diagnostic?: NiubizSessionDiagnostic;
 }
 
 export interface PersistedPayment {

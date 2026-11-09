@@ -8,6 +8,7 @@ import { S3StorageService } from "@/modules/shared/Services/S3StorageService";
 import { APPLICATION_KEY_PREFIX, LEGACY_DOCUMENT_KEY_PREFIX } from "@/modules/afiliaciones/postulacion/Services/ApplicationDocumentAccess";
 import { LIMA_TIME_ZONE } from "@/modules/shared/Utils/formatPeruDateTime";
 import { documentTypeLabel } from "@/modules/shared/Utils/documentType";
+import { formatFullName } from "@/modules/shared/Utils/personName";
 import type {
   SmartCaseCardData,
   AtomicValidation,
@@ -18,9 +19,7 @@ import type {
 export class ExpedienteMapper {
   static async toCardData(app: any): Promise<SmartCaseCardData> {
     const person = app.person;
-    const fullName = person
-      ? `${person.firstName} ${person.paternalLastName} ${person.maternalLastName || ""}`.trim()
-      : "Desconocido";
+    const fullName = formatFullName(person?.firstName, person?.paternalLastName, person?.maternalLastName) || "Desconocido";
     const initials = person
       ? `${person.firstName.charAt(0)}${person.paternalLastName.charAt(0)}`
       : "--";

@@ -8,7 +8,7 @@ export class ValidateSponsorService {
     const person = await prisma.person.findFirst({
       where: sponsorEligibilityWhere(documentNumber),
       include: {
-        user: true,
+        user: { select: { email: true } },
         contacts: { orderBy: [{ isPrimary: "desc" }, { createdAt: "asc" }] },
       },
     });

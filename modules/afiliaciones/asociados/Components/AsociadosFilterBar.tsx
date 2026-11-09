@@ -38,14 +38,14 @@ const CustomDropdown = ({ value, options, onChange, topLabel, className = "", he
   return (
     <div className={`relative ${className}`} ref={dropdownRef}>
       {topLabel && (
-        <span className="absolute -top-2 left-3 px-1 text-[10px] font-bold uppercase tracking-widest z-10 transition-colors text-slate-400 bg-white">
+        <span className="absolute -top-2 left-3 px-1 text-[10px] font-medium uppercase tracking-widest z-10 transition-colors text-slate-400 bg-white">
           {topLabel}
         </span>
       )}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full ${heightClass} pl-4 pr-10 border border-slate-200 rounded-xl text-sm font-bold focus:outline-none focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059] transition-all flex items-center justify-between bg-white text-slate-700`}
+        className={`w-full ${heightClass} pl-4 pr-10 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059] transition-all flex items-center justify-between bg-white text-slate-700`}
       >
         <span className="truncate">{selectedOption?.label || "Seleccionar"}</span>
         <ChevronDown size={16} className={`absolute right-3.5 transition-transform duration-300 ${isOpen ? 'rotate-180 text-[#C5A059]' : 'text-slate-400'}`} />
@@ -61,7 +61,7 @@ const CustomDropdown = ({ value, options, onChange, topLabel, className = "", he
                 onChange(opt.value);
                 setIsOpen(false);
               }}
-              className={`w-full text-left px-4 py-2.5 text-sm font-semibold transition-colors focus:outline-none ${
+              className={`w-full text-left px-4 py-2.5 text-sm font-medium transition-colors focus:outline-none ${
                 value === opt.value
                   ? "bg-[#C5A059]/10 text-[#C5A059] border-l-2 border-[#C5A059]"
                   : "text-slate-600 hover:bg-[#fdfaf5] hover:text-[#C5A059] border-l-2 border-transparent"
@@ -141,8 +141,13 @@ export function AsociadosFilterBar({ total, currentQuery, currentType, currentSo
             placeholder="Buscar por DNI, Nombre o Correo..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-12 pr-4 h-11 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059] transition-all placeholder:text-slate-400"
+            className="w-full pl-12 pr-10 h-11 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059] transition-all placeholder:text-slate-400"
           />
+          {searchTerm && (
+            <button type="button" onClick={() => setSearchTerm("")} aria-label="Limpiar búsqueda" className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-200 hover:text-slate-600">
+              <X size={14} strokeWidth={2.5} />
+            </button>
+          )}
         </form>
 
         {/* CONTROLES */}
@@ -159,26 +164,26 @@ export function AsociadosFilterBar({ total, currentQuery, currentType, currentSo
           <div className="relative z-[40]" ref={popoverRef}>
             <button
               onClick={() => setShowAdvanced(!showAdvanced)}
-              className={`h-11 px-5 ml-auto lg:ml-0 rounded-xl text-sm font-bold flex items-center gap-2 transition-all border outline-none relative ${showAdvanced ? "bg-[#fdfaf5] border-[#E8D09E] text-[#7f561e]" : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"}`}
+              className={`h-11 px-5 ml-auto lg:ml-0 rounded-xl text-sm font-medium flex items-center gap-2 transition-all border outline-none relative ${showAdvanced ? "bg-[#fdfaf5] border-[#E8D09E] text-[#7f561e]" : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"}`}
             >
               <Filter size={16} /> Avanzados
             </button>
             {showAdvanced && (
               <div className="absolute right-0 top-full mt-2 w-[300px] bg-white border border-slate-200 shadow-2xl rounded-2xl z-[100] animate-in fade-in slide-in-from-top-2 overflow-hidden">
                  <div className="px-5 py-4 border-b border-slate-100 flex justify-between bg-slate-50/50">
-                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest">Filtros Secundarios</h3>
+                  <h3 className="text-xs font-semibold text-slate-800 uppercase tracking-widest">Filtros Secundarios</h3>
                   <button onClick={() => setShowAdvanced(false)} className="text-slate-400 hover:text-slate-700"><X size={16} /></button>
                 </div>
                 <div className="p-5 space-y-4">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Vista</p>
-                  <div className="grid grid-cols-2 gap-2"><button type="button" onClick={() => onViewModeChange("grid")} className={`inline-flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-bold ${viewMode === "grid" ? "border-[#C5A059] bg-[#C5A059]/10 text-[#7f561e]" : "border-slate-200 text-slate-500"}`}><LayoutGrid size={14}/>Tarjetas</button><button type="button" onClick={() => onViewModeChange("list")} className={`inline-flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-bold ${viewMode === "list" ? "border-[#C5A059] bg-[#C5A059]/10 text-[#7f561e]" : "border-slate-200 text-slate-500"}`}><List size={14}/>Lista</button></div>
+                  <p className="text-[10px] font-medium uppercase tracking-widest text-slate-400">Vista</p>
+                  <div className="grid grid-cols-2 gap-2"><button type="button" onClick={() => onViewModeChange("grid")} className={`inline-flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium ${viewMode === "grid" ? "border-[#C5A059] bg-[#C5A059]/10 text-[#7f561e]" : "border-slate-200 text-slate-500"}`}><LayoutGrid size={14}/>Tarjetas</button><button type="button" onClick={() => onViewModeChange("list")} className={`inline-flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium ${viewMode === "list" ? "border-[#C5A059] bg-[#C5A059]/10 text-[#7f561e]" : "border-slate-200 text-slate-500"}`}><List size={14}/>Lista</button></div>
                 </div>
               </div>
             )}
           </div>
 
           {hasActiveFilters && (
-             <button onClick={handleClearAll} className="h-11 px-4 rounded-xl border border-red-200 bg-red-50 text-red-600 hover:bg-red-500 hover:text-white transition-all flex items-center gap-2 text-sm font-bold shadow-sm outline-none ml-auto xl:ml-0">
+             <button onClick={handleClearAll} className="h-11 px-4 rounded-xl border border-red-200 bg-red-50 text-red-600 hover:bg-red-500 hover:text-white transition-all flex items-center gap-2 text-sm font-medium shadow-sm outline-none ml-auto xl:ml-0">
                <Trash2 size={16} /> Limpiar
              </button>
           )}
@@ -187,12 +192,12 @@ export function AsociadosFilterBar({ total, currentQuery, currentType, currentSo
 
       {/* FOOTER */}
       <div className="px-6 py-2.5 border-t border-slate-100 flex flex-row items-center justify-between bg-slate-50/50 rounded-b-2xl h-[46px]">
-        <span className="text-xs font-bold text-slate-500 flex items-center gap-2">
+        <span className="text-xs font-medium text-slate-500 flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-[#C5A059] animate-pulse"></span>
           {total} asociado{total !== 1 ? 's' : ''} registrado{total !== 1 ? 's' : ''}
         </span>
         <div className="flex items-center gap-1.5 sm:gap-2">
-          <span className="hidden sm:flex text-[10px] font-black text-slate-400 uppercase tracking-widest items-center gap-1">
+          <span className="hidden sm:flex text-[10px] font-medium text-slate-400 uppercase tracking-widest items-center gap-1">
             <ArrowDownUp size={12} /> Ordenar:
           </span>
           <div className="w-[140px] sm:w-[150px]">

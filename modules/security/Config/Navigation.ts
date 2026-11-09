@@ -4,15 +4,16 @@ export const securityModuleDefinition: ModuleDefinition = {
     name: "security",
     description: "Módulo de gestión de accesos y auditoría",
     navigation: [
+        // --- DASHBOARD (sección fija, siempre visible) ---
         {
-            id: "group-main",
-            title: "MENÚ PRINCIPAL",
-            type: "group", // <-- Esto pinta el título de sección
+            id: "group-dashboard",
+            title: "Dashboard",
+            type: "group",
             audience: "administrative",
             order: 10,
             children: [
                 {
-                    id: "nav-security-users",
+                    id: "nav-dashboard",
                     title: "Panel Principal",
                     href: "/intranet",
                     icon: "LayoutDashboard",
@@ -20,87 +21,41 @@ export const securityModuleDefinition: ModuleDefinition = {
                 }
             ]
         },
-        // --- NUEVA SECCION: GESTIÓN DE AFILIACIONES ---
+        // --- GESTIÓN DE AFILIACIONES ---
         {
             id: "group-afiliaciones",
-            title: "GESTIÓN DE AFILIACIONES",
-            type: "group", // Esto activa el diseño estetico de cabecera en el Sidebar
+            title: "Gestión de Afiliaciones",
+            type: "group",
+            collapsible: true,
+            icon: "FolderOpen",
             audience: "administrative",
             order: 15,
             children: [
                 {
                     id: "nav-afiliaciones-expedientes",
                     title: "Expedientes",
-                    href: "/intranet/expedientes", // Ajusta la ruta seg n tu proyecto
-                    icon: "FolderOpen", // Icono est tico de Lucide
+                    href: "/intranet/expedientes",
+                    icon: "FolderOpen",
                     order: 1,
-                    // Filtro exacto para ATENCION_ASOCIADO basado en tus seeds
-                    permission: { action: "read", subject: "applications" } 
+                    permission: { action: "read", subject: "applications" }
                 },
                 {
                     id: "nav-afiliaciones-asociados",
                     title: "Asociados",
-                    href: "/intranet/asociados", // Ajusta la ruta seg n tu proyecto
-                    icon: "UserCheck", // Icono est tico de Lucide
+                    href: "/intranet/asociados",
+                    icon: "UserCheck",
                     order: 2,
-                    // Filtro por permiso dedicado de lectura del directorio de asociados
                     permission: { action: "read", subject: "associates" }
                 }
             ]
         },
-        // 3. NUEVO GRUPO: SEGURIDAD Y USUARIOS (Restringido)
+        // --- EVENTOS ---
         {
-            id: "group-security",
-            title: "SEGURIDAD Y USUARIOS",
+            id: "group-eventos",
+            title: "Eventos",
             type: "group",
-            audience: "administrative",
-            order: 20,
-            children: [
-                {
-                    id: "nav-security-users",
-                    title: "Usuarios del Sistema",
-                    href: "/intranet/security/users",
-                    icon: "Users",
-                    order: 1,
-                    // Solo visible si el rol tiene permiso de 'read:users'
-                    permission: { action: "read", subject: "users" }
-                },
-                {
-                    id: "nav-security-roles",
-                    title: "Roles y Permisos",
-                    href: "/intranet/security/roles",
-                    icon: "KeyRound",
-                    order: 2,
-                    // Ocultado temporalmente del men├║ lateral (reversible).
-                    visibility: "hidden",
-                    // Solo visible si el rol tiene permiso de 'read:roles'
-                    permission: { action: "read", subject: "roles" }
-                },
-                {
-                    id: "nav-security-audit",
-                    title: "Auditoría del Sistema",
-                    href: "/intranet/security/audit",
-                    icon: "Activity",
-                    order: 3,
-                    // Ocultado temporalmente del men├║ lateral (reversible).
-                    visibility: "hidden",
-                    // Solo visible si el rol tiene permiso de 'read:audit'
-                    permission: { action: "read", subject: "audit" }
-                },
-                {
-                    id: "nav-security-system-settings",
-                    title: "Configuración de pagos",
-                    href: "/intranet/security/system-settings",
-                    icon: "Settings",
-                    order: 4,
-                    permission: { action: "manage", subject: "all" }
-                },
-            ]
-        },
-        {
-            id: "group-sie",
-            title: "SISTEMA INTEGRAL DE EVENTOS",
-            type: "group",
+            collapsible: true,
+            icon: "CalendarDays",
             audience: "administrative",
             order: 18,
             children: [
@@ -114,54 +69,61 @@ export const securityModuleDefinition: ModuleDefinition = {
                 }
             ]
         },
+        // --- ADMINISTRACIÓN ---
         {
             id: "group-administracion",
-            title: "ADMINISTRACIÓN",
+            title: "Administración",
             type: "group",
+            collapsible: true,
+            icon: "Settings",
             audience: "administrative",
             order: 25,
             children: [
                 {
-                    id: "nav-operational-alerts",
-                    title: "Centro de Alertas",
-                    href: "/intranet/alertas",
-                    icon: "BellRing",
+                    id: "nav-security-users",
+                    title: "Usuarios del Sistema",
+                    href: "/intranet/security/users",
+                    icon: "Users",
                     order: 1,
-                    permission: { action: "read", subject: "alerts" }
+                    permission: { action: "read", subject: "users" }
+                },
+                {
+                    id: "nav-security-roles",
+                    title: "Roles y Permisos",
+                    href: "/intranet/security/roles",
+                    icon: "KeyRound",
+                    order: 2,
+                    visibility: "hidden",
+                    permission: { action: "read", subject: "roles" }
+                },
+                {
+                    id: "nav-security-audit",
+                    title: "Auditoría del Sistema",
+                    href: "/intranet/security/audit",
+                    icon: "Activity",
+                    order: 3,
+                    visibility: "hidden",
+                    permission: { action: "read", subject: "audit" }
+                },
+                {
+                    id: "nav-security-system-settings",
+                    title: "Configuración de pagos",
+                    href: "/intranet/security/system-settings",
+                    icon: "Settings",
+                    order: 4,
+                    permission: { action: "manage", subject: "all" }
                 },
                 {
                     id: "nav-master-data",
-                    title: "Datos Academicos",
+                    title: "Datos Académicos",
                     href: "/intranet/master-data",
                     icon: "Database",
-                    order: 2,
+                    order: 5,
                     permission: { action: "read", subject: "catalogs" }
                 }
             ]
         },
-        {
-            id: "group-account",
-            title: "MI CUENTA",
-            type: "group",
-            audience: "administrative",
-            order: 5,
-            children: [
-                {
-                    id: "nav-internal-profile",
-                    title: "Mi perfil",
-                    href: "/intranet/mi-perfil",
-                    icon: "UserRound",
-                    order: 1,
-                },
-                {
-                    id: "nav-notifications",
-                    title: "Centro de Notificaciones",
-                    href: "/intranet/notificaciones",
-                    icon: "Bell",
-                    order: 2,
-                },
-            ],
-        },
+        // --- MENÚ DE ASOCIADO (sin cambios) ---
         {
             id: "group-affiliate-main",
             title: "MENÚ PRINCIPAL",

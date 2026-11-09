@@ -15,7 +15,7 @@ export function DataManagementShell({ title, description, icon: HeaderIcon, resu
       <div className="flex flex-col gap-4 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
           {HeaderIcon ? <span className="mt-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#fdfaf5] text-[#a67c00]"><HeaderIcon size={22} strokeWidth={2.25} /></span> : <NavigationHeaderIcon href={pathname} />}
-          <div><h1 className="text-xl font-black leading-none tracking-tight text-slate-800 sm:text-2xl">{title}</h1><p className="mt-1.5 text-xs font-medium text-slate-500 sm:text-sm">{description}</p></div>
+          <div><h1 className="text-xl font-medium leading-none tracking-tight text-slate-800 sm:text-2xl">{title}</h1><p className="mt-1.5 text-xs font-medium text-slate-500 sm:text-sm">{description}</p></div>
         </div>
         {headerActions.length > 0 && <div className="flex flex-wrap items-center gap-2">{headerActions.map((action) => { const Icon = action.icon; return <button key={action.key} type="button" title={action.tooltip} disabled={action.disabled} onClick={action.onClick} className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-4 text-xs font-bold text-emerald-700 shadow-sm transition-all hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50">{Icon && <Icon size={14} strokeWidth={2.5} />}{action.label}</button>; })}</div>}
       </div>

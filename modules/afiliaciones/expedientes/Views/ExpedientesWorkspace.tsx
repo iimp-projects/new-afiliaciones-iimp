@@ -400,7 +400,7 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
           <div className="flex items-start gap-3">
             <NavigationHeaderIcon href="/intranet/expedientes" />
             <div>
-              <h1 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight leading-none">Expedientes de Afiliación</h1>
+              <h1 className="text-xl sm:text-2xl font-semibold text-slate-800 tracking-tight leading-none">Expedientes de Afiliación</h1>
               <p className="text-xs sm:text-sm font-medium text-slate-500 mt-1.5">Gestiona, evalúa y resuelve las solicitudes pendientes.</p>
             </div>
           </div>

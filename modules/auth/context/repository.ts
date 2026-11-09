@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import type { CurrentUserDTO } from './types';
 import { S3StorageService } from '@/modules/shared/Services/S3StorageService'; // ✅ IMPORTAMOS EL SERVICIO DE S3
-import { UserStatus } from '@prisma/client';
+import { Prisma, UserStatus } from '@prisma/client';
 import { APPLICATION_KEY_PREFIX, LEGACY_DOCUMENT_KEY_PREFIX } from '@/modules/afiliaciones/postulacion/Services/ApplicationDocumentAccess';
 
 type ProfilePhotoDocument = {
@@ -12,29 +12,69 @@ type ProfilePhotoDocument = {
 };
 
 export class ContextRepository {
+  private mustChangePasswordColumnAvailable: boolean | null = null;
+
+  private async hasMustChangePasswordColumn(): Promise<boolean> {
+    if (this.mustChangePasswordColumnAvailable !== null) return this.mustChangePasswordColumnAvailable;
+
+    const rows = await prisma.$queryRawUnsafe<Array<{ exists: boolean }>>(
+      `SELECT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'auth_users'
+          AND column_name = 'must_change_password'
+      ) AS "exists"`,
+    );
+    this.mustChangePasswordColumnAvailable = rows[0]?.exists === true;
+    return this.mustChangePasswordColumnAvailable;
+  }
+
   async getHydratedUser(userId: number): Promise<CurrentUserDTO | null> {
-    const user = await prisma.user.findUnique({
-      where: { id: userId, status: UserStatus.ACTIVE, deletedAt: null },
-      include: {
-        person: {
-          include: {
-            applications: {
-              where: { status: "COMPLETED", deletedAt: null },
-              orderBy: { updatedAt: 'desc' },
-              take: 1,
-              include: { documents: { orderBy: { updatedAt: 'desc' } } },
-            },
-          },
-        },
-        role: {
-          include: {
-            rolePermissions: {
-              include: { permission: true },
+    const select = {
+      id: true,
+      email: true,
+      image: true,
+      type: true,
+      status: true,
+      deletedAt: true,
+      person: {
+        select: {
+          firstName: true,
+          paternalLastName: true,
+          maternalLastName: true,
+          documentNumber: true,
+          applications: {
+            where: { status: "COMPLETED", deletedAt: null },
+            orderBy: { updatedAt: 'desc' },
+            take: 1,
+            select: {
+              documents: {
+                orderBy: { updatedAt: 'desc' },
+                select: { mimeType: true, category: true, fileName: true, fileUrl: true },
+              },
             },
           },
         },
       },
-    });
+      role: {
+        select: {
+          id: true,
+          slug: true,
+          isActive: true,
+          rolePermissions: {
+            select: {
+              permission: { select: { isActive: true, action: true, subject: true } },
+            },
+          },
+        },
+      },
+    } satisfies Prisma.UserSelect;
+
+    const where = { id: userId, status: UserStatus.ACTIVE, deletedAt: null };
+    const user = await (await this.hasMustChangePasswordColumn()
+      ? prisma.user.findUnique({ where, select: { ...select, mustChangePassword: true } })
+      : prisma.user.findUnique({ where, select }));
 
     if (!user || user.status !== UserStatus.ACTIVE || user.deletedAt || !user.person || !user.role || !user.role.isActive) return null;
 
@@ -79,7 +119,7 @@ export class ContextRepository {
       image: finalImageUrl, 
       type: user.type,
       status: user.status,
-      mustChangePassword: user.mustChangePassword === true,
+      mustChangePassword: "mustChangePassword" in user && user.mustChangePassword === true,
       person: {
         firstName: user.person.firstName,
         paternalLastName: user.person.paternalLastName,

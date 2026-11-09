@@ -1,9 +1,10 @@
 import { contextService } from "@/modules/auth/context/service";
-import { NotificationsCenter } from "@/modules/afiliaciones/notifications/Views/NotificationsCenter";
+import { NotificationsTabs } from "@/modules/afiliaciones/notifications/Views/NotificationsTabs";
 
 export const dynamic = "force-dynamic";
 
 export default async function NotificationsPage() {
   await contextService.requireAuth();
-  return <NotificationsCenter />;
+  const showAlerts = await contextService.hasPermission("read", "alerts");
+  return <NotificationsTabs showAlerts={showAlerts} />;
 }

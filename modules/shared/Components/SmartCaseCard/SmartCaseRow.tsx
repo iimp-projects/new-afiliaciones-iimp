@@ -20,6 +20,7 @@ const priorityColors = { low: "text-slate-300", medium: "text-blue-400", high: "
 
 export function SmartCaseRow({ data, onClick }: SmartCaseCardProps) {
   const { identity, primaryBadge, atomicValidations, metadata } = data;
+  const isExpedienteLayout = data.rowLayout === "expediente";
   const [avatarFailed, setAvatarFailed] = useState(false);
 
   return (
@@ -38,15 +39,15 @@ export function SmartCaseRow({ data, onClick }: SmartCaseCardProps) {
           )}
         </div>
         <div className="flex flex-col overflow-hidden pr-4">
-          <span className="text-sm font-black text-slate-800 truncate" title={identity.title}>{identity.title}</span>
-          <span className="text-[11px] font-bold text-slate-400 font-mono tracking-wide">{data.trackingCode}</span>
+          <span className={`text-sm text-slate-800 truncate ${isExpedienteLayout ? "font-black" : "font-semibold"}`} title={identity.title}>{identity.title}</span>
+          <span className={`text-[11px] text-slate-400 font-mono tracking-wide ${isExpedienteLayout ? "font-bold" : "font-normal"}`}>{data.trackingCode}</span>
         </div>
       </div>
 
       {/* 2. Primary Badge (Ej. PAGADO, OBSERVADO) */}
       <div className="w-[180px] shrink-0 px-4">
         {primaryBadge ? (
-          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black tracking-widest border truncate max-w-full ${primaryBadge.colorClass}`} title={primaryBadge.label}>
+          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] tracking-widest border truncate max-w-full ${isExpedienteLayout ? "font-black" : "font-semibold"} ${primaryBadge.colorClass}`} title={primaryBadge.label}>
             <StatusIcon status={primaryBadge.icon} />
             <span className="truncate ml-1">{primaryBadge.label}</span>
           </span>
@@ -75,13 +76,13 @@ export function SmartCaseRow({ data, onClick }: SmartCaseCardProps) {
         
         {/* Asignado a */}
         <div className="flex items-center gap-2 w-24 justify-end" title={`Asignado a: ${metadata.assignedTo?.name || 'Sin asignar'}`}>
-          <span className={`text-[11px] font-black tracking-widest uppercase truncate ${metadata.assignedTo?.name === 'SIN ASIGNAR' ? 'text-slate-300' : 'text-slate-700'}`}>
+          <span className={`text-[11px] tracking-widest uppercase truncate ${isExpedienteLayout ? "font-black" : "font-medium"} ${metadata.assignedTo?.name === 'SIN ASIGNAR' ? 'text-slate-300' : 'text-slate-700'}`}>
             {metadata.assignedTo?.name || 'SIN ASIGNAR'}
           </span>
         </div>
 
         {/* Tiempo */}
-        <span className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider w-24 justify-end">
+        <span className={`flex items-center gap-1.5 text-[11px] text-slate-400 uppercase tracking-wider w-24 justify-end ${isExpedienteLayout ? "font-bold" : "font-normal"}`}>
           <Clock size={12} /> {metadata.lastUpdatedRelative.replace("Hace ", "")}
         </span>
 

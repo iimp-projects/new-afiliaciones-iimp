@@ -97,8 +97,13 @@ export function UsersFilterBar({ roles, filters, onFilterChange, onClearFilters,
             placeholder="Buscar por DNI, Nombre o Correo..."
             value={filters.search}
             onChange={(e) => onFilterChange("search", e.target.value)}
-            className="w-full pl-12 pr-4 h-11 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059] transition-all placeholder:text-slate-400"
+            className="w-full pl-12 pr-10 h-11 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059] transition-all placeholder:text-slate-400"
           />
+          {filters.search && (
+            <button type="button" onClick={() => onFilterChange("search", "")} aria-label="Limpiar búsqueda" className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-200 hover:text-slate-600">
+              <X size={14} strokeWidth={2.5} />
+            </button>
+          )}
         </div>
 
         <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">

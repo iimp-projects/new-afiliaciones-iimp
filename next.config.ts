@@ -1,12 +1,20 @@
 import type { NextConfig } from "next";
 
+const scriptSources = [
+  "'self'",
+  "'unsafe-inline'",
+  ...(process.env.NODE_ENV === "development" ? ["'unsafe-eval'"] : []),
+  "https://static-content.vnforapps.com",
+  "https://static-content-qas.vnforapps.com",
+];
+
 const contentSecurityPolicy = [
   "default-src 'self'",
   "base-uri 'self'",
   "form-action 'self' https://*.vnforapps.com https://apisandbox.vnforappstest.com https://static-content-qas.vnforapps.com",
   "frame-ancestors 'none'",
   "object-src 'none'",
-  "script-src 'self' 'unsafe-inline' https://static-content.vnforapps.com https://static-content-qas.vnforapps.com",
+  `script-src ${scriptSources.join(" ")}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",

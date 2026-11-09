@@ -69,6 +69,7 @@ const emptyPersonalInformation: PersonalInformation = {
   provinceId: undefined,
   districtId: undefined,
   address: "",
+  postalCode: "",
   photo: null,
   identityDocument: null,
   identityVerified: false,
@@ -1505,6 +1506,24 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
                   className={getInputClass("address")}
                 />
                 {getErrorText("address")}
+              </div>
+
+              <div className="mt-4">
+                <label className="text-xs font-bold text-slate-700 mb-1.5 block uppercase">
+                  Código Postal <span className="text-slate-400 font-medium normal-case">(opcional)</span>
+                </label>
+                <input
+                  type="text"
+                  disabled={!isFormEnabled}
+                  inputMode="numeric"
+                  maxLength={10}
+                  placeholder="Ej. 15024"
+                  value={form.postalCode ?? ""}
+                  onChange={(e) => updateField("postalCode", e.target.value.replace(/\D/g, ""))}
+                  onBlur={() => handleBlur("postalCode")}
+                  className={getInputClass("postalCode")}
+                />
+                {getErrorText("postalCode")}
               </div>
             </div>
           </div>

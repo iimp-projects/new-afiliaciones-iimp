@@ -15,7 +15,7 @@ vi.mock("@/modules/afiliaciones/payments/Services/PaymentService", () => ({
 import { PaymentServiceError } from "@/modules/afiliaciones/payments/Services/PaymentService";
 import { POST } from "./route";
 
-const validBody = { applicationId: 31, billingData: { tipoDocumento: "DNI", numeroDocumento: "12345678", razonSocial: "Ana Pérez", direccionFiscal: "Av. Prueba 123", responsable: "Ana Pérez", emailFacturacion: "ana@example.com" } };
+const validBody = { applicationId: 31, billingData: { tipoDocumento: "DNI", numeroDocumento: "12345678", razonSocial: "Ana Pérez", direccionFiscal: "Av. Prueba 123", responsable: "Ana Pérez", emailFacturacion: "ana@example.com" }, billingConfirmed: true, termsAccepted: true, majorityAccepted: true };
 
 describe("POST /api/payments", () => {
   beforeEach(() => vi.clearAllMocks());

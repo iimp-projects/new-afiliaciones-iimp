@@ -26,4 +26,10 @@ export const paymentApi = {
     if (!response.ok) throw new PaymentApiError(data?.message || "No se pudo iniciar el pago.", response.status, typeof data?.code === "string" ? data.code : undefined);
     return data as CreatePaymentResponse;
   },
+  async getAmount(): Promise<{ registrationAmount: number; membershipFeeAmount: number; totalAmount: number; currency: "PEN" }> {
+    const response = await fetch("/api/payments/amount", { credentials: "include", cache: "no-store" });
+    const data = await response.json().catch(() => null);
+    if (!response.ok) throw new PaymentApiError(data?.message || "No se pudo obtener el monto.", response.status);
+    return data as { registrationAmount: number; membershipFeeAmount: number; totalAmount: number; currency: "PEN" };
+  },
 };

@@ -47,7 +47,7 @@ class SecurityRepository {
   }
 
   async resetFailedAttemptsAndUpdateLogin(userId: number): Promise<void> {
-    await prisma.user.update({
+    await prisma.user.updateMany({
       where: { id: userId },
       data: { 
         failedLoginAttempts: 0, 

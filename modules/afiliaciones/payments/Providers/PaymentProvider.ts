@@ -16,6 +16,8 @@ export interface PaymentProviderCommand {
     phone?: string;
     personId?: number;
     documentNumber?: string;
+    registeredAt?: Date;
+    address?: { street?: string; city?: string; state?: string; countryCode?: string; postalCode?: string } | null;
   };
 }
 

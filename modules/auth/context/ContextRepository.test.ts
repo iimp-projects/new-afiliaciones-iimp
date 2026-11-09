@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({ findUnique: vi.fn(), getPresignedAvatarUrl: vi.fn(), getPresignedApplicationDocumentUrl: vi.fn() }));
-vi.mock("@/lib/prisma", () => ({ prisma: { user: { findUnique: mocks.findUnique } } }));
+const mocks = vi.hoisted(() => ({ findUnique: vi.fn(), queryRawUnsafe: vi.fn(), getPresignedAvatarUrl: vi.fn(), getPresignedApplicationDocumentUrl: vi.fn() }));
+vi.mock("@/lib/prisma", () => ({ prisma: { user: { findUnique: mocks.findUnique }, $queryRawUnsafe: mocks.queryRawUnsafe } }));
 vi.mock("@/modules/shared/Services/S3StorageService", () => ({
   S3StorageService: class {
     getPresignedAvatarUrl = mocks.getPresignedAvatarUrl;
@@ -21,7 +21,10 @@ function activeUser(overrides: Record<string, unknown> = {}) {
 }
 
 describe("ContextRepository active authorization boundary", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.queryRawUnsafe.mockResolvedValue([{ exists: true }]);
+  });
 
   it.each([
     { status: "INACTIVE", deletedAt: null },

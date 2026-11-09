@@ -55,15 +55,21 @@ describe("Primary address persistence", () => {
     const tx = transaction();
     await persist(tx);
     expect(tx.addressType.findUnique).toHaveBeenCalledWith({ where: { code: "HOME" }, select: { id: true, isActive: true } });
-    expect(tx.address.create).toHaveBeenCalledWith({ data: { personId: 42, countryId: 1, addressTypeId: 77, districtId: 321, street: "Av. Personal 155", foreignRegion: null, foreignCity: null, isPrimary: true } });
+    expect(tx.address.create).toHaveBeenCalledWith({ data: { personId: 42, countryId: 1, addressTypeId: 77, districtId: 321, street: "Av. Personal 155", zipCode: null, foreignRegion: null, foreignCity: null, isPrimary: true } });
     expect("billing" in tx).toBe(false);
+  });
+
+  it("persists the optional postal code when provided", async () => {
+    const tx = transaction();
+    await (new UpdateDraftService({} as never) as unknown as PrimaryAddressPersistence).persistPrimaryAddress(tx, 42, { ...personal, postalCode: "15024" });
+    expect(tx.address.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ zipCode: "15024" }) }));
   });
 
   it("does not duplicate and updates the historical primary address", async () => {
     const tx = transaction({ id: 12 });
     await (new UpdateDraftService({} as never) as unknown as PrimaryAddressPersistence).persistPrimaryAddress(tx, 42, personal);
     expect(tx.address.create).not.toHaveBeenCalled();
-    expect(tx.address.update).toHaveBeenCalledWith({ where: { id: 12 }, data: { countryId: 1, addressTypeId: 77, districtId: 321, street: "Av. Personal 155", foreignRegion: null, foreignCity: null, isPrimary: true } });
+    expect(tx.address.update).toHaveBeenCalledWith({ where: { id: 12 }, data: { countryId: 1, addressTypeId: 77, districtId: 321, street: "Av. Personal 155", zipCode: null, foreignRegion: null, foreignCity: null, isPrimary: true } });
   });
 
   it.each(["ACTIVE", "STUDENT"] as const)("persists a primary address for %s", async (affiliateType) => {
@@ -89,7 +95,7 @@ describe("Primary address persistence", () => {
       foreignRegion: "Kabul",
       foreignCity: "Kabul",
     });
-    expect(tx.address.create).toHaveBeenCalledWith({ data: { personId: 42, countryId: 113, addressTypeId: 77, districtId: null, street: "Kabul Road 1", foreignRegion: "Kabul", foreignCity: "Kabul", isPrimary: true } });
+    expect(tx.address.create).toHaveBeenCalledWith({ data: { personId: 42, countryId: 113, addressTypeId: 77, districtId: null, street: "Kabul Road 1", zipCode: null, foreignRegion: "Kabul", foreignCity: "Kabul", isPrimary: true } });
   });
 
   it("rejects a district outside the selected country before writing the address", async () => {
@@ -101,13 +107,13 @@ describe("Primary address persistence", () => {
   it("allows a null district (province optional) when the country has district hierarchy", async () => {
     const tx = transaction();
     await (new UpdateDraftService({} as never) as unknown as PrimaryAddressPersistence).persistPrimaryAddress(tx, 42, { ...personal, districtId: null });
-    expect(tx.address.create).toHaveBeenCalledWith({ data: { personId: 42, countryId: 1, addressTypeId: 77, districtId: null, street: "Av. Personal 155", foreignRegion: null, foreignCity: null, isPrimary: true } });
+    expect(tx.address.create).toHaveBeenCalledWith({ data: { personId: 42, countryId: 1, addressTypeId: 77, districtId: null, street: "Av. Personal 155", zipCode: null, foreignRegion: null, foreignCity: null, isPrimary: true } });
   });
 
   it("allows null province and district when the department is valid", async () => {
     const tx = transaction();
     await (new UpdateDraftService({} as never) as unknown as PrimaryAddressPersistence).persistPrimaryAddress(tx, 42, { ...personal, provinceId: null, districtId: null });
-    expect(tx.address.create).toHaveBeenCalledWith({ data: { personId: 42, countryId: 1, addressTypeId: 77, districtId: null, street: "Av. Personal 155", foreignRegion: null, foreignCity: null, isPrimary: true } });
+    expect(tx.address.create).toHaveBeenCalledWith({ data: { personId: 42, countryId: 1, addressTypeId: 77, districtId: null, street: "Av. Personal 155", zipCode: null, foreignRegion: null, foreignCity: null, isPrimary: true } });
   });
 
   it("requires a department when the selected country has district hierarchy", async () => {

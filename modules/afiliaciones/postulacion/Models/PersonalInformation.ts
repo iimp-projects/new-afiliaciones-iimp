@@ -37,6 +37,7 @@ export interface PersonalInformation {
     provinceId?: number | null;   
     districtId?: number | null;
     address: string;
+    postalCode?: string;
     foreignRegion?: string | null;
     foreignCity?: string | null;
 

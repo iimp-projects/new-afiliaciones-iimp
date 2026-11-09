@@ -166,7 +166,7 @@ export function CampaignWorkspace({
   };
 
   return (
-    <main className="mx-auto w-full max-w-[1200px] p-6 md:p-8">
+    <main className="mx-auto w-full max-w-[1200px]">
       <div className="mb-4 flex items-center gap-2 text-sm text-slate-500">
         <button onClick={() => router.push("/intranet/correos-masivos")} className="font-semibold hover:text-[#C5A059]">Correos Masivos</button>
         <span>/</span>
@@ -176,7 +176,7 @@ export function CampaignWorkspace({
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-[11px] font-black uppercase tracking-[.18em] text-[#C79A3B]">Campaña</p>
-          <h1 className="text-2xl font-black tracking-tight text-slate-800">{campaign.name}</h1>
+          <h1 className="text-2xl font-medium tracking-tight text-slate-800">{campaign.name}</h1>
           <span className="mt-2 inline-block rounded-full bg-slate-100 px-3 py-1 text-[11px] font-black uppercase text-slate-600">{statusLabel[campaign.status] ?? campaign.status}</span>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -429,7 +429,7 @@ function RecipientsTab({ campaignId, isDraft, selection, onDirtyChange }: { camp
 
       <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <h3 className="text-sm font-black uppercase tracking-wide text-slate-700">Listas disponibles</h3>
+          <h3 className="text-sm font-medium uppercase tracking-wide text-slate-700">Listas disponibles</h3>
           <div className="flex items-center gap-3">
             {isDraft && selection.lists.length > 0 && (
               <button onClick={toggleSelectAllLists} className="text-xs font-bold text-[#7f561e] hover:text-[#C5A059]">
@@ -491,7 +491,7 @@ function RecipientsTab({ campaignId, isDraft, selection, onDirtyChange }: { camp
               onChange={toggleSelectAllFiltered}
               className="h-4 w-4 accent-[#C5A059]"
             />
-            <h3 className="text-sm font-black uppercase tracking-wide text-slate-700">Destinatarios individuales</h3>
+            <h3 className="text-sm font-medium uppercase tracking-wide text-slate-700">Destinatarios individuales</h3>
           </div>
           <input value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Buscar nombre, empresa, email" className="h-9 w-64 rounded-lg border border-slate-200 px-3 text-xs outline-none focus:border-[#C5A059]" />
         </div>
@@ -575,7 +575,7 @@ function ListMembersModal({ list, recipients, onClose }: { list: { id: number; n
     <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" onClick={onClose}>
       <div className="flex max-h-[80vh] w-full max-w-lg flex-col rounded-[24px] bg-white p-6 shadow-2xl" onClick={(event) => event.stopPropagation()}>
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-black text-slate-800">Destinatarios — {list.name}</h3>
+          <h3 className="text-lg font-semibold text-slate-800">Destinatarios — {list.name}</h3>
           <button onClick={onClose} className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100">✕</button>
         </div>
         <p className="mt-1 text-xs text-slate-500">{members.length} destinatarios</p>
@@ -620,7 +620,7 @@ function RenameListModal({ list, onClose, onRenamed }: { list: { id: number; nam
   return createPortal(
     <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" onClick={onClose}>
       <div className="w-full max-w-md rounded-[24px] bg-white p-6 shadow-2xl" onClick={(event) => event.stopPropagation()}>
-        <h3 className="text-lg font-black text-slate-800">Renombrar lista</h3>
+        <h3 className="text-lg font-semibold text-slate-800">Renombrar lista</h3>
         <label className="mt-4 block">
           <span className="text-xs font-bold uppercase text-slate-500">Nombre de la lista</span>
           <input value={name} onChange={(event) => setName(event.target.value)} className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#C5A059]" />
@@ -657,7 +657,7 @@ function DeleteListModal({ list, onClose, onDeleted }: { list: { id: number; nam
       <div className="w-full max-w-md rounded-[24px] bg-white p-6 shadow-2xl" onClick={(event) => event.stopPropagation()}>
         <div className="flex items-center gap-2">
           <Trash2 size={18} className="text-red-500" />
-          <h3 className="text-lg font-black text-slate-800">¿Eliminar esta lista?</h3>
+          <h3 className="text-lg font-semibold text-slate-800">¿Eliminar esta lista?</h3>
         </div>
         <p className="mt-3 text-sm text-slate-600">La lista <strong>&quot;{list.name}&quot;</strong> y sus asociaciones serán eliminadas. Esta acción no enviará ningún correo.</p>
         {error && <p className="mt-2 text-sm font-semibold text-red-600">{error}</p>}

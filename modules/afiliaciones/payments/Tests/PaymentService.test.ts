@@ -45,6 +45,9 @@ const input: CreatePaymentInput = {
     responsable: "Responsable de prueba",
     emailFacturacion: "facturacion@example.com",
   },
+  billingConfirmed: true,
+  termsAccepted: true,
+  majorityAccepted: true,
 };
 
 const callbackPayload = { paymentId: 99, applicationId: input.applicationId, expiresAt: Date.now() + 60_000, purpose: "payment_callback" as const, jti: "test-jti" };
@@ -95,7 +98,7 @@ class PaymentRepositoryFake implements IPaymentRepository {
       email: "applicant@example.com",
       phone: "999999999",
       documentNumber: "12345678",
-      person: { firstName: "Ana", paternalLastName: "Pérez" },
+      person: { firstName: "Ana", paternalLastName: "Pérez", createdAt: new Date("2026-01-15T12:00:00Z"), address: { street: "Av. Prueba 123", city: "Lima", state: "Lima", countryCode: "PE", postalCode: "15024" } },
     };
   }
 
@@ -144,6 +147,24 @@ describe("PaymentService", () => {
 
     await expect(service.initiate(input, "expired-token"))
       .rejects.toMatchObject({ status: 403, code: "PAYMENT_AUTH_INVALID_OR_EXPIRED" } satisfies Partial<PaymentServiceError>);
+  });
+
+  it("rechaza el inicio cuando no se confirmó la facturación", async () => {
+    const service = new PaymentService(undefined, new MockPaymentProvider("PAID"), new PaymentRepositoryFake(), undefined, authorizedPayment);
+    await expect(service.initiate({ ...input, billingConfirmed: false }, "authorized"))
+      .rejects.toMatchObject({ status: 422, code: "PAYMENT_BILLING_NOT_CONFIRMED" } satisfies Partial<PaymentServiceError>);
+  });
+
+  it("rechaza el inicio cuando no se aceptaron los términos y condiciones", async () => {
+    const service = new PaymentService(undefined, new MockPaymentProvider("PAID"), new PaymentRepositoryFake(), undefined, authorizedPayment);
+    await expect(service.initiate({ ...input, termsAccepted: false }, "authorized"))
+      .rejects.toMatchObject({ status: 422, code: "PAYMENT_TERMS_NOT_ACCEPTED" } satisfies Partial<PaymentServiceError>);
+  });
+
+  it("rechaza el inicio cuando no se confirmó la mayoría de edad", async () => {
+    const service = new PaymentService(undefined, new MockPaymentProvider("PAID"), new PaymentRepositoryFake(), undefined, authorizedPayment);
+    await expect(service.initiate({ ...input, majorityAccepted: false }, "authorized"))
+      .rejects.toMatchObject({ status: 422, code: "PAYMENT_MAJORITY_NOT_CONFIRMED" } satisfies Partial<PaymentServiceError>);
   });
 
   it("provisiona la cuenta del asociado tras un pago PAID", async () => {
@@ -334,6 +355,18 @@ describe("PaymentService", () => {
     expect(repository.paymentCreateCalls).toBe(0);
     expect(repository.billingCreateCalls).toBe(0);
     expect(repository.result).toBeUndefined();
+  });
+
+  it("propaga la fecha de registro de Person al comando del proveedor sin usarla como MDD77", async () => {
+    const repository = new PaymentRepositoryFake();
+    const provider: PaymentProvider = { gateway: PaymentGateway.MOCK, assertReady: vi.fn(), initiate: vi.fn().mockResolvedValue({ status: PaymentStatus.PAID }) };
+    const service = new PaymentService(undefined, provider, repository, { recalculate: vi.fn() }, authorizedPayment);
+
+    await service.initiate(input, "authorized");
+
+    expect(provider.initiate).toHaveBeenCalledWith(expect.objectContaining({
+      customer: expect.objectContaining({ personId: 7, registeredAt: expect.any(Date) }),
+    }));
   });
 
   it("mantiene bloqueado un Payment Niubiz PROCESSING en TEST", async () => {

@@ -512,6 +512,7 @@ export class ApplicationRepository implements IApplicationRepository {
       districtId,
       addressTypeId: addressType.id,
       street,
+      zipCode: personal?.postalCode?.trim() || null,
       foreignRegion: districtId ? null : personal?.foreignRegion?.trim() || null,
       foreignCity: districtId ? null : personal?.foreignCity?.trim() || null,
       isPrimary: true,

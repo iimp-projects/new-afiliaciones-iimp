@@ -23,28 +23,37 @@ beforeAll(() => {
 });
 
 describe("NavigationService - Application Service", () => {
-    
-    it("Debe retornar el árbol completo para un Super Administrador", async () => {
+
+    it("Debe retornar el árbol completo y ordenado para un Super Administrador", async () => {
         const superAdminProvider = new MockAuthProvider(new Set(["manage:all"]));
         const service = new NavigationService(superAdminProvider);
 
         const tree = await service.getAuthorizedTree();
-        const securityNode = tree.find(node => node.id === "group-security");
 
-        expect(securityNode).toBeDefined();
-        expect(securityNode?.children?.length).toBe(2);
+        expect(tree.map((node) => node.id)).toEqual([
+            "group-dashboard",
+            "group-afiliaciones",
+            "group-eventos",
+            "group-comunicaciones",
+            "group-administracion",
+        ]);
+
+        const adminNode = tree.find((node) => node.id === "group-administracion");
+        expect(adminNode).toBeDefined();
+        expect(adminNode?.children?.length).toBe(3);
     });
 
-    it("oculta Roles y Permisos y Auditor├¡a del Sistema para SUPER_ADMIN", async () => {
+    it("oculta Roles y Permisos y Auditoría del Sistema para SUPER_ADMIN", async () => {
         const superAdminProvider = new MockAuthProvider(new Set(["manage:all"]));
         const service = new NavigationService(superAdminProvider);
 
         const tree = await service.getAuthorizedTree();
-        const securityNode = tree.find(node => node.id === "group-security");
-        const childIds = (securityNode?.children ?? []).map((child) => child.id);
+        const adminNode = tree.find((node) => node.id === "group-administracion");
+        const childIds = (adminNode?.children ?? []).map((child) => child.id);
 
         expect(childIds).toContain("nav-security-users");
         expect(childIds).toContain("nav-security-system-settings");
+        expect(childIds).toContain("nav-master-data");
         expect(childIds).not.toContain("nav-security-roles");
         expect(childIds).not.toContain("nav-security-audit");
     });
@@ -54,21 +63,22 @@ describe("NavigationService - Application Service", () => {
         const service = new NavigationService(limitedProvider);
 
         const tree = await service.getAuthorizedTree();
-        const securityNode = tree.find(node => node.id === "group-security");
+        const adminNode = tree.find((node) => node.id === "group-administracion");
 
-        expect(securityNode).toBeDefined();
-        expect(securityNode?.children?.length).toBe(1);
-        expect(securityNode?.children?.[0].id).toBe("nav-security-users");
+        expect(adminNode).toBeDefined();
+        expect(adminNode?.children?.length).toBe(1);
+        expect(adminNode?.children?.[0].id).toBe("nav-security-users");
     });
 
-    it("Debe eliminar el nodo padre si no tiene hijos autorizados", async () => {
+    it("Debe eliminar el grupo Administración si no tiene hijos autorizados", async () => {
         const noSecurityProvider = new MockAuthProvider(new Set(["read:dashboard"]));
         const service = new NavigationService(noSecurityProvider);
 
         const tree = await service.getAuthorizedTree();
-        const securityNode = tree.find(node => node.id === "group-security");
+        const adminNode = tree.find((node) => node.id === "group-administracion");
 
-        expect(securityNode?.children).toBeUndefined();
+        expect(adminNode).toBeUndefined();
+        expect(tree.find((node) => node.id === "group-dashboard")).toBeDefined();
     });
 
     it("retorna Mi perfil y OneMine (carnet oculto) para un asociado en modo solo perfil", async () => {
@@ -96,22 +106,34 @@ describe("NavigationService - Application Service", () => {
         });
     });
 
-    it("muestra Mi perfil a cualquier usuario administrativo sin exigir un permiso adicional", async () => {
+    it("muestra Notificaciones a cualquier usuario administrativo sin exigir un permiso adicional", async () => {
         const service = new NavigationService(new MockAuthProvider(new Set()));
         const tree = await service.getAuthorizedTree();
-        const account = tree.find((node) => node.id === "group-account");
+        const comunicaciones = tree.find((node) => node.id === "group-comunicaciones");
 
-        const profile = account?.children?.find((node) => node.id === "nav-internal-profile");
-        expect(profile).toMatchObject({ href: "/intranet/mi-perfil", icon: "UserRound" });
-        expect(profile).not.toHaveProperty("permission");
+        const notif = comunicaciones?.children?.find((node) => node.id === "nav-notifications");
+        expect(notif).toMatchObject({ title: "Notificaciones", href: "/intranet/notificaciones", icon: "Bell" });
+        expect(notif).not.toHaveProperty("permission");
     });
 
-    it("ubica Mi perfil antes de Panel Principal para usuarios administrativos", async () => {
-        const service = new NavigationService(new MockAuthProvider(new Set()));
+    it("no expone Alertas como ítem separado (se accede desde la pestaña de Notificaciones)", async () => {
+        const service = new NavigationService(new MockAuthProvider(new Set(["manage:all"])));
         const tree = await service.getAuthorizedTree();
+        const comunicaciones = tree.find((node) => node.id === "group-comunicaciones");
+        const ids = (comunicaciones?.children ?? []).map((child) => child.id);
 
-        expect(tree.map((node) => node.id).indexOf("group-account"))
-            .toBeLessThan(tree.map((node) => node.id).indexOf("group-main"));
+        expect(ids).toContain("nav-notifications");
+        expect(ids).toContain("nav-correos-masivos");
+        expect(ids).not.toContain("nav-operational-alerts");
+    });
+
+    it("ya no expone Mi perfil en el menú administrativo (se accede desde el Navbar)", async () => {
+        const service = new NavigationService(new MockAuthProvider(new Set(["manage:all"])));
+        const tree = await service.getAuthorizedTree();
+        const ids = tree.flatMap((node) => [node.id, ...(node.children ?? []).map((child) => child.id)]);
+
+        expect(ids).not.toContain("nav-internal-profile");
+        expect(ids).not.toContain("group-account");
     });
 });
 

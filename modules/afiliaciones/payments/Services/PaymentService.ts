@@ -41,6 +41,7 @@ export class PaymentService {
 
   async initiate(input: CreatePaymentInput, authorization: string | undefined, clientIp?: string): Promise<CreatePaymentResponse> {
     if (!this.authorizationService.verify(authorization, input.applicationId)) throw new PaymentServiceError("La autorización temporal de pago no es válida o expiró.", 403, "PAYMENT_AUTH_INVALID_OR_EXPIRED");
+    this.assertCheckoutRequirementsAccepted(input);
     const applicationForBilling = await this.repository.findApplicationById(input.applicationId);
     const resolvedBilling = await this.resolveBillingData(input.billingData, applicationForBilling?.documentNumber);
     const billingData = resolvedBilling.billingData;
@@ -59,7 +60,7 @@ export class PaymentService {
     });
 
     const { payment, application, resumed } = startedPayment;
-    const providerResult = await provider.initiate({
+    const providerResult = await this.initiateWithProvider(provider, {
       paymentId: payment.id,
       applicationId: payment.applicationId,
       billingData,
@@ -72,7 +73,9 @@ export class PaymentService {
         ...(clientIp ? { clientIp } : {}),
         ...(application.phone ? { phone: application.phone } : {}),
         ...(application.personId ? { personId: application.personId } : {}),
+        ...(application.person?.createdAt ? { registeredAt: application.person.createdAt } : {}),
         ...(application.documentNumber ? { documentNumber: application.documentNumber } : {}),
+        ...(application.person?.address ? { address: { street: application.person.address.street, city: application.person.address.city, state: application.person.address.state, countryCode: application.person.address.countryCode, postalCode: application.person.address.postalCode ?? undefined } } : {}),
       },
     });
     const updatedPayment = resumed && providerResult.status === PaymentStatus.PENDING ? payment : await this.persistPaymentResult(payment, providerResult);
@@ -80,6 +83,18 @@ export class PaymentService {
       ? { ...providerResult, checkout: { ...providerResult.checkout, callbackUrl: await this.withCallbackReference(providerResult.checkout.callbackUrl, payment) } }
       : providerResult;
     return this.toResponse(updatedPayment, responseProviderResult);
+  }
+
+  private async initiateWithProvider(provider: PaymentProvider, command: Parameters<PaymentProvider["initiate"]>[0]): Promise<PaymentGatewayResult> {
+    try {
+      return await provider.initiate(command);
+    } catch (error) {
+      if (error instanceof NiubizProviderConfigurationError || error instanceof NiubizProviderNotReadyError) {
+        console.error("[PAYMENTS] No se pudo iniciar la sesión Niubiz.", { errorName: error.name, errorMessage: error.message });
+        throw new PaymentServiceError("La pasarela de pago no está disponible en este momento. Intenta nuevamente más tarde.", 503);
+      }
+      throw error;
+    }
   }
 
   private async resolveBillingData(input: BillingDataInput, authorizedDocumentNumber?: string): Promise<{ billingData: BillingDataInput; billingTraceability: BillingTraceability }> {
@@ -201,6 +216,12 @@ export class PaymentService {
     return url.toString();
   }
 
+  private assertCheckoutRequirementsAccepted(input: CreatePaymentInput): void {
+    if (input.billingConfirmed !== true) throw new PaymentServiceError("Debes confirmar los datos de facturación antes de continuar.", 422, "PAYMENT_BILLING_NOT_CONFIRMED");
+    if (input.termsAccepted !== true) throw new PaymentServiceError("Debes aceptar los Términos y Condiciones antes de continuar.", 422, "PAYMENT_TERMS_NOT_ACCEPTED");
+    if (input.majorityAccepted !== true) throw new PaymentServiceError("Debes confirmar que eres mayor de edad antes de continuar.", 422, "PAYMENT_MAJORITY_NOT_CONFIRMED");
+  }
+
   private assertPaymentEligible(application: Awaited<ReturnType<IPaymentRepository["findApplicationById"]>>): asserts application is NonNullable<typeof application> {
     if (!application) throw new PaymentServiceError("La postulación no existe.", 404);
     if (application.deletedAt) throw new PaymentServiceError("La postulación no está disponible para pago.", 409);
@@ -243,7 +264,10 @@ export class PaymentService {
   private assertProviderReady(provider: PaymentProvider): void {
     try { provider.assertReady(); }
     catch (error) {
-      if (error instanceof NiubizProviderConfigurationError || error instanceof NiubizProviderNotReadyError) throw new PaymentServiceError(error.message, 503);
+      if (error instanceof NiubizProviderConfigurationError || error instanceof NiubizProviderNotReadyError) {
+        console.error("[PAYMENTS] Niubiz no está listo para iniciar sesión.", { errorName: error.name, errorMessage: error.message });
+        throw new PaymentServiceError("La pasarela de pago no está disponible en este momento. Intenta nuevamente más tarde.", 503);
+      }
       throw error;
     }
   }
@@ -254,7 +278,7 @@ export class PaymentService {
       FAILED: "Pago rechazado por el simulador. El intento quedó registrado.",
       PENDING: providerResult.checkout ? "Sesión Niubiz creada. Complete el Checkout para continuar." : "Pago pendiente en el simulador. El intento quedó registrado.",
     } as const;
-    return { success: payment.status !== PaymentStatus.FAILED, paymentId: payment.id, status: payment.status as CreatePaymentResponse["status"], transactionId: providerResult.transactionId, authorizationCode: providerResult.authorizationCode, responseCode: providerResult.responseCode, amount: payment.totalAmount, registrationAmount: payment.registrationAmount, membershipFeeAmount: payment.membershipFeeAmount, currency: payment.currency, checkout: providerResult.checkout, message: messages[payment.status as keyof typeof messages] };
+    return { success: payment.status !== PaymentStatus.FAILED, paymentId: payment.id, status: payment.status as CreatePaymentResponse["status"], transactionId: providerResult.transactionId, authorizationCode: providerResult.authorizationCode, responseCode: providerResult.responseCode, amount: payment.totalAmount, registrationAmount: payment.registrationAmount, membershipFeeAmount: payment.membershipFeeAmount, currency: payment.currency, checkout: providerResult.checkout, ...(providerResult.diagnostic ? { diagnostic: providerResult.diagnostic } : {}), message: messages[payment.status as keyof typeof messages] };
   }
 }
 

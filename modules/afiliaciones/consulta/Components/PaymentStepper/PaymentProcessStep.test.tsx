@@ -11,12 +11,12 @@ vi.mock("@/modules/afiliaciones/payments/Components/PaymentLoadingOverlay", () =
 import PaymentProcessStep from "./PaymentProcessStep";
 
 const billingData = { tipoDocumento: "RUC" as const, numeroDocumento: "20107972090", razonSocial: "Razón social real", direccionFiscal: "Av. Principal 123", responsable: "Responsable real", emailFacturacion: "facturacion@example.com" };
-const props = { billingData, confirmed: false, onConfirmedChange: vi.fn(), result: null, loading: false, error: null, onRetry: vi.fn(), paymentUiState: "PAYMENT_FAILED" as const, onCheckoutStateChange: vi.fn(), failureCode: "116", failureMessage: "No cuentas con fondos suficientes para completar la compra. Intenta nuevamente con otra tarjeta.", affiliateType: "ASOCIADO ACTIVO" };
+const props = { billingData, accepted: false, onAcceptedChange: vi.fn(), onStartCheckout: vi.fn(), amountInfo: null, result: null, loading: false, error: null, onRetry: vi.fn(), paymentUiState: "PAYMENT_FAILED" as const, onCheckoutStateChange: vi.fn(), failureCode: "116", failureMessage: "No cuentas con fondos suficientes para completar la compra. Intenta nuevamente con otra tarjeta.", affiliateType: "ASOCIADO ACTIVO" };
 const checkoutResult = { success: true, paymentId: 2, status: "PENDING" as const, amount: 300, registrationAmount: 150, membershipFeeAmount: 150, currency: "PEN" as const, message: "Sesión Niubiz creada.", checkout: { sessionToken: "token", merchantId: "merchant", purchaseNumber: "2", amount: 300, currency: "PEN" as const, checkoutUrl: "https://checkout.example.invalid", callbackUrl: "https://example.invalid/callback", expirationMinutes: 10, timeoutUrl: "https://example.invalid/timeout", merchantName: "IIMP", formButtonColor: "#C5A059" } };
 
 describe("PaymentProcessStep", () => {
   it("presenta la alerta FAILED antes del resumen y reutiliza el botón normal de pago", () => {
-    const markup = renderToStaticMarkup(<PaymentProcessStep {...props} confirmed paymentUiState="IDLE" showRestoredFailure result={checkoutResult} />);
+    const markup = renderToStaticMarkup(<PaymentProcessStep {...props} accepted paymentUiState="IDLE" showRestoredFailure result={checkoutResult} />);
     expect(markup.indexOf("Pago no aprobado")).toBeLessThan(markup.indexOf("Resumen final antes del pago"));
     expect(markup).toContain("No cuentas con fondos suficientes para completar la compra. Intenta nuevamente con otra tarjeta.");
     expect(markup).toContain("Código de soporte: 116");
@@ -24,9 +24,39 @@ describe("PaymentProcessStep", () => {
     expect(markup).not.toContain(">Intentar nuevamente<");
   });
 
-  it("mantiene el botón normal bloqueado hasta confirmar la facturación", () => {
+  it("muestra el botón PAGA AQUÍ bloqueado antes de aceptar el checkbox", () => {
     const markup = renderToStaticMarkup(<PaymentProcessStep {...props} paymentUiState="IDLE" result={checkoutResult} />);
     expect(markup).toContain('<button disabled="">PAGA AQUÍ</button>');
+  });
+
+  it("habilita el botón PAGA AQUÍ cuando el checkbox único está aceptado", () => {
+    const markup = renderToStaticMarkup(<PaymentProcessStep {...props} accepted paymentUiState="IDLE" result={checkoutResult} />);
+    expect(markup).toContain("<button>PAGA AQUÍ</button>");
+  });
+
+  it("muestra una sola tarjeta de confirmación con un solo checkbox", () => {
+    const markup = renderToStaticMarkup(<PaymentProcessStep {...props} paymentUiState="IDLE" />);
+    expect(markup).toContain("Confirmación de facturación y términos");
+    expect(markup).toContain("Confirmo que mis datos de facturación son correctos");
+    expect(markup).toContain("Términos y Condiciones de Afiliación y Pago del IIMP");
+    expect(markup).toContain("declaro ser mayor de edad y estar facultado/a para realizar este pago");
+    expect((markup.match(/type="checkbox"/g) ?? []).length).toBe(1);
+  });
+
+  it("enlaza el PDF de Términos y Condiciones en una pestaña nueva", () => {
+    const markup = renderToStaticMarkup(<PaymentProcessStep {...props} paymentUiState="IDLE" />);
+    expect(markup).toContain('href="/docs/terminos-condiciones.pdf"');
+    expect(markup).toContain('target="_blank"');
+    expect(markup).toContain('rel="noopener noreferrer"');
+    expect(markup).toContain("Leer Términos y Condiciones");
+  });
+
+  it("incluye la sección de contacto institucional con correo y teléfono", () => {
+    const markup = renderToStaticMarkup(<PaymentProcessStep {...props} paymentUiState="IDLE" />);
+    expect(markup).toContain("¿Necesitas ayuda con tu afiliación?");
+    expect(markup).toContain("mailto:liset.otoya@iimp.org.pe");
+    expect(markup).toContain("tel:+51982097019");
+    expect(markup).toContain("Los Canarios 155, Lima 15021, Perú");
   });
 
   it.each(["PAYMENT_UNCERTAIN", "PROCESSING_PAYMENT", "PAYMENT_SUCCESS"] as const)("no ofrece un nuevo checkout en %s", (paymentUiState) => {
@@ -34,7 +64,14 @@ describe("PaymentProcessStep", () => {
     expect(markup).not.toContain("PAGA AQUÍ");
   });
 
-  it("muestra la confirmación formal de factura con los datos reales de Billing", () => {
+  it("muestra el monto real desde la resolución del servidor antes de iniciar el pago", () => {
+    const markup = renderToStaticMarkup(<PaymentProcessStep {...props} amountInfo={{ registrationAmount: 150, membershipFeeAmount: 150, totalAmount: 300 }} paymentUiState="IDLE" />);
+    expect(markup).toContain("S/ 300.00");
+    expect(markup).toContain("S/ 150.00");
+    expect(markup).not.toContain("Monto protegido en el servidor");
+  });
+
+  it("muestra los datos reales de facturación en la confirmación unificada", () => {
     const markup = renderToStaticMarkup(<PaymentProcessStep {...props} paymentUiState="IDLE" />);
     expect(markup).toContain("FACTURA COMERCIAL");
     expect(markup).toContain("Razón social real");
