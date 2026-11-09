@@ -20,76 +20,34 @@ type MockPerson = {
 function matches(person: MockPerson): boolean {
   const where = sponsorEligibilityWhere(person.documentNumber) as {
     documentNumber: string;
-    OR: {
-      applications?: {
-        some: {
-          status: string;
-          affiliateType: string;
-          deletedAt: string | null;
-          payments: { some: { status: string } };
-        };
-      };
-      user?: { is: { type: string; status: string; deletedAt: string | null } };
-    }[];
+    user?: { is: { type: string; status: string; deletedAt: string | null } };
   };
 
   if (person.documentNumber !== where.documentNumber) return false;
+  if (!where.user || !person.user) return false;
 
-  return where.OR.some((condition) => {
-    if (condition.applications) {
-      const expected = condition.applications.some;
-      return (person.applications ?? []).some(
-        (application) =>
-          application.status === expected.status &&
-          application.affiliateType === expected.affiliateType &&
-          application.deletedAt === expected.deletedAt &&
-          (application.payments ?? []).some((payment) => payment.status === expected.payments.some.status),
-      );
-    }
-    if (condition.user) {
-      if (!person.user) return false;
-      const is = condition.user.is;
-      return Object.entries(is).every(([key, value]) => (person.user as Record<string, unknown>)[key] === value);
-    }
-    return false;
-  });
+  const is = where.user.is;
+  return Object.entries(is).every(
+    ([key, value]) => (person.user as Record<string, unknown>)[key] === value,
+  );
 }
 
 describe("sponsorEligibilityWhere — regla única de aval elegible", () => {
-  it("expone una sola regla OR que combina flujo nuevo e histórico", () => {
+  it("expone una sola regla basada en usuario AFFILIATE + ACTIVE + no eliminado", () => {
     const where = sponsorEligibilityWhere("12345678") as Record<string, unknown>;
 
     expect(where.documentNumber).toBe("12345678");
-    const or = where.OR as Array<Record<string, unknown>>;
-    expect(or).toHaveLength(2);
-    expect(or[0].applications).toBeDefined();
-    expect(or[1].user).toBeDefined();
-  });
-
-  it("conserva la condición A del flujo nuevo (COMPLETED + ACTIVE + PAID + no eliminado)", () => {
-    const where = sponsorEligibilityWhere("12345678") as {
-      OR: Array<{ applications?: { some: Record<string, unknown> } }>;
-    };
-    expect(where.OR[0].applications?.some).toEqual({
-      status: "COMPLETED",
-      affiliateType: "ACTIVE",
-      deletedAt: null,
-      payments: { some: { status: "PAID" } },
+    expect(where.OR).toBeUndefined();
+    expect(where.user).toEqual({
+      is: {
+        type: "AFFILIATE",
+        status: "ACTIVE",
+        deletedAt: null,
+      },
     });
   });
 
-  it("agrega la condición B de asociado histórico (AFFILIATE + ACTIVE + no eliminado)", () => {
-    const where = sponsorEligibilityWhere("12345678") as {
-      OR: Array<{ user?: { is: Record<string, unknown> } }>;
-    };
-    expect(where.OR[1].user?.is).toEqual({
-      type: "AFFILIATE",
-      status: "ACTIVE",
-      deletedAt: null,
-    });
-  });
-
-  it("acepta un asociado histórico AFFILIATE + ACTIVE sin postulación", () => {
+  it("acepta un asociado AFFILIATE + ACTIVE sin postulación ni pago", () => {
     expect(
       matches({
         documentNumber: "12345678",
@@ -99,24 +57,24 @@ describe("sponsorEligibilityWhere — regla única de aval elegible", () => {
     ).toBe(true);
   });
 
-  it("acepta un asociado nuevo con COMPLETED + ACTIVE + PAID", () => {
+  it("acepta un asociado AFFILIATE + ACTIVE aunque tenga postulación PENDING", () => {
     expect(
       matches({
         documentNumber: "12345678",
-        user: null,
+        user: { type: "AFFILIATE", status: "ACTIVE", deletedAt: null },
         applications: [
           {
-            status: "COMPLETED",
+            status: "PENDING",
             affiliateType: "ACTIVE",
             deletedAt: null,
-            payments: [{ status: "PAID" }],
+            payments: [],
           },
         ],
       }),
     ).toBe(true);
   });
 
-  it("rechaza un usuario INACTIVE que no cumple otra condición válida", () => {
+  it("rechaza un usuario INACTIVE", () => {
     expect(
       matches({
         documentNumber: "12345678",
@@ -126,7 +84,7 @@ describe("sponsorEligibilityWhere — regla única de aval elegible", () => {
     ).toBe(false);
   });
 
-  it("rechaza un usuario suspendido (BLOCKED) que no cumple otra condición válida", () => {
+  it("rechaza un usuario suspendido (BLOCKED)", () => {
     expect(
       matches({
         documentNumber: "12345678",
@@ -146,19 +104,39 @@ describe("sponsorEligibilityWhere — regla única de aval elegible", () => {
     ).toBe(false);
   });
 
-  it("rechaza una persona sin condición de asociado elegible", () => {
+  it("rechaza una persona sin usuario vinculado aunque tenga postulación COMPLETED + PAID", () => {
     expect(
       matches({
         documentNumber: "12345678",
         user: null,
         applications: [
           {
-            status: "PENDING",
+            status: "COMPLETED",
             affiliateType: "ACTIVE",
             deletedAt: null,
             payments: [{ status: "PAID" }],
           },
         ],
+      }),
+    ).toBe(false);
+  });
+
+  it("rechaza un usuario que no es AFFILIATE aunque esté ACTIVE", () => {
+    expect(
+      matches({
+        documentNumber: "12345678",
+        user: { type: "VALIDATOR", status: "ACTIVE", deletedAt: null },
+        applications: [],
+      }),
+    ).toBe(false);
+  });
+
+  it("rechaza una persona sin usuario (DNI inexistente / sin cuenta)", () => {
+    expect(
+      matches({
+        documentNumber: "12345678",
+        user: null,
+        applications: [],
       }),
     ).toBe(false);
   });

@@ -76,7 +76,7 @@ export function UsersView({ roles }: UsersViewProps) {
           <div className="flex items-start gap-3">
             <NavigationHeaderIcon href="/intranet/security/users" />
             <div>
-            <h1 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight leading-none">
+            <h1 className="text-xl sm:text-2xl font-medium text-slate-800 tracking-tight leading-none">
               Usuarios del Sistema
             </h1>
             <p className="text-xs sm:text-sm font-medium text-slate-500 mt-1.5">
