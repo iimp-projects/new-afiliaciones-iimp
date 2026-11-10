@@ -27,6 +27,25 @@ describe("StatusCompleted", () => {
     expect(markup).not.toContain("Código de seguimiento");
   });
 
+  it("enmascara el correo y teléfono registrados", () => {
+    const data = {
+      status: "COMPLETED",
+      affiliateType: "ACTIVE",
+      applicationCode: "EXP-000",
+      applicantName: "Postulante IIMP",
+      email: "postulante@example.com",
+      phone: "999111812",
+      draftData: { personalInformation: { documentNumber: "12345678" } },
+    } as ApplicationStatusData;
+
+    const markup = renderToStaticMarkup(<StatusCompleted data={data} onFinish={vi.fn()} />);
+
+    expect(markup).toContain("p***@example.com");
+    expect(markup).toContain("*** *** 812");
+    expect(markup).not.toContain("postulante@example.com");
+    expect(markup).not.toContain("999111812");
+  });
+
   const completedPayment = {
     id: 1,
     status: "PAID" as const,

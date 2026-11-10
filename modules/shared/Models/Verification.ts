@@ -31,6 +31,18 @@ export function genericChannels(
   return channels;
 }
 
+export function maskPhone(phone?: string | null): string {
+  const digits = (phone || "").replace(/\D/g, "");
+  if (!digits) return "";
+  return `*** *** ${digits.slice(-3)}`;
+}
+
+export function maskEmail(email?: string | null): string {
+  const [name, domain] = (email || "").trim().split("@");
+  if (!name) return "";
+  return `${name[0]}***@${domain || "***"}`;
+}
+
 export function destinationChannels(
   email?: string | null,
   phone?: string | null,
@@ -38,13 +50,12 @@ export function destinationChannels(
 ): DestinationChannel[] {
   const channels: DestinationChannel[] = [];
   if (phone?.trim()) {
-    const destination = `*** *** ${phone.replace(/\D/g, "").slice(-3)}`;
+    const destination = maskPhone(phone);
     if (availability.WHATSAPP) channels.push({ channel: "WHATSAPP", destination });
     if (availability.SMS) channels.push({ channel: "SMS", destination });
   }
   if (email?.trim() && availability.EMAIL) {
-    const [name, domain] = email.trim().split("@");
-    channels.push({ channel: "EMAIL", destination: `${name[0]}***@${domain || "***"}` });
+    channels.push({ channel: "EMAIL", destination: maskEmail(email) });
   }
   return channels;
 }
