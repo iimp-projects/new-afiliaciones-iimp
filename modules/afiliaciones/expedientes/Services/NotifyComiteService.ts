@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { MailService } from "@/modules/shared/Services/MailService";
 import { S3StorageService } from "@/modules/shared/Services/S3StorageService";
+import { DeclarationPdfService } from "@/modules/afiliaciones/postulacion/Services/DeclarationPdfService";
 import { StatusChangeAttachmentService, type StatusChangeAttachmentRef, type ResolvedEmailAttachment } from "@/modules/afiliaciones/expedientes/Services/StatusChangeAttachmentService";
 import { ValidationAction } from "@prisma/client";
 import { getAppBaseUrl } from "@/lib/config/env";
@@ -41,19 +42,31 @@ export class NotifyComiteService {
     const postulanteName = `${app.person?.firstName} ${app.person?.paternalLastName}`;
 
     // La declaración jurada que recibe el comité debe ser la versión FIRMADA
-    // por el postulante, no un PDF regenerado sin firma.
+    // por el postulante. Los expedientes legacy no tienen ese documento
+    // almacenado, por lo que en ese caso se conserva la generación histórica.
     const signedDocument = await prisma.applicationDocument.findFirst({
       where: { applicationId, category: "SWORN_DECLARATION" },
       select: { fileUrl: true },
       orderBy: { updatedAt: "desc" },
     });
-    if (!signedDocument?.fileUrl) {
-      throw new Error("No se encontró la Declaración Jurada firmada del postulante.");
+
+    let declarationBuffer: Buffer;
+    let declarationFilename: string;
+    let declarationNotice: string;
+    if (signedDocument?.fileUrl) {
+      declarationBuffer = await new S3StorageService().getObjectBuffer(
+        signedDocument.fileUrl,
+        [`afiliaciones/applications/${applicationId}`],
+      );
+      declarationFilename = `Declaracion_Jurada_Firmada_${app.applicationCode}.pdf`;
+      declarationNotice = "Se adjunta la Declaración Jurada firmada por el postulante en formato PDF para su respectiva revisión técnica.";
+    } else {
+      const draft = typeof app.draftData === "string" ? JSON.parse(app.draftData) : app.draftData;
+      const generated = await new DeclarationPdfService().generate(draft, { allowedApplicationIds: [applicationId] });
+      declarationBuffer = Buffer.from(generated);
+      declarationFilename = `Declaracion_Jurada_${app.applicationCode}.pdf`;
+      declarationNotice = "Se adjunta la Declaración Jurada registrada del postulante en formato PDF para su respectiva revisión técnica.";
     }
-    const signedDeclarationBuffer = await new S3StorageService().getObjectBuffer(
-      signedDocument.fileUrl,
-      [`afiliaciones/applications/${applicationId}`],
-    );
 
     // Filtramos si se eligió a un usuario específico o a todos
     const userWhereClause = targetUserId 
@@ -96,11 +109,11 @@ export class NotifyComiteService {
     `;
 
     const loginUrl = `${getAppBaseUrl()}/login`;
-    const html = emailLayout({ category: "Comité Evaluador", title: "Expediente Listo para Evaluación", summary: "Notificación interna para Comité Evaluador.", variant: "info", content: `<p>Estimados miembros del Comité Evaluador,</p><p>El expediente de <strong>${escapeHtml(postulanteName)}</strong> (Cód: ${escapeHtml(app.applicationCode)}) ha superado exitosamente los filtros administrativos previos y está listo para su veredicto final.</p>${emailInfoBox(`<strong>Resumen de Aprobaciones:</strong><ul><li>✓ <strong>Avales:</strong> Confirmados por ${escapeHtml(avalesNames)}</li><li>✓ <strong>Atención al Asociado:</strong> Revisado por ${escapeHtml(asocName)}</li><li>✓ <strong>Logística:</strong> Validado por ${escapeHtml(logName)}</li></ul>`, "info")}<p>Se adjunta la Declaración Jurada firmada por el postulante en formato PDF para su respectiva revisión técnica.</p>${emailCta("INGRESAR AL PORTAL", loginUrl)}<p style="font-size:12px;color:#667085;text-align:center;">Ingrese con su cuenta institucional para revisar el expediente en el sistema.</p>` });
+    const html = emailLayout({ category: "Comité Evaluador", title: "Expediente Listo para Evaluación", summary: "Notificación interna para Comité Evaluador.", variant: "info", content: `<p>Estimados miembros del Comité Evaluador,</p><p>El expediente de <strong>${escapeHtml(postulanteName)}</strong> (Cód: ${escapeHtml(app.applicationCode)}) ha superado exitosamente los filtros administrativos previos y está listo para su veredicto final.</p>${emailInfoBox(`<strong>Resumen de Aprobaciones:</strong><ul><li>✓ <strong>Avales:</strong> Confirmados por ${escapeHtml(avalesNames)}</li><li>✓ <strong>Atención al Asociado:</strong> Revisado por ${escapeHtml(asocName)}</li><li>✓ <strong>Logística:</strong> Validado por ${escapeHtml(logName)}</li></ul>`, "info")}<p>${declarationNotice}</p>${emailCta("INGRESAR AL PORTAL", loginUrl)}<p style="font-size:12px;color:#667085;text-align:center;">Ingrese con su cuenta institucional para revisar el expediente en el sistema.</p>` });
 
     const attachments: ResolvedEmailAttachment[] = [{
-      filename: `Declaracion_Jurada_Firmada_${app.applicationCode}.pdf`,
-      content: signedDeclarationBuffer,
+      filename: declarationFilename,
+      content: declarationBuffer,
       contentType: "application/pdf"
     }];
     if (attachment?.attachmentUrl) {

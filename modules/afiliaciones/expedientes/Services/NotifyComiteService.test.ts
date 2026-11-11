@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   sendMail: vi.fn(),
   getObjectBuffer: vi.fn(),
+  generatePdf: vi.fn(),
   findApplication: vi.fn(),
   findDocument: vi.fn(),
   findUsers: vi.fn(),
@@ -21,6 +22,12 @@ vi.mock("@/lib/prisma", () => ({
 vi.mock("@/modules/shared/Services/MailService", () => ({
   MailService: class {
     sendMail = mocks.sendMail;
+  },
+}));
+
+vi.mock("@/modules/afiliaciones/postulacion/Services/DeclarationPdfService", () => ({
+  DeclarationPdfService: class {
+    generate = mocks.generatePdf;
   },
 }));
 
@@ -73,6 +80,7 @@ describe("NotifyComiteService", () => {
       { email: "comite@iimp.org.pe", person: { firstName: "Comité", paternalLastName: "Uno" } },
     ]);
     mocks.getObjectBuffer.mockResolvedValue(Buffer.from("%PDF-FIRMADO"));
+    mocks.generatePdf.mockResolvedValue(new Uint8Array(Buffer.from("%PDF-GENERADO")));
   });
 
   it("adjunta la declaración jurada firmada y el botón de ingreso al portal", async () => {
@@ -100,14 +108,18 @@ describe("NotifyComiteService", () => {
     expect(mail.html).toContain("Declaración Jurada firmada");
   });
 
-  it("no envía el correo si no existe la declaración jurada firmada", async () => {
+  it("usa la declaración generada cuando el expediente legacy no tiene una firmada", async () => {
     mocks.findDocument.mockResolvedValue(null);
 
-    await expect(new NotifyComiteService().execute(7, true)).rejects.toThrow(
-      "Declaración Jurada firmada",
-    );
+    await new NotifyComiteService().execute(7, true);
 
     expect(mocks.getObjectBuffer).not.toHaveBeenCalled();
-    expect(mocks.sendMail).not.toHaveBeenCalled();
+    expect(mocks.generatePdf).toHaveBeenCalled();
+
+    const mail = mocks.sendMail.mock.calls[0][0];
+    expect(mail.attachments[0].filename).toBe("Declaracion_Jurada_APP-7.pdf");
+    expect(mail.attachments[0].content.toString()).toBe("%PDF-GENERADO");
+    expect(mail.html).toContain("Declaración Jurada registrada");
+    expect(mail.html).toContain("INGRESAR AL PORTAL");
   });
 });
