@@ -97,7 +97,7 @@ describe("NotifyComiteService", () => {
     );
     expect(mocks.getObjectBuffer).toHaveBeenCalledWith(
       "afiliaciones/applications/7/declarations/firmada.pdf",
-      ["afiliaciones/applications/7"],
+      ["afiliaciones/applications/7", "afiliaciones/legacy/documents"],
     );
 
     const mail = mocks.sendMail.mock.calls[0][0];
@@ -106,6 +106,23 @@ describe("NotifyComiteService", () => {
     expect(mail.html).toContain("INGRESAR AL PORTAL");
     expect(mail.html).toContain("/login");
     expect(mail.html).toContain("Declaración Jurada firmada");
+  });
+
+  it("lee la declaración firmada de expedientes legacy desde su prefijo permitido", async () => {
+    mocks.findDocument.mockResolvedValue({
+      fileUrl: "afiliaciones/legacy/documents/firmada.pdf",
+    });
+
+    await new NotifyComiteService().execute(7, true);
+
+    expect(mocks.getObjectBuffer).toHaveBeenCalledWith(
+      "afiliaciones/legacy/documents/firmada.pdf",
+      ["afiliaciones/applications/7", "afiliaciones/legacy/documents"],
+    );
+    expect(mocks.generatePdf).not.toHaveBeenCalled();
+    expect(mocks.sendMail.mock.calls[0][0].attachments[0].filename).toBe(
+      "Declaracion_Jurada_Firmada_APP-7.pdf",
+    );
   });
 
   it("usa la declaración generada cuando el expediente legacy no tiene una firmada", async () => {
