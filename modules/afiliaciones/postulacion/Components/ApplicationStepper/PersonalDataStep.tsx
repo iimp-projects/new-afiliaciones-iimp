@@ -968,16 +968,6 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
           await onSave(form);
           onNext();
         } catch (error: any) {
-          if (error?.code === "DUPLICATE_EMAIL") {
-            setTouched((prev) => ({ ...prev, primaryEmail: true }));
-            setErrors((prev) => ({
-              ...prev,
-              primaryEmail:
-                error.message ||
-                "Este correo electrónico ya se encuentra registrado.",
-            }));
-            return;
-          }
           if (error?.code === "DUPLICATE_PHONE") {
             setTouched((prev) => ({ ...prev, phone: true }));
             setErrors((prev) => ({
