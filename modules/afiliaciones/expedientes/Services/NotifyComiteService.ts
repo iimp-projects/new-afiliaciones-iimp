@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { MailService } from "@/modules/shared/Services/MailService";
 import { S3StorageService } from "@/modules/shared/Services/S3StorageService";
 import { DeclarationPdfService } from "@/modules/afiliaciones/postulacion/Services/DeclarationPdfService";
+import { APPLICATION_KEY_PREFIX, LEGACY_DOCUMENT_KEY_PREFIX } from "@/modules/afiliaciones/postulacion/Services/ApplicationDocumentAccess";
 import { StatusChangeAttachmentService, type StatusChangeAttachmentRef, type ResolvedEmailAttachment } from "@/modules/afiliaciones/expedientes/Services/StatusChangeAttachmentService";
 import { ValidationAction } from "@prisma/client";
 import { getAppBaseUrl } from "@/lib/config/env";
@@ -50,17 +51,20 @@ export class NotifyComiteService {
       orderBy: { updatedAt: "desc" },
     });
 
-    let declarationBuffer: Buffer;
-    let declarationFilename: string;
-    let declarationNotice: string;
+    let declarationBuffer: Buffer | null = null;
+    let declarationFilename = `Declaracion_Jurada_Firmada_${app.applicationCode}.pdf`;
+    let declarationNotice = "Se adjunta la Declaración Jurada firmada por el postulante en formato PDF para su respectiva revisión técnica.";
     if (signedDocument?.fileUrl) {
-      declarationBuffer = await new S3StorageService().getObjectBuffer(
-        signedDocument.fileUrl,
-        [`afiliaciones/applications/${applicationId}`],
-      );
-      declarationFilename = `Declaracion_Jurada_Firmada_${app.applicationCode}.pdf`;
-      declarationNotice = "Se adjunta la Declaración Jurada firmada por el postulante en formato PDF para su respectiva revisión técnica.";
-    } else {
+      try {
+        declarationBuffer = await new S3StorageService().getObjectBuffer(
+          signedDocument.fileUrl,
+          [`${APPLICATION_KEY_PREFIX}/${applicationId}`, LEGACY_DOCUMENT_KEY_PREFIX],
+        );
+      } catch (error) {
+        console.error("[NotifyComite] No se pudo leer la declaración firmada; se usará la generada:", error instanceof Error ? error.message : "error desconocido");
+      }
+    }
+    if (!declarationBuffer) {
       const draft = typeof app.draftData === "string" ? JSON.parse(app.draftData) : app.draftData;
       const generated = await new DeclarationPdfService().generate(draft, { allowedApplicationIds: [applicationId] });
       declarationBuffer = Buffer.from(generated);
