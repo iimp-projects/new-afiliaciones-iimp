@@ -18,6 +18,7 @@ import { assertStudentAcademicAllowed, persistAcademicInfos } from "../Repositor
 import { isLegacyTrackingCode } from "../StudentAcademicRules";
 import { findUnauthorizedChange } from "../DraftComparison";
 import { applicationNotificationEvents, type CorrectionReference } from "../../notifications/Services/ApplicationNotificationEvents";
+import { notifyIncorporationPaymentRequest } from "../../payments/Services/IncorporationPaymentRequestEmailService";
 
 export class UpdateDraftService {
 
@@ -576,6 +577,7 @@ export class UpdateDraftService {
         });
         if (integrationId) await integrationService.processAfterCommit(integrationId);
         if (integrationId) await new AssociateProvisioningService().provisionCompletedApplication(applicationId);
+        await notifyIncorporationPaymentRequest(applicationId);
         return corrections;
     }
 

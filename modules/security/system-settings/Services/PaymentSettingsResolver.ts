@@ -15,6 +15,11 @@ export class PaymentSettingsResolver {
     throw new SystemSettingsError("No existe un precio de inscripción vigente configurado.", 503);
   }
   async getMonthlyFee(now = new Date()) { return this.settings.getCurrentValue(SYSTEM_SETTING_KEYS.PAYMENT_MONTHLY_FEE, now); }
+  /** Periodo (inicio de vigencia) de la cuota anual aplicable al registro consultado. */
+  async getMonthlyFeePeriod(now = new Date()): Promise<Date | null> {
+    const detail = await this.settings.getSettingDetail(SYSTEM_SETTING_KEYS.PAYMENT_MONTHLY_FEE, now);
+    return detail.currentStartsAt;
+  }
   async arePaymentsEnabled(now = new Date()) { return this.boolean(SYSTEM_SETTING_KEYS.PAYMENTS_ENABLED, now); }
   async getPaymentWindow(now = new Date()) {
     return {

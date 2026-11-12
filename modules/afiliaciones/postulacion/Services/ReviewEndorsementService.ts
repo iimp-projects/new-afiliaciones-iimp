@@ -7,6 +7,7 @@ import { verifyEndorsementToken } from "./EndorsementToken";
 import { emailLayout } from "@/modules/shared/Email/EmailLayout";
 import { emailCta, emailInfoBox } from "@/modules/shared/Email/EmailComponents";
 import { escapeHtml } from "@/modules/shared/Email/EmailEscaping";
+import { notifyIncorporationPaymentRequest } from "../../payments/Services/IncorporationPaymentRequestEmailService";
 
 interface ReviewEndorsementPayload {
   applicationId: number;
@@ -105,6 +106,7 @@ export class ReviewEndorsementService {
     // 4. Recalcular el estado global de la solicitud
     const calculator = new ApplicationStatusCalculatorService();
     await calculator.recalculate(applicationId);
+    await notifyIncorporationPaymentRequest(applicationId);
 
     // 5. Construcción de datos para la notificación por correo
     const applicantPerson = endorsement.application.person;
