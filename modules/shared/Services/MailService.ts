@@ -6,6 +6,9 @@ interface SendMailAttachment {
   filename: string;
   content: Buffer | string;
   contentType?: string;
+  /** Content-ID para imágenes inline referenciadas como `cid:<valor>` en el HTML. */
+  cid?: string;
+  contentDisposition?: "inline" | "attachment";
 }
 
 interface SendMailOptions {

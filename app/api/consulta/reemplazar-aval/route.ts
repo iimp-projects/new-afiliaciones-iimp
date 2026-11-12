@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { EndorsementStatus } from "@prisma/client";
 import { ApplicationStatusCalculatorService } from "@/modules/afiliaciones/postulacion/Services/ApplicationStatusCalculatorService";
 import { NotifySponsorsService } from "@/modules/afiliaciones/postulacion/Services/NotifySponsorsService";
+import { notifyIncorporationPaymentRequest } from "@/modules/afiliaciones/payments/Services/IncorporationPaymentRequestEmailService";
 import { sponsorEligibilityWhere } from "@/modules/afiliaciones/postulacion/Services/SponsorEligibility";
 import { ApplicationDraft } from "@/modules/afiliaciones/postulacion/Models/ApplicationDraft";
 import { ApiAuthorizationError, requireApiPermission } from "@/modules/auth/context/api-authorization";
@@ -165,6 +166,7 @@ export async function POST(req: NextRequest) {
     // 🔄 5. Recalcular el estado general de la postulación
     const statusCalculator = new ApplicationStatusCalculatorService();
     const newStatus = await statusCalculator.recalculate(appId);
+    await notifyIncorporationPaymentRequest(appId);
 
     // 📧 6. NOTIFICACIONES VÍA CORREO
     const notifyService = new NotifySponsorsService();

@@ -8,6 +8,7 @@ import { ApplicationStatusCalculatorService } from "@/modules/afiliaciones/postu
 import { AssociatesIntegrationService } from "@/modules/afiliaciones/associates-integration/Services/AssociatesIntegrationService";
 import { processPreparedStudentIntegrationAfterCommit } from "@/modules/afiliaciones/expedientes/Services/AdministrativeStatusPostCommitService";
 import { AssociateProvisioningService } from "@/modules/afiliaciones/asociados/Services/AssociateProvisioningService";
+import { notifyIncorporationPaymentRequest } from "@/modules/afiliaciones/payments/Services/IncorporationPaymentRequestEmailService";
 import { verifyComiteReviewToken } from "./ComiteReviewToken";
 
 export type ReviewComiteAction = "APPROVE" | "REJECT";
@@ -156,5 +157,7 @@ export class ReviewComiteService {
     if (integrationId !== null) {
       await new AssociateProvisioningService().provisionCompletedApplication(decoded.applicationId);
     }
+
+    await notifyIncorporationPaymentRequest(decoded.applicationId);
   }
 }
