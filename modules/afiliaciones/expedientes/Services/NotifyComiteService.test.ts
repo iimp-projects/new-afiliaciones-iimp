@@ -75,9 +75,10 @@ function application() {
 describe("NotifyComiteService", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    process.env.JWT_SECRET = "test-comite-secret";
     mocks.findApplication.mockResolvedValue(application());
     mocks.findUsers.mockResolvedValue([
-      { email: "comite@iimp.org.pe", person: { firstName: "Comité", paternalLastName: "Uno" } },
+      { id: 99, email: "comite@iimp.org.pe", person: { firstName: "Comité", paternalLastName: "Uno" } },
     ]);
     mocks.getObjectBuffer.mockResolvedValue(Buffer.from("%PDF-FIRMADO"));
     mocks.generatePdf.mockResolvedValue(new Uint8Array(Buffer.from("%PDF-GENERADO")));
@@ -103,8 +104,11 @@ describe("NotifyComiteService", () => {
     const mail = mocks.sendMail.mock.calls[0][0];
     expect(mail.attachments[0].filename).toBe("Declaracion_Jurada_Firmada_APP-7.pdf");
     expect(mail.attachments[0].content.toString()).toBe("%PDF-FIRMADO");
-    expect(mail.html).toContain("INGRESAR AL PORTAL");
-    expect(mail.html).toContain("/login");
+    expect(mail.html).toContain("APROBAR");
+    expect(mail.html).toContain("RECHAZAR");
+    expect(mail.html).toContain("/postulacion/comite/revisar?token=");
+    expect(mail.html).toContain("decision=APPROVE");
+    expect(mail.html).toContain("decision=REJECT");
     expect(mail.html).toContain("Declaración Jurada firmada");
   });
 
@@ -137,6 +141,7 @@ describe("NotifyComiteService", () => {
     expect(mail.attachments[0].filename).toBe("Declaracion_Jurada_APP-7.pdf");
     expect(mail.attachments[0].content.toString()).toBe("%PDF-GENERADO");
     expect(mail.html).toContain("Declaración Jurada registrada");
-    expect(mail.html).toContain("INGRESAR AL PORTAL");
+    expect(mail.html).toContain("APROBAR");
+    expect(mail.html).toContain("RECHAZAR");
   });
 });

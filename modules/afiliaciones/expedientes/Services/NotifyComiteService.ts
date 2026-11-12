@@ -3,6 +3,7 @@ import { MailService } from "@/modules/shared/Services/MailService";
 import { S3StorageService } from "@/modules/shared/Services/S3StorageService";
 import { DeclarationPdfService } from "@/modules/afiliaciones/postulacion/Services/DeclarationPdfService";
 import { APPLICATION_KEY_PREFIX, LEGACY_DOCUMENT_KEY_PREFIX } from "@/modules/afiliaciones/postulacion/Services/ApplicationDocumentAccess";
+import { signComiteReviewToken } from "./ComiteReviewToken";
 import { StatusChangeAttachmentService, type StatusChangeAttachmentRef, type ResolvedEmailAttachment } from "@/modules/afiliaciones/expedientes/Services/StatusChangeAttachmentService";
 import { ValidationAction } from "@prisma/client";
 import { getAppBaseUrl } from "@/lib/config/env";
@@ -82,8 +83,8 @@ export class NotifyComiteService {
       include: { person: true }
     });
     
-    const comiteEmails = comiteUsers.map(u => u.email).filter(Boolean).join(",");
-    if (!comiteEmails) {
+    const comiteRecipients = comiteUsers.filter((user) => Boolean(user.email));
+    if (comiteRecipients.length === 0) {
       if (isManualResend) throw new Error("No hay usuarios válidos en el comité para enviar el correo.");
       return;
     }
@@ -112,8 +113,8 @@ export class NotifyComiteService {
       </div>
     `;
 
-    const loginUrl = `${getAppBaseUrl()}/login`;
-    const html = emailLayout({ category: "Comité Evaluador", title: "Expediente Listo para Evaluación", summary: "Notificación interna para Comité Evaluador.", variant: "info", content: `<p>Estimados miembros del Comité Evaluador,</p><p>El expediente de <strong>${escapeHtml(postulanteName)}</strong> (Cód: ${escapeHtml(app.applicationCode)}) ha superado exitosamente los filtros administrativos previos y está listo para su veredicto final.</p>${emailInfoBox(`<strong>Resumen de Aprobaciones:</strong><ul><li>✓ <strong>Avales:</strong> Confirmados por ${escapeHtml(avalesNames)}</li><li>✓ <strong>Atención al Asociado:</strong> Revisado por ${escapeHtml(asocName)}</li><li>✓ <strong>Logística:</strong> Validado por ${escapeHtml(logName)}</li></ul>`, "info")}<p>${declarationNotice}</p>${emailCta("INGRESAR AL PORTAL", loginUrl)}<p style="font-size:12px;color:#667085;text-align:center;">Ingrese con su cuenta institucional para revisar el expediente en el sistema.</p>` });
+    const baseUrl = getAppBaseUrl();
+    const loginUrl = `${baseUrl}/login`;
 
     const attachments: ResolvedEmailAttachment[] = [{
       filename: declarationFilename,
@@ -130,17 +131,39 @@ export class NotifyComiteService {
       }
     }
 
-    await mailService.sendMail({
-      to: comiteEmails,
-      subject: `Nuevo Expediente para Comité - ${postulanteName}`,
-      html,
-      attachments
-    });
+    const notifiedNames: string[] = [];
+    for (const recipient of comiteRecipients) {
+      const reviewerName = recipient.person
+        ? `${recipient.person.firstName} ${recipient.person.paternalLastName}`.trim()
+        : recipient.email;
+      const token = signComiteReviewToken({ applicationId, committeeUserId: recipient.id });
+      const reviewUrl = `${baseUrl}/postulacion/comite/revisar?token=${encodeURIComponent(token)}`;
+      const approveUrl = `${reviewUrl}&decision=APPROVE`;
+      const rejectUrl = `${reviewUrl}&decision=REJECT`;
+
+      const html = emailLayout({ category: "Comité Evaluador", title: "Expediente Listo para Evaluación", summary: "Notificación interna para Comité Evaluador.", variant: "info", content: `<p>Estimado(a) <strong>${escapeHtml(reviewerName)}</strong>,</p><p>El expediente de <strong>${escapeHtml(postulanteName)}</strong> (Cód: ${escapeHtml(app.applicationCode)}) ha superado exitosamente los filtros administrativos previos y está listo para su veredicto final.</p>${emailInfoBox(`<strong>Resumen de Aprobaciones:</strong><ul><li>✓ <strong>Avales:</strong> Confirmados por ${escapeHtml(avalesNames)}</li><li>✓ <strong>Atención al Asociado:</strong> Revisado por ${escapeHtml(asocName)}</li><li>✓ <strong>Logística:</strong> Validado por ${escapeHtml(logName)}</li></ul>`, "info")}<p>${declarationNotice}</p>${emailCta("APROBAR", approveUrl)}${emailCta("RECHAZAR", rejectUrl)}<p style="font-size:12px;color:#667085;text-align:center;margin-top:4px;">El enlace estará disponible por <strong>7 días</strong>. También puede ingresar al portal: <a href="${escapeHtml(loginUrl)}" style="color:#C5A059;">${escapeHtml(loginUrl)}</a></p>` });
+
+      try {
+        await mailService.sendMail({
+          to: recipient.email,
+          subject: `Nuevo Expediente para Comité - ${postulanteName}`,
+          html,
+          attachments
+        });
+        notifiedNames.push(reviewerName);
+      } catch (error) {
+        console.error("[NotifyComite] No se pudo enviar al miembro del comité:", error instanceof Error ? error.message : "error desconocido");
+      }
+    }
+
+    if (notifiedNames.length === 0) {
+      throw new Error("No se pudo enviar la notificación a ningún miembro del comité.");
+    }
 
     // ¡LA MAGIA DEL HISTORIAL!: Inyectamos el evento en la Línea de Tiempo del expediente
     const comiteValidation = app.validations.find(v => v.department?.code === "COMITE");
     if (comiteValidation) {
-        const destNames = comiteUsers.map(u => `${u.person?.firstName} ${u.person?.paternalLastName}`).join(', ');
+        const destNames = notifiedNames.join(', ');
         await prisma.membershipValidationHistory.create({
             data: {
                 validationId: comiteValidation.id,
