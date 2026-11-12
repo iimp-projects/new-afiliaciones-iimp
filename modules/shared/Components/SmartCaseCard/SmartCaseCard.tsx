@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { 
     MoreVertical, CheckCircle2, Clock, XCircle, 
-    MinusCircle, AlertCircle, AlertTriangle, Eye, Users, Send, Mail, Phone, User, GraduationCap, KeyRound
+    MinusCircle, AlertCircle, AlertTriangle, Eye, Users, Send, Mail, Phone, User, GraduationCap, KeyRound, CreditCard
 } from "lucide-react";
 import { canManagePortalAccess, type SmartCaseCardProps } from "./types";
 import { FallbackAvatar } from "./FallbackAvatar";
@@ -36,6 +36,8 @@ export function SmartCaseCard({
   onClick, 
   onViewAvales, 
   onNotifyCommittee, 
+  onSendPaymentMethods,
+  paymentMethodsDisabledReason,
   onResendApplicant 
 }: SmartCaseCardProps) {
   const { identity, primaryBadge, atomicValidations, metadata, topBorderColorClass, subStatus, operationalAlerts, hideContactDetails } = data;
@@ -167,7 +169,33 @@ export function SmartCaseCard({
                 </div>
               </button>
 
-              {/* 4. Reenviar a Postulante */}
+              {/* 4. Enviar métodos de pago (solo Apto para Pago) */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onSendPaymentMethods) {
+                    setIsMenuOpen(false);
+                    onSendPaymentMethods();
+                  }
+                }}
+                className={`w-full flex items-start gap-2.5 px-4 py-2.5 text-sm font-bold outline-none transition-colors ${
+                  !onSendPaymentMethods
+                    ? "text-slate-300 cursor-not-allowed bg-slate-50"
+                    : "text-slate-600 hover:bg-amber-50 hover:text-amber-700"
+                }`}
+              >
+                <CreditCard size={15} className="mt-0.5 shrink-0" strokeWidth={2.5} />
+                <div className="flex flex-col items-start text-left">
+                  <span>Enviar métodos de pago</span>
+                  {!onSendPaymentMethods && (
+                    <span className="text-[9px] font-semibold text-slate-400 leading-tight mt-0.5 pr-2">
+                      {paymentMethodsDisabledReason ?? "Disponible cuando el expediente esté en estado Apto para Pago"}
+                    </span>
+                  )}
+                </div>
+              </button>
+
+              {/* 5. Reenviar a Postulante */}
               <button onClick={(e) => { e.stopPropagation(); setIsMenuOpen(false); onResendApplicant?.(); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-[#C5A059] transition-colors outline-none">
                 <Mail size={15} strokeWidth={2.5} /> Reenviar a Postulante
               </button>

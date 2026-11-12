@@ -5,6 +5,7 @@ import {
   INCORPORATION_PAYMENT_REQUEST_SUBJECT,
 } from "../Templates/IncorporationPaymentRequestTemplate";
 import {
+  INCORPORATION_PAYMENT_REQUEST_MANUAL_EVENT,
   IncorporationPaymentRequestEmailService,
   type IncorporationPaymentRequestEmailServiceOptions,
 } from "../Services/IncorporationPaymentRequestEmailService";
@@ -178,6 +179,41 @@ describe("IncorporationPaymentRequestEmailService", () => {
     await expect(service.sendIfEligible(42)).resolves.toEqual({ sent: false, reason: "DUPLICATE" });
     expect(mailService.sendMail).not.toHaveBeenCalled();
     expect(transactionalEmails.createOrGetIdempotent).not.toHaveBeenCalled();
+  });
+
+  it("permite el reenvío manual aunque exista un envío automático aceptado", async () => {
+    const { service, transactionalEmails, mailService } = setup();
+    transactionalEmails.findByIdempotencyKey.mockResolvedValue({
+      id: 9,
+      status: TransactionalEmailStatus.ACCEPTED,
+    });
+
+    await expect(service.sendManual(42)).resolves.toEqual({ sent: true });
+
+    expect(mailService.sendMail).toHaveBeenCalledOnce();
+    expect(transactionalEmails.findByIdempotencyKey).not.toHaveBeenCalled();
+    expect(transactionalEmails.createOrGetIdempotent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: INCORPORATION_PAYMENT_REQUEST_MANUAL_EVENT,
+        idempotencyKey: expect.stringMatching(/^incorporation-payment-request:manual:42:/),
+      }),
+    );
+  });
+
+  it("el envío manual también exige que el expediente esté Apto para Pago", async () => {
+    const { service, repository, mailService } = setup();
+    repository.findCandidate.mockResolvedValue({ ...baseCandidate, status: ApplicationStatus.UNDER_EVALUACION });
+
+    await expect(service.sendManual(42)).resolves.toEqual({ sent: false, reason: "NOT_READY_FOR_PAYMENT" });
+    expect(mailService.sendMail).not.toHaveBeenCalled();
+  });
+
+  it("el envío manual no omite la exclusión de estudiantes ni de pagos ya validados", async () => {
+    const { service, repository, mailService } = setup();
+    repository.findCandidate.mockResolvedValue({ ...baseCandidate, affiliateType: AffiliateType.STUDENT });
+
+    await expect(service.sendManual(42)).resolves.toEqual({ sent: false, reason: "STUDENT_EXEMPT" });
+    expect(mailService.sendMail).not.toHaveBeenCalled();
   });
 
   it("no envía si otro proceso ya reclamó el registro idempotente", async () => {

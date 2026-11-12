@@ -8,7 +8,7 @@ import { ExpedientesPagination } from "../Components/ExpedientesPagination";
 import { InspectionDrawer } from "@/modules/shared/Components/InspectionDrawer/InspectionDrawer";
 import type { SmartCaseCardData } from "@/modules/shared/Components/SmartCaseCard/types";
 import type { DrawerData } from "@/modules/shared/Components/InspectionDrawer/types";
-import { RefreshCcw, Info, AlertCircle, XCircle, CheckCircle2, Download, Mail, Send } from "lucide-react"; 
+import { RefreshCcw, Info, AlertCircle, XCircle, CheckCircle2, Download, Mail, Send, CreditCard } from "lucide-react"; 
 
 import { getDepartmentLabelByRole } from "../Utils/expedientes.utils";
 import { ResumenTab } from "../Components/Drawer/Tabs/ResumenTab";
@@ -48,6 +48,9 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
   const [isNotifying, setIsNotifying] = useState(false);
   const [comiteMembers, setComiteMembers] = useState<{id: number, name: string}[]>([]);
   const [selectedComiteMember, setSelectedComiteMember] = useState<string>("ALL");
+
+  const [paymentMethodsTarget, setPaymentMethodsTarget] = useState<number | null>(null);
+  const [isSendingPaymentMethods, setIsSendingPaymentMethods] = useState(false);
 
   const [toastMessage, setToastMessage] = useState<{ title: string; type: "success" | "error" } | null>(null);
   const [filters, setFilters] = useState({ search: "", status: "Todos", modality: "Todos", assignedTo: "Todos", logisticValidation: "Todos", associateValidation: "Todos", comiteValidation: "Todos", legalValidation: "Todos", comunicacionesValidation: "Todos", paymentStatus: "Todos", dateFrom: "", dateTo: "", orderBy: "Más recientes" });
@@ -247,6 +250,31 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
     }
   };
 
+  // MANEJADOR: enviar métodos de pago manualmente
+  const executeSendPaymentMethods = async () => {
+    if (!paymentMethodsTarget) return;
+    setIsSendingPaymentMethods(true);
+    try {
+      const response = await fetch(`/api/afiliaciones/expedientes/${paymentMethodsTarget}/enviar-metodos-pago`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const result = await response.json();
+
+      if (result.success) {
+        showToast("Se envió el correo con el detalle y los métodos de pago.", "success");
+        setPaymentMethodsTarget(null);
+        await fetchExpedientes();
+      } else {
+        showToast(result.error || "No se pudo enviar el correo de métodos de pago.", "error");
+      }
+    } catch {
+      showToast("Error de conexión al enviar el correo.", "error");
+    } finally {
+      setIsSendingPaymentMethods(false);
+    }
+  };
+
 
   const isAdmin = currentUser?.role?.slug === "SUPER_ADMIN" || currentUser?.role?.slug === "SYSTEM_ADMIN";
   const reviewerArea = drawerData?.header.metadata.reviewerArea || "";
@@ -437,6 +465,14 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
               // Solo se activa si las áreas obligatorias están en verde
               const isReadyToNotify = isLogOk && isAsocOk && isAvalOk;
 
+              // El envío manual de métodos de pago solo aplica a expedientes Aptos para Pago.
+              const isReadyForPayment = exp.generalStatus === "READY_FOR_PAYMENT" && !isCardStudent;
+              const paymentMethodsDisabledReason = isCardStudent
+                ? "No aplica para la modalidad Estudiante"
+                : exp.generalStatus !== "READY_FOR_PAYMENT"
+                  ? "Disponible cuando el expediente esté en estado Apto para Pago"
+                  : undefined;
+
               return (
                 <SmartCaseCard 
                   key={exp.id} 
@@ -445,6 +481,8 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
                  onViewAvales={isCardStudent ? undefined : () => handleOpenDrawer(exp, "avales")}
                   // Si está listo, le pasamos la función, si no, le pasamos undefined para que se pinte en gris
                   onNotifyCommittee={isReadyToNotify ? () => handleOpenNotifyModal(exp.rawId as number) : undefined}
+                  onSendPaymentMethods={isReadyForPayment ? () => setPaymentMethodsTarget(exp.rawId as number) : undefined}
+                  paymentMethodsDisabledReason={paymentMethodsDisabledReason}
                 />
               )
             })}
@@ -630,6 +668,43 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
                 className="flex-1 py-3 rounded-xl font-bold text-white shadow-md transition-colors disabled:opacity-50 bg-indigo-600 hover:bg-indigo-700"
               >
                 {isNotifying ? "Enviando..." : "Sí, notificar"}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* MODAL: Enviar métodos de pago */}
+      {paymentMethodsTarget && createPortal(
+        <div className="fixed inset-0 z-[99999999] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-[24px] w-full max-w-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="p-6 text-center">
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5 shadow-sm bg-amber-50 text-amber-600 border border-amber-100">
+                <CreditCard size={32} strokeWidth={2.5} />
+              </div>
+              <h2 className="text-xl font-black text-slate-800">Enviar métodos de pago</h2>
+              <p className="text-sm text-slate-500 mt-2.5 font-medium leading-relaxed">
+                Se enviará al postulante un correo con el detalle de los importes pendientes y los medios de pago disponibles: <strong className="text-slate-700">BCP, Niubiz y Yape</strong>.
+              </p>
+              <p className="text-xs text-slate-400 mt-3 font-medium leading-relaxed">
+                Esta acción solo está disponible para expedientes en estado <strong className="text-slate-600">Apto para Pago</strong> y quedará registrada en el sistema.
+              </p>
+            </div>
+            <div className="p-4 bg-slate-50 border-t border-slate-100 flex gap-3">
+              <button
+                onClick={() => setPaymentMethodsTarget(null)}
+                disabled={isSendingPaymentMethods}
+                className="flex-1 py-3 rounded-xl border border-slate-200 bg-white font-bold text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={executeSendPaymentMethods}
+                disabled={isSendingPaymentMethods}
+                className="flex-1 py-3 rounded-xl font-bold text-white shadow-md transition-colors disabled:opacity-50 bg-[#C5A059] hover:bg-[#b08d4a]"
+              >
+                {isSendingPaymentMethods ? "Enviando..." : "Sí, enviar"}
               </button>
             </div>
           </div>

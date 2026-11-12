@@ -108,6 +108,8 @@ export interface SmartCaseCardProps {
   onClick?: () => void;
   onViewAvales?: () => void;
   onNotifyCommittee?: () => void;
+  onSendPaymentMethods?: () => void;
+  paymentMethodsDisabledReason?: string;
   onResendApplicant?: () => void;
   isComiteReady?: boolean;
 }
