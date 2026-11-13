@@ -1,7 +1,7 @@
 import { ApplicationLookupRepository } from "../Repositories/ApplicationLookupRepository";
 import { queryAuthorization } from "@/modules/afiliaciones/consulta/Services/QueryAuthorizationService";
 import { ApplicationFlowError } from "./Exceptions/ApplicationFlowError";
-import { applicationStates, blocksNewApplication, currentApplicationStates, type AuthorizedApplicationSummary } from "../Models/ApplicationAction";
+import { applicationStates, blocksNewApplication, currentApplicationStates, isUnstartedDraft, type AuthorizedApplicationSummary } from "../Models/ApplicationAction";
 import type { VerificationChannel } from "@/modules/shared/Models/Verification";
 
 export class ApplicationAccessService {
@@ -22,11 +22,13 @@ export class ApplicationAccessService {
   async list(token?: string): Promise<AuthorizedApplicationSummary[]> {
     const ids = queryAuthorization.allowedIds(token);
     if (!ids.length) throw new ApplicationFlowError("VERIFICATION_REQUIRED", "Verifica tu identidad para consultar tus solicitudes.", 401);
-    const apps = await this.repository.findByIds(ids);
+    const apps = (await this.repository.findByIds(ids)).filter(app => !isUnstartedDraft(app.status, app.draftData));
     const result = await Promise.all(apps.map(async app => {
       const related = await this.repository.find(app.documentType, app.documentNumber, app.affiliateType);
       if (!applicationStates.some(status => status === app.status)) console.error("[ApplicationAccess] Unknown application state", { id: app.id, status: app.status });
-      const canStartNew = app.status === "REJECTED" && !related.some(other => blocksNewApplication(other.status)) && !await this.repository.isAffiliate(app.documentType, app.documentNumber);
+      const canStartNew = app.status === "REJECTED"
+        && !related.some(other => blocksNewApplication(other.status) && !isUnstartedDraft(other.status, other.draftData))
+        && !await this.repository.isAffiliate(app.documentType, app.documentNumber);
       return { id: app.id, affiliateType: app.affiliateType, status: app.status, createdAt: app.createdAt.toISOString(), canStartNew, recoveryUrl: app.status === "DRAFT" ? `/postulacion/${app.affiliateType === "STUDENT" ? "estudiante" : "asociado"}?trackingCode=${encodeURIComponent(app.trackingCode)}` : null };
     }));
     // Active requests first; all authorized records remain selectable.
