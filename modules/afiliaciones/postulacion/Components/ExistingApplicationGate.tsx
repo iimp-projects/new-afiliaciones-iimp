@@ -42,7 +42,11 @@ export function ExistingApplicationGate({ challenge, authorized = false, context
   };
   const loadApplications = async () => {
     const result = (await queryApi.applications()).filter(application => !affiliateType || application.affiliateType === affiliateType);
-    setApps(result); setPhase("APPLICATION");
+    setApps(result);
+    // Nunca dejar una pantalla vacía sin acción: si la verificación no devuelve
+    // solicitudes para este tipo de afiliación, se ofrece iniciar el formulario.
+    if (result.length === 0) { setPhase("NONE"); return; }
+    setPhase("APPLICATION");
     if (result.length === 1) await choose(result[0]);
   };
   useEffect(() => {
@@ -71,7 +75,7 @@ export function ExistingApplicationGate({ challenge, authorized = false, context
   if (phase === "OTP") return <OtpVerificationModal code={code} onCode={setCode} onVerify={verify} onResend={send} onChangeChannel={() => setPhase("CHANNEL")} onClose={onClose} loading={busy} loadingTitle={loadingTitle} error={error} sentAt={sentAt} destination={choice?.channels.find(item => item.channel === channel)?.destination || "tu medio registrado"} />;
   return <GlobalModalRoot title="Solicitud de afiliación">
     <ProcessLoadingOverlay open={busy} title={loadingTitle} description="Estamos preparando tu solicitud." />
-    {phase === "NOTICE" && selected ? <ApplicationStateNotice status={selected.status} context={context} canStartNew={selected.canStartNew} onPrimary={navigate} onClose={onClose} /> : phase === "NONE" ? <ApplicationStateNotice status={null} context={context} onPrimary={() => { window.location.href = "/postulacion"; }} onClose={onClose} /> : <div className="bg-white rounded-3xl p-8 w-full max-w-lg max-h-[90dvh] overflow-y-auto">
+    {phase === "NOTICE" && selected ? <ApplicationStateNotice status={selected.status} context={context} canStartNew={selected.canStartNew} onPrimary={navigate} onClose={onClose} /> : phase === "NONE" ? <ApplicationStateNotice status={null} context={context} onPrimary={() => { if (onStartNew) onStartNew(); else window.location.href = "/postulacion"; }} onClose={onClose} /> : <div className="bg-white rounded-3xl p-8 w-full max-w-lg max-h-[90dvh] overflow-y-auto">
       <h2 className="text-xl font-bold text-slate-800 mb-5">{phase === "CHANNEL" ? "Selecciona un medio registrado" : "Selecciona la solicitud"}</h2>
       {phase === "CHANNEL" ? challenge?.options?.map((option, index) => <button type="button" key={option.context} className="block w-full rounded-xl border p-4 mb-3 text-left" onClick={() => { setChoice(option); setChannel(option.channels[0]?.channel || "EMAIL"); }}>Medio registrado {index + 1}<span className="block text-sm text-slate-500">{Array.from(new Set(option.channels.map(item => item.destination))).filter(Boolean).join(" · ") || "Sin contactos disponibles"}</span></button>) : apps.map(application => <button type="button" key={application.id} disabled={busy} onClick={() => void run("Preparando consulta...", () => choose(application))} className="block w-full rounded-xl border p-4 mb-3 text-left"><strong>{application.affiliateType === "STUDENT" ? "Estudiante" : "Asociado activo"}</strong><span className="block text-sm">{formatPeruDate(application.createdAt)} · {resolveApplicationAction(application.status, context).badge}</span></button>)}
       {error && <p role="alert" className="text-sm text-slate-600 my-4">{error}</p>}

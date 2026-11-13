@@ -4,7 +4,7 @@ import { Application } from "../Entities/Application";
 import { IApplicationRepository, SwornDeclarationDocument } from "./Interfaces/IApplicationRepository";
 import { UpdateDraftDTO } from "../DTOs/update-draft.dto";
 import { ApplicationDraft } from "../Models/ApplicationDraft";
-import { blocksNewApplication, canEditApplication, canSubmitApplication, currentApplicationStates } from "../Models/ApplicationAction";
+import { blocksNewApplication, canEditApplication, canSubmitApplication, currentApplicationStates, isUnstartedDraft } from "../Models/ApplicationAction";
 import { ApplicationFlowError } from "../Services/Exceptions/ApplicationFlowError";
 import { normalizeEmploymentInformation } from "../Models/EmploymentInformation";
 import { ContactUniquenessService } from "../Services/ContactUniquenessService";
@@ -19,12 +19,21 @@ export class ApplicationRepository implements IApplicationRepository {
     return this.db.$transaction(async tx => {
       const key = `${application.documentType}:${application.documentNumber}:${application.affiliateType}`;
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${key}))`;
-      const existing = await tx.membershipApplication.findMany({ where: { documentType: application.documentType as never, documentNumber: application.documentNumber, affiliateType: application.affiliateType as never, deletedAt: null }, select: { id: true, status: true } });
-      if (existing.some(item => blocksNewApplication(item.status))) throw new ApplicationFlowError("APPLICATION_EXISTS", "Encontramos una solicitud asociada a este documento. Verifica tu identidad para continuar.");
-      if (existing.length && !existing.some(item => authorizedIds.includes(item.id))) throw new ApplicationFlowError("VERIFICATION_REQUIRED", "Verifica tu identidad antes de iniciar una nueva postulación.", 401);
-      await this.assertContactUnique(tx, { phone: application.phone });
+      const existing = await tx.membershipApplication.findMany({ where: { documentType: application.documentType as never, documentNumber: application.documentNumber, affiliateType: application.affiliateType as never, deletedAt: null }, select: { id: true, status: true, draftData: true }, orderBy: [{ createdAt: "desc" }, { id: "desc" }] });
+      // Un borrador sin datos personales se reutiliza en lugar de bloquear el
+      // inicio: no contiene información recuperable y dejarlo como postulación
+      // vigente impediría completar el formulario.
+      const reusableDraft = existing.find(item => isUnstartedDraft(item.status, item.draftData));
+      const blocking = existing.filter(item => blocksNewApplication(item.status) && !isUnstartedDraft(item.status, item.draftData));
+      if (blocking.length) throw new ApplicationFlowError("APPLICATION_EXISTS", "Encontramos una solicitud asociada a este documento. Verifica tu identidad para continuar.");
+      if (!reusableDraft && existing.length && !existing.some(item => authorizedIds.includes(item.id))) throw new ApplicationFlowError("VERIFICATION_REQUIRED", "Verifica tu identidad antes de iniciar una nueva postulación.", 401);
+      await this.assertContactUnique(tx, { phone: application.phone, excludeApplicationId: reusableDraft?.id });
       const person = await tx.person.findUnique({ where: { documentType_documentNumber: { documentType: application.documentType as never, documentNumber: application.documentNumber! } }, include: { user: true } });
       if (person?.user?.type === "AFFILIATE") throw new ApplicationFlowError("APPLICATION_EXISTS", "No es posible iniciar otra postulación. Consulta tu solicitud o contacta al IIMP.");
+      if (reusableDraft) {
+        const reused = await tx.membershipApplication.update({ where: { id: reusableDraft.id }, data: { email: application.email!, phone: application.phone!, currentStep: 1 } });
+        return this.mapToEntity(reused);
+      }
       const created = await tx.membershipApplication.create({ data: { applicationCode: application.applicationCode!, trackingCode: application.trackingCode!, documentType: application.documentType as never, documentNumber: application.documentNumber!, affiliateType: application.affiliateType as never, email: application.email!, phone: application.phone!, status: "DRAFT", currentStep: 1, draftData: {} } });
       return this.mapToEntity(created);
     });
