@@ -191,6 +191,92 @@ export function getJwtSecret(env: EnvSource = process.env): string {
 }
 
 // ---------------------------------------------------------------------------
+// Prevalidación documental con Gemini (solo Asociado Estudiante)
+// ---------------------------------------------------------------------------
+
+export function isDocumentAiValidationEnabled(env: EnvSource = process.env): boolean {
+  return env.DOCUMENT_AI_VALIDATION_ENABLED?.trim().toLowerCase() === "true";
+}
+
+export interface DocumentAiConfig {
+  readonly enabled: boolean;
+  readonly apiKey: string | null;
+  readonly model: string;
+  readonly timeoutMs: number;
+  readonly maxRetries: number;
+  readonly maxFileBytes: number;
+  readonly maxPages: number;
+  readonly maxImageDimension: number;
+  readonly cacheTtlMs: number;
+  readonly maxAcademicAgeSemesters: number;
+  readonly currentAcademicPeriod: string | null;
+}
+
+function readBoundedInteger(
+  env: EnvSource,
+  variable: string,
+  fallback: number,
+  minimum: number,
+  maximum: number,
+  issues: ConfigIssue[],
+): number {
+  const raw = env[variable]?.trim();
+  if (!raw) return fallback;
+  const value = Number(raw);
+  if (!Number.isInteger(value) || value < minimum || value > maximum) {
+    issues.push({ variable, reason: `debe ser un entero entre ${minimum} y ${maximum}` });
+    return fallback;
+  }
+  return value;
+}
+
+/**
+ * Configuración server-side de la prevalidación académica.
+ *
+ * Se valida al utilizarse (no bloquea el arranque). El modelo respeta
+ * `DOCUMENT_AI_MODEL`; si no existe reutiliza `GEMINI_MODEL` para no
+ * sobrescribir una configuración vigente. Solo se lee en servidor y nunca se
+ * registran ni se devuelven la clave ni el contenido documental.
+ */
+export function getDocumentAiConfig(env: EnvSource = process.env): DocumentAiConfig {
+  const issues: ConfigIssue[] = [];
+  const model = env.DOCUMENT_AI_MODEL?.trim() || env.GEMINI_MODEL?.trim() || "gemini-3.5-flash-lite";
+  if (!/^[a-zA-Z0-9][a-zA-Z0-9._-]{1,80}$/.test(model)) {
+    issues.push({ variable: "DOCUMENT_AI_MODEL", reason: "no es un identificador de modelo válido" });
+  }
+  const apiKey = env.GEMINI_API_KEY?.trim() || null;
+  if (isDocumentAiValidationEnabled(env) && !apiKey) {
+    issues.push({ variable: "GEMINI_API_KEY", reason: "es obligatorio cuando la prevalidación está habilitada" });
+  }
+  const timeoutMs = readBoundedInteger(env, "DOCUMENT_AI_TIMEOUT_MS", 25_000, 5_000, 60_000, issues);
+  const maxRetries = readBoundedInteger(env, "DOCUMENT_AI_MAX_RETRIES", 1, 0, 2, issues);
+  const maxFileBytes = readBoundedInteger(env, "DOCUMENT_AI_MAX_FILE_BYTES", 10 * 1024 * 1024, 1024, 20 * 1024 * 1024, issues);
+  const maxPages = readBoundedInteger(env, "DOCUMENT_AI_MAX_PAGES", 5, 1, 20, issues);
+  const maxImageDimension = readBoundedInteger(env, "DOCUMENT_AI_MAX_IMAGE_DIMENSION", 6000, 200, 12_000, issues);
+  const cacheTtlHours = readBoundedInteger(env, "DOCUMENT_AI_CACHE_TTL_HOURS", 720, 1, 24 * 365, issues);
+  const maxAcademicAgeSemesters = readBoundedInteger(env, "DOCUMENT_AI_VALIDITY_MAX_SEMESTERS", 1, 0, 4, issues);
+  const currentAcademicPeriod = env.DOCUMENT_AI_CURRENT_PERIOD?.trim() || null;
+  if (currentAcademicPeriod && !/^(19|20)\d{2}\s*[-/]?\s*(I|II|1|2)$/i.test(currentAcademicPeriod)) {
+    issues.push({ variable: "DOCUMENT_AI_CURRENT_PERIOD", reason: "debe tener el formato AAAA-I o AAAA-II" });
+  }
+
+  if (issues.length) throw new ConfigurationError(issues);
+  return {
+    enabled: isDocumentAiValidationEnabled(env),
+    apiKey,
+    model,
+    timeoutMs,
+    maxRetries,
+    maxFileBytes,
+    maxPages,
+    maxImageDimension,
+    cacheTtlMs: cacheTtlHours * 60 * 60 * 1000,
+    maxAcademicAgeSemesters,
+    currentAcademicPeriod,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // URL base de la aplicación
 // ---------------------------------------------------------------------------
 

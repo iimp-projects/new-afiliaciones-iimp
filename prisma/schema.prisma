@@ -330,7 +330,8 @@ model MembershipApplication {
 
   areaValidations MembershipAreaValidation[]
 
-  documents ApplicationDocument[]
+  documents              ApplicationDocument[]
+  documentPrevalidations DocumentPrevalidation[]
 
   history MembershipHistory[]
 
@@ -479,6 +480,44 @@ model ApplicationDocument {
   @@index([approvedById])
   @@index([aiValidationStatus])
   @@map("membership_documents")
+}
+
+model DocumentPrevalidation {
+  id                      String                       @id @default(uuid())
+  applicationId           Int                          @map("application_id")
+  fileUrl                 String                       @map("file_url") @db.VarChar(500)
+  fileName                String                       @map("file_name") @db.VarChar(250)
+  mimeType                String                       @map("mime_type") @db.VarChar(100)
+  sizeBytes               BigInt                       @map("size_bytes")
+  fileHash                String                       @map("file_hash") @db.VarChar(64)
+  status                  DocumentPrevalidationStatus  @default(PENDING)
+  result                  DocumentPrevalidationResult?
+  extraction              Json?
+  applicantContext        Json?                        @map("applicant_context")
+  rules                   Json?
+  warnings                Json?
+  modelUsed               String?                      @map("model_used") @db.VarChar(100)
+  modelVersion            String?                      @map("model_version") @db.VarChar(100)
+  tokenUsage              Json?                        @map("token_usage")
+  attempts                Int?
+  extractionSchemaVersion String                       @map("extraction_schema_version") @db.VarChar(20)
+  promptVersion           String                       @map("prompt_version") @db.VarChar(20)
+  rulesVersion            String                       @map("rules_version") @db.VarChar(20)
+  durationMs              Int?                         @map("duration_ms")
+  extractionMs            Int?                         @map("extraction_ms")
+  rulesMs                 Int?                         @map("rules_ms")
+  cacheHit                Boolean                      @default(false) @map("cache_hit")
+  errorCode               String?                      @map("error_code") @db.VarChar(80)
+  analyzedAt              DateTime?                    @map("analyzed_at")
+  createdAt               DateTime                     @default(now()) @map("created_at")
+  updatedAt               DateTime                     @updatedAt @map("updated_at")
+  application             MembershipApplication        @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId, createdAt])
+  @@index([applicationId, fileHash])
+  @@index([fileHash])
+  @@index([status])
+  @@map("document_prevalidations")
 }
 
 model MembershipHistory {
@@ -1237,6 +1276,19 @@ enum AiValidationStatus {
   VALIDATED
   REJECTED
   MANUAL_REVIEW_REQUIRED
+}
+
+enum DocumentPrevalidationStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  TECHNICAL_ERROR
+}
+
+enum DocumentPrevalidationResult {
+  PREVALIDATED
+  OBSERVED
+  NEEDS_REVIEW
 }
 
 enum DocumentCategory {
