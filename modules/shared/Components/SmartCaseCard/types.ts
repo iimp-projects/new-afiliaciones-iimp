@@ -111,5 +111,6 @@ export interface SmartCaseCardProps {
   onSendPaymentMethods?: () => void;
   paymentMethodsDisabledReason?: string;
   onResendApplicant?: () => void;
+  canManageNotifications?: boolean;
   isComiteReady?: boolean;
 }

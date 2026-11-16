@@ -38,7 +38,8 @@ export function SmartCaseCard({
   onNotifyCommittee, 
   onSendPaymentMethods,
   paymentMethodsDisabledReason,
-  onResendApplicant 
+  onResendApplicant,
+  canManageNotifications = false,
 }: SmartCaseCardProps) {
   const { identity, primaryBadge, atomicValidations, metadata, topBorderColorClass, subStatus, operationalAlerts, hideContactDetails } = data;
   const isExpedienteLayout = data.rowLayout === "expediente";
@@ -103,7 +104,9 @@ export function SmartCaseCard({
                 <Eye size={15} strokeWidth={2.5} /> Ver expediente
               </button>
 
-              {/* 2. Revisar Avales (Deshabilitable para Estudiantes) */}
+              {canManageNotifications && (
+                <>
+                  {/* 2. Revisar Avales (Deshabilitable para Estudiantes) */}
               <button 
                 onClick={(e) => { 
                   e.stopPropagation(); 
@@ -199,6 +202,8 @@ export function SmartCaseCard({
               <button onClick={(e) => { e.stopPropagation(); setIsMenuOpen(false); onResendApplicant?.(); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-[#C5A059] transition-colors outline-none">
                 <Mail size={15} strokeWidth={2.5} /> Reenviar a Postulante
               </button>
+                </>
+              )}
 
             </div>
           )}

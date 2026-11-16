@@ -11,6 +11,7 @@ import type { DrawerData } from "@/modules/shared/Components/InspectionDrawer/ty
 import { RefreshCcw, Info, AlertCircle, XCircle, CheckCircle2, Download, Mail, Send, CreditCard } from "lucide-react"; 
 
 import { getDepartmentLabelByRole } from "../Utils/expedientes.utils";
+import { canManageApplicantNotifications } from "../Utils/applicantNotificationPermissions";
 import { ResumenTab } from "../Components/Drawer/Tabs/ResumenTab";
 import { DatosTab } from "../Components/Drawer/Tabs/DatosTab";
 import { DocumentosTab } from "../Components/Drawer/Tabs/DocumentosTab";
@@ -51,6 +52,9 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
 
   const [paymentMethodsTarget, setPaymentMethodsTarget] = useState<number | null>(null);
   const [isSendingPaymentMethods, setIsSendingPaymentMethods] = useState(false);
+
+  const [resendApplicantTarget, setResendApplicantTarget] = useState<number | null>(null);
+  const [isResendingApplicant, setIsResendingApplicant] = useState(false);
 
   const [toastMessage, setToastMessage] = useState<{ title: string; type: "success" | "error" } | null>(null);
   const [filters, setFilters] = useState({ search: "", status: "Todos", modality: "Todos", assignedTo: "Todos", logisticValidation: "Todos", associateValidation: "Todos", comiteValidation: "Todos", legalValidation: "Todos", comunicacionesValidation: "Todos", paymentStatus: "Todos", dateFrom: "", dateTo: "", orderBy: "Más recientes" });
@@ -276,6 +280,28 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
   };
 
 
+  const executeResendApplicant = async () => {
+    if (!resendApplicantTarget) return;
+    setIsResendingApplicant(true);
+    try {
+      const response = await fetch(`/api/afiliaciones/expedientes/${resendApplicantTarget}/reenviar-postulante`, {
+        method: "POST",
+      });
+      const result = await response.json();
+      if (result.success) {
+        showToast("Se reenvió la confirmación al postulante.", "success");
+        setResendApplicantTarget(null);
+      } else {
+        showToast(result.error || "No se pudo reenviar el correo al postulante.", "error");
+      }
+    } catch {
+      showToast("Error de conexión al reenviar al postulante.", "error");
+    } finally {
+      setIsResendingApplicant(false);
+    }
+  };
+
+  const canManageNotifications = canManageApplicantNotifications(currentUser?.role?.slug);
   const isAdmin = currentUser?.role?.slug === "SUPER_ADMIN" || currentUser?.role?.slug === "SYSTEM_ADMIN";
   const reviewerArea = drawerData?.header.metadata.reviewerArea || "";
   const payload = drawerData?.payload;
@@ -480,9 +506,23 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
                   onClick={() => handleOpenDrawer(exp)}  
                  onViewAvales={isCardStudent ? undefined : () => handleOpenDrawer(exp, "avales")}
                   // Si está listo, le pasamos la función, si no, le pasamos undefined para que se pinte en gris
-                  onNotifyCommittee={isReadyToNotify ? () => handleOpenNotifyModal(exp.rawId as number) : undefined}
-                  onSendPaymentMethods={isReadyForPayment ? () => setPaymentMethodsTarget(exp.rawId as number) : undefined}
+                  canManageNotifications={canManageNotifications}
+                  onNotifyCommittee={
+                    canManageNotifications && isReadyToNotify
+                      ? () => handleOpenNotifyModal(exp.rawId as number)
+                      : undefined
+                  }
+                  onSendPaymentMethods={
+                    canManageNotifications && isReadyForPayment
+                      ? () => setPaymentMethodsTarget(exp.rawId as number)
+                      : undefined
+                  }
                   paymentMethodsDisabledReason={paymentMethodsDisabledReason}
+                  onResendApplicant={
+                    canManageNotifications
+                      ? () => setResendApplicantTarget(exp.rawId as number)
+                      : undefined
+                  }
                 />
               )
             })}
@@ -705,6 +745,40 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
                 className="flex-1 py-3 rounded-xl font-bold text-white shadow-md transition-colors disabled:opacity-50 bg-[#C5A059] hover:bg-[#b08d4a]"
               >
                 {isSendingPaymentMethods ? "Enviando..." : "Sí, enviar"}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* MODAL: Reenviar al postulante */}
+      {resendApplicantTarget && createPortal(
+        <div className="fixed inset-0 z-[99999999] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-[24px] w-full max-w-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="p-6 text-center">
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5 shadow-sm bg-blue-50 text-blue-600 border border-blue-100">
+                <Mail size={32} strokeWidth={2.5} />
+              </div>
+              <h2 className="text-xl font-black text-slate-800">Reenviar al postulante</h2>
+              <p className="text-sm text-slate-500 mt-2.5 font-medium leading-relaxed">
+                Se reenviará al correo registrado del postulante la confirmación de su solicitud.
+              </p>
+            </div>
+            <div className="p-4 bg-slate-50 border-t border-slate-100 flex gap-3">
+              <button
+                onClick={() => setResendApplicantTarget(null)}
+                disabled={isResendingApplicant}
+                className="flex-1 py-3 rounded-xl border border-slate-200 bg-white font-bold text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={executeResendApplicant}
+                disabled={isResendingApplicant}
+                className="flex-1 py-3 rounded-xl font-bold text-white shadow-md transition-colors disabled:opacity-50 bg-blue-600 hover:bg-blue-700"
+              >
+                {isResendingApplicant ? "Enviando..." : "Sí, reenviar"}
               </button>
             </div>
           </div>

@@ -40,6 +40,26 @@ En despliegues AWS prefiere roles/IAM sobre claves estáticas cuando la platafor
 
 `APIS_NET_PE_TOKEN`. Debe proporcionarse por entorno; un fallback hardcodeado en código es un hallazgo de seguridad y no debe copiarse ni conservarse como configuración válida.
 
+## Prevalidación documental con Gemini
+
+Deshabilitada por defecto. Solo aplica a la constancia de estudios de Asociado Estudiante.
+
+| Variable | Uso |
+| --- | --- |
+| `DOCUMENT_AI_VALIDATION_ENABLED` | `true` habilita la prevalidación. Cualquier otro valor la desactiva. |
+| `GEMINI_API_KEY` | Clave server-side; obligatoria solo si la prevalidación está habilitada. |
+| `DOCUMENT_AI_MODEL` | Modelo multimodal. Si no se define, se reutiliza `GEMINI_MODEL`. |
+| `DOCUMENT_AI_TIMEOUT_MS` | Timeout por llamada (5000–60000; por defecto 25000). |
+| `DOCUMENT_AI_MAX_RETRIES` | Reintentos ante 429/5xx/timeout/red (0–2; por defecto 1). |
+| `DOCUMENT_AI_MAX_FILE_BYTES` | Tamaño máximo del archivo (por defecto 10 MB). |
+| `DOCUMENT_AI_MAX_PAGES` | Máximo de páginas PDF (por defecto 5). |
+| `DOCUMENT_AI_MAX_IMAGE_DIMENSION` | Resolución máxima de imágenes (por defecto 6000 px). |
+| `DOCUMENT_AI_CACHE_TTL_HOURS` | Vigencia de la extracción reutilizable (por defecto 720 h). |
+| `DOCUMENT_AI_VALIDITY_MAX_SEMESTERS` | Semestres previos aceptados además del actual (por defecto 1). |
+| `DOCUMENT_AI_CURRENT_PERIOD` | Periodo académico institucional opcional, por ejemplo `2026-II`. |
+
+No uses prefijo `NEXT_PUBLIC_` para estas variables. La clave y el contenido documental no deben registrarse en logs.
+
 ## Pagos
 
 Variables generales observadas:

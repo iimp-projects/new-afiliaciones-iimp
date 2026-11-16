@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { AlertCircle, CheckCircle2, CreditCard, Download, Eye, ExternalLink, FileCheck, FileQuestion, FileSignature, FileText, GraduationCap, Image as ImageIcon, X } from "lucide-react";
+import { DocumentPrevalidationAdminCard, type DocumentPrevalidationAdminRecord } from "@/modules/afiliaciones/document-validation/Components/DocumentPrevalidationAdminCard";
 
 const documentMetaConfig: Record<string, any> = {
   ID_DOCUMENT: { title: "Documento de Identidad Oficial", icon: FileText },
@@ -19,6 +20,9 @@ interface PreviewDocument { url: string; type: string; name: string; fileName: s
 
 export function DocumentosTab({ payload, documents: directDocuments, onOpenDocument }: DocumentosTabProps) {
   const documents: any[] = directDocuments || payload?.documents || [];
+  const prevalidations: DocumentPrevalidationAdminRecord[] = Array.isArray(payload?.documentPrevalidations)
+    ? payload.documentPrevalidations
+    : [];
   const [previewDoc, setPreviewDoc] = useState<PreviewDocument | null>(null);
   const [loadingDocId, setLoadingDocId] = useState<string | null>(null);
 
@@ -90,7 +94,7 @@ export function DocumentosTab({ payload, documents: directDocuments, onOpenDocum
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [previewDoc]);
 
-  if (!documents.length) {
+  if (!documents.length && !prevalidations.length) {
     return (
       <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white p-12">
         <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-50"><FileQuestion className="h-8 w-8 text-slate-300" /></div>
@@ -223,6 +227,20 @@ export function DocumentosTab({ payload, documents: directDocuments, onOpenDocum
           <span className="text-[10px] font-semibold text-slate-300">Solo lectura</span>
         </div>
       </div>
+
+      {prevalidations.length > 0 && (
+        <section className="space-y-3" aria-label="Prevalidación de documentos con IA">
+          <div className="flex items-start justify-between gap-3 px-1">
+            <div>
+              <h3 className="text-sm font-black tracking-tight text-slate-800">Prevalidación documental (IA)</h3>
+              <p className="mt-0.5 text-xs text-slate-400">Resultado automático de apoyo. No reemplaza la decisión del Área de Asociados.</p>
+            </div>
+          </div>
+          {prevalidations.map((record) => (
+            <DocumentPrevalidationAdminCard key={record.id} record={record} />
+          ))}
+        </section>
+      )}
 
       {/* Información */}
       <div className="flex items-center gap-2 px-1 pt-1 pb-0.5">

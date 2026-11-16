@@ -188,6 +188,7 @@ export class ExpedienteRepository {
         approvals: { include: { sponsorPerson: { include: { user: true, contacts: true } } } },
         observations: { orderBy: { createdAt: "desc" } },
         documents: true,
+        documentPrevalidations: { orderBy: { createdAt: "desc" }, take: 20 },
         areaValidations: { include: { validatedBy: { include: { person: true } } } },
         history: { orderBy: { createdAt: "desc" } },
         validations: {

@@ -9,6 +9,8 @@ import { MembershipType } from "../../Types/MembershipType";
 import { applicationApi } from "../../Services/ApplicationApi";
 import { ProcessLoadingOverlay } from "@/modules/shared/Components/ProcessLoadingOverlay";
 import { FieldHelp } from "@/modules/shared/Components/FieldHelp";
+import { DocumentPrevalidationNotice } from "@/modules/afiliaciones/document-validation/Components/DocumentPrevalidationNotice";
+import type { DocumentPrevalidationResponse, PrevalidationUiStatus } from "@/modules/afiliaciones/document-validation/Models/DocumentPrevalidationDTO";
 
 export interface StepRef {
   submit: () => Promise<void>;
@@ -135,6 +137,17 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
     const [cartaFilePreview, setCartaFilePreview] = useState<{ name: string; url: string; type: string } | null>(null);
     const [rawFile, setRawFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
+    const [aiEnabled, setAiEnabled] = useState(false);
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [prevalidation, setPrevalidation] = useState<DocumentPrevalidationResponse | null>(null);
+    const [prevalidatedFile, setPrevalidatedFile] = useState<DocumentPrevalidationResponse["file"] | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const analysisRequestRef = useRef(0);
+    const formRef = useRef(form);
+
+    useEffect(() => {
+      formRef.current = form;
+    }, [form]);
 
     useEffect(() => {
       if (value && value.length > 0) setForm(value[0]);
@@ -145,6 +158,18 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
       fetch(`/api/catalogs/universities${studentQuery}`).then(res => res.json()).then(data => setUniversities([...data, { id: 0, name: "Otra" }]));
       fetch(`/api/catalogs/specialties${studentQuery}`).then(res => res.json()).then(data => setSpecialties(data));
       fetch("/api/catalogs/degrees").then(res => res.json()).then(data => setDegrees(data.data ?? []));
+    }, [isStudent]);
+
+    useEffect(() => {
+      if (!isStudent) {
+        setAiEnabled(false);
+        return;
+      }
+      let cancelled = false;
+      applicationApi.getDocumentPrevalidationConfig()
+        .then((config) => { if (!cancelled) setAiEnabled(Boolean(config.enabled)); })
+        .catch(() => { if (!cancelled) setAiEnabled(false); });
+      return () => { cancelled = true; };
     }, [isStudent]);
 
     // Cargar preview de S3 si ya existía
@@ -219,19 +244,74 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
         setTouched((prev) => ({ ...prev, [field]: true }));
     }
 
+    const resetPrevalidation = () => {
+      analysisRequestRef.current += 1;
+      setIsAnalyzing(false);
+      setPrevalidation(null);
+      setPrevalidatedFile(null);
+    };
+
+    const analyzeDocument = async (file: File) => {
+      const requestId = analysisRequestRef.current;
+      setIsAnalyzing(true);
+      setPrevalidation(null);
+      setPrevalidatedFile(null);
+      try {
+        const result = await applicationApi.prevalidateAcademicDocument(file);
+        if (requestId !== analysisRequestRef.current) return;
+        setPrevalidation(result);
+        setPrevalidatedFile(result.file);
+        const latestForm = { ...formRef.current, universityLetter: result.file as any };
+        formRef.current = latestForm;
+        setForm(latestForm);
+        setTouched((previous) => ({ ...previous, universityLetter: true }));
+        const validation = new AcademicStudyValidator().validate(latestForm, membershipType);
+        setErrors((previous) => ({
+          ...previous,
+          universityLetter: validation.errors.find((item) => item.field === "universityLetter")?.message ?? "",
+        }));
+      } catch (error: any) {
+        if (requestId !== analysisRequestRef.current) return;
+        setPrevalidation({
+          status: "TECHNICAL_ERROR",
+          message: error?.message || "No fue posible completar la revisión automática en este momento. Puedes continuar con la revisión administrativa de tu documento.",
+          result: null,
+          rules: [],
+          warnings: [],
+          extraction: null,
+          file: { url: "", name: file.name, type: file.type, sizeBytes: file.size },
+          analyzedAt: null,
+          durationMs: 0,
+          cacheHit: false,
+        });
+      } finally {
+        if (requestId === analysisRequestRef.current) setIsAnalyzing(false);
+      }
+    };
+
     const handleCartaChange = (e: ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (file) {
         const objectUrl = URL.createObjectURL(file);
         setCartaFilePreview({ name: file.name, url: objectUrl, type: file.type });
         setRawFile(file);
+        resetPrevalidation();
         updateField("universityLetter", { name: file.name, type: file.type, url: "PENDIENTE" } as any);
+        if (aiEnabled) {
+          analysisRequestRef.current += 1;
+          void analyzeDocument(file);
+        }
       }
+      e.target.value = "";
     };
 
     useImperativeHandle(ref, () => ({
       submit: async () => {
         setGlobalError(null);
+        if (isAnalyzing) {
+          setGlobalError("Espera a que termine la revisión automática de tu constancia.");
+          return;
+        }
         const allTouched: Record<string, boolean> = {};
         Object.keys(emptyStudy).forEach((key) => (allTouched[key] = true));
         setTouched(allTouched);
@@ -248,7 +328,9 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
 
         try {
           const updatedForm = { ...form };
-          if (rawFile) {
+          if (prevalidatedFile) {
+            updatedForm.universityLetter = prevalidatedFile as any;
+          } else if (rawFile) {
             setIsUploading(true);
             const uploaded = await applicationApi.uploadFile(rawFile, "afiliaciones/estudiantes");
             updatedForm.universityLetter = uploaded as any;
@@ -283,6 +365,10 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
     const getErrorText = (field: keyof AcademicStudy) => {
       return touched[field] && errors[field] ? <span className="text-red-500 text-xs mt-1.5 font-bold block">{errors[field]}</span> : null;
     };
+
+    const prevalidationStatus: PrevalidationUiStatus | null = isAnalyzing
+      ? "PROCESSING"
+      : prevalidation?.status ?? null;
 
     return (
       <div className="space-y-8">
@@ -488,7 +574,14 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
                   Adjuntar carta de presentación de su universidad <span className="text-red-500">*</span>
                 </label>
                 <label className={`group cursor-pointer relative overflow-hidden h-[260px] w-full border-2 border-dashed rounded-2xl p-6 transition-all duration-300 flex flex-col items-center justify-center text-center ${touched.universityLetter && errors.universityLetter ? "border-red-400 bg-red-50/30" : "border-gray-300 hover:border-[#C5A059] hover:bg-gray-50"}`}>
-                  <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleCartaChange} className="hidden" />
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={handleCartaChange}
+                    className="hidden"
+                    aria-label="Seleccionar constancia de estudios"
+                  />
                   
                   {cartaFilePreview ? (
                     cartaFilePreview.type.startsWith('image/') ? (
@@ -516,7 +609,7 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
                         <FileText className="w-6 h-6" />
                       </div>
                       <h3 className="text-sm font-bold text-[#2F3136] mb-1">CARTA DE PRESENTACIÓN</h3>
-                      <p className="text-xs text-gray-500 mb-4 max-w-[200px]">Archivos PDF, JPG o PNG. Peso máximo: 3MB.</p>
+                      <p className="text-xs text-gray-500 mb-4 max-w-[200px]">Archivos PDF, JPG o PNG. Peso máximo: 10 MB.</p>
                       <div className="inline-flex items-center gap-2 text-[#C5A059] font-bold text-xs uppercase tracking-wider">
                         <UploadCloud size={16} /> Seleccionar Archivo
                       </div>
@@ -524,6 +617,17 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
                   )}
                 </label>
                 {getErrorText("universityLetter")}
+                {aiEnabled && prevalidationStatus && (
+                  <DocumentPrevalidationNotice
+                    state={prevalidationStatus}
+                    message={isAnalyzing ? undefined : prevalidation?.message}
+                    rules={isAnalyzing ? [] : prevalidation?.rules}
+                    warnings={isAnalyzing ? [] : prevalidation?.warnings}
+                    extraction={isAnalyzing ? null : prevalidation?.extraction}
+                    durationMs={isAnalyzing ? undefined : prevalidation?.durationMs}
+                    onReplace={() => fileInputRef.current?.click()}
+                  />
+                )}
               </div>
             </div>
           </section>

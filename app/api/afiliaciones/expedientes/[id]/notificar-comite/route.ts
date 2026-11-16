@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { NotifyComiteService } from "@/modules/afiliaciones/expedientes/Services/NotifyComiteService";
+import { canManageApplicantNotifications } from "@/modules/afiliaciones/expedientes/Utils/applicantNotificationPermissions";
 import { apiAuthorizationStatus, requireApiPermission } from "@/modules/auth/context/api-authorization";
 
 export async function POST(
@@ -7,7 +8,10 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const currentUser = await requireApiPermission("update", "memberships");
+    const currentUser = await requireApiPermission("update", "applications");
+    if (!canManageApplicantNotifications(currentUser.role.slug)) {
+      return NextResponse.json({ success: false, error: "No autorizado." }, { status: 403 });
+    }
     const { id } = await params;
     
     // Capturamos el usuario destino desde el body
