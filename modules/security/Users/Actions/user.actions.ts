@@ -6,6 +6,34 @@ import { UserService } from "../Services/UserService";
 import { createUserSchema, updateUserSchema } from "../DTOs/user.schema";
 import { S3StorageService } from "@/modules/shared/Services/S3StorageService";
 import { sessionService } from "@/modules/auth/session/service";
+import {
+  PRIVILEGED_ROLE_SLUGS,
+  canAssignPrivilegedRoles,
+  canAssignRoleSlug,
+} from "../Policies/UserRoleAssignmentPolicy";
+
+const PRIVILEGED_USER_ERROR =
+  "No tienes permisos para administrar usuarios con un rol de mayor privilegio.";
+
+async function canManageTargetUser(
+  service: UserService,
+  operator: Parameters<typeof canAssignPrivilegedRoles>[0],
+  userId: number,
+): Promise<boolean> {
+  if (canAssignPrivilegedRoles(operator)) return true;
+  const roleSlug = await service.getUserRoleSlug(userId);
+  return roleSlug !== null && canAssignRoleSlug(operator, roleSlug);
+}
+
+async function canManageBulkTargets(
+  service: UserService,
+  operator: Parameters<typeof canAssignPrivilegedRoles>[0],
+  userIds: number[],
+): Promise<boolean> {
+  if (canAssignPrivilegedRoles(operator)) return true;
+  const privileged = await service.getPrivilegedUserIds(userIds, [...PRIVILEGED_ROLE_SLUGS]);
+  return privileged.length === 0;
+}
 
 export async function fetchUsersAction(page: number, pageSize: number, search?: string, status?: string, role?: string) {
   try {
@@ -32,7 +60,7 @@ export async function fetchUsersAction(page: number, pageSize: number, search?: 
 
 export async function createUserAction(prevState: any, formData: FormData) {
   try {
-    await contextService.requirePermission("create", "users");
+    const operator = await contextService.requirePermission("create", "users");
     
     const rawData = Object.fromEntries(formData.entries());
     const validatedData = createUserSchema.safeParse(rawData);
@@ -45,6 +73,14 @@ export async function createUserAction(prevState: any, formData: FormData) {
     const imageUrl = formData.get("imageUrl") as string | undefined;
 
     const service = new UserService();
+    const targetRoleSlug = await service.getRoleSlug(validatedData.data.roleId);
+    if (!targetRoleSlug) {
+      return { success: false, message: "El rol seleccionado no existe." };
+    }
+    if (!canAssignRoleSlug(operator, targetRoleSlug)) {
+      return { success: false, message: "No tienes permisos para asignar el rol seleccionado." };
+    }
+
     await service.createUser(validatedData.data, imageUrl);
     
     revalidatePath("/intranet/security/users");
@@ -57,7 +93,7 @@ export async function createUserAction(prevState: any, formData: FormData) {
 
 export async function updateUserAction(prevState: any, formData: FormData) {
   try {
-    await contextService.requirePermission("update", "users");
+    const operator = await contextService.requirePermission("update", "users");
     
     const rawData = Object.fromEntries(formData.entries());
     const validatedData = updateUserSchema.safeParse(rawData);
@@ -70,6 +106,23 @@ export async function updateUserAction(prevState: any, formData: FormData) {
     const imageUrl = formData.get("imageUrl") as string | undefined;
 
     const service = new UserService();
+    const currentRoleId = await service.getUserRoleId(validatedData.data.id);
+    if (currentRoleId === null) {
+      return { success: false, message: "Usuario no encontrado." };
+    }
+    if (!(await canManageTargetUser(service, operator, validatedData.data.id))) {
+      return { success: false, message: PRIVILEGED_USER_ERROR };
+    }
+    if (currentRoleId !== validatedData.data.roleId) {
+      const targetRoleSlug = await service.getRoleSlug(validatedData.data.roleId);
+      if (!targetRoleSlug) {
+        return { success: false, message: "El rol seleccionado no existe." };
+      }
+      if (!canAssignRoleSlug(operator, targetRoleSlug)) {
+        return { success: false, message: "No tienes permisos para asignar el rol seleccionado." };
+      }
+    }
+
     await service.updateUser(validatedData.data, imageUrl);
     
     revalidatePath("/intranet/security/users");
@@ -83,8 +136,11 @@ export async function updateUserAction(prevState: any, formData: FormData) {
 export async function toggleUserStatusAction(userId: number, _currentStatus: unknown) {
   void _currentStatus;
   try {
-    await contextService.requirePermission("update", "users");
+    const operator = await contextService.requirePermission("update", "users");
     const service = new UserService();
+    if (!(await canManageTargetUser(service, operator, userId))) {
+      return { success: false, message: PRIVILEGED_USER_ERROR };
+    }
     await service.toggleStatus(userId);
     
     revalidatePath("/intranet/security/users");
@@ -96,8 +152,11 @@ export async function toggleUserStatusAction(userId: number, _currentStatus: unk
 
 export async function deleteUserAction(userId: number) {
   try {
-    await contextService.requirePermission("delete", "users");
+    const operator = await contextService.requirePermission("delete", "users");
     const service = new UserService();
+    if (!(await canManageTargetUser(service, operator, userId))) {
+      return { success: false, message: PRIVILEGED_USER_ERROR };
+    }
     await service.deleteUser(userId);
     
     revalidatePath("/intranet/security/users");
@@ -110,7 +169,11 @@ export async function deleteUserAction(userId: number) {
 // 6. CERRAR SESIONES DEL USUARIO (FORZAR LOGOUT)
 export async function revokeUserSessionsAction(userId: number) {
   try {
-    await contextService.requirePermission("update", "users");
+    const operator = await contextService.requirePermission("update", "users");
+    const service = new UserService();
+    if (!(await canManageTargetUser(service, operator, userId))) {
+      return { success: false, message: PRIVILEGED_USER_ERROR };
+    }
     
     // Revoca todas las sesiones activas del usuario especificado
     await sessionService.revokeAllSessions(userId, "Sesión cerrada remotamente por el Super Administrador.");
@@ -126,8 +189,11 @@ export async function revokeUserSessionsAction(userId: number) {
 
 export async function changeUserPasswordAction(userId: number, newPasswordPlain: string) {
   try {
-    await contextService.requirePermission("update", "users");
+    const operator = await contextService.requirePermission("update", "users");
     const service = new UserService();
+    if (!(await canManageTargetUser(service, operator, userId))) {
+      return { success: false, message: PRIVILEGED_USER_ERROR };
+    }
     await service.changeUserPassword(userId, newPasswordPlain);
     
     return { success: true, message: "Contraseña actualizada correctamente." };
@@ -142,6 +208,9 @@ export async function bulkBlockUsersAction(userIds: number[]) {
   try {
     const operator = await contextService.requirePermission("update", "users");
     const service = new UserService();
+    if (!(await canManageBulkTargets(service, operator, userIds))) {
+      return { success: false, message: PRIVILEGED_USER_ERROR };
+    }
     const result = await service.bulkBlockUsers(userIds, operator.id);
     revalidatePath("/intranet/security/users");
     return { success: true, ...result };
@@ -154,6 +223,9 @@ export async function bulkUnblockUsersAction(userIds: number[]) {
   try {
     const operator = await contextService.requirePermission("update", "users");
     const service = new UserService();
+    if (!(await canManageBulkTargets(service, operator, userIds))) {
+      return { success: false, message: PRIVILEGED_USER_ERROR };
+    }
     const result = await service.bulkUnblockUsers(userIds, operator.id);
     revalidatePath("/intranet/security/users");
     return { success: true, ...result };
@@ -166,6 +238,9 @@ export async function bulkRevokeSessionsAction(userIds: number[]) {
   try {
     const operator = await contextService.requirePermission("update", "users");
     const service = new UserService();
+    if (!(await canManageBulkTargets(service, operator, userIds))) {
+      return { success: false, message: PRIVILEGED_USER_ERROR };
+    }
     const result = await service.bulkRevokeSessions(userIds, operator.id);
     revalidatePath("/intranet/security/users");
     return { success: true, ...result };
@@ -178,6 +253,9 @@ export async function bulkDeleteUsersAction(userIds: number[]) {
   try {
     const operator = await contextService.requirePermission("delete", "users");
     const service = new UserService();
+    if (!(await canManageBulkTargets(service, operator, userIds))) {
+      return { success: false, message: PRIVILEGED_USER_ERROR };
+    }
     const result = await service.bulkDeleteUsers(userIds, operator.id);
     revalidatePath("/intranet/security/users");
     return { success: true, ...result };

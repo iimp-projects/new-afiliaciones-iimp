@@ -94,6 +94,13 @@ export const rolePermissionsData: RolePermissionMatrix = {
   ],
 
   ATENCION_ASOCIADO: [
+    ["create", "users"],
+    ["read", "users"],
+    ["update", "users"],
+    ["delete", "users"],
+    ["block", "users"],
+    ["unlock", "users"],
+    ["assign-role", "users"],
     ["read", "applications"],
     ["update", "applications"],
     ["observe", "applications"],
