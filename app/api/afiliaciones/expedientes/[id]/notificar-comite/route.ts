@@ -8,6 +8,9 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // La notificación al Comité es una acción de flujo sobre el expediente.
+    // Se exige escritura de expedientes y, además, la política de roles de
+    // comunicaciones manuales (Atención al Asociado y administradores).
     const currentUser = await requireApiPermission("update", "applications");
     if (!canManageApplicantNotifications(currentUser.role.slug)) {
       return NextResponse.json({ success: false, error: "No autorizado." }, { status: 403 });

@@ -34,36 +34,66 @@ const STATUS_STYLES: Readonly<Record<PrevalidationUiStatus, {
   icon: typeof CheckCircle2;
   iconClass: string;
   title: string;
+  badgeLabel: string;
+  badgeClass: string;
+  defaultMessage: string;
+  live: "polite" | "assertive";
+  role: "status" | "alert";
 }>> = {
   PROCESSING: {
-    container: "border-slate-200 bg-slate-50",
+    container: "border-sky-200 bg-sky-50/80",
     icon: Loader2,
-    iconClass: "animate-spin text-[#5B7FA3]",
-    title: "Estamos revisando tu constancia de estudios.",
+    iconClass: "animate-spin text-sky-600",
+    title: "Analizando tu constancia de estudios",
+    badgeLabel: "Analizando",
+    badgeClass: "border-sky-300 bg-white text-sky-700",
+    defaultMessage: "Esto puede tomar unos segundos. No cierres esta pantalla.",
+    live: "polite",
+    role: "status",
   },
   PREVALIDATED: {
-    container: "border-emerald-200 bg-emerald-50/70",
+    container: "border-emerald-200 bg-emerald-50/80",
     icon: ShieldCheck,
     iconClass: "text-emerald-600",
-    title: "Prevalidación favorable",
+    title: "¡Constancia válida!",
+    badgeLabel: "Válida",
+    badgeClass: "border-emerald-300 bg-white text-emerald-700",
+    defaultMessage: "El documento cumple con los requisitos verificados automáticamente.",
+    live: "assertive",
+    role: "alert",
   },
   OBSERVED: {
-    container: "border-amber-300 bg-amber-50/80",
+    container: "border-red-300 bg-red-50/90",
     icon: FileWarning,
-    iconClass: "text-amber-600",
-    title: "La constancia requiere corrección",
+    iconClass: "text-red-600",
+    title: "Constancia observada",
+    badgeLabel: "Observada",
+    badgeClass: "border-red-300 bg-white text-red-700",
+    defaultMessage: "Revisa el detalle y adjunta una constancia corregida.",
+    live: "assertive",
+    role: "alert",
   },
   NEEDS_REVIEW: {
-    container: "border-sky-200 bg-sky-50/70",
+    container: "border-red-300 bg-red-50/90",
     icon: HelpCircle,
-    iconClass: "text-sky-600",
-    title: "Revisión administrativa",
+    iconClass: "text-red-600",
+    title: "Constancia en revisión",
+    badgeLabel: "Por revisar",
+    badgeClass: "border-red-300 bg-white text-red-700",
+    defaultMessage: "El Área de Asociados revisará tu documento.",
+    live: "assertive",
+    role: "alert",
   },
   TECHNICAL_ERROR: {
-    container: "border-slate-300 bg-slate-50",
+    container: "border-red-200 bg-red-50/70",
     icon: AlertCircle,
-    iconClass: "text-slate-500",
-    title: "Revisión automática no disponible",
+    iconClass: "text-red-500",
+    title: "No pudimos analizar la constancia",
+    badgeLabel: "Sin análisis",
+    badgeClass: "border-red-200 bg-white text-red-600",
+    defaultMessage: "Puedes continuar; el Área de Asociados revisará tu documento.",
+    live: "assertive",
+    role: "alert",
   },
 };
 
@@ -103,22 +133,48 @@ export function DocumentPrevalidationNotice({
 }: DocumentPrevalidationNoticeProps) {
   const style = STATUS_STYLES[state];
   const Icon = style.icon;
-  const items = extractionItems(extraction);
-  const showRules = state !== "PROCESSING" && state !== "TECHNICAL_ERROR" && rules.length > 0;
+  const isErrorState =
+    state === "OBSERVED" || state === "NEEDS_REVIEW" || state === "TECHNICAL_ERROR";
+  const items = isErrorState ? [] : extractionItems(extraction);
+  const showRules = state === "PREVALIDATED" && rules.length > 0;
+  const showWarnings = state === "PREVALIDATED" && warnings.length > 0;
+  const errorSupplement =
+    state === "NEEDS_REVIEW"
+      ? warnings
+          .slice(0, 2)
+          .map((warning) => warning.trim())
+          .filter(Boolean)
+          .join(" ")
+      : "";
+  const description = [message ?? style.defaultMessage, errorSupplement]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <div
-      role="status"
-      aria-live="polite"
+      role={style.role}
+      aria-live={style.live}
+      aria-busy={state === "PROCESSING"}
       className={`mt-4 rounded-2xl border p-4 sm:p-5 ${style.container}`}
     >
       <div className="flex items-start gap-3">
         <Icon size={22} strokeWidth={2} className={`mt-0.5 shrink-0 ${style.iconClass}`} aria-hidden="true" />
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-black text-slate-800">{style.title}</p>
-          <p className="mt-1 text-sm leading-relaxed text-slate-600">
-            {message ?? (state === "PROCESSING" ? "Esto puede tomar unos segundos." : "")}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider ${style.badgeClass}`}>
+              {style.badgeLabel}
+            </span>
+            <p className="text-sm font-black text-slate-800">{style.title}</p>
+          </div>
+          <p className="mt-1.5 text-sm leading-relaxed text-slate-600">
+            {description}
           </p>
+
+          {state === "PROCESSING" && (
+            <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-white/80" aria-hidden="true">
+              <div className="h-full w-2/3 animate-pulse rounded-full bg-sky-400" />
+            </div>
+          )}
 
           {items.length > 0 && (
             <dl className="mt-3 grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
@@ -151,7 +207,7 @@ export function DocumentPrevalidationNotice({
             </ul>
           )}
 
-          {warnings.length > 0 && state !== "TECHNICAL_ERROR" && (
+          {showWarnings && (
             <div className="mt-3 rounded-lg border border-amber-200 bg-white/70 p-2.5">
               <p className="text-[11px] font-black uppercase tracking-wide text-amber-700">Datos por verificar</p>
               <ul className="mt-1 list-disc space-y-0.5 pl-4 text-xs text-slate-600">
@@ -173,7 +229,7 @@ export function DocumentPrevalidationNotice({
                 Reemplazar documento
               </button>
             )}
-            {typeof durationMs === "number" && durationMs > 0 && state !== "PROCESSING" && (
+            {typeof durationMs === "number" && durationMs > 0 && state === "PREVALIDATED" && (
               <span className="text-[11px] font-medium text-slate-400">
                 Revisión automática completada.
               </span>

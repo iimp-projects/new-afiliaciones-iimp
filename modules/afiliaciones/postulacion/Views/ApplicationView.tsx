@@ -71,7 +71,7 @@ export default function ApplicationView({
     trackingCode ?? null,
   );
   const [applicationId, setApplicationId] = useState<number | null>(null);
-  const [isStepValid, setIsStepValid] = useState(false);
+  const [isFooterBlocked, setIsFooterBlocked] = useState(false);
   const [flowError, setFlowError] = useState<{ code: string; message: string } | null>(null);
   useEffect(() => {
     const handleFlow = (event: Event) => setFlowError((event as CustomEvent<{ code: string; message: string }>).detail);
@@ -255,16 +255,21 @@ export default function ApplicationView({
   // CONTROL DE NAVEGACIÓN
   // ========================================================
   const nextStep = () => {
+    setIsFooterBlocked(false);
     refreshCompletedSteps(currentStep);
     setCurrentStep((previous) => previous + 1);
   };
 
   const previousStep = () => {
+    setIsFooterBlocked(false);
     setCurrentStep((previous) => (previous <= 1 ? 1 : previous - 1));
   };
 
   const changeStep = (step: number) => {
-    if (completedSteps.includes(step)) setCurrentStep(step);
+    if (completedSteps.includes(step)) {
+      setIsFooterBlocked(false);
+      setCurrentStep(step);
+    }
   };
 
   const handleFooterNext = () => {
@@ -577,7 +582,7 @@ export default function ApplicationView({
             onBack={previousStep}
             onSave={saveAcademicStudies}
             onNext={nextStep}
-            onValidityChange={setIsStepValid}
+            onBlockingChange={setIsFooterBlocked}
           />
         )}
 
@@ -589,7 +594,6 @@ export default function ApplicationView({
             onBack={previousStep}
             onSave={saveEmploymentInformation}
             onNext={nextStep}
-            onValidityChange={setIsStepValid}
           />
         )}
 
@@ -602,7 +606,6 @@ export default function ApplicationView({
             onBack={previousStep}
             onSave={saveEndorsements}
             onNext={nextStep}
-            onValidityChange={setIsStepValid}
           />
         )}
 
@@ -615,7 +618,6 @@ export default function ApplicationView({
             onBack={previousStep}
             onSave={saveEndorsements}
             onNext={() => {}}
-            onValidityChange={setIsStepValid}
             onFinalSubmit={submitFinalApplication}
           />
         )}
@@ -624,6 +626,7 @@ export default function ApplicationView({
       <ApplicationFooter
         currentStep={currentStep}
         isSubmitting={saving}
+        nextDisabled={isFooterBlocked}
         showCancel={true}
         showPrevious={currentStep > 1}
         nextLabel={

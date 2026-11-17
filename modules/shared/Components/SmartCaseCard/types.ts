@@ -109,7 +109,6 @@ export interface SmartCaseCardProps {
   onViewAvales?: () => void;
   onNotifyCommittee?: () => void;
   onSendPaymentMethods?: () => void;
-  paymentMethodsDisabledReason?: string;
   onResendApplicant?: () => void;
   canManageNotifications?: boolean;
   isComiteReady?: boolean;

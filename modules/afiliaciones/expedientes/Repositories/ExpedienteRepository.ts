@@ -34,6 +34,21 @@ const LIST_INCLUDE = {
   },
 } satisfies Prisma.MembershipApplicationInclude;
 
+const EXPORT_INCLUDE = {
+  ...LIST_INCLUDE,
+  approvals: {
+    include: {
+      sponsorPerson: {
+        include: {
+          contacts: true,
+          user: { select: { id: true, email: true, status: true } },
+        },
+      },
+    },
+    orderBy: { id: "asc" },
+  },
+} satisfies Prisma.MembershipApplicationInclude;
+
 export class ExpedienteRepository {
   // ============================================================
   // RESOLVER CÓDIGO ISO DEL PAÍS (Ej. Perú -> PE)
@@ -165,7 +180,7 @@ export class ExpedienteRepository {
     const items = await prisma.membershipApplication.findMany({
       where,
       orderBy: orderByInput,
-      include: LIST_INCLUDE,
+      include: EXPORT_INCLUDE,
     });
 
     return items;

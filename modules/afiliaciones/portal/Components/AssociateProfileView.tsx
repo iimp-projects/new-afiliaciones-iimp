@@ -253,7 +253,27 @@ export function AssociateProfileView() {
     setNote(null);
 
     try {
-      let response = await fetch("/api/mi-cuenta/perfil/contacto", {
+      const identity = new FormData();
+      identity.set("firstName", d.firstName);
+      identity.set("paternalLastName", d.paternalLastName);
+      identity.set("maternalLastName", d.maternalLastName);
+      identity.set("birthDate", d.birthDate);
+      identity.set("gender", d.gender);
+      identity.set("nationalityId", d.nationalityId);
+      if (profileImageFile) identity.set("image", profileImageFile);
+
+      let response = await fetch("/api/mi-cuenta/perfil", {
+        method: "PATCH",
+        body: identity,
+      });
+
+      let body = await response.json();
+
+      if (!response.ok) {
+        throw new Error(body.message);
+      }
+
+      response = await fetch("/api/mi-cuenta/perfil/contacto", {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -264,7 +284,7 @@ export function AssociateProfileView() {
         }),
       });
 
-      let body = await response.json();
+      body = await response.json();
 
       if (!response.ok) {
         throw new Error(body.message);

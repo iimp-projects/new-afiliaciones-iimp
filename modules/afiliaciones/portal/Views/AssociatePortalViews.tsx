@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 
 import type { CurrentUserDTO } from "@/modules/auth/context/types";
+import { SHOW_AFFILIATE_CARD_ENTRY } from "@/lib/security/affiliate-profile-only";
 
 const unavailable = "No disponible";
 
@@ -255,12 +256,14 @@ export function AssociateHomeView({
             description="Consulta tu estado y datos de afiliación."
           />
 
-          <PortalAction
-            href="/intranet/mi-cuenta/carnet"
-            icon={IdCard}
-            title="Mi carnet virtual"
-            description="Genera y descarga tu credencial institucional."
-          />
+          {SHOW_AFFILIATE_CARD_ENTRY && (
+            <PortalAction
+              href="/intranet/mi-cuenta/carnet"
+              icon={IdCard}
+              title="Mi carnet virtual"
+              description="Genera y descarga tu credencial institucional."
+            />
+          )}
 
           <PortalAction
             href="/intranet/mi-cuenta/pagos"

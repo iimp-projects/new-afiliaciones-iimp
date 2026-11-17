@@ -147,6 +147,7 @@ export const securityModuleDefinition: ModuleDefinition = {
                 { id: "nav-affiliate-events", title: "Eventos", href: "/intranet/mi-cuenta/eventos", icon: "CalendarDays", order: 6 },
                 { id: "nav-affiliate-documents", title: "Documentos", href: "/intranet/mi-cuenta/documentos", icon: "FileText", order: 7 },
                 { id: "nav-affiliate-support", title: "Soporte", href: "/intranet/mi-cuenta/soporte", icon: "BadgeHelp", order: 8 },
+                { id: "nav-affiliate-endorsements", title: "Mis avales", href: "/intranet/mi-cuenta/mis-avales", icon: "Handshake", order: 9 },
             ],
         },
         {

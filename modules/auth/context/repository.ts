@@ -88,20 +88,20 @@ export class ContextRepository {
     );
 
     let finalImageUrl: string | null = null;
-    if (applicationPhoto?.fileUrl) {
+    if (user.image) {
       try {
-        finalImageUrl = await new S3StorageService().getPresignedApplicationDocumentUrl(
-          applicationPhoto.fileUrl,
-          [APPLICATION_KEY_PREFIX, LEGACY_DOCUMENT_KEY_PREFIX],
-        );
+        finalImageUrl = await new S3StorageService().getPresignedAvatarUrl(user.image);
       } catch {
         finalImageUrl = null;
       }
     }
 
-    if (!finalImageUrl && user.image) {
+    if (!finalImageUrl && applicationPhoto?.fileUrl) {
       try {
-        finalImageUrl = await new S3StorageService().getPresignedAvatarUrl(user.image);
+        finalImageUrl = await new S3StorageService().getPresignedApplicationDocumentUrl(
+          applicationPhoto.fileUrl,
+          [APPLICATION_KEY_PREFIX, LEGACY_DOCUMENT_KEY_PREFIX],
+        );
       } catch {
         finalImageUrl = null;
       }

@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight, Info, X } from "lucide-react";
 interface ApplicationFooterProps {
   currentStep: number;
   isSubmitting?: boolean;
+  nextDisabled?: boolean;
   showCancel?: boolean;
   showPrevious?: boolean;
   nextLabel?: string;
@@ -17,6 +18,7 @@ interface ApplicationFooterProps {
 export default function ApplicationFooter({
   currentStep,
   isSubmitting = false,
+  nextDisabled = false,
   showCancel = true,
   showPrevious = true,
   nextLabel = "Guardar y Continuar",
@@ -115,7 +117,8 @@ export default function ApplicationFooter({
           <button
             type="button"
             onClick={onNext}
-            disabled={isSubmitting}
+            disabled={isSubmitting || nextDisabled}
+            title={nextDisabled ? "Corrige los datos o el documento observado para continuar." : undefined}
             className="
               group
               px-8

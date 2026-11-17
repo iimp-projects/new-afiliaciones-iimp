@@ -61,7 +61,7 @@ describe("ContextRepository active authorization boundary", () => {
     expect(mocks.getPresignedAvatarUrl).toHaveBeenCalledWith("afiliaciones/perfiles/foto.png");
   });
 
-  it("uses the signed application photo when one exists", async () => {
+  it("prioritizes the signed profile avatar over an application photo", async () => {
     mocks.findUnique.mockResolvedValue(activeUser({
       image: "afiliaciones/perfiles/avatar.png",
       person: {
@@ -69,16 +69,13 @@ describe("ContextRepository active authorization boundary", () => {
         applications: [{ documents: [{ mimeType: "image/jpeg", category: "OTHER", fileName: "foto.jpg", fileUrl: "afiliaciones/applications/7/foto.jpg" }] }],
       },
     }));
-    mocks.getPresignedApplicationDocumentUrl.mockResolvedValue("https://signed.example/application-photo");
+    mocks.getPresignedAvatarUrl.mockResolvedValue("https://signed.example/avatar");
 
     const user = await new ContextRepository().getHydratedUser(7);
 
-    expect(user?.image).toBe("https://signed.example/application-photo");
-    expect(mocks.getPresignedApplicationDocumentUrl).toHaveBeenCalledWith(
-      "afiliaciones/applications/7/foto.jpg",
-      ["afiliaciones/applications", "afiliaciones/legacy/documents"],
-    );
-    expect(mocks.getPresignedAvatarUrl).not.toHaveBeenCalled();
+    expect(user?.image).toBe("https://signed.example/avatar");
+    expect(mocks.getPresignedAvatarUrl).toHaveBeenCalledWith("afiliaciones/perfiles/avatar.png");
+    expect(mocks.getPresignedApplicationDocumentUrl).not.toHaveBeenCalled();
   });
 
   it("deja el avatar en null cuando no está autorizado, sin romper la hidratación", async () => {

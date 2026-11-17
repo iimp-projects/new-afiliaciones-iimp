@@ -13,10 +13,11 @@ describe("affiliate-profile-only (R70)", () => {
     expect(AFFILIATE_PROFILE_ONLY_ROUTE).toBe("/intranet/mi-cuenta/perfil");
   });
 
-  it("permite Mi perfil, OneMine y el carnet del menú del asociado", () => {
+  it("permite Mi perfil, OneMine, el carnet y Mis avales del menú del asociado", () => {
     expect(isAffiliateProfileOnlyItemAllowed("nav-affiliate-profile")).toBe(true);
     expect(isAffiliateProfileOnlyItemAllowed("nav-affiliate-onemine")).toBe(true);
     expect(isAffiliateProfileOnlyItemAllowed("nav-affiliate-carnet")).toBe(true);
+    expect(isAffiliateProfileOnlyItemAllowed("nav-affiliate-endorsements")).toBe(true);
     expect(isAffiliateProfileOnlyItemAllowed("nav-affiliate-home")).toBe(false);
     expect(isAffiliateProfileOnlyItemAllowed("nav-affiliate-membership")).toBe(false);
     expect(isAffiliateProfileOnlyItemAllowed("nav-affiliate-payments")).toBe(false);
@@ -41,6 +42,8 @@ describe("affiliate-profile-only (R70)", () => {
     expect(isAffiliateProfileOnlyRestrictedRoute("/intranet/mi-cuenta/perfil/seccion")).toBe(false);
     expect(isAffiliateProfileOnlyRestrictedRoute("/intranet/mi-cuenta/carnet")).toBe(false);
     expect(isAffiliateProfileOnlyRestrictedRoute("/intranet/mi-cuenta/carnet/seccion")).toBe(false);
+    expect(isAffiliateProfileOnlyRestrictedRoute("/intranet/mi-cuenta/mis-avales")).toBe(false);
+    expect(isAffiliateProfileOnlyRestrictedRoute("/intranet/mi-cuenta/mis-avales/seccion")).toBe(false);
     expect(isAffiliateProfileOnlyRestrictedRoute("/intranet")).toBe(false);
     expect(isAffiliateProfileOnlyRestrictedRoute("/intranet/expedientes")).toBe(false);
   });

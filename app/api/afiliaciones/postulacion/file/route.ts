@@ -38,6 +38,12 @@ export async function GET(request: NextRequest) {
     const allowedKeys = ownedLegacyDocument ? [s3Service.getObjectKey(ownedLegacyDocument.fileUrl)] : [];
     const secureUrl = await s3Service.getPresignedApplicationDocumentUrl(url, scope.allowedPrefixes, allowedKeys);
 
+    // Enlaces estables para Excel/ZIP: el navegador autenticado resuelve el
+    // documento y redirige a la URL prefirmada de corta duración.
+    if (request.nextUrl.searchParams.get("redirect") === "1") {
+      return NextResponse.redirect(secureUrl, { status: 302 });
+    }
+
     return NextResponse.json({ success: true, data: { url: secureUrl } });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "No se pudo autorizar el archivo.";
