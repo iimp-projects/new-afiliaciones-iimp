@@ -8,7 +8,7 @@ import { ExpedientesPagination } from "../Components/ExpedientesPagination";
 import { InspectionDrawer } from "@/modules/shared/Components/InspectionDrawer/InspectionDrawer";
 import type { SmartCaseCardData } from "@/modules/shared/Components/SmartCaseCard/types";
 import type { DrawerData } from "@/modules/shared/Components/InspectionDrawer/types";
-import { RefreshCcw, Info, AlertCircle, XCircle, CheckCircle2, Download, Mail, Send, CreditCard } from "lucide-react"; 
+import { RefreshCcw, Info, AlertCircle, XCircle, CheckCircle2, Download, FolderDown, Mail, Send, CreditCard } from "lucide-react"; 
 
 import { getDepartmentLabelByRole } from "../Utils/expedientes.utils";
 import { canManageApplicantNotifications } from "../Utils/applicantNotificationPermissions";
@@ -19,6 +19,7 @@ import { ObservacionesTab } from "../Components/Drawer/Tabs/ObservacionesTab";
 import { AvalesTab } from "../Components/Drawer/Tabs/AvalesTab";
 import { ComiteTab } from "../Components/Drawer/Tabs/ComiteTab"; // <-- IMPORTAMOS EL NUEVO TAB
 import { WorkflowGuideModal } from "../Components/WorkflowGuideModal";
+import { DownloadAllDocumentsModal } from "../Components/DownloadAllDocumentsModal";
 import { UpdateStatusModal } from "../Components/Modals/UpdateStatusModal"; 
 import { ReplaceAvalModal } from "../Components/Modals/ReplaceAvalModal";
 import { NavigationHeaderIcon } from "@/modules/layout/Components/NavigationHeaderIcon";
@@ -52,19 +53,53 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
 
   const [paymentMethodsTarget, setPaymentMethodsTarget] = useState<number | null>(null);
   const [isSendingPaymentMethods, setIsSendingPaymentMethods] = useState(false);
-
   const [resendApplicantTarget, setResendApplicantTarget] = useState<number | null>(null);
   const [isResendingApplicant, setIsResendingApplicant] = useState(false);
 
   const [toastMessage, setToastMessage] = useState<{ title: string; type: "success" | "error" } | null>(null);
   const [filters, setFilters] = useState({ search: "", status: "Todos", modality: "Todos", assignedTo: "Todos", logisticValidation: "Todos", associateValidation: "Todos", comiteValidation: "Todos", legalValidation: "Todos", comunicacionesValidation: "Todos", paymentStatus: "Todos", dateFrom: "", dateTo: "", orderBy: "Más recientes" });
   const [isExporting, setIsExporting] = useState(false);
+  const [isDownloadingDocuments, setIsDownloadingDocuments] = useState(false);
+  const [showDownloadAllModal, setShowDownloadAllModal] = useState(false);
+  const [exportProgress, setExportProgress] = useState(0);
+  const [downloadDocumentsProgress, setDownloadDocumentsProgress] = useState(0);
 
   useEffect(() => { setIsMounted(true); }, []);
 
   const showToast = (title: string, type: "success" | "error" = "success") => {
     setToastMessage({ title, type });
     setTimeout(() => setToastMessage(null), 4000);
+  };
+
+  const exportProgressLabel = (progress: number) => {
+    const value = Math.round(progress);
+    if (value >= 100) return "¡Excel listo!";
+    if (value >= 75) return `Ya falta poco... ${value}%`;
+    if (value >= 40) return `Generando tu Excel... ${value}%`;
+    return `Preparando tu Excel... ${value}%`;
+  };
+
+  const documentsProgressLabel = (progress: number) => {
+    const value = Math.round(progress);
+    if (value >= 100) return "¡Documentos listos!";
+    if (value >= 75) return `Ya falta poco... ${value}%`;
+    if (value >= 40) return `Comprimiendo documentos... ${value}%`;
+    return `Preparando tus documentos... ${value}%`;
+  };
+
+  const startProgress = (setter: React.Dispatch<React.SetStateAction<number>>) => {
+    setter(1);
+    const interval = setInterval(() => {
+      setter((previous) =>
+        previous >= 90 ? 90 : Math.min(90, previous + Math.max(1, Math.round((90 - previous) * 0.08))),
+      );
+    }, 450);
+
+    return () => {
+      clearInterval(interval);
+      setter(100);
+      setTimeout(() => setter(0), 1200);
+    };
   };
 
   const fetchExpedientes = useCallback(async () => {
@@ -112,6 +147,7 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
 
   const handleExportExcel = async () => {
     setIsExporting(true);
+    const stopProgress = startProgress(setExportProgress);
     try {
       const queryParams = new URLSearchParams();
       Object.entries(filters).forEach(([key, value]) => { if (value && value !== "Todos") queryParams.append(key, value); });
@@ -136,7 +172,42 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
       console.error(error);
       showToast("Error de conexión al exportar.", "error");
     } finally {
+      stopProgress();
       setIsExporting(false);
+    }
+  };
+
+  const handleDownloadAllDocuments = async () => {
+    setIsDownloadingDocuments(true);
+    const stopProgress = startProgress(setDownloadDocumentsProgress);
+    try {
+      const queryParams = new URLSearchParams();
+      Object.entries(filters).forEach(([key, value]) => { if (value && value !== "Todos") queryParams.append(key, value); });
+      const response = await fetch(`/api/afiliaciones/expedientes/export/documents?${queryParams.toString()}`);
+      if (!response.ok) {
+        const result = await response.json().catch(() => null);
+        showToast(result?.message || "No se pudieron descargar los documentos.", "error");
+        return;
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      const disposition = response.headers.get("Content-Disposition") || "";
+      const filenameMatch = disposition.match(/filename="?([^"]+)"?/);
+      link.download = filenameMatch?.[1] || "Expedientes_Documentos.zip";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      setShowDownloadAllModal(false);
+      showToast("Descarga preparada correctamente.", "success");
+    } catch (error) {
+      console.error(error);
+      showToast("Error de conexión al descargar documentos.", "error");
+    } finally {
+      stopProgress();
+      setIsDownloadingDocuments(false);
     }
   };
 
@@ -254,31 +325,27 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
     }
   };
 
-  // MANEJADOR: enviar métodos de pago manualmente
+
   const executeSendPaymentMethods = async () => {
     if (!paymentMethodsTarget) return;
     setIsSendingPaymentMethods(true);
     try {
       const response = await fetch(`/api/afiliaciones/expedientes/${paymentMethodsTarget}/enviar-metodos-pago`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
       });
       const result = await response.json();
-
       if (result.success) {
-        showToast("Se envió el correo con el detalle y los métodos de pago.", "success");
+        showToast("Se enviaron los métodos de pago al postulante.", "success");
         setPaymentMethodsTarget(null);
-        await fetchExpedientes();
       } else {
-        showToast(result.error || "No se pudo enviar el correo de métodos de pago.", "error");
+        showToast(result.error || "No se pudieron enviar los métodos de pago.", "error");
       }
     } catch {
-      showToast("Error de conexión al enviar el correo.", "error");
+      showToast("Error de conexión al enviar los métodos de pago.", "error");
     } finally {
       setIsSendingPaymentMethods(false);
     }
   };
-
 
   const executeResendApplicant = async () => {
     if (!resendApplicantTarget) return;
@@ -458,8 +525,9 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
               <p className="text-xs sm:text-sm font-medium text-slate-500 mt-1.5">Gestiona, evalúa y resuelve las solicitudes pendientes.</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button onClick={handleExportExcel} disabled={isExporting} className="flex items-center justify-center gap-1.5 px-4 h-9 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-lg text-xs font-bold transition-all shadow-sm focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"><Download size={14} strokeWidth={2.5} /> {isExporting ? "Exportando..." : "Exportar Excel"}</button>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <button onClick={handleExportExcel} disabled={isExporting} className="flex items-center justify-center gap-1.5 px-4 h-9 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-lg text-xs font-bold transition-all shadow-sm focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"><Download size={14} strokeWidth={2.5} /> {isExporting ? exportProgressLabel(exportProgress) : "Exportar Excel"}</button>
+            <button onClick={() => setShowDownloadAllModal(true)} disabled={isDownloadingDocuments} title="Descargar en ZIP los expedientes filtrados y sus documentos" className="flex items-center justify-center gap-1.5 px-4 h-9 bg-sky-50 text-sky-700 hover:bg-sky-100 border border-sky-200 rounded-lg text-xs font-bold transition-all shadow-sm focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"><FolderDown size={14} strokeWidth={2.5} /> {isDownloadingDocuments ? documentsProgressLabel(downloadDocumentsProgress) : "Descargar todo"}</button>
             <button onClick={() => setShowWorkflowGuide(true)} className="flex items-center justify-center gap-1.5 px-4 h-9 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded-lg text-xs font-bold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"><Info size={14} strokeWidth={2.5} /> Ver flujo</button>
           </div>
         </div>
@@ -491,33 +559,20 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
               // Solo se activa si las áreas obligatorias están en verde
               const isReadyToNotify = isLogOk && isAsocOk && isAvalOk;
 
-              // El envío manual de métodos de pago solo aplica a expedientes Aptos para Pago.
-              const isReadyForPayment = exp.generalStatus === "READY_FOR_PAYMENT" && !isCardStudent;
-              const paymentMethodsDisabledReason = isCardStudent
-                ? "No aplica para la modalidad Estudiante"
-                : exp.generalStatus !== "READY_FOR_PAYMENT"
-                  ? "Disponible cuando el expediente esté en estado Apto para Pago"
-                  : undefined;
-
               return (
                 <SmartCaseCard 
                   key={exp.id} 
                   data={exp} 
                   onClick={() => handleOpenDrawer(exp)}  
-                 onViewAvales={isCardStudent ? undefined : () => handleOpenDrawer(exp, "avales")}
-                  // Si está listo, le pasamos la función, si no, le pasamos undefined para que se pinte en gris
+                  onViewAvales={isCardStudent ? undefined : () => handleOpenDrawer(exp, "avales")}
                   canManageNotifications={canManageNotifications}
-                  onNotifyCommittee={
-                    canManageNotifications && isReadyToNotify
-                      ? () => handleOpenNotifyModal(exp.rawId as number)
-                      : undefined
-                  }
+                  // Si está listo, le pasamos la función; si no, la opción se muestra deshabilitada.
+                  onNotifyCommittee={isReadyToNotify ? () => handleOpenNotifyModal(exp.rawId as number) : undefined}
                   onSendPaymentMethods={
-                    canManageNotifications && isReadyForPayment
+                    canManageNotifications && exp.generalStatus === "READY_FOR_PAYMENT" && !isCardStudent
                       ? () => setPaymentMethodsTarget(exp.rawId as number)
                       : undefined
                   }
-                  paymentMethodsDisabledReason={paymentMethodsDisabledReason}
                   onResendApplicant={
                     canManageNotifications
                       ? () => setResendApplicantTarget(exp.rawId as number)
@@ -553,6 +608,17 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
       )}
 
       {isMounted && showWorkflowGuide && <WorkflowGuideModal onClose={() => setShowWorkflowGuide(false)} />}
+
+      <DownloadAllDocumentsModal
+        open={showDownloadAllModal}
+        totalResults={meta.total}
+        isDownloading={isDownloadingDocuments}
+        progressLabel={documentsProgressLabel(downloadDocumentsProgress)}
+        onClose={() => {
+          if (!isDownloadingDocuments) setShowDownloadAllModal(false);
+        }}
+        onConfirm={handleDownloadAllDocuments}
+      />
 
       <UpdateStatusModal 
         isOpen={showStatusModal} 
@@ -720,15 +786,12 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
         <div className="fixed inset-0 z-[99999999] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="bg-white rounded-[24px] w-full max-w-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
             <div className="p-6 text-center">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5 shadow-sm bg-amber-50 text-amber-600 border border-amber-100">
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5 shadow-sm bg-emerald-50 text-emerald-600 border border-emerald-100">
                 <CreditCard size={32} strokeWidth={2.5} />
               </div>
               <h2 className="text-xl font-black text-slate-800">Enviar métodos de pago</h2>
               <p className="text-sm text-slate-500 mt-2.5 font-medium leading-relaxed">
-                Se enviará al postulante un correo con el detalle de los importes pendientes y los medios de pago disponibles: <strong className="text-slate-700">BCP, Niubiz y Yape</strong>.
-              </p>
-              <p className="text-xs text-slate-400 mt-3 font-medium leading-relaxed">
-                Esta acción solo está disponible para expedientes en estado <strong className="text-slate-600">Apto para Pago</strong> y quedará registrada en el sistema.
+                Se enviará al postulante el correo con los métodos de pago y el detalle de los importes pendientes.
               </p>
             </div>
             <div className="p-4 bg-slate-50 border-t border-slate-100 flex gap-3">
@@ -742,7 +805,7 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
               <button
                 onClick={executeSendPaymentMethods}
                 disabled={isSendingPaymentMethods}
-                className="flex-1 py-3 rounded-xl font-bold text-white shadow-md transition-colors disabled:opacity-50 bg-[#C5A059] hover:bg-[#b08d4a]"
+                className="flex-1 py-3 rounded-xl font-bold text-white shadow-md transition-colors disabled:opacity-50 bg-emerald-600 hover:bg-emerald-700"
               >
                 {isSendingPaymentMethods ? "Enviando..." : "Sí, enviar"}
               </button>

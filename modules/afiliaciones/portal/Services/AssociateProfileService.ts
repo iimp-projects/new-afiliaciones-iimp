@@ -121,7 +121,7 @@ export class AssociateProfileService {
       identity: {
         fullName: [person.firstName, person.paternalLastName, person.maternalLastName].filter(Boolean).join(" "),
         firstName: person.firstName, paternalLastName: person.paternalLastName, maternalLastName: person.maternalLastName,
-        image: photo?.fileUrl ?? user.image, documentType: person.documentType, documentNumber: person.documentNumber,
+        image: user.image ?? photo?.fileUrl ?? null, documentType: person.documentType, documentNumber: person.documentNumber,
         birthDate: calendarDateFromDatabase(person.birthDate), gender: person.gender ?? null,
         nationality: person.nationality?.name ?? null, nationalityId: person.nationalityId,
       },
@@ -163,22 +163,8 @@ export class AssociateProfileService {
     await prisma.$transaction(async (tx) => {
       await tx.person.update({ where: { id: person.id }, data: { firstName: input.firstName, paternalLastName: input.paternalLastName, maternalLastName: input.maternalLastName, birthDate: calendarDateToDatabaseDate(input.birthDate), gender: input.gender, nationalityId: input.nationalityId } });
 
-      if (!input.image) return;
+      if (input.image) await tx.user.update({ where: { id: userId }, data: { image: input.image.key } });
 
-      const application = await tx.membershipApplication.findFirst({
-        where: { personId: person.id, status: ApplicationStatus.COMPLETED, deletedAt: null },
-        orderBy: { updatedAt: "desc" },
-        include: { documents: { orderBy: { updatedAt: "desc" } } },
-      });
-      if (!application) throw new Error("No se encontró una postulación completada para actualizar la fotografía.");
-
-      const photo = application.documents.find((document) =>
-        document.mimeType.startsWith("image/") &&
-        (document.category === "OTHER" || document.fileName.toLowerCase().includes("foto")),
-      );
-      const imageData = { fileUrl: input.image.key, fileName: input.image.fileName, mimeType: input.image.mimeType, sizeBytes: BigInt(input.image.sizeBytes) };
-      if (photo) await tx.applicationDocument.update({ where: { id: photo.id }, data: imageData });
-      else await tx.applicationDocument.create({ data: { applicationId: application.id, category: "OTHER", ...imageData } });
     });
     return this.getForUser(userId);
   }

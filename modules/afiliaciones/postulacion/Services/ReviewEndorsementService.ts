@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { EndorsementStatus, SecurityEventType } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import { ApplicationStatusCalculatorService } from "./ApplicationStatusCalculatorService";
 import { MailService } from "@/modules/shared/Services/MailService";
 import { getAppBaseUrl } from "@/lib/config/env";
@@ -19,12 +20,43 @@ interface ReviewEndorsementOptions {
   userAgent?: string;
 }
 
+export type ReviewEndorsementAction = "APPROVE" | "REJECT";
+
+const reviewInclude = {
+  application: { include: { person: true } },
+  sponsorPerson: { include: { contacts: true } },
+} as const;
+
+type EndorsementWithRelations = Prisma.MembershipApprovalGetPayload<{
+  include: typeof reviewInclude;
+}>;
+
+/**
+ * Errores de negocio de la revisión de un aval. El flujo por correo los propaga
+ * como `Error`; el endpoint del portal los usa para mapear el HTTP status sin
+ * filtrar detalles internos.
+ */
+export type ReviewEndorsementErrorCode = "NOT_FOUND" | "ALREADY_PROCESSED";
+export class ReviewEndorsementError extends Error {
+  public constructor(
+    public readonly code: ReviewEndorsementErrorCode,
+    message: string,
+  ) {
+    super(message);
+    this.name = "ReviewEndorsementError";
+  }
+}
+
 export class ReviewEndorsementService {
   private readonly mailService = new MailService();
 
+  /**
+   * Revisión desde el enlace enviado por correo. La identidad proviene del
+   * token firmado (`applicationId` + `sponsorPersonId`).
+   */
   async execute(
     token: string,
-    action: "APPROVE" | "REJECT",
+    action: ReviewEndorsementAction,
     options?: ReviewEndorsementOptions
   ): Promise<void> {
     let decoded: ReviewEndorsementPayload;
@@ -41,36 +73,54 @@ export class ReviewEndorsementService {
 
     const { applicationId, sponsorPersonId } = decoded;
 
-    // 2. Obtener datos de la solicitud y el aval desde Prisma
     const endorsement = await prisma.membershipApproval.findFirst({
-      where: {
-        applicationId,
-        sponsorPersonId,
-      },
-      include: {
-        application: {
-          include: {
-            person: true,
-          },
-        },
-        sponsorPerson: {
-          include: {
-            contacts: true,
-          },
-        },
-      },
+      where: { applicationId, sponsorPersonId },
+      include: reviewInclude,
     });
 
+    await this.applyDecision(endorsement, action, options);
+  }
+
+  /**
+   * Revisión desde el portal "Mis avales". El aval se localiza por su id y por
+   * el `sponsorPersonId` de la persona autenticada, de modo que un asociado sólo
+   * puede responder sus propios avales pendientes.
+   */
+  async reviewOwned(
+    approvalId: number,
+    sponsorPersonId: number,
+    action: ReviewEndorsementAction,
+    options?: ReviewEndorsementOptions
+  ): Promise<void> {
+    const endorsement = await prisma.membershipApproval.findFirst({
+      where: { id: approvalId, sponsorPersonId },
+      include: reviewInclude,
+    });
+
+    await this.applyDecision(endorsement, action, options);
+  }
+
+  /** Transición de estado + auditoría + recálculo + notificación por correo. */
+  private async applyDecision(
+    endorsement: EndorsementWithRelations | null,
+    action: ReviewEndorsementAction,
+    options?: ReviewEndorsementOptions
+  ): Promise<void> {
     if (!endorsement) {
-      throw new Error("No se encontró el registro de aval correspondiente.");
+      throw new ReviewEndorsementError(
+        "NOT_FOUND",
+        "No se encontró el registro de aval correspondiente."
+      );
     }
 
     if (endorsement.status !== EndorsementStatus.PENDING) {
-      throw new Error(
+      throw new ReviewEndorsementError(
+        "ALREADY_PROCESSED",
         `Esta solicitud de aval ya fue procesada anteriormente con estado: ${endorsement.status}.`
       );
     }
 
+    const { applicationId, sponsorPersonId } = endorsement;
     const newStatus =
       action === "APPROVE"
         ? EndorsementStatus.APPROVED
@@ -145,61 +195,6 @@ export class ReviewEndorsementService {
           </div>
         `
         : "";
-
-      const legacyHtmlContent = `
-        <!DOCTYPE html>
-        <html lang="es">
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <style>
-            body { margin: 0; padding: 30px 10px; background-color: #F4F5F7; font-family: 'Helvetica Neue', Arial, sans-serif; }
-            .card { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; border: 1px solid #E2E8F0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); overflow: hidden; }
-            .content { padding: 30px; color: #3E3E3D; font-size: 14px; line-height: 1.7; }
-          </style>
-        </head>
-        <body>
-          <div class="card">
-            <!-- CABECERA -->
-            <div style="text-align: center; padding: 35px 30px 25px; border-bottom: 1px solid #EDF2F7;">
-              <img src="https://s3-iimp-gestor-de-archivos-v3.s3.sa-east-1.amazonaws.com/boletines/images/IMG20260817_120138.png" alt="IIMP Logo" style="max-width: 160px; height: auto; display: block; margin: 0 auto 14px;" />
-              <p style="margin: 0 0 6px; font-size: 11px; font-weight: 700; color: #C39254; letter-spacing: 1.5px; text-transform: uppercase;">Ecosistema Digital de Afiliaciones</p>
-              <h1 style="margin: 0; font-size: 20px; font-weight: 700; color: #C39254;">Estado de Aprobación de Aval</h1>
-            </div>
-
-            <div class="content">
-              <p>Estimado(a) <strong>${applicantName.toUpperCase()}</strong>,</p>
-              <p>Te informamos que tu aval <strong>${sponsorName}</strong> ha evaluado tu solicitud de incorporación como asociado al <strong>Instituto de Ingenieros de Minas del Perú (IIMP)</strong>.</p>
-
-              <!-- Caja de Estado / Resultado -->
-              <div style="background-color: ${statusBg}; border-radius: 8px; border: 1px solid ${statusColor}30; padding: 20px; margin: 25px 0; text-align: center;">
-                <span style="display: block; font-size: 11px; font-weight: 700; color: #5c768d; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 6px;">
-                  RESULTADO DEL RESPALDO
-                </span>
-                <span style="font-size: 18px; font-weight: 800; color: ${statusColor}; letter-spacing: 0.5px;">
-                  ${statusText}
-                </span>
-              </div>
-
-              <p>${statusMessage}</p>
-
-              <!-- Botón de Acción (solo en RECHAZADO) -->
-              ${ctaButtonHtml}
-            </div>
-
-            <!-- PIE DE PÁGINA -->
-            <div style="border-top: 1px solid #EDF2F7; padding: 20px 30px; text-align: center; font-size: 11px; color: #94A3B8; line-height: 1.8;">
-              © ${new Date().getFullYear()} Instituto de Ingenieros de Minas del Perú<br>
-              Calle Los Canarios 155-157, Urb. San César II Etapa, La Molina, Lima 12, Perú<br>
-              <a href="mailto:asociados@iimp.org.pe" style="color: #C39254; text-decoration: none;">asociados@iimp.org.pe</a>
-              &nbsp;|&nbsp;
-              <a href="mailto:liset.otoya@iimp.org.pe" style="color: #C39254; text-decoration: none;">liset.otoya@iimp.org.pe</a><br>
-              Lunes a viernes de 09:00 a 18:00 hrs.
-            </div>
-          </div>
-        </body>
-        </html>
-      `;
 
       const htmlContent = emailLayout({ category: "Estado de Aval", title: "Estado de Aprobación de Aval", summary: `Tu aval ha ${isApproved ? "aprobado" : "rechazado"} tu solicitud.`, variant: isApproved ? "success" : "warning", content: `<p>Estimado(a) <strong>${escapeHtml(applicantName.toUpperCase())}</strong>,</p><p>Te informamos que tu aval <strong>${escapeHtml(sponsorName)}</strong> ha evaluado tu solicitud de incorporación.</p>${emailInfoBox(`<strong>${statusText}</strong><br>${escapeHtml(statusMessage)}`, isApproved ? "success" : "warning")}${!isApproved ? emailCta("ACTUALIZAR AVAL", trackingUrl) : ""}` });
       await this.mailService.sendMail({

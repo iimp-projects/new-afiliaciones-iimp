@@ -49,10 +49,29 @@ describe("DocumentPrevalidation UI", () => {
         onReplace={() => {}}
       />,
     );
-    expect(markup).toContain("La constancia requiere corrección");
+    expect(markup).toContain("Constancia observada");
+    expect(markup).toContain("Observada");
     expect(markup).toContain("Reemplazar documento");
     expect(markup).toContain("2022-II");
     expect(markup).not.toMatch(/%/);
+  });
+
+  it("muestra un estado de carga mientras la IA analiza el documento", () => {
+    const markup = renderToStaticMarkup(
+      <DocumentPrevalidationNotice state="PROCESSING" />,
+    );
+    expect(markup).toContain("Analizando");
+    expect(markup).toContain("Analizando tu constancia de estudios");
+    expect(markup).toContain('aria-busy="true"');
+  });
+
+  it("muestra un resultado favorable cuando la constancia es válida", () => {
+    const markup = renderToStaticMarkup(
+      <DocumentPrevalidationNotice state="PREVALIDATED" message="La constancia cumple los requisitos." />,
+    );
+    expect(markup).toContain("Válida");
+    expect(markup).toContain("¡Constancia válida!");
+    expect(markup).toContain("La constancia cumple los requisitos.");
   });
 
   it("diferencia el resultado de IA de la decisión administrativa", () => {

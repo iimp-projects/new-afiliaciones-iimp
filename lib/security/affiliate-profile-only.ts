@@ -17,11 +17,20 @@ export const AFFILIATE_PROFILE_ONLY_ROUTE = "/intranet/mi-cuenta/perfil";
 /** Carnet virtual: excepción explícita al modo solo perfil (acompaña al perfil). */
 export const AFFILIATE_CARD_ROUTE = "/intranet/mi-cuenta/carnet";
 
+/**
+ * Controla el acceso visible al carnet virtual en el portal del asociado.
+ * La ruta y sus APIs siguen disponibles por URL directa aunque el acceso esté oculto.
+ */
+export const SHOW_AFFILIATE_CARD_ENTRY = false;
+
+/** Mis avales: módulo de consulta de avales otorgados, excepción al modo solo perfil. */
+export const AFFILIATE_ENDORSEMENTS_ROUTE = "/intranet/mi-cuenta/mis-avales";
+
 /** Ruta de aterrizaje histórica del asociado cuando el modo solo perfil está desactivado. */
 const AFFILIATE_DEFAULT_ROUTE = "/intranet/mi-cuenta";
 
 /** Ítems de navegación del asociado permitidos en modo solo perfil. */
-const AFFILIATE_PROFILE_ONLY_ALLOWED_ITEM_IDS = new Set<string>(["nav-affiliate-profile", "nav-affiliate-onemine", "nav-affiliate-carnet"]);
+const AFFILIATE_PROFILE_ONLY_ALLOWED_ITEM_IDS = new Set<string>(["nav-affiliate-profile", "nav-affiliate-onemine", "nav-affiliate-carnet", "nav-affiliate-endorsements"]);
 
 export function isAffiliateProfileOnlyItemAllowed(id: string): boolean {
   return AFFILIATE_PROFILE_ONLY_ALLOWED_ITEM_IDS.has(id);
@@ -38,6 +47,9 @@ export function isAffiliateProfileOnlyRestrictedRoute(pathname: string): boolean
     return false;
   }
   if (pathname === AFFILIATE_CARD_ROUTE || pathname.startsWith(`${AFFILIATE_CARD_ROUTE}/`)) {
+    return false;
+  }
+  if (pathname === AFFILIATE_ENDORSEMENTS_ROUTE || pathname.startsWith(`${AFFILIATE_ENDORSEMENTS_ROUTE}/`)) {
     return false;
   }
   return true;

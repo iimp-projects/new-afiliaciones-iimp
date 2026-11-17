@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { AlertCircle, CheckCircle2, CreditCard, Download, Eye, ExternalLink, FileCheck, FileQuestion, FileSignature, FileText, GraduationCap, Image as ImageIcon, X } from "lucide-react";
 import { DocumentPrevalidationAdminCard, type DocumentPrevalidationAdminRecord } from "@/modules/afiliaciones/document-validation/Components/DocumentPrevalidationAdminCard";
+import { formatPeruDateTime } from "@/modules/shared/Utils/formatPeruDateTime";
 
 const documentMetaConfig: Record<string, any> = {
   ID_DOCUMENT: { title: "Documento de Identidad Oficial", icon: FileText },
@@ -15,6 +16,37 @@ const documentMetaConfig: Record<string, any> = {
   OTHER: { title: "Documento Adicional", icon: FileQuestion },
 };
 
+const VERSION_SLOT_ORDER = [
+  "ID_DOCUMENT",
+  "SWORN_DECLARATION",
+  "PHOTO",
+  "STUDY_CERTIFICATE",
+  "CV",
+  "PAYMENT_VOUCHER",
+  "RECOMMENDATION_LETTER",
+  "DEGREE_CERTIFICATE",
+  "OTHER",
+] as const;
+
+function resolveVersionSlot(document: any): string {
+  if (document.category !== "OTHER") return document.category;
+  if (
+    String(document.mimeType ?? "").toLowerCase().startsWith("image/") ||
+    /foto|photo|perfil/i.test(document.fileName ?? "")
+  ) {
+    return "PHOTO";
+  }
+  if (/constancia|estudio|universit|carta/i.test(document.fileName ?? "")) {
+    return "STUDY_CERTIFICATE";
+  }
+  return "OTHER";
+}
+
+function documentTime(document: any): number {
+  const date = new Date(document.updatedAt ?? document.createdAt ?? 0);
+  return Number.isNaN(date.getTime()) ? 0 : date.getTime();
+}
+
 interface DocumentosTabProps { payload?: any; documents?: any[]; onOpenDocument?: (url: string) => Promise<void>; }
 interface PreviewDocument { url: string; type: string; name: string; fileName: string; }
 
@@ -23,6 +55,36 @@ export function DocumentosTab({ payload, documents: directDocuments, onOpenDocum
   const prevalidations: DocumentPrevalidationAdminRecord[] = Array.isArray(payload?.documentPrevalidations)
     ? payload.documentPrevalidations
     : [];
+
+  const versionGroups = new Map<string, any[]>();
+  for (const document of documents) {
+    const slot = resolveVersionSlot(document);
+    const group = versionGroups.get(slot) ?? [];
+    group.push(document);
+    versionGroups.set(slot, group);
+  }
+  for (const group of versionGroups.values()) {
+    group.sort((left, right) => documentTime(right) - documentTime(left));
+  }
+
+  const currentDocumentIds = new Set<string>();
+  for (const group of versionGroups.values()) {
+    if (group[0]?.id != null) currentDocumentIds.add(String(group[0].id));
+  }
+
+  const sortedDocuments = [...documents].sort((left, right) => {
+    const leftSlot = resolveVersionSlot(left);
+    const rightSlot = resolveVersionSlot(right);
+    const leftIndex = VERSION_SLOT_ORDER.indexOf(leftSlot as (typeof VERSION_SLOT_ORDER)[number]);
+    const rightIndex = VERSION_SLOT_ORDER.indexOf(rightSlot as (typeof VERSION_SLOT_ORDER)[number]);
+    const leftOrder = leftIndex >= 0 ? leftIndex : VERSION_SLOT_ORDER.length;
+    const rightOrder = rightIndex >= 0 ? rightIndex : VERSION_SLOT_ORDER.length;
+    if (leftOrder !== rightOrder) return leftOrder - rightOrder;
+    return documentTime(right) - documentTime(left);
+  });
+
+  const uniqueDocumentTypes = versionGroups.size;
+
   const [previewDoc, setPreviewDoc] = useState<PreviewDocument | null>(null);
   const [loadingDocId, setLoadingDocId] = useState<string | null>(null);
 
@@ -105,7 +167,7 @@ export function DocumentosTab({ payload, documents: directDocuments, onOpenDocum
   }
 
   const totalExpectedDocuments = 4;
-  const uploadedCount = Math.min(documents.length, totalExpectedDocuments);
+  const uploadedCount = Math.min(uniqueDocumentTypes, totalExpectedDocuments);
   const progress = Math.min(100, Math.round((uploadedCount / totalExpectedDocuments) * 100));
   const circumference = 2 * Math.PI * 23;
   const dashOffset = circumference - (progress / 100) * circumference;
@@ -119,7 +181,7 @@ export function DocumentosTab({ payload, documents: directDocuments, onOpenDocum
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-500"><FileText size={19} strokeWidth={1.8} /></div>
             <div className="min-w-0">
               <h3 className="truncate text-sm font-black tracking-tight text-slate-800">Documentos presentados</h3>
-              <p className="mt-0.5 text-xs text-slate-400">Documentación cargada por el postulante.</p>
+              <p className="mt-0.5 text-xs text-slate-400">Documentación cargada por el postulante. Se conservan todas las versiones.</p>
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-3">
@@ -144,13 +206,23 @@ export function DocumentosTab({ payload, documents: directDocuments, onOpenDocum
           <span>Documento</span><span>Tipo</span><span>Archivo</span><span className="text-center">Acciones</span>
         </div>
 
-        {documents.map((doc: any) => {
+        {sortedDocuments.map((doc: any) => {
+          const versionSlot = resolveVersionSlot(doc);
+          const isCurrentVersion = currentDocumentIds.has(String(doc.id));
+          const hasPreviousVersions = (versionGroups.get(versionSlot)?.length ?? 0) > 1;
+          const versionLabel = isCurrentVersion
+            ? hasPreviousVersions
+              ? "Versión actual (corregida)"
+              : "Versión actual"
+            : "Versión anterior";
           let meta = documentMetaConfig[doc.category] || documentMetaConfig.OTHER;
           const cleanName = formatFileName(doc.fileName, doc.mimeType);
           const formatBadge = getFormatDisplay(doc.mimeType);
 
-          if (doc.category === "OTHER" && (formatBadge === "IMAGEN" || /foto|photo|perfil/i.test(doc.fileName || ""))) {
+          if (versionSlot === "PHOTO") {
             meta = { title: "Fotografía Personal", icon: ImageIcon };
+          } else if (versionSlot === "STUDY_CERTIFICATE") {
+            meta = { title: "Constancia de Estudios", icon: GraduationCap };
           }
 
           const Icon = meta.icon;
@@ -164,11 +236,25 @@ export function DocumentosTab({ payload, documents: directDocuments, onOpenDocum
                     <CheckCircle2 size={16} strokeWidth={1.7} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[13px] font-black leading-snug text-slate-800">{meta.title}</p>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <p className="text-[13px] font-black leading-snug text-slate-800">{meta.title}</p>
+                      <span
+                        className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-wide ${
+                          isCurrentVersion
+                            ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                            : "border-slate-200 bg-slate-100 text-slate-500"
+                        }`}
+                      >
+                        {versionLabel}
+                      </span>
+                    </div>
                     <div className="mt-1 flex min-w-0 items-center gap-2">
                       <Icon size={12} strokeWidth={1.8} className="shrink-0 text-slate-400" />
                       <span className="truncate text-[10px] font-medium text-slate-400" title={doc.fileName}>{cleanName}</span>
                     </div>
+                    <p className="mt-0.5 text-[10px] text-slate-400">
+                      {formatPeruDateTime(doc.updatedAt ?? doc.createdAt)}
+                    </p>
                   </div>
                 </div>
 
@@ -205,8 +291,19 @@ export function DocumentosTab({ payload, documents: directDocuments, onOpenDocum
                 <div className="flex min-w-0 items-center gap-3">
                   <div className="flex h-7 w-7 shrink-0 items-center justify-center text-emerald-500"><CheckCircle2 size={16} strokeWidth={1.7} /></div>
                   <div className="min-w-0">
-                    <p className="truncate text-[12px] font-black text-slate-800">{meta.title}</p>
-                    <p className="mt-0.5 truncate text-[10px] font-medium text-slate-400">{cleanName} · {formatBadge}</p>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <p className="truncate text-[12px] font-black text-slate-800">{meta.title}</p>
+                      <span
+                        className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-wide ${
+                          isCurrentVersion
+                            ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                            : "border-slate-200 bg-slate-100 text-slate-500"
+                        }`}
+                      >
+                        {versionLabel}
+                      </span>
+                    </div>
+                    <p className="mt-0.5 truncate text-[10px] font-medium text-slate-400">{cleanName} · {formatBadge} · {formatPeruDateTime(doc.updatedAt ?? doc.createdAt)}</p>
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-1.5">
@@ -223,7 +320,7 @@ export function DocumentosTab({ payload, documents: directDocuments, onOpenDocum
         })}
 
         <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/50 px-4 py-3">
-          <div className="flex items-center gap-2 text-[11px] font-semibold text-slate-400"><CheckCircle2 size={15} strokeWidth={1.7} className="text-emerald-500" /><span>{documents.length} documento{documents.length === 1 ? "" : "s"} cargado{documents.length === 1 ? "" : "s"}</span></div>
+          <div className="flex items-center gap-2 text-[11px] font-semibold text-slate-400"><CheckCircle2 size={15} strokeWidth={1.7} className="text-emerald-500" /><span>{uniqueDocumentTypes} tipo{uniqueDocumentTypes === 1 ? "" : "s"} · {documents.length} archivo{documents.length === 1 ? "" : "s"}</span></div>
           <span className="text-[10px] font-semibold text-slate-300">Solo lectura</span>
         </div>
       </div>
@@ -245,7 +342,7 @@ export function DocumentosTab({ payload, documents: directDocuments, onOpenDocum
       {/* Información */}
       <div className="flex items-center gap-2 px-1 pt-1 pb-0.5">
         <AlertCircle size={13} strokeWidth={1.8} className="shrink-0 text-blue-400" />
-        <p className="text-[10px] font-normal text-slate-400">Los documentos son de solo lectura: solo pueden visualizarse o descargarse.</p>
+        <p className="text-[10px] font-normal text-slate-400">Los documentos son de solo lectura: solo pueden visualizarse o descargarse. Las versiones anteriores se conservan etiquetadas.</p>
       </div>
 
       {/* Modal de previsualización */}

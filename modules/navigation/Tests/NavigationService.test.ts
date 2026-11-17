@@ -81,11 +81,11 @@ describe("NavigationService - Application Service", () => {
         expect(tree.find((node) => node.id === "group-dashboard")).toBeDefined();
     });
 
-    it("retorna Mi perfil y OneMine (carnet oculto) para un asociado en modo solo perfil", async () => {
+    it("retorna Mi perfil, Mis avales y OneMine para un asociado en modo solo perfil", async () => {
         const service = new NavigationService(new MockAuthProvider(new Set(["read:memberships"]), true));
         const tree = await service.getAuthorizedTree();
         expect(tree.map((node) => node.id)).toEqual(["group-affiliate-account", "group-affiliate-library"]);
-        expect(tree[0].children?.map((node) => node.id)).toEqual(["nav-affiliate-profile"]);
+        expect(tree[0].children?.map((node) => node.id)).toEqual(["nav-affiliate-profile", "nav-affiliate-endorsements"]);
         expect(tree[1].children?.map((node) => node.id)).toEqual(["nav-affiliate-onemine"]);
     });
 

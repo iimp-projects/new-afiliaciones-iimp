@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, forwardRef, useImperativeHandle, useRef, ChangeEvent } from "react";
-import { GraduationCap, PlusCircle, CheckCircle2, Search, ChevronDown, FileText, Info, UploadCloud, XCircle } from "lucide-react";
+import { GraduationCap, PlusCircle, CheckCircle2, Search, ChevronDown, FileText, Info, Eye, RefreshCw, Trash2, UploadCloud, XCircle } from "lucide-react";
 import type { ApplicationDraft } from "../../Models/ApplicationDraft";
 import type { AcademicStudy } from "../../Models/AcademicStudy";
 import { AcademicStudyValidator } from "../../Validators/AcademicStudyValidator";
@@ -10,7 +10,9 @@ import { applicationApi } from "../../Services/ApplicationApi";
 import { ProcessLoadingOverlay } from "@/modules/shared/Components/ProcessLoadingOverlay";
 import { FieldHelp } from "@/modules/shared/Components/FieldHelp";
 import { DocumentPrevalidationNotice } from "@/modules/afiliaciones/document-validation/Components/DocumentPrevalidationNotice";
+import { DocumentPreviewModal } from "../DocumentPreviewModal";
 import type { DocumentPrevalidationResponse, PrevalidationUiStatus } from "@/modules/afiliaciones/document-validation/Models/DocumentPrevalidationDTO";
+import { validateStudentLetterFile } from "../../Validators/StudentLetterFileValidator";
 
 export interface StepRef {
   submit: () => Promise<void>;
@@ -24,6 +26,7 @@ interface EducationStepProps {
   onNext(): void;
   onBack(): void;
   onValidityChange?: (isValid: boolean) => void;
+  onBlockingChange?: (isBlocked: boolean) => void;
 }
 
 interface CatalogItem {
@@ -113,7 +116,7 @@ const SearchableSelect = ({ options, value, onChange, onBlur, disabled, placehol
 };
 
 const EducationStep = forwardRef<StepRef, EducationStepProps>(
-  ({ membershipType, value, saving = false, onSave, onNext, onBack, onValidityChange }, ref) => {
+  ({ membershipType, value, saving = false, onSave, onNext, onBack, onValidityChange, onBlockingChange }, ref) => {
     
     const [form, setForm] = useState<AcademicStudy>(value && value.length > 0 ? value[0] : emptyStudy);
     const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -136,6 +139,8 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
     }, []);
     const [cartaFilePreview, setCartaFilePreview] = useState<{ name: string; url: string; type: string } | null>(null);
     const [rawFile, setRawFile] = useState<File | null>(null);
+    const [fileError, setFileError] = useState<string | null>(null);
+    const [previewOpen, setPreviewOpen] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [aiEnabled, setAiEnabled] = useState(false);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -199,6 +204,12 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
       const result = validator.validate(form, membershipType);
       onValidityChange?.(result.valid);
     }, [form, membershipType, onValidityChange]);
+
+    useEffect(() => {
+      const blockingPrevalidation =
+        prevalidation?.status === "OBSERVED" || prevalidation?.status === "NEEDS_REVIEW";
+      onBlockingChange?.(isAnalyzing || blockingPrevalidation);
+    }, [isAnalyzing, prevalidation, onBlockingChange]);
 
     function updateField<K extends keyof AcademicStudy>(field: K, rawValue: AcademicStudy[K]) {
       let sanitizedValue: any = rawValue;
@@ -291,25 +302,66 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
 
     const handleCartaChange = (e: ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
-      if (file) {
-        const objectUrl = URL.createObjectURL(file);
-        setCartaFilePreview({ name: file.name, url: objectUrl, type: file.type });
-        setRawFile(file);
-        resetPrevalidation();
-        updateField("universityLetter", { name: file.name, type: file.type, url: "PENDIENTE" } as any);
-        if (aiEnabled) {
-          analysisRequestRef.current += 1;
-          void analyzeDocument(file);
-        }
+      if (!file) {
+        e.target.value = "";
+        return;
+      }
+
+      const validationError = validateStudentLetterFile(file);
+      if (validationError) {
+        setFileError(validationError);
+        setGlobalError(null);
+        e.target.value = "";
+        return;
+      }
+
+      setFileError(null);
+      if (cartaFilePreview?.url.startsWith("blob:")) {
+        URL.revokeObjectURL(cartaFilePreview.url);
+      }
+
+      const objectUrl = URL.createObjectURL(file);
+      setCartaFilePreview({ name: file.name, url: objectUrl, type: file.type });
+      setRawFile(file);
+      resetPrevalidation();
+      updateField("universityLetter", { name: file.name, type: file.type, url: "PENDIENTE" } as any);
+      if (aiEnabled) {
+        analysisRequestRef.current += 1;
+        void analyzeDocument(file);
       }
       e.target.value = "";
+    };
+
+    const handleRemoveCarta = () => {
+      if (!window.confirm("¿Deseas eliminar la constancia adjunta? Tendrás que volver a subirla.")) {
+        return;
+      }
+
+      if (cartaFilePreview?.url.startsWith("blob:")) {
+        URL.revokeObjectURL(cartaFilePreview.url);
+      }
+
+      analysisRequestRef.current += 1;
+      setCartaFilePreview(null);
+      setRawFile(null);
+      setPrevalidation(null);
+      setPrevalidatedFile(null);
+      setIsAnalyzing(false);
+      setFileError(null);
+      setPreviewOpen(false);
+      updateField("universityLetter", null as any);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
     useImperativeHandle(ref, () => ({
       submit: async () => {
         setGlobalError(null);
         if (isAnalyzing) {
-          setGlobalError("Espera a que termine la revisión automática de tu constancia.");
+          setGlobalError("Espera a que termine la validación automática de tu constancia.");
+          return;
+        }
+        if (prevalidation?.status === "OBSERVED" || prevalidation?.status === "NEEDS_REVIEW") {
+          setGlobalError("La constancia no superó la validación. Reemplaza el documento antes de continuar.");
           return;
         }
         const allTouched: Record<string, boolean> = {};
@@ -370,9 +422,21 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
       ? "PROCESSING"
       : prevalidation?.status ?? null;
 
+    const prevalidationHasError =
+      prevalidationStatus === "OBSERVED" ||
+      prevalidationStatus === "NEEDS_REVIEW" ||
+      prevalidationStatus === "TECHNICAL_ERROR";
+
+    const hasCartaFile = Boolean(rawFile || cartaFilePreview || form.universityLetter);
+
     return (
       <div className="space-y-8">
 
+        <ProcessLoadingOverlay
+          open={isAnalyzing}
+          title="Validando tu constancia de estudios"
+          description="Estamos revisando el tipo de documento, nombre, universidad, carrera, ciclo, vigencia, firma y legibilidad. Esto puede tomar unos segundos."
+        />
         <ProcessLoadingOverlay
           open={isUploading}
           title="Guardando tu información académica"
@@ -573,7 +637,45 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
                 <label className="text-xs font-bold text-slate-700 mb-3 block uppercase tracking-wide">
                   Adjuntar carta de presentación de su universidad <span className="text-red-500">*</span>
                 </label>
-                <label className={`group cursor-pointer relative overflow-hidden h-[260px] w-full border-2 border-dashed rounded-2xl p-6 transition-all duration-300 flex flex-col items-center justify-center text-center ${touched.universityLetter && errors.universityLetter ? "border-red-400 bg-red-50/30" : "border-gray-300 hover:border-[#C5A059] hover:bg-gray-50"}`}>
+                <div className="mb-4 rounded-xl border border-sky-200 bg-sky-50 p-4">
+                  <div className="flex items-start gap-3">
+                    <Info className="mt-0.5 h-5 w-5 shrink-0 text-sky-600" strokeWidth={2.5} />
+                    <div className="space-y-2">
+                      <p className="text-sm leading-relaxed text-sky-900">
+                        Deberá adjuntar una <strong>constancia de estudios vigente</strong>, emitida y firmada por la autoridad académica correspondiente de su universidad, en la que se indique su <strong>nombre completo</strong>, <strong>carrera profesional</strong> y <strong>ciclo académico actual</strong>. No se aceptan fichas ni constancias de matrícula en reemplazo de este documento.
+                      </p>
+                      <a
+                        href="/docs/constancia-estudiante.jpg"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-xs font-bold text-sky-700 underline underline-offset-2 transition-colors hover:text-sky-900"
+                      >
+                        <Eye size={14} strokeWidth={2.5} />
+                        Ver ejemplo de constancia
+                      </a>
+                    </div>
+                  </div>
+                </div>
+                {aiEnabled && prevalidationStatus && (
+                  <div className="mb-4">
+                    <DocumentPrevalidationNotice
+                      state={prevalidationStatus}
+                      message={isAnalyzing ? undefined : prevalidation?.message}
+                      rules={isAnalyzing ? [] : prevalidation?.rules}
+                      warnings={isAnalyzing ? [] : prevalidation?.warnings}
+                      extraction={isAnalyzing ? null : prevalidation?.extraction}
+                      durationMs={isAnalyzing ? undefined : prevalidation?.durationMs}
+                      onReplace={() => fileInputRef.current?.click()}
+                    />
+                  </div>
+                )}
+                {fileError && (
+                  <div className="mb-4 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-bold text-red-700">
+                    <XCircle size={16} className="mt-0.5 shrink-0" />
+                    <span>{fileError}</span>
+                  </div>
+                )}
+                <label className={`group cursor-pointer relative overflow-hidden h-[260px] w-full border-2 border-dashed rounded-2xl p-6 transition-all duration-300 flex flex-col items-center justify-center text-center ${touched.universityLetter && errors.universityLetter || prevalidationHasError ? "border-red-400 bg-red-50/30" : "border-gray-300 hover:border-[#C5A059] hover:bg-gray-50"}`}>
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -583,7 +685,7 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
                     aria-label="Seleccionar constancia de estudios"
                   />
                   
-                  {cartaFilePreview ? (
+                  {cartaFilePreview && !prevalidationHasError ? (
                     cartaFilePreview.type.startsWith('image/') ? (
                       <div className="w-full h-full absolute inset-0 bg-black/5 flex items-center justify-center">
                         <img src={cartaFilePreview.url} alt="Carta Preview" className="w-full h-full object-cover opacity-90 group-hover:opacity-60 transition-opacity" />
@@ -616,23 +718,53 @@ const EducationStep = forwardRef<StepRef, EducationStepProps>(
                     </>
                   )}
                 </label>
-                {getErrorText("universityLetter")}
-                {aiEnabled && prevalidationStatus && (
-                  <DocumentPrevalidationNotice
-                    state={prevalidationStatus}
-                    message={isAnalyzing ? undefined : prevalidation?.message}
-                    rules={isAnalyzing ? [] : prevalidation?.rules}
-                    warnings={isAnalyzing ? [] : prevalidation?.warnings}
-                    extraction={isAnalyzing ? null : prevalidation?.extraction}
-                    durationMs={isAnalyzing ? undefined : prevalidation?.durationMs}
-                    onReplace={() => fileInputRef.current?.click()}
-                  />
+                {hasCartaFile && (
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setPreviewOpen(true)}
+                      disabled={!cartaFilePreview}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      <Eye size={14} />
+                      Ver
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-50"
+                    >
+                      <RefreshCw size={14} />
+                      Cambiar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleRemoveCarta}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-600 transition-colors hover:bg-red-100"
+                    >
+                      <Trash2 size={14} />
+                      Eliminar
+                    </button>
+                    {cartaFilePreview && (
+                      <span className="min-w-0 truncate text-[11px] text-slate-400" title={cartaFilePreview.name}>
+                        {cartaFilePreview.name}
+                      </span>
+                    )}
+                  </div>
                 )}
+                {getErrorText("universityLetter")}
               </div>
             </div>
           </section>
         )}
 
+        <DocumentPreviewModal
+          open={previewOpen}
+          title={cartaFilePreview?.name ?? "Constancia de estudios"}
+          url={cartaFilePreview?.url ?? ""}
+          type={cartaFilePreview?.type ?? ""}
+          onClose={() => setPreviewOpen(false)}
+        />
       </div>
     );
   }

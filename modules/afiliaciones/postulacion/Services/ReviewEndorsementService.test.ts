@@ -83,4 +83,30 @@ describe("ReviewEndorsementService", () => {
     await expect(new ReviewEndorsementService().execute(token, "APPROVE")).rejects.toThrow(/ya fue procesada/);
     expect(mocks.update).not.toHaveBeenCalled();
   });
+
+  it("permite aprobar un aval propio pendiente desde el portal", async () => {
+    await new ReviewEndorsementService().reviewOwned(11, 42, "APPROVE");
+
+    expect(mocks.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: 11, sponsorPersonId: 42 } }),
+    );
+    expect(mocks.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 11 },
+      data: expect.objectContaining({ status: "APPROVED" }),
+    }));
+  });
+
+  it("no permite revisar un aval que pertenece a otro asociado", async () => {
+    mocks.findFirst.mockResolvedValue(null);
+
+    await expect(new ReviewEndorsementService().reviewOwned(11, 99, "APPROVE")).rejects.toMatchObject({ code: "NOT_FOUND" });
+    expect(mocks.update).not.toHaveBeenCalled();
+  });
+
+  it("bloquea el replay desde el portal de un aval ya procesado", async () => {
+    mocks.findFirst.mockResolvedValue({ ...approval, status: "REJECTED" });
+
+    await expect(new ReviewEndorsementService().reviewOwned(11, 42, "APPROVE")).rejects.toMatchObject({ code: "ALREADY_PROCESSED" });
+    expect(mocks.update).not.toHaveBeenCalled();
+  });
 });

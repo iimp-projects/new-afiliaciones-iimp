@@ -32,9 +32,10 @@ import { APPLICATION_KEY_PREFIX, LEGACY_DOCUMENT_KEY_PREFIX } from "@/modules/af
 const LEGACY_URL = "https://bucket.s3.us-east-2.amazonaws.com/afiliaciones/legacy/documents/photo.jpg";
 const LEGACY_KEY = "afiliaciones/legacy/documents/photo.jpg";
 
-function fileRequest(options: { url?: string; token?: string } = {}) {
+function fileRequest(options: { url?: string; token?: string; redirect?: boolean } = {}) {
   const url = options.url ?? LEGACY_URL;
-  return new NextRequest(`http://localhost/api/afiliaciones/postulacion/file?url=${encodeURIComponent(url)}`, {
+  const redirect = options.redirect ? "&redirect=1" : "";
+  return new NextRequest(`http://localhost/api/afiliaciones/postulacion/file?url=${encodeURIComponent(url)}${redirect}`, {
     method: "GET",
     headers: options.token ? { cookie: `${QUERY_COOKIE}=${options.token}` } : {},
   });
@@ -109,5 +110,14 @@ describe("GET /api/afiliaciones/postulacion/file authorization", () => {
       ["afiliaciones/applications/7"],
       [],
     );
+  });
+
+  it("redirige a la URL prefirmada cuando redirect=1", async () => {
+    mocks.getInternalApiUser.mockResolvedValue({ id: 1, type: "VALIDATOR" });
+    mocks.hasPermission.mockResolvedValue(true);
+    const response = await GET(fileRequest({ redirect: true }));
+
+    expect(response.status).toBe(302);
+    expect(response.headers.get("location")).toBe("https://presigned.example/object");
   });
 });

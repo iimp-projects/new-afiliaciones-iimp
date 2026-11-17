@@ -45,7 +45,7 @@ export function Navbar({ user, onToggleSidebar }: NavbarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [activeLang, setActiveLang] = useState<"ES" | "EN" | "QU">("ES");
-  const portalBreadcrumbs: Record<string, string> = { "/intranet/mi-cuenta": "Inicio", "/intranet/mi-cuenta/perfil": "Mi perfil", "/intranet/mi-cuenta/membresia": "Mi membresía", "/intranet/mi-cuenta/pagos": "Pagos y comprobantes", "/intranet/mi-cuenta/beneficios": "Beneficios", "/intranet/mi-cuenta/eventos": "Eventos", "/intranet/mi-cuenta/documentos": "Documentos", "/intranet/mi-cuenta/soporte": "Soporte" };
+  const portalBreadcrumbs: Record<string, string> = { "/intranet/mi-cuenta": "Inicio", "/intranet/mi-cuenta/perfil": "Mi perfil", "/intranet/mi-cuenta/carnet": "Mi carnet virtual", "/intranet/mi-cuenta/mis-avales": "Mis avales", "/intranet/mi-cuenta/membresia": "Mi membresía", "/intranet/mi-cuenta/pagos": "Pagos y comprobantes", "/intranet/mi-cuenta/beneficios": "Beneficios", "/intranet/mi-cuenta/eventos": "Eventos", "/intranet/mi-cuenta/documentos": "Documentos", "/intranet/mi-cuenta/soporte": "Soporte" };
   const portalPage = portalBreadcrumbs[pathname];
   const formatRemaining = (milliseconds: number | null) => {
     if (milliseconds === null) return "--:--:--";
