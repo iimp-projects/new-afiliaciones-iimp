@@ -25,7 +25,7 @@ concurrency:
 env:
   AWS_REGION: us-east-2
   ECR_REPOSITORY: afiliaciones-prod-app
-  AUTHORIZED_COMMIT_SHA: f3af361d8fee64b6e3b05274ab44d34f6706b56b
+  AUTHORIZED_COMMIT_SHA: b6ca7ca4dd7bf848f4ce19799313223bd9e39b27
   PROD_DOMAIN_NAME: afiliaciones.iimp.org.pe
   HOSTED_ZONE_ID: Z2EVMBK8QMV35W
   PROD_BASE_URL: https://afiliaciones.iimp.org.pe
@@ -141,8 +141,8 @@ jobs:
     env:
       AWS_REGION: us-east-2
       ECR_REPOSITORY: afiliaciones-prod-app
-      AUTHORIZED_COMMIT_SHA: f3af361d8fee64b6e3b05274ab44d34f6706b56b
-      IMAGE_TAG: prod-f3af361d8fee64b6e3b05274ab44d34f6706b56b
+      AUTHORIZED_COMMIT_SHA: b6ca7ca4dd7bf848f4ce19799313223bd9e39b27
+      IMAGE_TAG: prod-b6ca7ca4dd7bf848f4ce19799313223bd9e39b27
       PROD_DOMAIN_NAME: afiliaciones.iimp.org.pe
       HOSTED_ZONE_ID: Z2EVMBK8QMV35W
       PROD_BASE_URL: https://afiliaciones.iimp.org.pe
