@@ -5,14 +5,19 @@ import { createPortal } from "react-dom";
 import { toast } from "sonner"; // ✅ IMPORTAMOS SONNER DIRECTO
 import { X, Save, AlertCircle, Camera, ChevronDown, Check, Info, Eye, EyeOff } from "lucide-react";
 import { createUserAction } from "../Actions/user.actions";
+import { isPrivilegedRoleSlug } from "../Policies/UserRoleAssignmentPolicy";
 
 interface CreateUserModalProps {
   onClose: () => void;
   onSuccess: () => void;
-  roles: { id: number; name: string }[];
+  roles: { id: number; name: string; slug?: string }[];
+  canAssignPrivilegedRoles?: boolean;
 }
 
-export function CreateUserModal({ onClose, onSuccess, roles }: CreateUserModalProps) {
+export function CreateUserModal({ onClose, onSuccess, roles, canAssignPrivilegedRoles = true }: CreateUserModalProps) {
+  const assignableRoles = canAssignPrivilegedRoles
+    ? roles
+    : roles.filter((role) => !isPrivilegedRoleSlug(role.slug ?? ""));
   const [mounted, setMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string[]>>({});
@@ -123,7 +128,7 @@ export function CreateUserModal({ onClose, onSuccess, roles }: CreateUserModalPr
       : "border-slate-200 focus:border-[#C5A059] focus:ring-[#C5A059]/10 bg-slate-50 focus:bg-white hover:border-slate-300"
   }`;
 
-  const selectedRoleName = selectedRole ? roles.find(r => r.id === selectedRole)?.name : "Seleccione un rol...";
+  const selectedRoleName = selectedRole ? assignableRoles.find(r => r.id === selectedRole)?.name : "Seleccione un rol...";
 
   if (!mounted) return null;
 
@@ -262,7 +267,7 @@ export function CreateUserModal({ onClose, onSuccess, roles }: CreateUserModalPr
 
                   {isRoleOpen && (
                     <div className="absolute z-50 w-full mt-2 bg-white border border-slate-100 rounded-xl shadow-[0_15px_40px_-10px_rgba(0,0,0,0.1)] py-2 max-h-60 overflow-y-auto animate-in fade-in slide-in-from-top-2">
-                      {roles.map(r => (
+                      {assignableRoles.map(r => (
                         <div 
                           key={r.id}
                           onClick={() => { setSelectedRole(r.id); setIsRoleOpen(false); }}
