@@ -1,4 +1,4 @@
-import { Prisma, ApplicationStatus, ValidationStatus, PaymentStatus } from "@prisma/client";
+import { Prisma, ApplicationStatus, ValidationStatus, PaymentStatus, Gender, EndorsementStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getCountryCode } from "countries-list";
 
@@ -18,6 +18,12 @@ export interface ExpedienteFilters {
   dateFrom?: string;
   dateTo?: string;
   orderBy?: string;
+  gender?: string;
+  countryId?: number;
+  universityId?: number;
+  company?: string;
+  evaluatorId?: number;
+  endorsementStatus?: string;
 }
 
 const LIST_INCLUDE = {
@@ -77,6 +83,7 @@ export class ExpedienteRepository {
       search, status, modality, dateFrom, dateTo,
       logisticValidation, associateValidation, comiteValidation,
       legalValidation, comunicacionesValidation, paymentStatus,
+      gender, countryId, universityId, company, evaluatorId, endorsementStatus,
     } = filters;
 
     const where: Prisma.MembershipApplicationWhereInput = {
@@ -124,13 +131,49 @@ export class ExpedienteRepository {
       where.payments = { some: { status: paymentStatus as PaymentStatus } };
     }
 
+    // --- DATOS DE LA PERSONA ---
+    const personConditions: Prisma.PersonWhereInput = {};
+    if (gender && gender !== "Todos") {
+      personConditions.gender = gender as Gender;
+    }
+    if (countryId) {
+      personConditions.addresses = { some: { countryId } };
+    }
+    if (universityId) {
+      personConditions.academicInfos = { some: { universityId } };
+    }
+    if (Object.keys(personConditions).length > 0) {
+      where.person = personConditions;
+    }
+
     // --- VALIDACIONES POR ÁREA ---
     const areaConditions: Prisma.MembershipApplicationWhereInput[] = [];
+    if (company && company !== "Todos") {
+      areaConditions.push({
+        OR: [
+          { draftData: { path: ["employmentInformation", "companyName"], string_contains: company } },
+          { person: { employmentInfos: { some: { company: { name: { contains: company, mode: "insensitive" } } } } } },
+        ],
+      });
+    }
     if (logisticValidation && logisticValidation !== "Todos") areaConditions.push({ validations: { some: { department: { code: "LOGISTICA" }, status: logisticValidation as ValidationStatus } } });
     if (associateValidation && associateValidation !== "Todos") areaConditions.push({ validations: { some: { department: { code: "ASOCIADOS" }, status: associateValidation as ValidationStatus } } });
     if (comiteValidation && comiteValidation !== "Todos") areaConditions.push({ validations: { some: { department: { code: "COMITE" }, status: comiteValidation as ValidationStatus } } });
     if (legalValidation && legalValidation !== "Todos") areaConditions.push({ validations: { some: { department: { code: "LEGAL" }, status: legalValidation as ValidationStatus } } });
     if (comunicacionesValidation && comunicacionesValidation !== "Todos") areaConditions.push({ validations: { some: { department: { code: "COMUNICACIONES" }, status: comunicacionesValidation as ValidationStatus } } });
+
+    if (evaluatorId) {
+      areaConditions.push({
+        OR: [
+          { validations: { some: { validatedById: evaluatorId } } },
+          { areaValidations: { some: { validatedById: evaluatorId } } },
+        ],
+      });
+    }
+
+    if (endorsementStatus && endorsementStatus !== "Todos") {
+      areaConditions.push({ approvals: { some: { status: endorsementStatus as EndorsementStatus } } });
+    }
 
     if (areaConditions.length > 0) where.AND = areaConditions;
 
