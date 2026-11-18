@@ -28,6 +28,14 @@ export async function GET(request: NextRequest) {
     const dateFrom = searchParams.get("dateFrom") || undefined;
     const dateTo = searchParams.get("dateTo") || undefined;
 
+    // Filtros avanzados de persona y evaluación
+    const gender = searchParams.get("gender") || undefined;
+    const countryId = Number(searchParams.get("countryId")) || undefined;
+    const universityId = Number(searchParams.get("universityId")) || undefined;
+    const company = searchParams.get("company") || undefined;
+    const evaluatorId = Number(searchParams.get("evaluatorId")) || undefined;
+    const endorsementStatus = searchParams.get("endorsementStatus") || undefined;
+
     // 1. Identificamos el rol
     const isComite = currentUser?.role?.slug === "COMITE_EVALUADOR";
 
@@ -52,6 +60,12 @@ export async function GET(request: NextRequest) {
       orderBy,
       dateFrom,
       dateTo,
+      gender,
+      countryId,
+      universityId,
+      company,
+      evaluatorId,
+      endorsementStatus,
     });
 
     let expedientesFiltrados = result.data;

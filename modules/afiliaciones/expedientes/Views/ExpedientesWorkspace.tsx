@@ -57,7 +57,7 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
   const [isResendingApplicant, setIsResendingApplicant] = useState(false);
 
   const [toastMessage, setToastMessage] = useState<{ title: string; type: "success" | "error" } | null>(null);
-  const [filters, setFilters] = useState({ search: "", status: "Todos", modality: "Todos", assignedTo: "Todos", logisticValidation: "Todos", associateValidation: "Todos", comiteValidation: "Todos", legalValidation: "Todos", comunicacionesValidation: "Todos", paymentStatus: "Todos", dateFrom: "", dateTo: "", orderBy: "Más recientes" });
+  const [filters, setFilters] = useState({ search: "", status: "Todos", modality: "Todos", assignedTo: "Todos", logisticValidation: "Todos", associateValidation: "Todos", comiteValidation: "Todos", legalValidation: "Todos", comunicacionesValidation: "Todos", paymentStatus: "Todos", dateFrom: "", dateTo: "", orderBy: "Más recientes", gender: "Todos", countryId: "Todos", universityId: "Todos", company: "Todos", evaluatorId: "Todos", endorsementStatus: "Todos" });
   const [isExporting, setIsExporting] = useState(false);
   const [isDownloadingDocuments, setIsDownloadingDocuments] = useState(false);
   const [showDownloadAllModal, setShowDownloadAllModal] = useState(false);
@@ -141,7 +141,7 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
   };
 
   const handleClearFilters = () => {
-    setFilters({ search: "", status: "Todos", modality: "Todos", assignedTo: "Todos", logisticValidation: "Todos", associateValidation: "Todos", comiteValidation: "Todos", legalValidation: "Todos", comunicacionesValidation: "Todos", paymentStatus: "Todos", dateFrom: "", dateTo: "", orderBy: "Más recientes" });
+    setFilters({ search: "", status: "Todos", modality: "Todos", assignedTo: "Todos", logisticValidation: "Todos", associateValidation: "Todos", comiteValidation: "Todos", legalValidation: "Todos", comunicacionesValidation: "Todos", paymentStatus: "Todos", dateFrom: "", dateTo: "", orderBy: "Más recientes", gender: "Todos", countryId: "Todos", universityId: "Todos", company: "Todos", evaluatorId: "Todos", endorsementStatus: "Todos" });
     setMeta((prev) => ({ ...prev, page: 1 }));
   };
 
