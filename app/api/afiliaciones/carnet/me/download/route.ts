@@ -14,6 +14,12 @@ export async function GET() {
     }
 
     const data = await resolveCardData(account.personId);
+    if (data.notFound || !data.eligible) {
+      return NextResponse.json(
+        { success: false, code: "NOT_ELIGIBLE", message: data.reason ?? "El carnet no está disponible." },
+        { status: 422 },
+      );
+    }
     const card = await getCard(account.personId);
     if (!card.generated || card.status !== "ISSUED" || !card.verificationToken) {
       return NextResponse.json({ success: false, message: "El carnet no está disponible." }, { status: 404 });

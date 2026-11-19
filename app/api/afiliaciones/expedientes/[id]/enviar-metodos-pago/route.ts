@@ -1,40 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { canManageApplicantNotifications } from "@/modules/afiliaciones/expedientes/Utils/applicantNotificationPermissions";
+import { IncorporationPaymentRequestEmailService } from "@/modules/afiliaciones/payments/Services/IncorporationPaymentRequestEmailService";
 import { apiAuthorizationStatus, requireApiPermission } from "@/modules/auth/context/api-authorization";
-import {
-  IncorporationPaymentRequestEmailService,
-  type IncorporationPaymentRequestSendResult,
-} from "@/modules/afiliaciones/payments/Services/IncorporationPaymentRequestEmailService";
 
-function responseFor(reason: IncorporationPaymentRequestSendResult["reason"]): { status: number; error: string } {
-  switch (reason) {
-    case "NOT_FOUND":
-    case "DELETED":
-      return { status: 404, error: "El expediente no existe o no está disponible." };
-    case "NOT_READY_FOR_PAYMENT":
-      return { status: 409, error: "El expediente no se encuentra en estado Apto para Pago." };
-    case "STUDENT_EXEMPT":
-      return { status: 422, error: "La modalidad Estudiante no está sujeta a estos conceptos de pago." };
-    case "INVALID_EMAIL":
-      return { status: 422, error: "El postulante no tiene un correo electrónico válido registrado." };
-    case "ALREADY_PAID":
-    case "NOTHING_TO_CHARGE":
-      return { status: 409, error: "Los conceptos de pago ya se encuentran cubiertos por un pago validado." };
-    case "AMOUNTS_UNAVAILABLE":
-      return { status: 503, error: "No existen importes vigentes configurados para el pago de incorporación." };
-    case "ASSETS_UNAVAILABLE":
-      return { status: 503, error: "No se pudieron cargar los recursos institucionales del correo." };
-    case "DUPLICATE":
-      return { status: 409, error: "El correo ya fue enviado o se encuentra en proceso." };
-    case "SEND_FAILED":
-      return { status: 502, error: "No se pudo enviar el correo. Intente nuevamente." };
-    default:
-      return { status: 500, error: "No se pudo procesar el envío del correo." };
-  }
-}
+export const runtime = "nodejs";
+
+const REASON_RESPONSE: Readonly<Record<string, { status: number; message: string }>> = {
+  NOT_FOUND: { status: 404, message: "Solicitud no encontrada." },
+  DELETED: { status: 409, message: "La solicitud no está disponible." },
+  NOT_READY_FOR_PAYMENT: { status: 409, message: "El expediente aún no está apto para pago." },
+  STUDENT_EXEMPT: { status: 409, message: "La modalidad Estudiante es gratuita." },
+  INVALID_EMAIL: { status: 422, message: "El postulante no tiene un correo válido registrado." },
+  ALREADY_PAID: { status: 409, message: "El postulante ya registra los pagos correspondientes." },
+  AMOUNTS_UNAVAILABLE: { status: 503, message: "No se pudieron obtener los importes vigentes." },
+  ASSETS_UNAVAILABLE: { status: 503, message: "No se pudieron preparar los recursos del correo." },
+  NOTHING_TO_CHARGE: { status: 409, message: "No hay conceptos pendientes de pago." },
+  DUPLICATE: { status: 409, message: "El correo ya fue enviado recientemente." },
+  SEND_FAILED: { status: 502, message: "No se pudo enviar el correo con los métodos de pago manual." },
+};
 
 export async function POST(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
@@ -42,26 +28,34 @@ export async function POST(
     if (!canManageApplicantNotifications(currentUser.role.slug)) {
       return NextResponse.json({ success: false, error: "No autorizado." }, { status: 403 });
     }
+
     const { id } = await params;
     const applicationId = Number(id);
-    if (!Number.isInteger(applicationId) || applicationId < 1) {
+    if (!Number.isSafeInteger(applicationId) || applicationId < 1) {
       return NextResponse.json({ success: false, error: "Expediente inválido." }, { status: 400 });
     }
 
-    const result = await new IncorporationPaymentRequestEmailService().sendManual(applicationId);
-    if (result.sent) {
+    const result = await new IncorporationPaymentRequestEmailService().sendIfEligible(
+      applicationId,
+      { forceResend: true },
+    );
+    if (!result.sent) {
+      const mapped = result.reason ? REASON_RESPONSE[result.reason] : undefined;
       return NextResponse.json(
-        { success: true, message: "Correo con los métodos de pago manual enviado correctamente." },
-        { status: 200 },
+        { success: false, code: result.reason ?? "UNKNOWN", error: mapped?.message ?? "No se pudo enviar el correo." },
+        { status: mapped?.status ?? 409 },
       );
     }
 
-    const mapped = responseFor(result.reason);
-    return NextResponse.json({ success: false, error: mapped.error }, { status: mapped.status });
+    return NextResponse.json({
+      success: true,
+      message: "Se envió el correo de métodos de pago manual al postulante.",
+    });
   } catch (error: unknown) {
+    console.error("[SendPaymentMethods Error]:", error);
     const status = apiAuthorizationStatus(error, 500);
     return NextResponse.json(
-      { success: false, error: status < 500 ? "No autorizado." : "No se pudo enviar el correo." },
+      { success: false, error: status < 500 ? "No autorizado." : "No se pudo enviar el correo de métodos de pago manual." },
       { status },
     );
   }

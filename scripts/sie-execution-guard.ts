@@ -14,6 +14,7 @@ import { execSync } from "child_process";
 
 const QA_AWS_ACCOUNT = "564914947461";
 const QA_AWS_REGION = "us-east-2";
+const AUTHORIZED_LOCAL_DATABASES = new Set(["local_bd_afiliaciones", "bd_afiliaciones_qa_clone"]);
 
 export function assertExecutionTarget(argv: string[]): void {
   const envIdx = argv.indexOf("--environment");
@@ -29,7 +30,15 @@ export function assertExecutionTarget(argv: string[]): void {
 
   const url = process.env.DATABASE_URL ?? "";
   let hostname = "";
-  try { hostname = new URL(url).hostname; } catch { throw new Error("DATABASE_URL inválida."); }
+  let database = "";
+  try {
+    const parsed = new URL(url);
+    hostname = parsed.hostname;
+    database = decodeURIComponent(parsed.pathname.replace(/^\//, ""));
+  } catch { throw new Error("DATABASE_URL inválida."); }
   const local = ["localhost", "127.0.0.1", "::1"].includes(hostname.toLowerCase());
   if (!local) throw new Error(`REFUSE_NON_LOCAL_TARGET: host ${hostname} no es local. Para QA usa --environment qa.`);
+  if (!AUTHORIZED_LOCAL_DATABASES.has(database)) {
+    throw new Error(`REFUSE_UNAUTHORIZED_LOCAL_DATABASE: ${database}. Se espera local_bd_afiliaciones o bd_afiliaciones_qa_clone.`);
+  }
 }
