@@ -66,6 +66,14 @@ export const securityModuleDefinition: ModuleDefinition = {
                     icon: "ClipboardList",
                     order: 1,
                     permission: { action: "manage", subject: "all" }
+                },
+                {
+                    id: "nav-eventos-cuotas",
+                    title: "Cuotas",
+                    href: "/intranet/eventos/cuotas",
+                    icon: "Coins",
+                    order: 2,
+                    permission: { action: "read", subject: "quotas" }
                 }
             ]
         },
