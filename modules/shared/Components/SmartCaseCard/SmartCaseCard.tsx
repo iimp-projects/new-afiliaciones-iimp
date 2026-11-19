@@ -175,7 +175,7 @@ export function SmartCaseCard({
                 </div>
               </button>
 
-                  {/* 4. Enviar métodos de pago */}
+                  {/* 4. Enviar métodos de pago manual */}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -192,7 +192,7 @@ export function SmartCaseCard({
                   >
                     <CreditCard size={15} className="mt-0.5 shrink-0" strokeWidth={2.5} />
                     <div className="flex flex-col items-start text-left">
-                      <span>Enviar métodos de pago</span>
+                      <span>Enviar métodos de pago manual</span>
                       {!onSendPaymentMethods && (
                         <span className="text-[9px] font-semibold text-slate-400 leading-tight mt-0.5 pr-2">
                           Disponible cuando el expediente esté apto para pago

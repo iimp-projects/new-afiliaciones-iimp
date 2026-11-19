@@ -1,5 +1,5 @@
 import { PaymentGateway, PaymentStatus } from "@prisma/client";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { PaymentConfirmationEmailService } from "../Services/PaymentConfirmationEmailService";
 
 const details = {
@@ -85,5 +85,111 @@ describe("PaymentConfirmationEmailService", () => {
     expect(html).not.toContain("Marca de tarjeta");
     expect(html).not.toContain("Tipo de tarjeta");
     expect(html).not.toContain("Tarjeta enmascarada");
+  });
+});
+
+describe("PaymentConfirmationEmailService — pago rechazado y copias", () => {
+  const originalPaymentEnvironment = process.env.PAYMENT_ENVIRONMENT;
+
+  afterEach(() => {
+    if (originalPaymentEnvironment === undefined) delete process.env.PAYMENT_ENVIRONMENT;
+    else process.env.PAYMENT_ENVIRONMENT = originalPaymentEnvironment;
+  });
+
+  const failedDetails = {
+    ...details,
+    status: PaymentStatus.FAILED,
+    failureCode: "116",
+    failureReason: "Fondos insuficientes",
+  };
+
+  function transactionalEmails(overrides: Record<string, unknown> = {}) {
+    return {
+      findByIdempotencyKey: vi.fn().mockResolvedValue(null),
+      createOrGetIdempotent: vi.fn().mockResolvedValue({ id: 11, created: true }),
+      tryMarkSending: vi.fn().mockResolvedValue(true),
+      markAccepted: vi.fn().mockResolvedValue(undefined),
+      recordFailure: vi.fn().mockResolvedValue(undefined),
+      ...overrides,
+    };
+  }
+
+  it("envía la incidencia al postulante con copias en PRODUCTION y motivo amigable", async () => {
+    process.env.PAYMENT_ENVIRONMENT = "PRODUCTION";
+    const repository = { findPaymentConfirmationDetails: vi.fn().mockResolvedValue(failedDetails), markConfirmationEmailSent: vi.fn() };
+    const mailService = { sendMail: vi.fn().mockResolvedValue({ messageId: "incident-1" }) };
+    const store = transactionalEmails();
+
+    await new PaymentConfirmationEmailService(repository, mailService as never, enabledSettings as never, store as never).sendIncidentIfNeeded(details.id);
+
+    const mail = mailService.sendMail.mock.calls[0][0] as { to: string; cc: string[]; bcc: string[]; subject: string; html: string };
+    expect(mail.to).toBe(details.application.email);
+    expect(mail.cc).toEqual(expect.arrayContaining(["asociados@iimp.org.pe", "billing@example.com"]));
+    expect(mail.bcc).toEqual(expect.arrayContaining(["john.moron@iimp.org.pe", "sistemas.iimp.ia@gmail.com"]));
+    expect(mail.subject).toBe("IIMP | Incidencia en el pago de tu afiliación");
+    expect(mail.html).toContain("EXP-77");
+    expect(mail.html).toContain("No cuentas con fondos suficientes");
+    expect(store.markAccepted).toHaveBeenCalledWith(11, "incident-1");
+  });
+
+  it("no envía incidencia para un pago aprobado", async () => {
+    const repository = { findPaymentConfirmationDetails: vi.fn().mockResolvedValue(details), markConfirmationEmailSent: vi.fn() };
+    const mailService = { sendMail: vi.fn() };
+    const store = transactionalEmails();
+
+    await new PaymentConfirmationEmailService(repository, mailService as never, enabledSettings as never, store as never).sendIncidentIfNeeded(details.id);
+
+    expect(mailService.sendMail).not.toHaveBeenCalled();
+    expect(store.createOrGetIdempotent).not.toHaveBeenCalled();
+  });
+
+  it("no duplica la incidencia cuando ya fue aceptada", async () => {
+    process.env.PAYMENT_ENVIRONMENT = "PRODUCTION";
+    const repository = { findPaymentConfirmationDetails: vi.fn().mockResolvedValue(failedDetails), markConfirmationEmailSent: vi.fn() };
+    const mailService = { sendMail: vi.fn() };
+    const store = transactionalEmails({ findByIdempotencyKey: vi.fn().mockResolvedValue({ id: 11, status: "ACCEPTED" }) });
+
+    await new PaymentConfirmationEmailService(repository, mailService as never, enabledSettings as never, store as never).sendIncidentIfNeeded(details.id);
+
+    expect(store.tryMarkSending).not.toHaveBeenCalled();
+    expect(mailService.sendMail).not.toHaveBeenCalled();
+  });
+
+  it("envía la incidencia aunque la confirmación esté deshabilitada", async () => {
+    process.env.PAYMENT_ENVIRONMENT = "TEST";
+    const repository = { findPaymentConfirmationDetails: vi.fn().mockResolvedValue(failedDetails), markConfirmationEmailSent: vi.fn() };
+    const mailService = { sendMail: vi.fn().mockResolvedValue({ messageId: "incident-1" }) };
+    const store = transactionalEmails();
+    const settings = { getPaymentConfirmationEmailSettings: vi.fn().mockResolvedValue({ enabled: false, subject: undefined }) };
+
+    await new PaymentConfirmationEmailService(repository, mailService as never, settings as never, store as never).sendIncidentIfNeeded(details.id);
+
+    expect(mailService.sendMail).toHaveBeenCalledOnce();
+    expect(store.markAccepted).toHaveBeenCalledWith(11, "incident-1");
+  });
+
+  it("agrega copias a la confirmación en PRODUCTION", async () => {
+    process.env.PAYMENT_ENVIRONMENT = "PRODUCTION";
+    const repository = { findPaymentConfirmationDetails: vi.fn().mockResolvedValue(details), markConfirmationEmailSent: vi.fn().mockResolvedValue(true) };
+    const mailService = { sendMail: vi.fn().mockResolvedValue(undefined) };
+
+    await new PaymentConfirmationEmailService(repository, mailService as never, enabledSettings as never).sendIfNeeded(details.id);
+
+    expect(mailService.sendMail).toHaveBeenCalledWith(expect.objectContaining({
+      cc: expect.arrayContaining(["asociados@iimp.org.pe", "billing@example.com"]),
+      bcc: expect.arrayContaining(["john.moron@iimp.org.pe", "sistemas.iimp.ia@gmail.com"]),
+    }));
+  });
+
+  it("no agrega copias fuera de PRODUCTION", async () => {
+    process.env.PAYMENT_ENVIRONMENT = "TEST";
+    const repository = { findPaymentConfirmationDetails: vi.fn().mockResolvedValue(details), markConfirmationEmailSent: vi.fn().mockResolvedValue(true) };
+    const mailService = { sendMail: vi.fn().mockResolvedValue(undefined) };
+
+    await new PaymentConfirmationEmailService(repository, mailService as never, enabledSettings as never).sendIfNeeded(details.id);
+
+    const mail = mailService.sendMail.mock.calls[0][0] as { cc?: string[]; bcc?: string[] };
+    expect(mail.cc).toBeUndefined();
+    expect(mail.bcc).toBeUndefined();
   });
 });

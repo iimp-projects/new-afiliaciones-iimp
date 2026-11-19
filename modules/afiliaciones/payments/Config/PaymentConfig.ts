@@ -33,8 +33,20 @@ const environment = configuredEnvironment === "TEST" || configuredEnvironment ==
   ? configuredEnvironment
   : undefined;
 
-if (environment === "PRODUCTION" && process.env.NODE_ENV !== "production") {
-  throw new Error("PAYMENT_ENVIRONMENT=PRODUCTION solo puede usarse con NODE_ENV=production.");
+const allowProductionOutsideProduction =
+  (process.env.PAYMENT_ALLOW_PRODUCTION_OUTSIDE_PRODUCTION || "").toLowerCase() === "true";
+
+if (environment === "PRODUCTION" && process.env.NODE_ENV !== "production" && !allowProductionOutsideProduction) {
+  throw new Error(
+    "PAYMENT_ENVIRONMENT=PRODUCTION solo puede usarse con NODE_ENV=production. " +
+      "Para pruebas locales explícitas define PAYMENT_ALLOW_PRODUCTION_OUTSIDE_PRODUCTION=true.",
+  );
+}
+
+if (environment === "PRODUCTION" && process.env.NODE_ENV !== "production" && allowProductionOutsideProduction) {
+  console.warn(
+    "[PAYMENTS] PAYMENT_ENVIRONMENT=PRODUCTION habilitado fuera de NODE_ENV=production por configuración explícita local.",
+  );
 }
 
 if (!Number.isFinite(configuredAmount) || configuredAmount <= 0) {

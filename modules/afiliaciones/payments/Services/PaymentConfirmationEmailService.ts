@@ -1,21 +1,43 @@
-import { PaymentStatus } from "@prisma/client";
+import { PaymentStatus, TransactionalEmailStatus } from "@prisma/client";
 import { MailService } from "../../../shared/Services/MailService";
 import type { IPaymentRepository, PaymentConfirmationDetails } from "../Repositories/Interfaces/IPaymentRepository";
 import { paymentMethodLabel } from "../Models/PaymentMethod";
 import { PaymentSettingsResolver } from "../../../security/system-settings/Services/PaymentSettingsResolver";
 import { emailLayout } from "@/modules/shared/Email/EmailLayout";
-import { emailInfoBox } from "@/modules/shared/Email/EmailComponents";
+import { emailCta, emailInfoBox } from "@/modules/shared/Email/EmailComponents";
 import { LIMA_TIME_ZONE } from "@/modules/shared/Utils/formatPeruDateTime";
+import { TransactionalEmailRepository } from "../../notifications/Repositories/TransactionalEmailRepository";
+import { getNiubizActionCode, NIUBIZ_APPROVED_ACTION_CODES } from "./Niubiz/NiubizActionCodes";
+import { getAppBaseUrl } from "@/lib/config/env";
 
 const IIMP_LOGO_URL = "https://s3-iimp-gestor-de-archivos-v3.s3.sa-east-1.amazonaws.com/boletines/images/IMG20260817_120138.png";
+const INCIDENT_EVENT = "AFFILIATION_PAYMENT_INCIDENT";
+const INCIDENT_TEMPLATE = "affiliation-payment-incident";
+const PAYMENT_COPY_CC = ["asociados@iimp.org.pe"] as const;
+const PAYMENT_COPY_BCC = ["john.moron@iimp.org.pe", "sistemas.iimp.ia@gmail.com"] as const;
+
+function paymentCopyRecipients(to: string, billingEmail?: string | null): { cc?: string[]; bcc?: string[] } {
+  if ((process.env.PAYMENT_ENVIRONMENT ?? "").trim().toUpperCase() !== "PRODUCTION") return {};
+  const toKey = to.trim().toLowerCase();
+  const unique = (values: string[]) => [...new Set(values.map((value) => value.trim().toLowerCase()).filter((value) => value && value !== toKey))];
+  return {
+    cc: unique([...PAYMENT_COPY_CC, billingEmail ?? ""]),
+    bcc: unique([...PAYMENT_COPY_BCC]),
+  };
+}
 
 export class PaymentConfirmationEmailService {
   private static readonly defaultSubject = "Afiliación IIMP confirmada – Pago realizado correctamente";
+  private static readonly incidentSubject = "IIMP | Incidencia en el pago de tu afiliación";
 
   constructor(
     private readonly repository: Pick<IPaymentRepository, "findPaymentConfirmationDetails" | "markConfirmationEmailSent">,
     private readonly mailService = new MailService(),
     private readonly settings = new PaymentSettingsResolver(),
+    private readonly transactionalEmails: Pick<
+      TransactionalEmailRepository,
+      "findByIdempotencyKey" | "createOrGetIdempotent" | "tryMarkSending" | "markAccepted" | "recordFailure"
+    > = new TransactionalEmailRepository(),
   ) {}
 
   async sendIfNeeded(paymentId: number): Promise<void> {
@@ -24,11 +46,81 @@ export class PaymentConfirmationEmailService {
     try {
       const emailSettings = await this.settings.getPaymentConfirmationEmailSettings();
       if (!emailSettings.enabled) return;
-      await this.mailService.sendMail({ to: payment.application.email, subject: emailSettings.subject ?? PaymentConfirmationEmailService.defaultSubject, html: this.buildTemplate(payment) });
+      const copies = paymentCopyRecipients(payment.application.email, payment.billing?.billingEmail);
+      await this.mailService.sendMail({ to: payment.application.email, ...copies, subject: emailSettings.subject ?? PaymentConfirmationEmailService.defaultSubject, html: this.buildTemplate(payment) });
       await this.repository.markConfirmationEmailSent(payment.id);
     } catch {
       console.error("[PAYMENT_CONFIRMATION_EMAIL] No se pudo enviar la confirmación.", { paymentId });
     }
+  }
+
+  async sendIncidentIfNeeded(paymentId: number): Promise<void> {
+    const payment = await this.repository.findPaymentConfirmationDetails(paymentId);
+    if (!payment || payment.status !== PaymentStatus.FAILED) return;
+    const recipient = payment.application.email?.trim();
+    if (!recipient) return;
+
+    const idempotencyKey = `affiliation-payment-incident:v1:${payment.id}`;
+    let transactionalEmailId: number | undefined;
+    try {
+      const existing = await this.transactionalEmails.findByIdempotencyKey(idempotencyKey);
+      const terminalStatuses: TransactionalEmailStatus[] = [TransactionalEmailStatus.ACCEPTED, TransactionalEmailStatus.SENDING, TransactionalEmailStatus.EXHAUSTED];
+      if (existing && terminalStatuses.includes(existing.status)) return;
+
+      const { id } = await this.transactionalEmails.createOrGetIdempotent({
+        event: INCIDENT_EVENT,
+        templateName: INCIDENT_TEMPLATE,
+        applicationId: payment.applicationId,
+        recipient,
+        idempotencyKey,
+      });
+      transactionalEmailId = id;
+      if (!(await this.transactionalEmails.tryMarkSending(id))) return;
+
+      const copies = paymentCopyRecipients(recipient, payment.billing?.billingEmail);
+      const result = await this.mailService.sendMail({
+        to: recipient,
+        ...copies,
+        subject: PaymentConfirmationEmailService.incidentSubject,
+        html: this.buildIncidentTemplate(payment),
+      });
+      await this.transactionalEmails.markAccepted(id, result?.messageId);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "No se pudo enviar el correo de incidencia.";
+      if (transactionalEmailId !== undefined) {
+        await this.transactionalEmails.recordFailure(transactionalEmailId, message).catch(() => undefined);
+      }
+      console.error("[PAYMENT_INCIDENT_EMAIL] No se pudo enviar la incidencia.", { paymentId, errorName: error instanceof Error ? error.name : "UnknownError" });
+    }
+  }
+
+  private buildIncidentTemplate(payment: PaymentConfirmationDetails): string {
+    const application = payment.application;
+    const person = application.person;
+    const name = person ? [person.firstName, person.paternalLastName, person.maternalLastName].filter(Boolean).join(" ") : "Postulante";
+    const declineCode = payment.actionCode ?? payment.failureCode;
+    const action = declineCode && !NIUBIZ_APPROVED_ACTION_CODES.has(declineCode) ? getNiubizActionCode(declineCode) : undefined;
+    const reason = action?.userMessage ?? payment.failureReason;
+    const retryUrl = new URL("/consulta", getAppBaseUrl()).toString();
+    const detailRows = rows([
+      ["Código de expediente", application.applicationCode],
+      ["Importe", formatMoney(payment.totalAmount, payment.currency)],
+      ...(reason ? [["Motivo", reason] as [string, string]] : []),
+    ]);
+    const content = `
+      <p style="margin:0 0 16px;">Estimado(a) <strong>${escapeHtml(name)}</strong>:</p>
+      <p style="margin:0 0 16px;">No pudimos confirmar el pago de tu afiliación al IIMP.</p>
+      ${emailInfoBox("Tu pago no fue aprobado. Puedes volver a intentarlo desde el Portal de Afiliaciones.", "warning")}
+      ${section("DETALLE DEL PAGO", detailRows)}
+      <p style="margin:16px 0 0;">Puedes volver a intentar el pago desde el portal. Si el problema persiste, escríbenos a <strong>asociados@iimp.org.pe</strong>.</p>
+      ${emailCta("VOLVER A INTENTAR EL PAGO", retryUrl)}
+    `;
+    return emailLayout({
+      category: "Pago de Afiliación",
+      title: "No pudimos confirmar tu pago",
+      summary: "El pago no fue aprobado.",
+      content,
+    });
   }
 
   private buildTemplate(payment: PaymentConfirmationDetails): string {
@@ -51,7 +143,7 @@ export class PaymentConfirmationEmailService {
     ]);
     const billingRows = payment.billing ? highlightedRows([
       ["Tipo de comprobante", payment.billing.receiptType ?? "No disponible"], ["Número de documento", payment.billing.taxId], ["Razón social / nombre", payment.billing.businessName],
-      ["Dirección fiscal", payment.billing.billingAddress], ["Correo", payment.billing.billingEmail],
+      ["Dirección fiscal", payment.billing.billingAddress], ["Responsable", payment.billing.billingContact], ["Correo", payment.billing.billingEmail],
     ]) : "";
     const invoiceLinks = invoice ? [invoice.pdfUrl ? documentLink(invoice.pdfUrl, "DESCARGAR PDF") : "", invoice.xmlUrl ? documentLink(invoice.xmlUrl, "DESCARGAR XML") : "", invoice.sunatCdrUrl ? documentLink(invoice.sunatCdrUrl, "DESCARGAR CDR") : ""].filter(Boolean).join(" ") : "";
     const invoiceSection = invoice ? section("COMPROBANTE", rows([["Tipo", invoice.type], ["Serie", invoice.serie], ["Número", invoice.number], ["Fecha de emisión", formatDate(invoice.issueDate)]]) + (invoiceLinks ? '<p style="margin:18px 0 0;text-align:center;">' + invoiceLinks + "</p>" : "")) : "";

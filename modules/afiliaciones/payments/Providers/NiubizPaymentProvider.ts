@@ -263,41 +263,52 @@ export class NiubizPaymentProvider implements PaymentProvider {
     };
   }
 
+  private get envPrefix(): string {
+    return this.environment === "TEST"
+      ? "NIUBIZ_TEST"
+      : this.environment === "PRODUCTION"
+        ? "NIUBIZ_PROD"
+        : "NIUBIZ";
+  }
+
   private assertConfigured(): void {
+    const prefix = this.envPrefix;
     const missing = [
-      !this.config.merchantId && "NIUBIZ_MERCHANT_ID",
-      !this.config.username && "NIUBIZ_USERNAME",
-      !this.config.password && "NIUBIZ_PASSWORD",
-      !this.config.securityUrl && "NIUBIZ_SECURITY_URL",
-      !this.config.sessionUrl && "NIUBIZ_SESSION_URL",
-      !this.config.authorizationUrl && "NIUBIZ_AUTHORIZATION_URL",
-      !this.config.checkoutUrl && "NIUBIZ_CHECKOUT_URL",
-      !this.config.callbackUrl && "NIUBIZ_CALLBACK_URL",
-      !this.config.timeoutUrl && "NIUBIZ_TIMEOUT_URL",
-      !this.config.merchantName && "NIUBIZ_MERCHANT_NAME",
-      !this.config.formButtonColor && "NIUBIZ_FORM_BUTTON_COLOR",
-      this.environment !== "TEST" && "PAYMENT_ENVIRONMENT=TEST",
+      !this.config.merchantId && `${prefix}_MERCHANT_ID`,
+      !this.config.username && `${prefix}_USERNAME`,
+      !this.config.password && `${prefix}_PASSWORD`,
+      !this.config.securityUrl && `${prefix}_SECURITY_URL`,
+      !this.config.sessionUrl && `${prefix}_SESSION_URL`,
+      !this.config.authorizationUrl && `${prefix}_AUTHORIZATION_URL`,
+      !this.config.checkoutUrl && `${prefix}_CHECKOUT_URL`,
+      !this.config.callbackUrl && `${prefix}_CALLBACK_URL`,
+      !this.config.timeoutUrl && `${prefix}_TIMEOUT_URL`,
+      !this.config.merchantName && `${prefix}_MERCHANT_NAME`,
+      !this.config.formButtonColor && `${prefix}_FORM_BUTTON_COLOR`,
+      this.environment !== "TEST" && this.environment !== "PRODUCTION" &&
+        "PAYMENT_ENVIRONMENT=TEST|PRODUCTION",
     ].filter(Boolean);
 
     if (missing.length > 0) {
       throw new NiubizProviderConfigurationError(
-        `Niubiz TEST no está configurado. Faltan: ${missing.join(", ")}.`,
+        `Niubiz ${this.environment ?? "TEST"} no está configurado. Faltan: ${missing.join(", ")}.`,
       );
     }
   }
 
   private assertAuthorizationConfigured(): void {
     this.assertConfigured();
+    const prefix = this.envPrefix;
     const dataMap = this.config.authorizationDataMap;
     const missing = [
-      !dataMap?.urlAddress && "NIUBIZ_URL_ADDRESS",
-      !dataMap?.serviceLocationCityName && "NIUBIZ_SERVICE_LOCATION_CITY_NAME",
+      !dataMap?.urlAddress && `${prefix}_URL_ADDRESS`,
+      !dataMap?.serviceLocationCityName && `${prefix}_SERVICE_LOCATION_CITY_NAME`,
       !dataMap?.serviceLocationCountrySubdivisionCode &&
-        "NIUBIZ_SERVICE_LOCATION_COUNTRY_SUBDIVISION_CODE",
+        `${prefix}_SERVICE_LOCATION_COUNTRY_SUBDIVISION_CODE`,
       !dataMap?.serviceLocationCountryCode &&
-        "NIUBIZ_SERVICE_LOCATION_COUNTRY_CODE",
+        `${prefix}_SERVICE_LOCATION_COUNTRY_CODE`,
       !dataMap?.serviceLocationPostalCode &&
-        "NIUBIZ_SERVICE_LOCATION_POSTAL_CODE",
+        `${prefix}_SERVICE_LOCATION_POSTAL_CODE`,
     ].filter(Boolean);
     if (missing.length > 0)
       throw new NiubizProviderConfigurationError(

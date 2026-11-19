@@ -13,6 +13,8 @@ interface SendMailAttachment {
 
 interface SendMailOptions {
   to: string;
+  cc?: string[];
+  bcc?: string[];
   subject: string;
   html: string;
   text?: string;
@@ -101,6 +103,8 @@ export class MailService {
       const info = await transporter.sendMail({
         from: `"${options.fromName ?? "IIMP Portal de Afiliaciones"}" <${this.from}>`,
         to: options.to,
+        cc: options.cc,
+        bcc: options.bcc,
         subject: options.subject,
         html: options.html,
         text: options.text,

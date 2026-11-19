@@ -33,6 +33,7 @@ import type { IPaymentRepository, PaymentGatewayResult, PaymentTransaction, Pend
 import { PaymentAmountResolver } from "../Services/PaymentAmountResolver";
 import { PaymentService, PaymentServiceError } from "../Services/PaymentService";
 import { NiubizAuthorizationHttpError, NiubizAuthorizationNetworkError } from "../Services/Niubiz/NiubizAuthorizationService";
+import { NiubizSecurityHttpError } from "../Services/Niubiz/NiubizSecurityService";
 import { SystemSettingsError } from "../../../security/system-settings/Services/SystemSettingsService";
 
 const input: CreatePaymentInput = {
@@ -269,6 +270,33 @@ describe("PaymentService", () => {
     expect(repository.created).toBeUndefined();
   });
 
+  it("libera el pago cuando el proveedor falla al iniciar la sesión", async () => {
+    const repository = new PaymentRepositoryFake();
+    const provider: PaymentProvider = {
+      gateway: PaymentGateway.NIUBIZ,
+      assertReady: vi.fn(),
+      initiate: vi.fn().mockRejectedValue(new Error("session failed")),
+    };
+    const service = new PaymentService(undefined, provider, repository, { recalculate: vi.fn() }, authorizedPayment);
+
+    await expect(service.initiate(input, "authorized")).rejects.toThrow("session failed");
+    expect(repository.result).toMatchObject({ status: PaymentStatus.FAILED, failureCode: "PAYMENT_INITIATION_FAILED" });
+  });
+
+  it("traduce un rechazo de Security de Niubiz a 503 sin dejar el pago bloqueado", async () => {
+    const repository = new PaymentRepositoryFake();
+    const provider: PaymentProvider = {
+      gateway: PaymentGateway.NIUBIZ,
+      assertReady: vi.fn(),
+      initiate: vi.fn().mockRejectedValue(new NiubizSecurityHttpError(401)),
+    };
+    const service = new PaymentService(undefined, provider, repository, { recalculate: vi.fn() }, authorizedPayment);
+
+    await expect(service.initiate(input, "authorized"))
+      .rejects.toMatchObject({ status: 503, code: "PAYMENT_NIUBIZ_UNAVAILABLE" } satisfies Partial<PaymentServiceError>);
+    expect(repository.result).toMatchObject({ status: PaymentStatus.FAILED, failureCode: "PAYMENT_INITIATION_FAILED" });
+  });
+
   it("mantiene PENDING si faltan datos obligatorios de Authorization", async () => {
     const repository = new PaymentRepositoryFake();
     repository.paymentForAuthorization = {
@@ -319,6 +347,24 @@ describe("PaymentService", () => {
       .rejects.toMatchObject({ status: 502 } satisfies Partial<PaymentServiceError>);
     expect(repository.result).toMatchObject({ status: PaymentStatus.PENDING });
     expect(repository.result?.failureCode).toBeUndefined();
+  });
+
+  it("envía la incidencia cuando Niubiz rechaza el pago", async () => {
+    const repository = new PaymentRepositoryFake();
+    repository.paymentForAuthorization = { id: 99, applicationId: 42, totalAmount: 300, currency: "PEN", gateway: PaymentGateway.NIUBIZ, status: PaymentStatus.PENDING };
+    const provider = new NiubizPaymentProvider(niubizAuthorizationConfig, "TEST");
+    vi.spyOn(provider, "authorize").mockResolvedValue({
+      status: 200,
+      result: { status: PaymentStatus.FAILED, gatewayAmount: 300, gatewayCurrency: "PEN", gatewayPurchaseNumber: "99", failureCode: "116", failureReason: "Fondos insuficientes" },
+    });
+    const emailService = { sendIfNeeded: vi.fn(), sendIncidentIfNeeded: vi.fn() };
+    const service = new PaymentService(undefined, provider, repository, { recalculate: vi.fn() }, authorizedPayment, false, emailService as never);
+
+    await service.authorize({ applicationId: 42, paymentId: 99, transactionToken: "checkout-token" }, "authorized");
+
+    expect(repository.result).toMatchObject({ status: PaymentStatus.FAILED, failureCode: "116" });
+    expect(emailService.sendIncidentIfNeeded).toHaveBeenCalledWith(99);
+    expect(emailService.sendIfNeeded).not.toHaveBeenCalled();
   });
 
   it("no marca PAID cuando monto, moneda u orden no coinciden con el pago", async () => {
