@@ -36,7 +36,7 @@ describe("POST /api/afiliaciones/expedientes/[id]/enviar-metodos-pago", () => {
     mocks.sendManual.mockResolvedValue({ sent: true });
   });
 
-  it("permite a Atención al Asociado enviar los métodos de pago", async () => {
+  it("permite a Atención al Asociado enviar los métodos de pago manual", async () => {
     const response = await POST(request, { params });
 
     expect(response.status).toBe(200);

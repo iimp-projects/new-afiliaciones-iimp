@@ -33,6 +33,38 @@ describe("NiubizPaymentProvider", () => {
 
     expect(() => provider.assertReady()).not.toThrow();
   });
+  it("acepta la configuración completa de Niubiz PRODUCTION", () => {
+    const provider = new NiubizPaymentProvider({
+      merchantId: "650212280",
+      username: "username-prod",
+      password: "password-prod",
+      securityUrl: "https://prod.example/security",
+      sessionUrl: "https://prod.example/session",
+      authorizationUrl: "https://prod.example/authorization",
+      checkoutUrl: "https://prod.example/checkout.js",
+      callbackUrl: "http://localhost:3000/api/payments/niubiz/callback",
+      timeoutUrl: "http://localhost:3000/consulta",
+      merchantName: "IIMP",
+      formButtonColor: "#C5A059",
+      authorizationDataMap: {
+        urlAddress: "https://prod.example",
+        serviceLocationCityName: "Lima",
+        serviceLocationCountrySubdivisionCode: "LIM",
+        serviceLocationCountryCode: "PE",
+        serviceLocationPostalCode: "15024",
+      },
+    }, "PRODUCTION");
+
+    expect(() => provider.assertReady()).not.toThrow();
+    expect(() => provider.assertAuthorizationReady()).not.toThrow();
+  });
+
+  it("reporta las variables PROD faltantes", () => {
+    const provider = new NiubizPaymentProvider({ merchantId: "650212280" }, "PRODUCTION");
+
+    expect(() => provider.assertReady()).toThrow("NIUBIZ_PROD_USERNAME, NIUBIZ_PROD_PASSWORD");
+  });
+
   it("aplica el snapshot público de System Settings al Checkout", () => {
     const provider = new NiubizPaymentProvider({
       merchantId: "merchant-test", username: "username-test", password: "password-test",

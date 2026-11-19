@@ -12,6 +12,8 @@ import { paymentConfig } from "../Config/PaymentConfig";
 import { PaymentAmountResolver } from "./PaymentAmountResolver";
 import { paymentAuthorizationService } from "./PaymentAuthorizationService";
 import { NiubizAuthorizationHttpError, NiubizAuthorizationNetworkError } from "./Niubiz/NiubizAuthorizationService";
+import { NiubizSecurityHttpError, NiubizSecurityNetworkError } from "./Niubiz/NiubizSecurityService";
+import { NiubizSessionHttpError } from "./Niubiz/NiubizSessionService";
 import { PaymentConfirmationEmailService } from "./PaymentConfirmationEmailService";
 import { PaymentSettingsResolver } from "../../../security/system-settings/Services/PaymentSettingsResolver";
 import { SystemSettingsError } from "../../../security/system-settings/Services/SystemSettingsService";
@@ -33,7 +35,7 @@ export class PaymentService {
     private readonly statusCalculator: Pick<ApplicationStatusCalculatorService, "recalculate"> = new ApplicationStatusCalculatorService(),
     private readonly authorizationService: Pick<typeof paymentAuthorizationService, "verify" | "createCallbackReference" | "verifyCallbackReference" | "consumeCallbackReference"> = paymentAuthorizationService,
     private readonly isNiubizTest = paymentConfig.provider === "NIUBIZ" && paymentConfig.environment === "TEST",
-    private readonly confirmationEmailService: Pick<PaymentConfirmationEmailService, "sendIfNeeded"> = new PaymentConfirmationEmailService(repository),
+    private readonly confirmationEmailService: Pick<PaymentConfirmationEmailService, "sendIfNeeded" | "sendIncidentIfNeeded"> = new PaymentConfirmationEmailService(repository),
     private readonly paymentSettingsResolver: Pick<PaymentSettingsResolver, "assertPaymentInitiationAvailable" | "getNiubizCheckoutSettings"> = new PaymentSettingsResolver(),
     private readonly rucLookup: Pick<ApisNetPeService, "getRuc"> = new ApisNetPeService(),
     private readonly associatesIntegrationService: Pick<AssociatesIntegrationService, "prepareActivePayment" | "processAfterCommit"> = new AssociatesIntegrationService(),
@@ -60,24 +62,30 @@ export class PaymentService {
     });
 
     const { payment, application, resumed } = startedPayment;
-    const providerResult = await this.initiateWithProvider(provider, {
-      paymentId: payment.id,
-      applicationId: payment.applicationId,
-      billingData,
-      amount: payment.totalAmount,
-      currency: payment.currency,
-      customer: {
-        email: application.email,
-        ...(application.person?.firstName ? { firstName: application.person.firstName } : {}),
-        ...(application.person?.paternalLastName ? { lastName: application.person.paternalLastName } : {}),
-        ...(clientIp ? { clientIp } : {}),
-        ...(application.phone ? { phone: application.phone } : {}),
-        ...(application.personId ? { personId: application.personId } : {}),
-        ...(application.person?.createdAt ? { registeredAt: application.person.createdAt } : {}),
-        ...(application.documentNumber ? { documentNumber: application.documentNumber } : {}),
-        ...(application.person?.address ? { address: { street: application.person.address.street, city: application.person.address.city, state: application.person.address.state, countryCode: application.person.address.countryCode, postalCode: application.person.address.postalCode ?? undefined } } : {}),
-      },
-    });
+    let providerResult: PaymentGatewayResult;
+    try {
+      providerResult = await this.initiateWithProvider(provider, {
+        paymentId: payment.id,
+        applicationId: payment.applicationId,
+        billingData,
+        amount: payment.totalAmount,
+        currency: payment.currency,
+        customer: {
+          email: application.email,
+          ...(application.person?.firstName ? { firstName: application.person.firstName } : {}),
+          ...(application.person?.paternalLastName ? { lastName: application.person.paternalLastName } : {}),
+          ...(clientIp ? { clientIp } : {}),
+          ...(application.phone ? { phone: application.phone } : {}),
+          ...(application.personId ? { personId: application.personId } : {}),
+          ...(application.person?.createdAt ? { registeredAt: application.person.createdAt } : {}),
+          ...(application.documentNumber ? { documentNumber: application.documentNumber } : {}),
+          ...(application.person?.address ? { address: { street: application.person.address.street, city: application.person.address.city, state: application.person.address.state, countryCode: application.person.address.countryCode, postalCode: application.person.address.postalCode ?? undefined } } : {}),
+        },
+      });
+    } catch (error) {
+      await this.releaseFailedInitiation(payment.id);
+      throw error;
+    }
     const updatedPayment = resumed && providerResult.status === PaymentStatus.PENDING ? payment : await this.persistPaymentResult(payment, providerResult);
     const responseProviderResult = providerResult.checkout
       ? { ...providerResult, checkout: { ...providerResult.checkout, callbackUrl: await this.withCallbackReference(providerResult.checkout.callbackUrl, payment) } }
@@ -93,7 +101,42 @@ export class PaymentService {
         console.error("[PAYMENTS] No se pudo iniciar la sesión Niubiz.", { errorName: error.name, errorMessage: error.message });
         throw new PaymentServiceError("La pasarela de pago no está disponible en este momento. Intenta nuevamente más tarde.", 503);
       }
+      if (error instanceof NiubizSecurityHttpError || error instanceof NiubizSecurityNetworkError || error instanceof NiubizSessionHttpError) {
+        console.error("[PAYMENTS] Falló la preparación de la sesión Niubiz.", {
+          errorName: error.name,
+          ...("status" in error ? { httpStatus: error.status } : {}),
+        });
+        throw new PaymentServiceError("No se pudo iniciar la sesión de pago Niubiz. Intenta nuevamente más tarde.", 503, "PAYMENT_NIUBIZ_UNAVAILABLE");
+      }
       throw error;
+    }
+  }
+
+  private async notifyPaymentResult(payment: PersistedPayment): Promise<void> {
+    try {
+      if (payment.status === PaymentStatus.PAID) await this.confirmationEmailService.sendIfNeeded(payment.id);
+      else if (payment.status === PaymentStatus.FAILED) await this.confirmationEmailService.sendIncidentIfNeeded(payment.id);
+    } catch (error) {
+      console.error("[PAYMENTS] No se pudo enviar la notificación del pago.", {
+        paymentId: payment.id,
+        status: payment.status,
+        errorName: error instanceof Error ? error.name : "UnknownError",
+      });
+    }
+  }
+
+  private async releaseFailedInitiation(paymentId: number): Promise<void> {
+    try {
+      await this.repository.updatePaymentResult(paymentId, {
+        status: PaymentStatus.FAILED,
+        failureCode: "PAYMENT_INITIATION_FAILED",
+        failureReason: "No se pudo iniciar la sesión de pago.",
+      });
+    } catch (error) {
+      console.error("[PAYMENTS] No se pudo liberar el pago tras fallar el inicio.", {
+        paymentId,
+        errorName: error instanceof Error ? error.name : "UnknownError",
+      });
     }
   }
 
@@ -158,13 +201,17 @@ export class PaymentService {
       const { result } = await this.provider.authorize({ paymentId: claimedPayment.id, applicationId: claimedPayment.applicationId, amount: claimedPayment.totalAmount, currency: claimedPayment.currency }, transactionToken, paymentChannel);
       this.assertGatewayResultMatchesPayment(claimedPayment, result);
       const persistedPayment = await this.persistPaymentResult(claimedPayment, result);
-      if (persistedPayment.status === PaymentStatus.PAID) await this.confirmationEmailService.sendIfNeeded(persistedPayment.id);
+      await this.notifyPaymentResult(persistedPayment);
       return persistedPayment;
     } catch (error) {
       if (error instanceof NiubizAuthorizationHttpError && error.response) {
         const result = this.provider.mapAuthorizationResponse(error.response, paymentChannel, error.status);
         this.assertGatewayResultMatchesPayment(claimedPayment, result);
-        if (result.status === PaymentStatus.FAILED) return this.persistPaymentResult(claimedPayment, result);
+        if (result.status === PaymentStatus.FAILED) {
+          const persistedPayment = await this.persistPaymentResult(claimedPayment, result);
+          await this.notifyPaymentResult(persistedPayment);
+          return persistedPayment;
+        }
       }
       await this.repository.updatePaymentResult(claimedPayment.id, { status: PaymentStatus.PENDING });
       if (error instanceof NiubizAuthorizationHttpError || error instanceof NiubizAuthorizationNetworkError) {

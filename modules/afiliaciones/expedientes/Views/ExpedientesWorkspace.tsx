@@ -335,13 +335,13 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
       });
       const result = await response.json();
       if (result.success) {
-        showToast("Se enviaron los métodos de pago al postulante.", "success");
+        showToast("Se envió el correo de métodos de pago manual al postulante.", "success");
         setPaymentMethodsTarget(null);
       } else {
-        showToast(result.error || "No se pudieron enviar los métodos de pago.", "error");
+        showToast(result.error || "No se pudo enviar el correo de métodos de pago manual.", "error");
       }
     } catch {
-      showToast("Error de conexión al enviar los métodos de pago.", "error");
+      showToast("Error de conexión al enviar el correo de métodos de pago manual.", "error");
     } finally {
       setIsSendingPaymentMethods(false);
     }
@@ -781,7 +781,7 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
         document.body
       )}
 
-      {/* MODAL: Enviar métodos de pago */}
+      {/* MODAL: Enviar métodos de pago manual */}
       {paymentMethodsTarget && createPortal(
         <div className="fixed inset-0 z-[99999999] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="bg-white rounded-[24px] w-full max-w-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
@@ -789,9 +789,9 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
               <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5 shadow-sm bg-emerald-50 text-emerald-600 border border-emerald-100">
                 <CreditCard size={32} strokeWidth={2.5} />
               </div>
-              <h2 className="text-xl font-black text-slate-800">Enviar métodos de pago</h2>
+              <h2 className="text-xl font-black text-slate-800">Enviar métodos de pago manual</h2>
               <p className="text-sm text-slate-500 mt-2.5 font-medium leading-relaxed">
-                Se enviará al postulante el correo con los métodos de pago y el detalle de los importes pendientes.
+                Se enviará al postulante el correo con los métodos de pago manual y el detalle de los importes pendientes.
               </p>
             </div>
             <div className="p-4 bg-slate-50 border-t border-slate-100 flex gap-3">

@@ -70,6 +70,7 @@ Variables generales observadas:
 - `PAYMENT_TEST_AMOUNT`
 - `PAYMENT_AUTH_SECRET` (obligatorio, mínimo 32 caracteres y exclusivo del dominio de pagos; no reutilizar `AUTH_SECRET`)
 - `PAYMENT_AUTH_TTL_SECONDS`
+- `PAYMENT_ALLOW_PRODUCTION_OUTSIDE_PRODUCTION` (solo pruebas locales explícitas; por defecto ausente/false)
 
 Niubiz usa grupos equivalentes `NIUBIZ_TEST_*` y `NIUBIZ_PROD_*` para credenciales, endpoints, URLs de retorno, identidad del comercio y ubicación. Consulta `modules/afiliaciones/payments/Config/PaymentConfig.ts` y [PAYMENTS.md](PAYMENTS.md); no inventes nombres o valores.
 

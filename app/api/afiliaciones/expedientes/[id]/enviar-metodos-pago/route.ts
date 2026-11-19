@@ -51,7 +51,7 @@ export async function POST(
     const result = await new IncorporationPaymentRequestEmailService().sendManual(applicationId);
     if (result.sent) {
       return NextResponse.json(
-        { success: true, message: "Correo con los métodos de pago enviado correctamente." },
+        { success: true, message: "Correo con los métodos de pago manual enviado correctamente." },
         { status: 200 },
       );
     }
