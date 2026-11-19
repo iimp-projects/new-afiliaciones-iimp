@@ -21,7 +21,6 @@ import {
 } from "../Templates/IncorporationPaymentRequestTemplate";
 
 export const INCORPORATION_PAYMENT_REQUEST_EVENT = "AFFILIATION_INCORPORATION_PAYMENT_REQUEST";
-export const INCORPORATION_PAYMENT_REQUEST_MANUAL_EVENT = "AFFILIATION_INCORPORATION_PAYMENT_REQUEST_MANUAL";
 export const INCORPORATION_PAYMENT_REQUEST_TEMPLATE = "incorporation-payment-request";
 
 const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
@@ -129,23 +128,11 @@ export class IncorporationPaymentRequestEmailService {
    * expediente READY_FOR_PAYMENT, no estudiante, con conceptos pendientes y sin
    * un pago validado que ya los cubra. La idempotencia usa `sys_transactional_emails`.
    */
-  async sendIfEligible(applicationId: number): Promise<IncorporationPaymentRequestSendResult> {
-    return this.send(applicationId, { manual: false });
-  }
-
-  /**
-   * Envío manual desde la bandeja de expedientes. Permite reenviar el correo
-   * aunque exista un envío automático previo, registrando cada acción con una
-   * clave idempotente propia.
-   */
-  async sendManual(applicationId: number): Promise<IncorporationPaymentRequestSendResult> {
-    return this.send(applicationId, { manual: true });
-  }
-
-  private async send(
+  async sendIfEligible(
     applicationId: number,
-    options: { manual: boolean },
+    options: { forceResend?: boolean } = {},
   ): Promise<IncorporationPaymentRequestSendResult> {
+    const forceResend = options.forceResend === true;
     const candidate = await this.repository.findCandidate(applicationId);
     if (!candidate) return { sent: false, reason: "NOT_FOUND" };
     if (candidate.deletedAt) return { sent: false, reason: "DELETED" };
@@ -201,24 +188,26 @@ export class IncorporationPaymentRequestEmailService {
       return { sent: false, reason: "ASSETS_UNAVAILABLE" };
     }
 
-    const idempotencyKey = options.manual
-      ? `incorporation-payment-request:manual:${candidate.id}:${randomUUID()}`
-      : idempotencyKeyFor(candidate.id);
-
-    if (!options.manual) {
-      const existing = await this.transactionalEmails.findByIdempotencyKey(idempotencyKey);
-      if (
-        existing &&
-        (existing.status === TransactionalEmailStatus.ACCEPTED ||
-          existing.status === TransactionalEmailStatus.SENDING ||
-          existing.status === TransactionalEmailStatus.EXHAUSTED)
-      ) {
-        return { sent: false, reason: "DUPLICATE" };
-      }
+    const baseIdempotencyKey = idempotencyKeyFor(candidate.id);
+    // El reenvío manual no reutiliza la clave del envío automático: genera un
+    // registro nuevo y conserva la idempotencia de los flujos automáticos.
+    const idempotencyKey = forceResend
+      ? `${baseIdempotencyKey}:manual:${randomUUID()}`
+      : baseIdempotencyKey;
+    const existing = forceResend
+      ? null
+      : await this.transactionalEmails.findByIdempotencyKey(baseIdempotencyKey);
+    if (
+      existing &&
+      (existing.status === TransactionalEmailStatus.ACCEPTED ||
+        existing.status === TransactionalEmailStatus.SENDING ||
+        existing.status === TransactionalEmailStatus.EXHAUSTED)
+    ) {
+      return { sent: false, reason: "DUPLICATE" };
     }
 
     const { id } = await this.transactionalEmails.createOrGetIdempotent({
-      event: options.manual ? INCORPORATION_PAYMENT_REQUEST_MANUAL_EVENT : INCORPORATION_PAYMENT_REQUEST_EVENT,
+      event: INCORPORATION_PAYMENT_REQUEST_EVENT,
       templateName: INCORPORATION_PAYMENT_REQUEST_TEMPLATE,
       applicationId: candidate.id,
       recipient,

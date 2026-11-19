@@ -26,9 +26,10 @@ type PersonRow = {
   }>;
 };
 
-function buildDb(overrides: { person?: PersonRow | null; card?: unknown } = {}) {
+function buildDb(overrides: { person?: PersonRow | null; card?: unknown; pendingQuotas?: number } = {}) {
   const db = {
     person: { findUnique: vi.fn().mockResolvedValue(overrides.person ?? null) },
+    associateQuota: { count: vi.fn().mockResolvedValue(overrides.pendingQuotas ?? 0) },
     associateCard: {
       findUnique: vi.fn().mockResolvedValue(overrides.card ?? null),
       create: vi.fn(),
@@ -118,6 +119,52 @@ describe("resolveCardData (regla simplificada temporal)", () => {
     const result = await resolveCardData(1, buildDb({ person: null }));
     expect(result.notFound).toBe(true);
     expect(result.eligible).toBe(false);
+  });
+
+  it("con 2 cuotas pendientes sigue elegible", async () => {
+    const person: PersonRow = {
+      firstName: "María", paternalLastName: "Pérez", maternalLastName: null,
+      user: { image: null },
+      applications: [activeCompleted],
+      sieAssociateRecords: [],
+    };
+    const result = await resolveCardData(1, buildDb({ person, pendingQuotas: 2 }));
+    expect(result.eligible).toBe(true);
+    expect(result.pendingQuotaCount).toBe(2);
+  });
+
+  it("con 3 cuotas pendientes queda restringido (no elegible)", async () => {
+    const person: PersonRow = {
+      firstName: "María", paternalLastName: "Pérez", maternalLastName: null,
+      user: { image: null },
+      applications: [activeCompleted],
+      sieAssociateRecords: [],
+    };
+    const result = await resolveCardData(1, buildDb({ person, pendingQuotas: 3 }));
+    expect(result.eligible).toBe(false);
+    expect(result.pendingQuotaCount).toBe(3);
+    expect(result.reason).toMatch(/cuotas pendientes/);
+  });
+
+  it("cuenta solo cuotas CUOTA pendientes no futuras de la última sync", async () => {
+    const person: PersonRow = {
+      firstName: "María", paternalLastName: "Pérez", maternalLastName: null,
+      user: { image: null },
+      applications: [activeCompleted],
+      sieAssociateRecords: [],
+    };
+    const db = buildDb({ person });
+    await resolveCardData(1, db);
+    const count = (db as unknown as { associateQuota: { count: ReturnType<typeof vi.fn> } }).associateQuota.count;
+    expect(count).toHaveBeenCalledWith({
+      where: {
+        personId: 1,
+        concept: "CUOTA",
+        accountingStatus: "PENDIENTE",
+        year: { lte: expect.any(Number) },
+        isPresentInLastSuccessfulSync: true,
+      },
+    });
   });
 
   it("no crea registros (solo lectura)", async () => {

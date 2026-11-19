@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 
 const mocks = vi.hoisted(() => ({
   requireApiPermission: vi.fn(),
-  sendManual: vi.fn(),
+  sendIfEligible: vi.fn(),
 }));
 
 vi.mock("@/modules/auth/context/api-authorization", () => ({
@@ -16,7 +16,7 @@ vi.mock("@/modules/auth/context/api-authorization", () => ({
 
 vi.mock("@/modules/afiliaciones/payments/Services/IncorporationPaymentRequestEmailService", () => ({
   IncorporationPaymentRequestEmailService: class {
-    public sendManual = mocks.sendManual;
+    public sendIfEligible = mocks.sendIfEligible;
   },
 }));
 
@@ -33,15 +33,14 @@ describe("POST /api/afiliaciones/expedientes/[id]/enviar-metodos-pago", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.requireApiPermission.mockResolvedValue(userWithRole("ATENCION_ASOCIADO"));
-    mocks.sendManual.mockResolvedValue({ sent: true });
+    mocks.sendIfEligible.mockResolvedValue({ sent: true });
   });
 
-  it("permite a Atención al Asociado enviar los métodos de pago manual", async () => {
+  it("permite a Atención al Asociado enviar los métodos de pago manual y fuerza el reenvío", async () => {
     const response = await POST(request, { params });
 
     expect(response.status).toBe(200);
-    expect(mocks.requireApiPermission).toHaveBeenCalledWith("update", "applications");
-    expect(mocks.sendManual).toHaveBeenCalledWith(7);
+    expect(mocks.sendIfEligible).toHaveBeenCalledWith(7, { forceResend: true });
     expect(await response.json()).toMatchObject({ success: true });
   });
 
@@ -49,7 +48,7 @@ describe("POST /api/afiliaciones/expedientes/[id]/enviar-metodos-pago", () => {
     mocks.requireApiPermission.mockResolvedValue(userWithRole(roleSlug));
     const response = await POST(request, { params });
     expect(response.status).toBe(200);
-    expect(mocks.sendManual).toHaveBeenCalledOnce();
+    expect(mocks.sendIfEligible).toHaveBeenCalledOnce();
   });
 
   it.each(["LOGISTICA", "LEGAL", "COMUNICACIONES", "COMITE_EVALUADOR"] as const)(
@@ -58,23 +57,23 @@ describe("POST /api/afiliaciones/expedientes/[id]/enviar-metodos-pago", () => {
       mocks.requireApiPermission.mockResolvedValue(userWithRole(roleSlug));
       const response = await POST(request, { params });
       expect(response.status).toBe(403);
-      expect(mocks.sendManual).not.toHaveBeenCalled();
+      expect(mocks.sendIfEligible).not.toHaveBeenCalled();
     },
   );
 
   it("no envía cuando el expediente no está apto para pago", async () => {
-    mocks.sendManual.mockResolvedValue({ sent: false, reason: "NOT_READY_FOR_PAYMENT" });
+    mocks.sendIfEligible.mockResolvedValue({ sent: false, reason: "NOT_READY_FOR_PAYMENT" });
 
     const response = await POST(request, { params });
 
     expect(response.status).toBe(409);
-    expect((await response.json()).error).toContain("Apto para Pago");
+    expect((await response.json()).error).toContain("apto para pago");
   });
 
   it("mantiene el 401/403 de la capa de autorización", async () => {
     mocks.requireApiPermission.mockRejectedValue(Object.assign(new Error("No autenticado."), { status: 401 }));
     const response = await POST(request, { params });
     expect(response.status).toBe(401);
-    expect(mocks.sendManual).not.toHaveBeenCalled();
+    expect(mocks.sendIfEligible).not.toHaveBeenCalled();
   });
 });

@@ -1,0 +1,134 @@
+@keyframes quotaRiseSoft {
+  from { opacity: 0; transform: translateY(14px) scale(0.985); filter: blur(3px); }
+  to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+
+@keyframes quotaFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes quotaBarGrow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes quotaGlow {
+  0%, 100% { opacity: 0.45; transform: scale(0.96); }
+  50% { opacity: 0.75; transform: scale(1.06); }
+}
+
+@keyframes quotaShimmerMove {
+  from { transform: translateX(-130%); }
+  to { transform: translateX(130%); }
+}
+
+@keyframes quotaPulseDot {
+  0%, 100% { opacity: 0.35; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+@keyframes quotaMenuIn {
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.rise {
+  animation: quotaRiseSoft 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.fade {
+  animation: quotaFade 0.45s ease-out both;
+}
+
+.delay1 { animation-delay: 0.05s; }
+.delay2 { animation-delay: 0.1s; }
+.delay3 { animation-delay: 0.15s; }
+.delay4 { animation-delay: 0.2s; }
+.delay5 { animation-delay: 0.25s; }
+
+.cardMotion {
+  transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.28s ease, border-color 0.28s ease, background-color 0.28s ease;
+}
+
+.cardMotion:hover {
+  transform: translateY(-3px);
+  border-color: #d4c4b5;
+  background-color: #fffefc;
+  box-shadow: 0 18px 34px -24px rgba(127, 86, 30, 0.42);
+}
+
+.iconMotion {
+  transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.28s ease;
+}
+
+.cardMotion:hover .iconMotion {
+  transform: rotate(-6deg) scale(1.08);
+  background-color: #f7efe2;
+}
+
+.valueMotion {
+  transition: color 0.28s ease;
+}
+
+.cardMotion:hover .valueMotion {
+  color: #7f561e;
+}
+
+.barFill {
+  transform-origin: left center;
+  animation: quotaBarGrow 0.95s cubic-bezier(0.2, 0.8, 0.2, 1) 0.18s both;
+}
+
+.shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.34), transparent);
+  transform: translateX(-130%);
+  animation: quotaShimmerMove 3.2s ease-in-out 0.8s infinite;
+}
+
+.segmented {
+  transition: background-color 0.22s ease, color 0.22s ease, box-shadow 0.22s ease, transform 0.22s ease;
+}
+
+.segmented:active {
+  transform: scale(0.97);
+}
+
+.headerGlow {
+  animation: quotaGlow 9s ease-in-out infinite;
+}
+
+.pulseDot {
+  animation: quotaPulseDot 1.9s ease-in-out infinite;
+}
+
+.menuIn {
+  animation: quotaMenuIn 0.18s ease-out both;
+  transform-origin: top right;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise, .fade, .barFill, .headerGlow, .pulseDot, .menuIn {
+    animation: none;
+  }
+  .shimmer::after {
+    animation: none;
+  }
+  .cardMotion, .iconMotion, .valueMotion, .segmented {
+    transition: none;
+  }
+  .cardMotion:hover {
+    transform: none;
+  }
+  .cardMotion:hover .iconMotion {
+    transform: none;
+  }
+}

@@ -5,8 +5,9 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import QRCode from "qrcode";
 import { Award, BadgeCheck, BriefcaseBusiness, CalendarCheck2, CalendarDays, Check, Download, FileText, IdCard, Info, QrCode, ShieldAlert, UserRound } from "lucide-react";
+import { MAX_PENDING_QUOTAS } from "../Models/cardRules";
 
-export type CardViewData = { firstName: string; paternalLastName: string; maternalLastName: string | null; name: string; code: string | null; category: string | null; photoUrl: string | null; source: "NEW" | "MIGRATED" | null; eligible: boolean; reason: string | null; notFound: boolean };
+export type CardViewData = { firstName: string; paternalLastName: string; maternalLastName: string | null; name: string; code: string | null; category: string | null; photoUrl: string | null; source: "NEW" | "MIGRATED" | null; eligible: boolean; reason: string | null; pendingQuotaCount?: number; notFound: boolean };
 export type CardViewState = { generated: boolean; status: "ISSUED" | "REVOKED" | null; verificationToken: string | null; revokedAt: string | null; revokedReason: string | null };
 
 function useQr(url: string | null) {
@@ -61,7 +62,8 @@ export { CardFace };
 
 function StatusPanel({ data, issued, revoked }: { data: CardViewData; issued: boolean; revoked: boolean }) {
   const status = revoked ? "Credencial revocada" : issued ? "Carnet emitido" : "Vista previa — no emitido";
-  const rows = [{ icon: CalendarDays, title: "Vigencia", value: "Por confirmar" }, { icon: IdCard, title: "Código de asociado", value: data.code ?? "Pendiente de sincronización SIE" }, { icon: QrCode, title: "QR verificable", value: issued ? "Disponible" : revoked ? "No disponible" : "Pendiente de emisión" }, { icon: UserRound, title: "Datos del asociado", value: data.name || "No disponible" }];
+  const vigencia = (data.pendingQuotaCount ?? 0) > MAX_PENDING_QUOTAS ? "Restringida por cuotas pendientes" : data.eligible ? "Vigente" : "Por confirmar";
+  const rows = [{ icon: CalendarDays, title: "Vigencia", value: vigencia }, { icon: IdCard, title: "Código de asociado", value: data.code ?? "Pendiente de sincronización SIE" }, { icon: QrCode, title: "QR verificable", value: issued ? "Disponible" : revoked ? "No disponible" : "Pendiente de emisión" }, { icon: UserRound, title: "Datos del asociado", value: data.name || "No disponible" }];
   return <aside id="card-status" className="rounded-[20px] border border-slate-200 bg-white p-5 shadow-[0_12px_35px_-28px_rgba(20,35,61,0.55)] sm:p-6"><div className="flex items-start justify-between gap-3"><div className="flex items-center gap-2.5"><span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f8f1e3] text-[#a87924]"><Award size={18} /></span><h2 className="font-semibold text-[#14233D]">Estado del carnet</h2></div><span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${revoked ? "bg-red-50 text-red-700" : issued ? "bg-emerald-50 text-emerald-700" : "bg-[#f8f1e3] text-[#936b2e]"}`}>{status}</span></div><dl className="mt-5 divide-y divide-slate-100 border-t border-slate-100">{rows.map(({ icon: Icon, title, value }) => <div key={title} className="flex gap-3 py-4"><Icon size={17} className="mt-0.5 shrink-0 text-slate-400" /><div className="min-w-0"><dt className="text-sm font-medium text-[#14233D]">{title}</dt><dd className="mt-0.5 text-xs leading-5 text-slate-500">{value}</dd></div></div>)}</dl></aside>;
 }
 
