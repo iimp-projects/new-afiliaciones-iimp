@@ -2,6 +2,8 @@ import { PaymentGateway, PaymentStatus } from "@prisma/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { PaymentConfirmationEmailService } from "../Services/PaymentConfirmationEmailService";
 
+process.env.NEXT_PUBLIC_APP_URL ??= "https://portal.example";
+
 const details = {
   id: 77, applicationId: 42, totalAmount: 300, currency: "PEN" as const, gateway: PaymentGateway.NIUBIZ, status: PaymentStatus.PAID,
   transactionId: "transaction-77", paymentDate: new Date("2026-09-03T12:00:00Z"), gatewayTransactionDate: new Date("2026-09-03T12:00:00Z"), paymentChannel: "web", paymentMethod: "CARD", cardBrand: "VISA", cardType: "C", maskedCard: "************1234", authorizationCode: "AUTH-77", traceNumber: "TRACE-77",
