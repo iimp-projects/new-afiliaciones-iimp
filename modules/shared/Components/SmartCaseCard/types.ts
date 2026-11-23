@@ -106,10 +106,14 @@ export interface SmartCaseCardData {
 export interface SmartCaseCardProps {
   data: SmartCaseCardData;
   onClick?: () => void;
+  onEdit?: () => void;
+  editLabel?: string;
+  onGenerateCode?: () => void;
+  onManageAccess?: () => void;
+  onManualPayment?: () => void;
   onViewAvales?: () => void;
   onNotifyCommittee?: () => void;
   onSendPaymentMethods?: () => void;
-  onResendApplicant?: () => void;
   canManageNotifications?: boolean;
   isComiteReady?: boolean;
 }

@@ -2,6 +2,8 @@ import { PaymentGateway, PaymentStatus } from "@prisma/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { PaymentConfirmationEmailService } from "../Services/PaymentConfirmationEmailService";
 
+process.env.NEXT_PUBLIC_APP_URL ??= "https://portal.example";
+
 const details = {
   id: 77, applicationId: 42, totalAmount: 300, currency: "PEN" as const, gateway: PaymentGateway.NIUBIZ, status: PaymentStatus.PAID,
   transactionId: "transaction-77", paymentDate: new Date("2026-09-03T12:00:00Z"), gatewayTransactionDate: new Date("2026-09-03T12:00:00Z"), paymentChannel: "web", paymentMethod: "CARD", cardBrand: "VISA", cardType: "C", maskedCard: "************1234", authorizationCode: "AUTH-77", traceNumber: "TRACE-77",
@@ -10,11 +12,37 @@ const details = {
 };
 const enabledSettings = { getPaymentConfirmationEmailSettings: vi.fn().mockResolvedValue({ enabled: true, subject: "Asunto de prueba" }) };
 
+function confirmationStore(overrides: Record<string, unknown> = {}) {
+  return {
+    findByIdempotencyKey: vi.fn().mockResolvedValue(null),
+    createOrGetIdempotent: vi.fn().mockResolvedValue({ id: 21, created: true }),
+    tryMarkSending: vi.fn().mockResolvedValue(true),
+    markAccepted: vi.fn().mockResolvedValue(undefined),
+    recordFailure: vi.fn().mockResolvedValue(undefined),
+    ...overrides,
+  };
+}
+
 describe("PaymentConfirmationEmailService", () => {
+  it("reenvía la confirmación aunque ya se haya enviado antes", async () => {
+    const repository = { findPaymentConfirmationDetails: vi.fn().mockResolvedValue({ ...details, confirmationEmailSentAt: new Date() }), markConfirmationEmailSent: vi.fn().mockResolvedValue(true) };
+    const mailService = { sendMail: vi.fn().mockResolvedValue(undefined) };
+    await new PaymentConfirmationEmailService(repository, mailService as never, enabledSettings as never, confirmationStore() as never).resend(details.id);
+    expect(mailService.sendMail).toHaveBeenCalledWith(expect.objectContaining({ to: details.application.email }));
+    expect(repository.markConfirmationEmailSent).toHaveBeenCalledWith(details.id);
+  });
+
+  it("no reenvía si el pago no está aprobado", async () => {
+    const repository = { findPaymentConfirmationDetails: vi.fn().mockResolvedValue({ ...details, status: PaymentStatus.FAILED }), markConfirmationEmailSent: vi.fn() };
+    const mailService = { sendMail: vi.fn() };
+    await expect(new PaymentConfirmationEmailService(repository, mailService as never, enabledSettings as never, confirmationStore() as never).resend(details.id)).rejects.toThrow();
+    expect(mailService.sendMail).not.toHaveBeenCalled();
+  });
+
   it("envía y marca la confirmación solo después del envío exitoso", async () => {
     const repository = { findPaymentConfirmationDetails: vi.fn().mockResolvedValue(details), markConfirmationEmailSent: vi.fn().mockResolvedValue(true) };
     const mailService = { sendMail: vi.fn().mockResolvedValue(undefined) };
-    await new PaymentConfirmationEmailService(repository, mailService as never, enabledSettings as never).sendIfNeeded(details.id);
+    await new PaymentConfirmationEmailService(repository, mailService as never, enabledSettings as never, confirmationStore() as never).sendIfNeeded(details.id);
     expect(mailService.sendMail).toHaveBeenCalledWith(expect.objectContaining({ to: details.application.email, subject: "Asunto de prueba", html: expect.stringContaining("EXP-77") }));
     expect(repository.markConfirmationEmailSent).toHaveBeenCalledWith(details.id);
   });
@@ -22,7 +50,7 @@ describe("PaymentConfirmationEmailService", () => {
   it("no expone el código de seguimiento al postulante", async () => {
     const repository = { findPaymentConfirmationDetails: vi.fn().mockResolvedValue(details), markConfirmationEmailSent: vi.fn().mockResolvedValue(true) };
     const mailService = { sendMail: vi.fn().mockResolvedValue(undefined) };
-    await new PaymentConfirmationEmailService(repository, mailService as never, enabledSettings as never).sendIfNeeded(details.id);
+    await new PaymentConfirmationEmailService(repository, mailService as never, enabledSettings as never, confirmationStore() as never).sendIfNeeded(details.id);
     const html = mailService.sendMail.mock.calls[0][0].html as string;
     expect(html).not.toContain("TRACK-77");
     expect(html).not.toContain("CÓDIGO DE SEGUIMIENTO");
@@ -32,14 +60,14 @@ describe("PaymentConfirmationEmailService", () => {
   it("mantiene confirmationEmailSentAt sin marcar cuando MailService falla", async () => {
     const repository = { findPaymentConfirmationDetails: vi.fn().mockResolvedValue(details), markConfirmationEmailSent: vi.fn() };
     const mailService = { sendMail: vi.fn().mockRejectedValue(new Error("SMTP unavailable")) };
-    await new PaymentConfirmationEmailService(repository, mailService as never, enabledSettings as never).sendIfNeeded(details.id);
+    await new PaymentConfirmationEmailService(repository, mailService as never, enabledSettings as never, confirmationStore() as never).sendIfNeeded(details.id);
     expect(repository.markConfirmationEmailSent).not.toHaveBeenCalled();
   });
 
   it("no reenvía cuando la confirmación ya está marcada", async () => {
     const repository = { findPaymentConfirmationDetails: vi.fn().mockResolvedValue({ ...details, confirmationEmailSentAt: new Date() }), markConfirmationEmailSent: vi.fn() };
     const mailService = { sendMail: vi.fn() };
-    await new PaymentConfirmationEmailService(repository, mailService as never, enabledSettings as never).sendIfNeeded(details.id);
+    await new PaymentConfirmationEmailService(repository, mailService as never, enabledSettings as never, confirmationStore() as never).sendIfNeeded(details.id);
     expect(mailService.sendMail).not.toHaveBeenCalled();
     expect(repository.markConfirmationEmailSent).not.toHaveBeenCalled();
   });
@@ -57,7 +85,7 @@ describe("PaymentConfirmationEmailService", () => {
     const invoice = { type: "FACTURA", serie: "F001", number: "00000077", issueDate: new Date("2026-09-03T12:00:00Z"), pdfUrl: "https://files.example/77.pdf", xmlUrl: "https://files.example/77.xml", sunatCdrUrl: "https://files.example/77.cdr" };
     const repository = { findPaymentConfirmationDetails: vi.fn().mockResolvedValue({ ...details, billing: { ...details.billing, invoice } }), markConfirmationEmailSent: vi.fn().mockResolvedValue(true) };
     const mailService = { sendMail: vi.fn().mockResolvedValue(undefined) };
-    await new PaymentConfirmationEmailService(repository, mailService as never, enabledSettings as never).sendIfNeeded(details.id);
+    await new PaymentConfirmationEmailService(repository, mailService as never, enabledSettings as never, confirmationStore() as never).sendIfNeeded(details.id);
     const html = mailService.sendMail.mock.calls[0][0].html as string;
     expect(html).toContain("DESCARGAR PDF");
     expect(html).toContain("DESCARGAR XML");
@@ -67,7 +95,7 @@ describe("PaymentConfirmationEmailService", () => {
   it("WALLET/YAPE: muestra Yape y oculta la metadata de tarjeta", async () => {
     const repository = { findPaymentConfirmationDetails: vi.fn().mockResolvedValue({ ...details, paymentMethod: "WALLET", paymentBrand: "YAPE" }), markConfirmationEmailSent: vi.fn().mockResolvedValue(true) };
     const mailService = { sendMail: vi.fn().mockResolvedValue(undefined) };
-    await new PaymentConfirmationEmailService(repository, mailService as never, enabledSettings as never).sendIfNeeded(details.id);
+    await new PaymentConfirmationEmailService(repository, mailService as never, enabledSettings as never, confirmationStore() as never).sendIfNeeded(details.id);
     const html = mailService.sendMail.mock.calls[0][0].html as string;
     expect(html).toContain("Yape");
     expect(html).not.toContain("Marca de tarjeta");
@@ -79,12 +107,45 @@ describe("PaymentConfirmationEmailService", () => {
   it("UNKNOWN: muestra No identificado y no interpreta metadata histórica como tarjeta", async () => {
     const repository = { findPaymentConfirmationDetails: vi.fn().mockResolvedValue({ ...details, paymentMethod: "UNKNOWN" }), markConfirmationEmailSent: vi.fn().mockResolvedValue(true) };
     const mailService = { sendMail: vi.fn().mockResolvedValue(undefined) };
-    await new PaymentConfirmationEmailService(repository, mailService as never, enabledSettings as never).sendIfNeeded(details.id);
+    await new PaymentConfirmationEmailService(repository, mailService as never, enabledSettings as never, confirmationStore() as never).sendIfNeeded(details.id);
     const html = mailService.sendMail.mock.calls[0][0].html as string;
     expect(html).toContain("No identificado");
     expect(html).not.toContain("Marca de tarjeta");
     expect(html).not.toContain("Tipo de tarjeta");
     expect(html).not.toContain("Tarjeta enmascarada");
+  });
+
+  it("compone un único documento HTML con un solo encabezado institucional", async () => {
+    const repository = { findPaymentConfirmationDetails: vi.fn().mockResolvedValue(details), markConfirmationEmailSent: vi.fn().mockResolvedValue(true) };
+    const mailService = { sendMail: vi.fn().mockResolvedValue(undefined) };
+    await new PaymentConfirmationEmailService(repository, mailService as never, enabledSettings as never, confirmationStore() as never).sendIfNeeded(details.id);
+    const html = mailService.sendMail.mock.calls[0][0].html as string;
+    expect(html.match(/<!doctype html>/gi)).toHaveLength(1);
+    expect(html.match(/<html[\s>]/gi)).toHaveLength(1);
+    expect(html.match(/<body[\s>]/gi)).toHaveLength(1);
+    expect(html.match(/<img\b/gi)).toHaveLength(1);
+    expect(html).toContain("¡Bienvenido(a) al IIMP!");
+    expect(html).not.toContain("Pago confirmado");
+  });
+
+  it("incluye los datos del asociado y el detalle del pago", async () => {
+    const repository = { findPaymentConfirmationDetails: vi.fn().mockResolvedValue(details), markConfirmationEmailSent: vi.fn().mockResolvedValue(true) };
+    const mailService = { sendMail: vi.fn().mockResolvedValue(undefined) };
+    await new PaymentConfirmationEmailService(repository, mailService as never, enabledSettings as never, confirmationStore() as never).sendIfNeeded(details.id);
+    const html = mailService.sendMail.mock.calls[0][0].html as string;
+    for (const expected of ["DATOS DEL ASOCIADO", "DETALLE DEL PAGO", "Nombre completo", "Ana Pérez", "DNI 12345678", "EXP-77", "transaction-77", "TRACE-77", "AUTH-77", "PAGADO"]) {
+      expect(html).toContain(expected);
+    }
+  });
+
+  it("no reenvía si el registro idempotente ya fue aceptado", async () => {
+    const repository = { findPaymentConfirmationDetails: vi.fn().mockResolvedValue(details), markConfirmationEmailSent: vi.fn().mockResolvedValue(true) };
+    const mailService = { sendMail: vi.fn() };
+    const store = confirmationStore({ findByIdempotencyKey: vi.fn().mockResolvedValue({ id: 21, status: "ACCEPTED" }) });
+    await new PaymentConfirmationEmailService(repository, mailService as never, enabledSettings as never, store as never).sendIfNeeded(details.id);
+    expect(mailService.sendMail).not.toHaveBeenCalled();
+    expect(store.tryMarkSending).not.toHaveBeenCalled();
+    expect(repository.markConfirmationEmailSent).toHaveBeenCalledWith(details.id);
   });
 });
 
@@ -173,7 +234,7 @@ describe("PaymentConfirmationEmailService — pago rechazado y copias", () => {
     const repository = { findPaymentConfirmationDetails: vi.fn().mockResolvedValue(details), markConfirmationEmailSent: vi.fn().mockResolvedValue(true) };
     const mailService = { sendMail: vi.fn().mockResolvedValue(undefined) };
 
-    await new PaymentConfirmationEmailService(repository, mailService as never, enabledSettings as never).sendIfNeeded(details.id);
+    await new PaymentConfirmationEmailService(repository, mailService as never, enabledSettings as never, confirmationStore() as never).sendIfNeeded(details.id);
 
     expect(mailService.sendMail).toHaveBeenCalledWith(expect.objectContaining({
       cc: expect.arrayContaining(["asociados@iimp.org.pe", "billing@example.com"]),
@@ -186,7 +247,7 @@ describe("PaymentConfirmationEmailService — pago rechazado y copias", () => {
     const repository = { findPaymentConfirmationDetails: vi.fn().mockResolvedValue(details), markConfirmationEmailSent: vi.fn().mockResolvedValue(true) };
     const mailService = { sendMail: vi.fn().mockResolvedValue(undefined) };
 
-    await new PaymentConfirmationEmailService(repository, mailService as never, enabledSettings as never).sendIfNeeded(details.id);
+    await new PaymentConfirmationEmailService(repository, mailService as never, enabledSettings as never, confirmationStore() as never).sendIfNeeded(details.id);
 
     const mail = mailService.sendMail.mock.calls[0][0] as { cc?: string[]; bcc?: string[] };
     expect(mail.cc).toBeUndefined();

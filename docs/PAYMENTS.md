@@ -81,6 +81,9 @@ Gateways del schema: `NIUBIZ`, `IZIPAY`, `STRIPE`, `PAYPAL`, `BANK_TRANSFER`. Qu
 - `PAYMENT_ALLOW_PRODUCTION_OUTSIDE_PRODUCTION`: opt-in local explícito para usar `PAYMENT_ENVIRONMENT=PRODUCTION` con `NODE_ENV` distinto de `production`. No usar en despliegues.
 - `PAYMENT_AUTH_SECRET`: secreto exclusivo de al menos 32 caracteres para firmar autorizaciones temporales de pago; no reutilizar `AUTH_SECRET`.
 - Variables `NIUBIZ_TEST_*` y `NIUBIZ_PROD_*`: consulta [ENVIRONMENT.md](ENVIRONMENT.md) y `PaymentConfig.ts`.
+- Datos del titular antes del pago: con proveedor Niubiz, `PaymentService` exige correo, celular, documento y dirección, distrito/ciudad, departamento y país. El **código postal es opcional**: se envía a Niubiz si existe y se omite si no. Si faltan los datos obligatorios, responde `422 PAYMENT_CARDHOLDER_DATA_INCOMPLETE` con la lista y **no crea un pago pendiente**.
+- `PAYMENT_ALLOW_CARDHOLDER_FALLBACK`: por defecto `false`. Solo en `TEST` permite que `NIUBIZ_TEST_CARDHOLDER_*` complete los campos faltantes en lugar de bloquear. No usar en producción.
+- `NIUBIZ_TEST_CARDHOLDER_*` y `NIUBIZ_PROD_CARDHOLDER_*` (`CITY`, `COUNTRY`, `ADDRESS`, `POSTAL_CODE`, `STATE`, `PHONE`, opcionales): datos institucionales de respaldo del `dataMap` de Session. Se aplican **campo por campo**: el dato real siempre gana; los de producción deben ser confirmados por IIMP/Niubiz.
 
 No copies payloads ni URLs desde ejemplos no oficiales. Los contratos del proveedor deben verificarse con documentación del producto contratado.
 

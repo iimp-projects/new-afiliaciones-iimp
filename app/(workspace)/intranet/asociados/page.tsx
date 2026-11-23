@@ -10,11 +10,12 @@ export const metadata = {
 export default async function AsociadosPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; q?: string; type?: string; sort?: string }>;
+  searchParams: Promise<{ page?: string; q?: string; type?: string; sort?: string; gender?: string; country?: string; university?: string; company?: string; status?: string; from?: string; to?: string; inactivos?: string }>;
 }) {
   await contextService.requirePermission("read", "associates");
   const currentUser = await contextService.requireAuth();
   const canReadMemberships = await contextService.hasPermission("read", "memberships");
+  const canUpdateAssociateData = await contextService.hasPermission("update", "associates");
 
   const resolvedParams = await searchParams;
   const page = Number(resolvedParams.page) || 1;
@@ -24,10 +25,18 @@ export default async function AsociadosPage({
 
   const { data, total } = await fetchAsociadosAction({
     page,
-    pageSize: 12,
+    pageSize: 8,
     search: query,
     membershipType,
     sort,
+    gender: resolvedParams.gender,
+    country: resolvedParams.country,
+    university: resolvedParams.university,
+    company: resolvedParams.company,
+    status: resolvedParams.status,
+    from: resolvedParams.from,
+    to: resolvedParams.to,
+    inactivos: resolvedParams.inactivos,
   });
 
   return (
@@ -41,6 +50,7 @@ export default async function AsociadosPage({
         sort={sort}
         canResetSandboxPayments={paymentConfig.environment === "TEST" && currentUser.role.slug === "SUPER_ADMIN"}
         canReadMemberships={canReadMemberships}
+        canUpdateAssociateData={canUpdateAssociateData}
       />
     </div>
   );

@@ -28,6 +28,8 @@ interface InspectionDrawerProps {
   renderContent: (activeTab: string, payload: any, selectTab: (tab: string) => void) => React.ReactNode;
   onReevaluate?: () => void;
   evaluationActions?: React.ReactNode;
+  headerActions?: React.ReactNode;
+  showHistoryButton?: boolean;
 }
 
 const getBadgeIconName = (iconType: string) => {
@@ -62,6 +64,8 @@ function DrawerInner({
   renderContent,
   onReevaluate,
   evaluationActions,
+  headerActions,
+  showHistoryButton = true,
 }: Omit<InspectionDrawerProps, "isOpen">) {
   const { isTheaterMode, toggleTheaterMode } = useTheaterMode();
   const [activeTab, setActiveTab] = useState(data?.defaultTabId || "");
@@ -280,17 +284,20 @@ function DrawerInner({
                   {header.identity.title.toLowerCase()}
                 </h2>
 
-                <button
-                  onClick={() => setShowHistoryModal(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-500 hover:text-white rounded-full transition-all shadow-sm font-bold text-[11px] uppercase tracking-wider focus:outline-none group w-max"
-                >
-                  <History
-                    size={14}
-                    strokeWidth={2.5}
-                    className="group-hover:-rotate-45 transition-transform duration-300"
-                  />{" "}
-                  Historial
-                </button>
+                {showHistoryButton && (
+                  <button
+                    onClick={() => setShowHistoryModal(true)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-500 hover:text-white rounded-full transition-all shadow-sm font-bold text-[11px] uppercase tracking-wider focus:outline-none group w-max"
+                  >
+                    <History
+                      size={14}
+                      strokeWidth={2.5}
+                      className="group-hover:-rotate-45 transition-transform duration-300"
+                    />{" "}
+                    Historial
+                  </button>
+                )}
+                {headerActions}
               </div>
 
               <p className="text-[12px] sm:text-[14px] font-semibold text-slate-500 mb-3">

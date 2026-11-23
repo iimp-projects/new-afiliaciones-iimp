@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { contextService } from "@/modules/auth/context/service";
+import { ProfileCompletenessGuard } from "@/modules/afiliaciones/portal/Components/ProfileCompletenessGuard";
 import {
     AFFILIATE_PROFILE_ONLY_ROUTE,
     isAffiliateProfileOnlyRestrictedRoute,
@@ -17,5 +18,5 @@ export default async function AssociatePortalLayout({ children }: { children: Re
         redirect(AFFILIATE_PROFILE_ONLY_ROUTE);
     }
 
-    return children;
+    return <><ProfileCompletenessGuard />{children}</>;
 }

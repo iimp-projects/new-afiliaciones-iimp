@@ -22,7 +22,6 @@ export const CARDHOLDER_DATA_MAP_FIELDS = [
   "cardholderCity",
   "cardholderCountry",
   "cardholderAddress",
-  "cardholderPostalCode",
   "cardholderState",
   "cardholderPhoneNumber",
 ] as const;
@@ -90,7 +89,7 @@ export function redactSessionValue(value: unknown): unknown {
 /**
  * Redacción mínima para la vista en pantalla: solo tokens/credenciales
  * (Authorization, accessToken, sessionKey). Mantiene visibles MDD4, MDD32,
- * MDD75, MDD77 y los seis campos del dataMap para su revisión.
+ * MDD75, MDD77 y los campos obligatorios del dataMap (el código postal es opcional) para su revisión.
  */
 export function redactSessionSecrets(value: unknown): unknown {
   return redactWith(value, SECRET_KEYS);
@@ -190,7 +189,7 @@ export function isCertPauseEnabled(
 }
 
 /**
- * Verifica la presencia de los MDD requeridos y de los seis campos del dataMap
+ * Verifica la presencia de los MDD requeridos y de los campos obligatorios del dataMap
  * sobre el request REAL (sin redactar), antes de emitir la evidencia redactada.
  */
 export function verifySessionEvidence(request: NiubizSessionRequest): NiubizSessionDiagnostic["verification"] {

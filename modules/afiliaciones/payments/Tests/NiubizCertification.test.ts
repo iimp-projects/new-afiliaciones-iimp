@@ -100,6 +100,96 @@ describe("FASE 02 — Session", () => {
     expect(request.body.dataMap?.cardholderAddress).not.toBe(config.authorizationDataMap?.urlAddress);
   });
 
+  it("completa con el fallback institucional solo los campos faltantes del dataMap", () => {
+    const provider = new NiubizPaymentProvider({
+      ...config,
+      cardholderFallbackEnabled: true,
+      cardholderDataMap: {
+        city: "FallbackCity",
+        country: "FC",
+        address: "Fallback Address",
+        postalCode: "15024",
+        state: "FallbackState",
+        phone: "6186700",
+      },
+    }, "TEST");
+    const request = provider.buildSessionRequest({
+      ...command,
+      customer: {
+        ...command.customer,
+        phone: undefined,
+        address: { ...command.customer.address, postalCode: undefined },
+      },
+    }, "security-token");
+
+    expect(request.body.dataMap).toEqual({
+      cardholderCity: "Lima",
+      cardholderCountry: "PE",
+      cardholderAddress: "Calle Los Canarios 155-157, La Molina",
+      cardholderPostalCode: "15024",
+      cardholderState: "Lima",
+      cardholderPhoneNumber: "6186700",
+    });
+  });
+
+  it("usa el fallback institucional completo cuando el titular no tiene dirección ni teléfono", () => {
+    const provider = new NiubizPaymentProvider({
+      ...config,
+      cardholderFallbackEnabled: true,
+      cardholderDataMap: {
+        city: "FallbackCity",
+        country: "FC",
+        address: "Fallback Address",
+        postalCode: "15024",
+        state: "FallbackState",
+        phone: "6186700",
+      },
+    }, "TEST");
+    const request = provider.buildSessionRequest({
+      ...command,
+      customer: { email: "applicant@example.com", personId: 7, documentNumber: "12345678" },
+    }, "security-token");
+
+    expect(request.body.dataMap).toEqual({
+      cardholderCity: "FallbackCity",
+      cardholderCountry: "FC",
+      cardholderAddress: "Fallback Address",
+      cardholderPostalCode: "15024",
+      cardholderState: "FallbackState",
+      cardholderPhoneNumber: "6186700",
+    });
+  });
+
+  it("prioriza los datos reales del titular sobre el fallback institucional", () => {
+    const provider = new NiubizPaymentProvider({
+      ...config,
+      cardholderFallbackEnabled: true,
+      cardholderDataMap: { city: "FallbackCity", country: "FC", address: "Fallback Address", postalCode: "00000", state: "FallbackState", phone: "000000000" },
+    }, "TEST");
+    const request = provider.buildSessionRequest(command, "security-token");
+
+    expect(request.body.dataMap).toEqual({
+      cardholderCity: "Lima",
+      cardholderCountry: "PE",
+      cardholderAddress: "Calle Los Canarios 155-157, La Molina",
+      cardholderPostalCode: "15024",
+      cardholderState: "Lima",
+      cardholderPhoneNumber: "999999999",
+    });
+  });
+
+  it("ignora el fallback cuando no está habilitado", () => {
+    const provider = new NiubizPaymentProvider({
+      ...config,
+      cardholderDataMap: { city: "FallbackCity", country: "FC", address: "Fallback Address", postalCode: "15024", state: "FallbackState", phone: "6186700" },
+    }, "TEST");
+
+    expect(() => provider.buildSessionRequest({
+      ...command,
+      customer: { ...command.customer, address: { ...command.customer.address, city: undefined } },
+    }, "security-token")).toThrow(/cardholderCity/);
+  });
+
   it("impiden enviar una sesión incompleta sin MDD32", () => {
     const provider = new NiubizPaymentProvider(config, "TEST");
     expect(() => provider.buildSessionRequest({
@@ -108,12 +198,21 @@ describe("FASE 02 — Session", () => {
     }, "security-token")).toThrow(NiubizProviderConfigurationError);
   });
 
-  it("impiden enviar una sesión cuando falta un campo del dataMap", () => {
+  it("impiden enviar una sesión cuando falta un campo obligatorio del dataMap", () => {
     const provider = new NiubizPaymentProvider(config, "TEST");
     expect(() => provider.buildSessionRequest({
       ...command,
+      customer: { ...command.customer, address: { ...command.customer.address, city: undefined } },
+    }, "security-token")).toThrow(/cardholderCity/);
+  });
+
+  it("permite omitir el código postal del titular", () => {
+    const request = new NiubizPaymentProvider(config, "TEST").buildSessionRequest({
+      ...command,
       customer: { ...command.customer, address: { ...command.customer.address, postalCode: undefined } },
-    }, "security-token")).toThrow(/cardholderPostalCode/);
+    }, "security-token");
+
+    expect(request.body.dataMap).not.toHaveProperty("cardholderPostalCode");
   });
 
   it("no usa el número de pedido como identificador de cliente", () => {

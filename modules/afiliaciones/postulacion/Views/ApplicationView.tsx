@@ -361,8 +361,8 @@ export default function ApplicationView({
       <div className="w-full min-h-screen bg-[#F7F8FA] relative font-sans antialiased flex flex-col">
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#2a1700] via-[#C5A059]/90 to-[#4a2d00] z-0 overflow-hidden">
           <div
-            className="absolute inset-0 z-0 opacity-20 mix-blend-overlay bg-cover bg-center"
-            style={{ backgroundImage: "url('/images/minero.jpg')" }}
+            className="absolute inset-0 z-0 opacity-20 mix-blend-overlay bg-cover bg-center pointer-events-none"
+            style={{ backgroundImage: "url('/images/minero.jpg')", backgroundPosition: "center 30%" }}
           ></div>
           <div className="absolute bottom-0 left-0 w-full h-[50vh] bg-gradient-to-t from-[#F7F8FA] to-transparent z-10"></div>
         </div>

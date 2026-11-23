@@ -95,7 +95,7 @@ export function AdminCarnetPanel({ personId }: { personId: number }) {
 
   return (
     <div className="space-y-5">
-      {issued && <CardFace data={preview} verificationUrl={verificationUrl} />}
+      {(issued || (preview.eligible && !preview.card.generated)) && <CardFace data={preview} verificationUrl={verificationUrl} mode={issued ? "issued" : "preview"} />}
 
       {!preview.eligible && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-800">

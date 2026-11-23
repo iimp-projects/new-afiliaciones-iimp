@@ -39,9 +39,10 @@ export default function ApplicationHeader({
       {/* HERO */}
       <div className="absolute top-0 left-0 w-full h-[650px] bg-gradient-to-br from-[#2a1700] via-[#C5A059]/90 to-[#4a2d00] z-0 overflow-hidden">
         <div
-          className="absolute inset-0 opacity-20 mix-blend-overlay bg-cover bg-center"
+          className="absolute inset-0 opacity-20 mix-blend-overlay bg-cover bg-center pointer-events-none"
           style={{
             backgroundImage: "url('/images/minero.jpg')",
+            backgroundPosition: "center 30%",
           }}
         />
 

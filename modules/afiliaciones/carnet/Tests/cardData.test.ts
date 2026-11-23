@@ -43,7 +43,7 @@ describe("resolveCardData (regla simplificada temporal)", () => {
   const activeCompleted = { status: "COMPLETED", affiliateType: "ACTIVE" as const, documents: [], associateIntegration: null };
   const studentCompleted = { status: "COMPLETED", affiliateType: "STUDENT" as const, documents: [], associateIntegration: null };
 
-  it("Activo + COMPLETED → elegible (sin código SIE)", async () => {
+  it("Activo + COMPLETED → elegible y usa el código local A- si no hay código SIE", async () => {
     const person: PersonRow = {
       firstName: "María", paternalLastName: "Pérez", maternalLastName: "López",
       user: { image: null },
@@ -53,11 +53,11 @@ describe("resolveCardData (regla simplificada temporal)", () => {
     const result = await resolveCardData(1, buildDb({ person }));
     expect(result.eligible).toBe(true);
     expect(result.category).toBe("Asociado Activo");
-    expect(result.code).toBeNull();
+    expect(result.code).toBe("A-0001");
     expect(result.notFound).toBe(false);
   });
 
-  it("Estudiante + COMPLETED → elegible (sin código SIE)", async () => {
+  it("Estudiante + COMPLETED → elegible y usa el código local A- si no hay código SIE", async () => {
     const person: PersonRow = {
       firstName: "Juan", paternalLastName: "García", maternalLastName: null,
       user: { image: null },
@@ -67,7 +67,33 @@ describe("resolveCardData (regla simplificada temporal)", () => {
     const result = await resolveCardData(1, buildDb({ person }));
     expect(result.eligible).toBe(true);
     expect(result.category).toBe("Asociado Estudiante");
-    expect(result.code).toBeNull();
+    expect(result.code).toBe("A-0001");
+  });
+
+  it("asociado histórico SIE con categoría Activo → elegible aunque no tenga postulación", async () => {
+    const person: PersonRow = {
+      firstName: "Jose", paternalLastName: "Briceno", maternalLastName: null,
+      user: { image: null },
+      applications: [],
+      sieAssociateRecords: [{ externalCode: "00212", category: { mappedAffiliateType: "ACTIVE", name: "Activo" } }],
+    };
+    const result = await resolveCardData(1, buildDb({ person }));
+    expect(result.eligible).toBe(true);
+    expect(result.category).toBe("Asociado Activo");
+    expect(result.code).toBe("00212");
+    expect(result.source).toBe("MIGRATED");
+  });
+
+  it("asociado histórico SIE con 3 cuotas pendientes queda restringido", async () => {
+    const person: PersonRow = {
+      firstName: "Jose", paternalLastName: "Briceno", maternalLastName: null,
+      user: { image: null },
+      applications: [],
+      sieAssociateRecords: [{ externalCode: "00212", category: { mappedAffiliateType: "ACTIVE", name: "Activo" } }],
+    };
+    const result = await resolveCardData(1, buildDb({ person, pendingQuotas: 3 }));
+    expect(result.eligible).toBe(false);
+    expect(result.reason).toMatch(/cuotas pendientes/);
   });
 
   it("Activo + PENDING → no elegible", async () => {

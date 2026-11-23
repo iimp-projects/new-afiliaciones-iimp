@@ -44,7 +44,6 @@ const CARDHOLDER_DATA_MAP_FIELDS = [
   "cardholderCity",
   "cardholderCountry",
   "cardholderAddress",
-  "cardholderPostalCode",
   "cardholderState",
   "cardholderPhoneNumber",
 ] as const;
@@ -351,15 +350,30 @@ export class NiubizPaymentProvider implements PaymentProvider {
   private buildCardholderDataMap(
     command: PaymentProviderCommand,
   ): NiubizDataMap {
+    const fallback = this.config.cardholderFallbackEnabled
+      ? this.config.cardholderDataMap ?? {}
+      : {};
     const address = command.customer.address;
+    const pick = (
+      real: string | null | undefined,
+      institutional: string | undefined,
+    ): string | undefined => {
+      const value = real?.trim() || institutional?.trim();
+      return value || undefined;
+    };
     const dataMap: NiubizDataMap = {};
-    if (command.customer.phone)
-      dataMap.cardholderPhoneNumber = command.customer.phone;
-    if (address?.street) dataMap.cardholderAddress = address.street;
-    if (address?.city) dataMap.cardholderCity = address.city;
-    if (address?.state) dataMap.cardholderState = address.state;
-    if (address?.countryCode) dataMap.cardholderCountry = address.countryCode;
-    if (address?.postalCode) dataMap.cardholderPostalCode = address.postalCode;
+    const phone = pick(command.customer.phone, fallback.phone);
+    if (phone) dataMap.cardholderPhoneNumber = phone;
+    const street = pick(address?.street, fallback.address);
+    if (street) dataMap.cardholderAddress = street;
+    const city = pick(address?.city, fallback.city);
+    if (city) dataMap.cardholderCity = city;
+    const state = pick(address?.state, fallback.state);
+    if (state) dataMap.cardholderState = state;
+    const country = pick(address?.countryCode, fallback.country);
+    if (country) dataMap.cardholderCountry = country;
+    const postalCode = pick(address?.postalCode, fallback.postalCode);
+    if (postalCode) dataMap.cardholderPostalCode = postalCode;
     return dataMap;
   }
 
