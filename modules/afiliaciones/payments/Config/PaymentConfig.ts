@@ -23,6 +23,22 @@ export interface NiubizTestConfig {
     serviceLocationCountryCode?: string;
     serviceLocationPostalCode?: string;
   };
+  /**
+   * Datos institucionales de respaldo para completar, campo por campo, el
+   * `dataMap` de Session cuando el titular no tiene un dato real. Solo se
+   * pueblan desde variables de entorno del servidor; nunca se exponen al
+   * navegador.
+   */
+  cardholderDataMap?: {
+    city?: string;
+    country?: string;
+    address?: string;
+    postalCode?: string;
+    state?: string;
+    phone?: string;
+  };
+  /** Habilita el fallback institucional; desactivado por defecto. */
+  cardholderFallbackEnabled?: boolean;
 }
 
 const provider = (process.env.PAYMENT_PROVIDER || "MOCK").toUpperCase();
@@ -35,6 +51,9 @@ const environment = configuredEnvironment === "TEST" || configuredEnvironment ==
 
 const allowProductionOutsideProduction =
   (process.env.PAYMENT_ALLOW_PRODUCTION_OUTSIDE_PRODUCTION || "").toLowerCase() === "true";
+const allowCardholderFallback =
+  environment === "TEST" &&
+  (process.env.PAYMENT_ALLOW_CARDHOLDER_FALLBACK || "").toLowerCase() === "true";
 
 if (environment === "PRODUCTION" && process.env.NODE_ENV !== "production" && !allowProductionOutsideProduction) {
   throw new Error(
@@ -58,6 +77,7 @@ export const paymentConfig = {
   environment: environment as PaymentEnvironment | undefined,
   currency: "PEN" as const,
   testAmount: configuredAmount,
+  allowCardholderFallback,
   authorizationTtlSeconds: Number(process.env.PAYMENT_AUTH_TTL_SECONDS || "600"),
   mockScenario: ["PAID", "FAILED", "PENDING"].includes(mockScenario)
     ? (mockScenario as MockPaymentScenario)
@@ -83,5 +103,14 @@ export const paymentConfig = {
       serviceLocationCountryCode: environment === "TEST" ? process.env.NIUBIZ_TEST_SERVICE_LOCATION_COUNTRY_CODE : environment === "PRODUCTION" ? process.env.NIUBIZ_PROD_SERVICE_LOCATION_COUNTRY_CODE : undefined,
       serviceLocationPostalCode: environment === "TEST" ? process.env.NIUBIZ_TEST_SERVICE_LOCATION_POSTAL_CODE : environment === "PRODUCTION" ? process.env.NIUBIZ_PROD_SERVICE_LOCATION_POSTAL_CODE : undefined,
     },
+    cardholderDataMap: {
+      city: environment === "TEST" ? process.env.NIUBIZ_TEST_CARDHOLDER_CITY : environment === "PRODUCTION" ? process.env.NIUBIZ_PROD_CARDHOLDER_CITY : undefined,
+      country: environment === "TEST" ? process.env.NIUBIZ_TEST_CARDHOLDER_COUNTRY : environment === "PRODUCTION" ? process.env.NIUBIZ_PROD_CARDHOLDER_COUNTRY : undefined,
+      address: environment === "TEST" ? process.env.NIUBIZ_TEST_CARDHOLDER_ADDRESS : environment === "PRODUCTION" ? process.env.NIUBIZ_PROD_CARDHOLDER_ADDRESS : undefined,
+      postalCode: environment === "TEST" ? process.env.NIUBIZ_TEST_CARDHOLDER_POSTAL_CODE : environment === "PRODUCTION" ? process.env.NIUBIZ_PROD_CARDHOLDER_POSTAL_CODE : undefined,
+      state: environment === "TEST" ? process.env.NIUBIZ_TEST_CARDHOLDER_STATE : environment === "PRODUCTION" ? process.env.NIUBIZ_PROD_CARDHOLDER_STATE : undefined,
+      phone: environment === "TEST" ? process.env.NIUBIZ_TEST_CARDHOLDER_PHONE : environment === "PRODUCTION" ? process.env.NIUBIZ_PROD_CARDHOLDER_PHONE : undefined,
+    },
+    cardholderFallbackEnabled: allowCardholderFallback,
   } satisfies NiubizTestConfig,
 } as const;

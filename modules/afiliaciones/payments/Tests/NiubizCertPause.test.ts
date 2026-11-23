@@ -64,14 +64,14 @@ describe("isCertPauseEnabled — gating", () => {
 });
 
 describe("verifySessionEvidence", () => {
-  it("verifica MDD4, MDD32, MDD75 y los seis campos del dataMap", () => {
+  it("verifica MDD4, MDD32, MDD75 y los campos obligatorios del dataMap", () => {
     const verification = verifySessionEvidence(buildRequest());
     expect(verification.mdd4).toBe(true);
     expect(verification.mdd32).toBe(true);
     expect(verification.mdd75).toBe(true);
     expect(verification.mdd77).toBe(true);
     expect(verification.mdd77Present).toBe(false);
-    expect(verification.dataMapFields).toHaveLength(6);
+    expect(verification.dataMapFields).toHaveLength(5);
     expect(verification.missingDataMapFields).toHaveLength(0);
     expect(verification.mdd77Note).toBeDefined();
   });
@@ -85,12 +85,19 @@ describe("verifySessionEvidence", () => {
     expect(verification.mdd77Note).toBeUndefined();
   });
 
-  it("reporta los campos de dataMap ausentes", () => {
+  it("reporta los campos obligatorios del dataMap ausentes", () => {
+    const request = buildRequest();
+    delete request.body.dataMap!.cardholderCity;
+    const verification = verifySessionEvidence(request);
+    expect(verification.dataMapFields).toHaveLength(4);
+    expect(verification.missingDataMapFields).toEqual(["cardholderCity"]);
+  });
+
+  it("no reporta el código postal cuando está ausente", () => {
     const request = buildRequest();
     delete request.body.dataMap!.cardholderPostalCode;
     const verification = verifySessionEvidence(request);
-    expect(verification.dataMapFields).toHaveLength(5);
-    expect(verification.missingDataMapFields).toEqual(["cardholderPostalCode"]);
+    expect(verification.missingDataMapFields).toEqual([]);
   });
 });
 

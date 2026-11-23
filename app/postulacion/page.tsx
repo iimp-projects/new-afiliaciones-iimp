@@ -754,8 +754,8 @@ export default function PostulacionLandingPage() {
         {/* Background Premium */}
         <div className="absolute inset-0 z-0 bg-gradient-to-br from-[#2a1700] via-primary to-primary-container opacity-95"></div>
         <div
-          className="absolute inset-0 z-0 opacity-20 mix-blend-overlay bg-cover bg-center"
-          style={{ backgroundImage: "url('/images/minero.jpg')" }}
+          className="absolute inset-0 z-0 opacity-20 mix-blend-overlay bg-cover bg-center pointer-events-none"
+          style={{ backgroundImage: "url('/images/minero.jpg')", backgroundPosition: "center 30%" }}
         ></div>
         <div className="absolute bottom-0 left-0 w-full h-40 bg-gradient-to-t from-surface to-transparent z-10"></div>
 

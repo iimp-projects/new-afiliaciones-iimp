@@ -4,8 +4,8 @@ import { shouldShowEvaluationContext } from "@/modules/shared/Components/SmartCa
 
 describe("AsociadosMapper", () => {
   it("mantiene filas compactas para un asociado activo", () => {
-    const card = AsociadosMapper.toCardData({ id: 9, status: "ACTIVE", updatedAt: new Date("2026-09-03T10:00:00.000Z"), role: { slug: "ASOCIADO_ACTIVO" }, person: { firstName: "Andrea", paternalLastName: "Paredes", documentNumber: "41000057", contacts: [{ email: "andrea@example.com", phoneNumber: "999999999", isPrimary: true }], professionalExperiences: [{ company: { name: "Minera IIMP" }, isCurrent: true }], applications: [{ status: "COMPLETED", updatedAt: new Date("2026-08-07T10:00:00.000Z"), history: [{ newStatus: "COMPLETED", createdAt: new Date("2026-08-07T10:00:00.000Z") }], payments: [{ status: "PAID", totalAmount: "300" }] }] } });
-    expect(card.atomicValidations?.map((item) => item.label)).toEqual(["Código de asociado", "Miembro desde", "Empresa", "Inscripción"]);
+    const card = AsociadosMapper.toCardData({ id: 9, status: "ACTIVE", updatedAt: new Date("2026-09-03T10:00:00.000Z"), role: { slug: "ASOCIADO_ACTIVO" }, person: { firstName: "Andrea", paternalLastName: "Paredes", documentNumber: "41000057", contacts: [{ email: "andrea@example.com", phoneNumber: "999999999", isPrimary: true }], professionalExperiences: [{ company: { name: "Minera IIMP" }, isCurrent: true }], applications: [{ status: "COMPLETED", updatedAt: new Date("2026-08-07T10:00:00.000Z"), history: [{ newStatus: "COMPLETED", createdAt: new Date("2026-08-07T10:00:00.000Z") }], payments: [{ status: "PAID", totalAmount: "300", gateway: "NIUBIZ", paymentChannel: "web" }] }] } });
+    expect(card.atomicValidations?.map((item) => item.label)).toEqual(["Código", "Miembro desde", "Empresa", "Inscripción"]);
     expect(card.identity.email).toBe("andrea@example.com");
     expect(card.identity.phone).toBe("999999999");
     expect(card.hideContactDetails).toBe(true);
@@ -15,7 +15,7 @@ describe("AsociadosMapper", () => {
   it("muestra Institución para estudiantes y admite nombres largos", () => {
     const institution = "Universidad Nacional Mayor de San Marcos";
     const card = AsociadosMapper.toCardData({ id: 10, status: "ACTIVE", updatedAt: new Date(), role: { slug: "ASOCIADO_ESTUDIANTE" }, person: { firstName: "Ana", paternalLastName: "Ríos", documentNumber: "70000001", academicInfos: [{ university: { name: institution } }], applications: [{ status: "COMPLETED", history: [], payments: [] }] } });
-    expect(card.atomicValidations?.map((item) => item.label)).toEqual(["Código de asociado", "Miembro desde", "Institución", "Inscripción"]);
+    expect(card.atomicValidations?.map((item) => item.label)).toEqual(["Código", "Miembro desde", "Institución", "Inscripción"]);
     expect(card.atomicValidations?.[2].statusLabel).toBe(institution);
     expect(card.atomicValidations?.at(-1)?.statusLabel).toBe("Gratuita");
     expect(card.atomicValidations?.at(-1)?.assignee).toBeUndefined();
@@ -103,6 +103,14 @@ describe("AsociadosMapper", () => {
 
     const withCode = AsociadosMapper.toCardData({ ...user("DNI", "41000057"), institutionalCode: "12345" });
     expect(withCode.atomicValidations?.[0].statusLabel).toBe("12345");
+    expect(withCode.atomicValidations?.[0].assignee?.name).toBe("SIE");
+  });
+
+  it("genera el código A-<personId> cuando el asociado no tiene código institucional", () => {
+    const base = user("DNI", "41000057");
+    const card = AsociadosMapper.toCardData({ ...base, person: { ...base.person, id: 41 } });
+    expect(card.atomicValidations?.[0].statusLabel).toBe("A-0041");
+    expect(card.atomicValidations?.[0].assignee?.name).toBe("IIMP");
   });
 
   it("reconoce un asociado histórico SIE sin expediente como COMPLETADO con origen y código visible", () => {
@@ -114,5 +122,101 @@ describe("AsociadosMapper", () => {
     expect(card.trackingCode).toBe("00212");
     expect(card.atomicValidations?.[0].statusLabel).toBe("00212");
     expect(card.atomicValidations?.[0].assignee?.name).toBe("SIE");
+  });
+
+  it("usa la primera cuota migrada como 'Miembro desde' del asociado histórico", () => {
+    const card = AsociadosMapper.toCardData({
+      id: 901, source: "SIE_HISTORICAL", status: "COMPLETED", updatedAt: new Date(), role: { slug: "ASOCIADO_ACTIVO" }, institutionalCode: "00213", sieCode: "00213",
+      person: {
+        firstName: "Jose", paternalLastName: "Briceno", documentType: "DNI", documentNumber: "10000023", contacts: [], professionalExperiences: [], applications: [],
+        quotas: [
+          { concept: "INSCRIPCION", quotaNumber: null, year: 2014, periodStart: new Date("2014-12-15T00:00:00.000Z"), paidAt: new Date("2014-12-20T00:00:00.000Z") },
+          { concept: "CUOTA", quotaNumber: 1, year: 2015, periodStart: new Date("2015-01-01T00:00:00.000Z"), paidAt: new Date("2015-01-05T00:00:00.000Z") },
+        ],
+      },
+    });
+    const memberSince = card.atomicValidations?.find((item) => item.label === "Miembro desde");
+    expect(memberSince?.statusLabel).toBe("01/01/2015");
+    expect(memberSince?.status).toBe("check");
+    expect(memberSince?.assignee?.name).toBe("SIE");
+  });
+
+  it("prefiere la primera cuota SIE sobre la fecha del expediente en asociados V2", () => {
+    const card = AsociadosMapper.toCardData({
+      id: 902, status: "ACTIVE", updatedAt: new Date(), role: { slug: "ASOCIADO_ACTIVO" }, institutionalCode: "00214",
+      person: {
+        firstName: "Andrea", paternalLastName: "Paredes", documentType: "DNI", documentNumber: "41000057", contacts: [], professionalExperiences: [],
+        applications: [{ status: "COMPLETED", updatedAt: new Date("2026-08-07T10:00:00.000Z"), history: [{ newStatus: "COMPLETED", createdAt: new Date("2026-08-07T10:00:00.000Z") }], payments: [] }],
+        quotas: [{ concept: "CUOTA", quotaNumber: 1, year: 2018, periodStart: new Date("2018-03-01T00:00:00.000Z"), paidAt: null }],
+      },
+    });
+    const memberSince = card.atomicValidations?.find((item) => item.label === "Miembro desde");
+    expect(memberSince?.statusLabel).toBe("01/03/2018");
+    expect(memberSince?.assignee?.name).toBe("SIE");
+  });
+
+  it("mantiene la fecha del expediente cuando no existen cuotas SIE", () => {
+    const card = AsociadosMapper.toCardData({
+      id: 903, status: "ACTIVE", updatedAt: new Date(), role: { slug: "ASOCIADO_ACTIVO" }, institutionalCode: "00215",
+      person: {
+        firstName: "Lucía", paternalLastName: "Paz", documentType: "DNI", documentNumber: "41000060", contacts: [], professionalExperiences: [],
+        applications: [{ status: "COMPLETED", updatedAt: new Date("2026-08-07T10:00:00.000Z"), history: [{ newStatus: "COMPLETED", createdAt: new Date("2026-08-07T10:00:00.000Z") }], payments: [] }],
+      },
+    });
+    const memberSince = card.atomicValidations?.find((item) => item.label === "Miembro desde");
+    expect(memberSince?.statusLabel).toBe("07/08/2026");
+    expect(memberSince?.assignee?.name).toBe("IIMP");
+  });
+
+  it("muestra el origen Pasarela en la inscripción", () => {
+    const card = AsociadosMapper.toCardData({
+      id: 904, status: "ACTIVE", updatedAt: new Date(), role: { slug: "ASOCIADO_ACTIVO" }, institutionalCode: "00216",
+      person: {
+        firstName: "Ana", paternalLastName: "Ríos", documentType: "DNI", documentNumber: "41000061", contacts: [], professionalExperiences: [],
+        applications: [{ status: "COMPLETED", history: [], payments: [{ status: "PAID", totalAmount: "300", gateway: "NIUBIZ", paymentChannel: "web" }] }],
+      },
+    });
+    const inscription = card.atomicValidations?.find((item) => item.label === "Inscripción");
+    expect(inscription?.statusLabel).toBe("Pagada · Pasarela");
+    expect(inscription?.assignee?.name).toBe("S/ 300.00");
+  });
+
+  it("muestra el origen Manual en la inscripción", () => {
+    const card = AsociadosMapper.toCardData({
+      id: 905, status: "ACTIVE", updatedAt: new Date(), role: { slug: "ASOCIADO_ACTIVO" }, institutionalCode: "00217",
+      person: {
+        firstName: "Ana", paternalLastName: "Ríos", documentType: "DNI", documentNumber: "41000062", contacts: [], professionalExperiences: [],
+        applications: [{ status: "COMPLETED", history: [], payments: [{ status: "PAID", totalAmount: "300", gateway: "BANK_TRANSFER", paymentChannel: "MANUAL" }] }],
+      },
+    });
+    const inscription = card.atomicValidations?.find((item) => item.label === "Inscripción");
+    expect(inscription?.statusLabel).toBe("Pagada · Manual");
+    expect(inscription?.assignee?.name).toBe("S/ 300.00");
+  });
+
+  it("muestra el origen SIE en la inscripción de un asociado histórico", () => {
+    const card = AsociadosMapper.toCardData({
+      id: 906, source: "SIE_HISTORICAL", status: "COMPLETED", updatedAt: new Date(), role: { slug: "ASOCIADO_ACTIVO" }, institutionalCode: "00218", sieCode: "00218",
+      person: {
+        firstName: "Jose", paternalLastName: "Briceno", documentType: "DNI", documentNumber: "10000024", contacts: [], professionalExperiences: [], applications: [],
+        quotas: [{ concept: "INSCRIPCION", quotaNumber: null, year: 2015, periodStart: new Date("2015-01-01T00:00:00.000Z"), paidAt: new Date("2015-01-05T00:00:00.000Z"), amount: "150.00", currency: "S/" }],
+      },
+    });
+    const inscription = card.atomicValidations?.find((item) => item.label === "Inscripción");
+    expect(inscription?.statusLabel).toBe("Pagada · SIE");
+    expect(inscription?.assignee?.name).toBe("S/ 150.00");
+  });
+
+  it("mantiene el origen SIE cuando la tabla migrada solo tiene cuotas", () => {
+    const card = AsociadosMapper.toCardData({
+      id: 907, source: "SIE_HISTORICAL", status: "COMPLETED", updatedAt: new Date(), role: { slug: "ASOCIADO_ACTIVO" }, institutionalCode: "00219", sieCode: "00219",
+      person: {
+        firstName: "Jose", paternalLastName: "Briceno", documentType: "DNI", documentNumber: "10000025", contacts: [], professionalExperiences: [], applications: [],
+        quotas: [{ concept: "CUOTA", quotaNumber: 1, year: 2015, periodStart: new Date("2015-01-01T00:00:00.000Z"), paidAt: new Date("2015-01-05T00:00:00.000Z"), amount: "150.00", currency: "S/" }],
+      },
+    });
+    const inscription = card.atomicValidations?.find((item) => item.label === "Inscripción");
+    expect(inscription?.statusLabel).toBe("Pagada · SIE");
+    expect(inscription?.assignee).toBeUndefined();
   });
 });

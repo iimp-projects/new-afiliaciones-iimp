@@ -3,6 +3,7 @@ import { AffiliateType, Prisma, PrismaClient } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { resolveAffiliatePhoto } from "@/modules/shared/Services/AffiliatePhotoResolver";
 import { S3StorageService } from "@/modules/shared/Services/S3StorageService";
+import { buildAssociateCode } from "@/modules/shared/Utils/associateCode";
 import { currentQuotaYear } from "@/modules/afiliaciones/quotas/Services/quotaPendingScope";
 import { MAX_PENDING_QUOTAS } from "../Models/cardRules";
 
@@ -102,15 +103,13 @@ function eligibility(
   //   if (hasCompletedApplication) return { eligible: false, reason: "El código institucional aún no fue confirmado por SIE." };
   //   return { eligible: false, reason: "No se encontró una membresía institucional elegible." };
   // ===========================================================================
-  void migrated;
-  void completed;
-
   const completedApplication = person.applications.find((application) => application.status === "COMPLETED");
-  if (!completedApplication) {
-    return { eligible: false, reason: "La postulación no está completada.", pendingQuotaCount };
-  }
-  if (completedApplication.affiliateType !== AffiliateType.ACTIVE && completedApplication.affiliateType !== AffiliateType.STUDENT) {
-    return { eligible: false, reason: "La categoría del asociado no es elegible para el carnet.", pendingQuotaCount };
+  const completedType = completedApplication?.affiliateType;
+  const migratedType = migrated?.category?.mappedAffiliateType;
+  const hasEligibleCompleted = completedType === AffiliateType.ACTIVE || completedType === AffiliateType.STUDENT;
+  const hasEligibleMigrated = migratedType === AffiliateType.ACTIVE || migratedType === AffiliateType.STUDENT;
+  if (!hasEligibleCompleted && !hasEligibleMigrated) {
+    return { eligible: false, reason: "No se encontró una membresía institucional elegible.", pendingQuotaCount };
   }
   if (pendingQuotaCount > MAX_PENDING_QUOTAS) {
     return {
@@ -187,17 +186,21 @@ export async function resolveCardData(
   // TODO: Reactivar validaciones de elegibilidad institucional/SIE en una siguiente fase.
   // REGLA SIMPLIFICADA TEMPORAL: categoría (ACTIVE/STUDENT) + postulación COMPLETED.
   const completedApplication = person.applications.find((application) => application.status === "COMPLETED");
-  const affiliateType = completedApplication?.affiliateType ?? null;
+  const affiliateType = completedApplication?.affiliateType ?? migrated?.category?.mappedAffiliateType ?? null;
   const isActiveOrStudent = affiliateType === AffiliateType.ACTIVE || affiliateType === AffiliateType.STUDENT;
 
-  const source: CardSource | null = completedApplication && isActiveOrStudent ? "NEW" : null;
-  // Código institucional SIE: se conserva solo para presentación (puede ser null;
-  // la UI/PDF mostrarán "Pendiente de sincronización SIE"). Ya no condiciona la elegibilidad.
+  const source: CardSource | null = completedApplication && isActiveOrStudent
+    ? "NEW"
+    : migrated && isActiveOrStudent
+      ? "MIGRATED"
+      : null;
+  // Código institucional SIE: se conserva solo para presentación. Si aún no existe,
+  // el carnet usa el mismo código local A-<personId> que muestra la ficha del asociado.
   const code = migrated
     ? migrated.externalCode.trim()
     : completed
       ? String(completed.associateIntegration!.externalAssociateCode)
-      : null;
+      : buildAssociateCode(personId);
   const category = affiliateType ? affiliateTypeLabel(affiliateType) : null;
 
   const pendingQuotaCount = await countPendingQuotas(personId, db);

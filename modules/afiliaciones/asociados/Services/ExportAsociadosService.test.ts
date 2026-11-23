@@ -109,6 +109,18 @@ describe("ExportAsociadosService", () => {
     expect(worksheet.getRow(3).getCell(headers.indexOf("Origen") + 1).value).toBe("SIE Histórico");
   });
 
+  it("usa el código A-<personId> cuando no existe código institucional", async () => {
+    const record = {
+      ...postulacionRecord,
+      person: { ...postulacionRecord.person, id: 41, sieAssociateRecords: [] },
+    };
+    mocks.appFindMany.mockResolvedValue([record]);
+
+    const worksheet = await loadWorksheet(await new ExportAsociadosService().execute({}));
+
+    expect(worksheet.getRow(2).getCell(1).value).toBe("A-0041");
+  });
+
   it("aplica los filtros de búsqueda y tipo de membresía a la consulta", async () => {
     const service = new ExportAsociadosService();
     await service.execute({ search: "Perez", membershipType: "ACTIVE", sort: "asc" });
@@ -118,7 +130,7 @@ describe("ExportAsociadosService", () => {
     expect(appWhere.OR).toBeDefined();
 
     const sieWhere = mocks.sieFindMany.mock.calls[0][0].where;
-    expect(sieWhere.category).toEqual({ mappedAffiliateType: "ACTIVE" });
+    expect(sieWhere.category).toEqual({ code: "A" });
     expect(sieWhere.OR).toBeDefined();
   });
 

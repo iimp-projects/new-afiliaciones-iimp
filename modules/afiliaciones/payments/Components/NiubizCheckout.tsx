@@ -144,7 +144,7 @@ export function NiubizCheckout({
 
   return (
     <div
-      className="space-y-3"
+      className="flex flex-col items-center space-y-3"
       data-niubiz-complete={checkoutCompleted ? "true" : "false"}
     >
       <button

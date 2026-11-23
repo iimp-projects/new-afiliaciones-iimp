@@ -240,6 +240,10 @@ export class ExpedienteRepository {
           include: {
             academicInfos: { include: { university: true } },
             employmentInfos: true,
+            contacts: { orderBy: [{ isPrimary: "desc" }, { createdAt: "asc" }] },
+            addresses: { orderBy: [{ isPrimary: "desc" }, { createdAt: "asc" }], include: { country: true, district: { include: { province: { include: { department: true } } } } } },
+            nationality: true,
+            user: { select: { id: true, email: true, image: true, status: true, role: { select: { slug: true, name: true } } } },
           },
         },
         payments: { orderBy: { createdAt: "desc" } },

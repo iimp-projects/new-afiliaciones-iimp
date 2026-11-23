@@ -2,7 +2,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- the existing shared drawer payload is intentionally untyped. */
 
 import { useState } from "react";
-import { Download, FolderDown, ShieldCheck, UsersRound } from "lucide-react";
+import { Download, FolderDown, Pencil, ShieldCheck, UsersRound } from "lucide-react";
+import { toast } from "sonner";
+import { buildAssociateCode } from "@/modules/shared/Utils/associateCode";
 import { SmartCaseCard } from "@/modules/shared/Components/SmartCaseCard/SmartCaseCard";
 import { SmartCaseRow } from "@/modules/shared/Components/SmartCaseCard/SmartCaseRow";
 import { InspectionDrawer } from "@/modules/shared/Components/InspectionDrawer/InspectionDrawer";
@@ -10,6 +12,9 @@ import type { DrawerData } from "@/modules/shared/Components/InspectionDrawer/ty
 import { DownloadAllDocumentsModal } from "@/modules/afiliaciones/expedientes/Components/DownloadAllDocumentsModal";
 import { AsociadosMapper } from "../Mappers/AsociadosMapper";
 import { AsociadoDetailContent } from "./AsociadoDetailContent";
+import { AdminAssociateDataDialog, isStudentAssociate } from "../Components/AdminAssociateDataDialog";
+import { AssociateInfoButton } from "../Components/AssociateInfoButton";
+import { AssociateAccessDialog } from "../Components/AssociateAccessDialog";
 import { AsociadosFilterBar } from "../Components/AsociadosFilterBar";
 import { AsociadosPagination } from "../Components/AsociadosPagination";
 
@@ -22,6 +27,7 @@ interface AsociadosWorkspaceProps {
   sort: string;
   canResetSandboxPayments: boolean;
   canReadMemberships: boolean;
+  canUpdateAssociateData: boolean;
 }
 
 function buildExportParams(query: string, membershipType: string, sort: string): URLSearchParams {
@@ -52,14 +58,28 @@ export function AsociadosWorkspace({
   sort,
   canResetSandboxPayments,
   canReadMemberships,
+  canUpdateAssociateData,
 }: AsociadosWorkspaceProps) {
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [viewMode] = useState<"grid" | "list">("grid");
   const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [editUser, setEditUser] = useState<any>(null);
+  const [accessTarget, setAccessTarget] = useState<{ personId: number; applicationId?: number } | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
   const [isDownloadingDocuments, setIsDownloadingDocuments] = useState(false);
   const [downloadDocumentsProgress, setDownloadDocumentsProgress] = useState(0);
   const [showDownloadAllModal, setShowDownloadAllModal] = useState(false);
+
+  const handleGenerateCode = (user: any) => {
+    const personId = Number(user?.person?.id ?? (user?.source === "SIE_HISTORICAL" ? user?.id : 0));
+    const code = buildAssociateCode(personId);
+    if (!code) {
+      toast.error("No se pudo generar el código.", { description: "El asociado no tiene un identificador de persona válido." });
+      return;
+    }
+    void navigator.clipboard?.writeText(code).catch(() => undefined);
+    toast.success(`Código generado: ${code}`, { description: "Se copió al portapapeles." });
+  };
 
   const startProgress = (setter: React.Dispatch<React.SetStateAction<number>>) => {
     setter(1);
@@ -153,8 +173,8 @@ export function AsociadosWorkspace({
         { id: "informacion", label: "Información", hasNotification: false },
         { id: "membresia-pagos", label: "Membresía y Pagos", hasNotification: false },
         { id: "cuenta", label: "Cuenta", hasNotification: false },
-        { id: "historial", label: "Historial", hasNotification: false },
         { id: "carnet", label: "Carnet virtual", hasNotification: false },
+        { id: "historial", label: "Historial", hasNotification: false },
       ],
       defaultTabId: "resumen",
       payload: selectedUser,
@@ -205,8 +225,6 @@ export function AsociadosWorkspace({
           currentQuery={query}
           currentType={membershipType}
           currentSort={sort}
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
         />
       </div>
 
@@ -228,6 +246,13 @@ export function AsociadosWorkspace({
                 key={user.id}
                 data={AsociadosMapper.toCardData(user)}
                 onClick={() => setSelectedUser(user)}
+                onEdit={canUpdateAssociateData ? () => setEditUser(user) : undefined}
+                onGenerateCode={!user.institutionalCode && Number(user.person?.id) > 0 ? () => handleGenerateCode(user) : undefined}
+                onManageAccess={canUpdateAssociateData ? () => {
+                  const applications = user.person?.applications ?? user.applications ?? [];
+                  const completed = Array.isArray(applications) ? applications.find((application: any) => application.status === "COMPLETED") : null;
+                  setAccessTarget({ personId: Number(user.person?.id), applicationId: completed?.id ? Number(completed.id) : undefined });
+                } : undefined}
               />
             ))}
           </div>
@@ -249,6 +274,23 @@ export function AsociadosWorkspace({
       <InspectionDrawer
         isOpen={Boolean(selectedUser)}
         onClose={() => setSelectedUser(null)}
+        showHistoryButton={false}
+        headerActions={selectedUser ? (
+          <>
+            {canUpdateAssociateData && (
+              <button
+                type="button"
+                onClick={() => setEditUser(selectedUser)}
+                title="Editar datos"
+                aria-label="Editar datos"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#E6C982] bg-[#FFF8E8] text-[#936B2E] shadow-sm transition-all hover:bg-[#F7ECD7] hover:text-[#7F561E]"
+              >
+                <Pencil size={15} strokeWidth={2.5} />
+              </button>
+            )}
+            <AssociateInfoButton isHistorical={selectedUser.source === "SIE_HISTORICAL"} />
+          </>
+        ) : undefined}
         data={drawerData()}
         renderContent={(tab, payload, selectTab) => (
           <AsociadoDetailContent
@@ -261,6 +303,24 @@ export function AsociadosWorkspace({
           />
         )}
       />
+
+      {editUser && (
+        <AdminAssociateDataDialog
+          user={editUser}
+          isStudent={isStudentAssociate(editUser)}
+          open
+          onClose={() => setEditUser(null)}
+        />
+      )}
+
+      {accessTarget && accessTarget.personId > 0 && (
+        <AssociateAccessDialog
+          personId={accessTarget.personId}
+          applicationId={accessTarget.applicationId}
+          open
+          onClose={() => setAccessTarget(null)}
+        />
+      )}
 
       <DownloadAllDocumentsModal
         open={showDownloadAllModal}

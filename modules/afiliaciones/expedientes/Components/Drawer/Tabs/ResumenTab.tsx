@@ -4,6 +4,7 @@ import { DynamicIcon } from "@/modules/layout/Utils/DynamicIcon";
 import { CheckCircle2, Clock, XCircle, MinusCircle, AlertCircle } from "lucide-react";
 import { PortalAccessCard } from "./PortalAccessCard";
 import { formatPeruDateTime } from "@/modules/shared/Utils/formatPeruDateTime";
+import { paymentOriginLabel } from "@/modules/afiliaciones/payments/Models/PaymentOrigin";
 
 interface ResumenTabProps {
   header: any;
@@ -37,7 +38,7 @@ export function ResumenTab({ header, payload, isStudent }: ResumenTabProps) {
 
   const submittedDate = payload.submittedAt ? formatPeruDateTime(payload.submittedAt) : "No enviado";
   const payment = payload.payments?.[0];
-  const paymentMethod = payment?.gateway ? payment.gateway.toLowerCase().replace(/_/g, " ") : isStudent ? "Beca Pregrado" : "Pendiente";
+  const paymentMethod = isStudent ? "Beca Pregrado" : paymentOriginLabel(payment) || "Pendiente";
   const amount = payment?.totalAmount ? `${payment.currency || "PEN"} ${payment.totalAmount}` : isStudent ? "Gratuito" : "S/ 0.00";
 
   return (

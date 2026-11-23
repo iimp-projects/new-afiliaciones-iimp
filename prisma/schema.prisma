@@ -1384,6 +1384,7 @@ enum InvoiceType {
 enum BillingDocumentType {
   DNI
   CE
+  PASSPORT
   RUC
 }
 

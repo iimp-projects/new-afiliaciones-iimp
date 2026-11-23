@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { 
     MoreVertical, CheckCircle2, Clock, XCircle, 
-    MinusCircle, AlertCircle, AlertTriangle, Eye, Users, Send, Mail, CreditCard, Phone, User, GraduationCap, KeyRound
+    MinusCircle, AlertCircle, AlertTriangle, Eye, Users, Send, Mail, CreditCard, Phone, User, GraduationCap, KeyRound, Pencil, Hash
 } from "lucide-react";
 import { canManagePortalAccess, type SmartCaseCardProps } from "./types";
 import { FallbackAvatar } from "./FallbackAvatar";
@@ -34,10 +34,14 @@ const StatusIcon = ({ status, className = "" }: { status: string; className?: st
 export function SmartCaseCard({ 
   data, 
   onClick, 
+  onEdit,
+  editLabel = "Editar datos",
+  onGenerateCode,
+  onManageAccess,
+  onManualPayment,
   onViewAvales, 
   onNotifyCommittee, 
   onSendPaymentMethods,
-  onResendApplicant,
   canManageNotifications = false,
 }: SmartCaseCardProps) {
   const { identity, primaryBadge, atomicValidations, metadata, topBorderColorClass, subStatus, operationalAlerts, hideContactDetails } = data;
@@ -102,6 +106,30 @@ export function SmartCaseCard({
               <button onClick={(e) => { e.stopPropagation(); setIsMenuOpen(false); onClick?.(); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-[#C5A059] transition-colors outline-none">
                 <Eye size={15} strokeWidth={2.5} /> Ver expediente
               </button>
+
+              {onEdit && (
+                <button onClick={(e) => { e.stopPropagation(); setIsMenuOpen(false); onEdit(); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-[#C5A059] transition-colors outline-none">
+                  <Pencil size={15} strokeWidth={2.5} /> {editLabel}
+                </button>
+              )}
+
+              {onManageAccess && (
+                <button onClick={(e) => { e.stopPropagation(); setIsMenuOpen(false); onManageAccess(); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-[#C5A059] transition-colors outline-none">
+                  <KeyRound size={15} strokeWidth={2.5} /> Gestionar acceso
+                </button>
+              )}
+
+              {onGenerateCode && (
+                <button onClick={(e) => { e.stopPropagation(); setIsMenuOpen(false); onGenerateCode(); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-[#C5A059] transition-colors outline-none">
+                  <Hash size={15} strokeWidth={2.5} /> Generar código
+                </button>
+              )}
+
+              {onManualPayment && (
+                <button onClick={(e) => { e.stopPropagation(); setIsMenuOpen(false); onManualPayment(); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-[#C5A059] transition-colors outline-none">
+                  <CreditCard size={15} strokeWidth={2.5} /> Registrar pago manual
+                </button>
+              )}
 
               {canManageNotifications && (
                 <>
@@ -201,23 +229,6 @@ export function SmartCaseCard({
                     </div>
                   </button>
 
-                  {/* 5. Reenviar a Postulante */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (onResendApplicant) {
-                        setIsMenuOpen(false);
-                        onResendApplicant();
-                      }
-                    }}
-                    className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-bold outline-none transition-colors ${
-                      !onResendApplicant
-                        ? "text-slate-300 cursor-not-allowed bg-slate-50"
-                        : "text-slate-600 hover:bg-slate-50 hover:text-[#C5A059]"
-                    }`}
-                  >
-                    <Mail size={15} strokeWidth={2.5} /> Reenviar a Postulante
-                  </button>
                 </>
               )}
 

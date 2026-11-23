@@ -19,6 +19,7 @@ import { PaymentSettingsResolver } from "../../../security/system-settings/Servi
 import { SystemSettingsError } from "../../../security/system-settings/Services/SystemSettingsService";
 import { billingDataSchema, type BillingDataInput } from "../DTOs/billing.schema";
 import { isLegalEntityRuc } from "../Rules/BillingDocumentRules";
+import { findMissingCardholderData } from "../Rules/CardholderDataRules";
 import { ApisNetPeService, type RucLookupResult } from "../../../shared/Services/ApisNetPeService";
 import { AssociatesIntegrationService } from "../../associates-integration/Services/AssociatesIntegrationService";
 import { AssociateProvisioningService } from "../../asociados/Services/AssociateProvisioningService";
@@ -45,6 +46,7 @@ export class PaymentService {
     if (!this.authorizationService.verify(authorization, input.applicationId)) throw new PaymentServiceError("La autorización temporal de pago no es válida o expiró.", 403, "PAYMENT_AUTH_INVALID_OR_EXPIRED");
     this.assertCheckoutRequirementsAccepted(input);
     const applicationForBilling = await this.repository.findApplicationById(input.applicationId);
+    this.assertCardholderDataComplete(applicationForBilling);
     const resolvedBilling = await this.resolveBillingData(input.billingData, applicationForBilling?.documentNumber);
     const billingData = resolvedBilling.billingData;
     const provider = await this.getInitiationProvider();
@@ -267,6 +269,25 @@ export class PaymentService {
     if (input.billingConfirmed !== true) throw new PaymentServiceError("Debes confirmar los datos de facturación antes de continuar.", 422, "PAYMENT_BILLING_NOT_CONFIRMED");
     if (input.termsAccepted !== true) throw new PaymentServiceError("Debes aceptar los Términos y Condiciones antes de continuar.", 422, "PAYMENT_TERMS_NOT_ACCEPTED");
     if (input.majorityAccepted !== true) throw new PaymentServiceError("Debes confirmar que eres mayor de edad antes de continuar.", 422, "PAYMENT_MAJORITY_NOT_CONFIRMED");
+  }
+
+  private assertCardholderDataComplete(application: Awaited<ReturnType<IPaymentRepository["findApplicationById"]>>): void {
+    if (application === null || this.provider.gateway !== PaymentGateway.NIUBIZ || paymentConfig.allowCardholderFallback) return;
+    const missing = findMissingCardholderData({
+      email: application.email,
+      phone: application.phone,
+      personId: application.personId,
+      documentNumber: application.documentNumber,
+      address: application.person?.address ?? null,
+    });
+    if (missing.length === 0) return;
+    const labels = missing.map((item) => item.label);
+    const list = labels.length === 1 ? labels[0] : `${labels.slice(0, -1).join(", ")} y ${labels[labels.length - 1]}`;
+    throw new PaymentServiceError(
+      `Completa tus datos personales antes de continuar con el pago. ${labels.length === 1 ? "Falta" : "Faltan"}: ${list}.`,
+      422,
+      "PAYMENT_CARDHOLDER_DATA_INCOMPLETE",
+    );
   }
 
   private assertPaymentEligible(application: Awaited<ReturnType<IPaymentRepository["findApplicationById"]>>): asserts application is NonNullable<typeof application> {

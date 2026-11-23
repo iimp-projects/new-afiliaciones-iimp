@@ -8,7 +8,7 @@ import { ExpedientesPagination } from "../Components/ExpedientesPagination";
 import { InspectionDrawer } from "@/modules/shared/Components/InspectionDrawer/InspectionDrawer";
 import type { SmartCaseCardData } from "@/modules/shared/Components/SmartCaseCard/types";
 import type { DrawerData } from "@/modules/shared/Components/InspectionDrawer/types";
-import { RefreshCcw, Info, AlertCircle, XCircle, CheckCircle2, Download, FolderDown, Mail, Send, CreditCard } from "lucide-react"; 
+import { RefreshCcw, Info, AlertCircle, XCircle, CheckCircle2, Download, FolderDown, Mail, Send, CreditCard, Pencil } from "lucide-react"; 
 
 import { getDepartmentLabelByRole } from "../Utils/expedientes.utils";
 import { canManageApplicantNotifications } from "../Utils/applicantNotificationPermissions";
@@ -22,6 +22,8 @@ import { WorkflowGuideModal } from "../Components/WorkflowGuideModal";
 import { DownloadAllDocumentsModal } from "../Components/DownloadAllDocumentsModal";
 import { UpdateStatusModal } from "../Components/Modals/UpdateStatusModal"; 
 import { ReplaceAvalModal } from "../Components/Modals/ReplaceAvalModal";
+import { ManualPaymentModal } from "../Components/Modals/ManualPaymentModal";
+import { AdminAssociateDataDialog } from "@/modules/afiliaciones/asociados/Components/AdminAssociateDataDialog";
 import { NavigationHeaderIcon } from "@/modules/layout/Components/NavigationHeaderIcon";
 
 export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
@@ -53,8 +55,8 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
 
   const [paymentMethodsTarget, setPaymentMethodsTarget] = useState<number | null>(null);
   const [isSendingPaymentMethods, setIsSendingPaymentMethods] = useState(false);
-  const [resendApplicantTarget, setResendApplicantTarget] = useState<number | null>(null);
-  const [isResendingApplicant, setIsResendingApplicant] = useState(false);
+  const [manualPaymentApplicationId, setManualPaymentApplicationId] = useState<number | null>(null);
+  const [editDialog, setEditDialog] = useState<{ applicationId: number; payload: any } | null>(null);
 
   const [toastMessage, setToastMessage] = useState<{ title: string; type: "success" | "error" } | null>(null);
   const [filters, setFilters] = useState({ search: "", status: "Todos", modality: "Todos", assignedTo: "Todos", logisticValidation: "Todos", associateValidation: "Todos", comiteValidation: "Todos", legalValidation: "Todos", comunicacionesValidation: "Todos", paymentStatus: "Todos", dateFrom: "", dateTo: "", orderBy: "Más recientes", gender: "Todos", countryId: "Todos", universityId: "Todos", company: "Todos", evaluatorId: "Todos", endorsementStatus: "Todos" });
@@ -347,27 +349,6 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
     }
   };
 
-  const executeResendApplicant = async () => {
-    if (!resendApplicantTarget) return;
-    setIsResendingApplicant(true);
-    try {
-      const response = await fetch(`/api/afiliaciones/expedientes/${resendApplicantTarget}/reenviar-postulante`, {
-        method: "POST",
-      });
-      const result = await response.json();
-      if (result.success) {
-        showToast("Se reenvió la confirmación al postulante.", "success");
-        setResendApplicantTarget(null);
-      } else {
-        showToast(result.error || "No se pudo reenviar el correo al postulante.", "error");
-      }
-    } catch {
-      showToast("Error de conexión al reenviar al postulante.", "error");
-    } finally {
-      setIsResendingApplicant(false);
-    }
-  };
-
   const canManageNotifications = canManageApplicantNotifications(currentUser?.role?.slug);
   const isAdmin = currentUser?.role?.slug === "SUPER_ADMIN" || currentUser?.role?.slug === "SYSTEM_ADMIN";
   const reviewerArea = drawerData?.header.metadata.reviewerArea || "";
@@ -432,7 +413,19 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
     }
   }
 
- const renderDrawerContent = (activeTab: string, payload: any) => {
+  const openApplicantEditor = async (cardData: SmartCaseCardData) => {
+    try {
+      const applicationId = Number(cardData.rawId);
+      const response = await fetch(`/api/afiliaciones/expedientes/${applicationId}`, { cache: "no-store" });
+      const body = await response.json();
+      if (!response.ok || !body.success) throw new Error(body.message);
+      setEditDialog({ applicationId, payload: body.data });
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : "No se pudo abrir el expediente.", "error");
+    }
+  };
+
+  const renderDrawerContent = (activeTab: string, payload: any) => {
     if (isDrawerLoading || !payload) return (
         <div className="flex flex-col items-center justify-center h-64 gap-4">
           <div className="animate-spin w-10 h-10 border-4 border-[#C5A059] border-t-transparent rounded-full"></div>
@@ -564,6 +557,8 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
                   key={exp.id} 
                   data={exp} 
                   onClick={() => handleOpenDrawer(exp)}  
+                  onEdit={canManageNotifications ? () => void openApplicantEditor(exp) : undefined}
+                  editLabel="Editar expediente"
                   onViewAvales={isCardStudent ? undefined : () => handleOpenDrawer(exp, "avales")}
                   canManageNotifications={canManageNotifications}
                   // Si está listo, le pasamos la función; si no, la opción se muestra deshabilitada.
@@ -573,9 +568,9 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
                       ? () => setPaymentMethodsTarget(exp.rawId as number)
                       : undefined
                   }
-                  onResendApplicant={
-                    canManageNotifications
-                      ? () => setResendApplicantTarget(exp.rawId as number)
+                  onManualPayment={
+                    canManageNotifications && exp.generalStatus === "READY_FOR_PAYMENT" && !isCardStudent
+                      ? () => setManualPaymentApplicationId(Number(exp.rawId))
                       : undefined
                   }
                 />
@@ -645,15 +640,80 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
         data={drawerData}
         renderContent={renderDrawerContent}
         onReevaluate={() => { setTargetStatus("PENDING"); setShowStatusModal(true); }}
+        headerActions={
+          canManageApplicantNotifications(currentUser?.role?.slug) && drawerData?.payload?.person?.id ? (
+            <button
+              type="button"
+              onClick={() => setEditDialog({ applicationId: Number(drawerData.caseId), payload: drawerData.payload })}
+              title="Editar datos"
+              aria-label="Editar datos"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#E6C982] bg-[#FFF8E8] text-[#936B2E] shadow-sm transition-all hover:bg-[#F7ECD7] hover:text-[#7F561E]"
+            >
+              <Pencil size={15} strokeWidth={2.5} />
+            </button>
+          ) : undefined
+        }
         evaluationActions={
           drawerData && !isDrawerLoading ? (
             <>
+              {drawerData.payload?.status === "READY_FOR_PAYMENT" && canManageApplicantNotifications(currentUser?.role?.slug) && (
+                <button onClick={() => setManualPaymentApplicationId(Number(drawerData.caseId))} className="flex items-center gap-2 h-9 px-4 rounded-lg bg-[#172a45] hover:bg-[#0f1e33] text-white text-xs font-bold transition-colors shadow-sm">
+                  <CreditCard size={16} /> Registrar pago manual
+                </button>
+              )}
               <button onClick={() => { setTargetStatus("APPROVED"); setShowStatusModal(true); }} disabled={disableApproveButton} className="flex items-center gap-2 h-9 px-4 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale"><CheckCircle2 size={16} /> Otorgar Conformidad</button>
               <button onClick={() => { setTargetStatus("OBSERVED"); setShowStatusModal(true); }} disabled={disableObserveButton} className="flex items-center gap-2 h-9 px-4 rounded-lg bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-700 text-xs font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale"><AlertCircle size={16} /> Observar</button>
               <button onClick={() => { setTargetStatus("REJECTED"); setShowStatusModal(true); }} disabled={disableRejectButton} className="flex items-center gap-2 h-9 px-3 rounded-lg text-red-500 hover:bg-red-50 text-xs font-bold transition-colors ml-auto disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale"><XCircle size={16} /> Rechazar Definitivo</button>
             </>
           ) : null
         }
+      />
+
+      {editDialog && editDialog.payload?.person?.id && (
+        <AdminAssociateDataDialog
+          user={{
+            person: editDialog.payload.person,
+            role: editDialog.payload.person.user?.role ?? {
+              slug: editDialog.payload.affiliateType === "STUDENT" ? "ASOCIADO_ESTUDIANTE" : "ASOCIADO_ACTIVO",
+              name: editDialog.payload.affiliateType === "STUDENT" ? "Asociado Estudiante" : "Asociado Activo",
+            },
+            membershipCategory: {
+              code: editDialog.payload.affiliateType === "STUDENT" ? "E" : "A",
+              name: editDialog.payload.affiliateType === "STUDENT" ? "Estudiante" : "Activo",
+            },
+            affiliateAvatarUrl: editDialog.payload.person.user?.image ?? null,
+            source: "V2",
+          }}
+          isStudent={editDialog.payload.affiliateType === "STUDENT"}
+          variant="applicant"
+          applicationId={editDialog.applicationId}
+          open
+          onClose={() => setEditDialog(null)}
+          onSaved={async () => {
+            const applicationId = editDialog.applicationId;
+            const nuevos = await fetchExpedientes();
+            const actualizado = nuevos.find((expediente: any) => String(expediente.rawId) === String(applicationId));
+            if (actualizado && drawerData && String(drawerData.caseId) === String(applicationId)) {
+              await handleOpenDrawer(actualizado, "datos");
+            }
+          }}
+        />
+      )}
+
+      <ManualPaymentModal
+        open={manualPaymentApplicationId !== null}
+        applicationId={manualPaymentApplicationId}
+        onClose={() => setManualPaymentApplicationId(null)}
+        onRegistered={async (warnings) => {
+          const applicationId = manualPaymentApplicationId;
+          setManualPaymentApplicationId(null);
+          showToast(warnings.length > 0 ? `Pago registrado, pero: ${warnings.join(" ")}` : "Pago manual registrado y expediente completado.", warnings.length > 0 ? "error" : "success");
+          const nuevos = await fetchExpedientes();
+          const actualizado = nuevos.find((expediente: any) => String(expediente.rawId) === String(applicationId));
+          if (actualizado && drawerData && String(drawerData.caseId) === String(applicationId)) {
+            await handleOpenDrawer(actualizado, "resumen");
+          }
+        }}
       />
 
       {/* MODAL PARA REEMPLAZAR AVAL */}
@@ -808,40 +868,6 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
                 className="flex-1 py-3 rounded-xl font-bold text-white shadow-md transition-colors disabled:opacity-50 bg-emerald-600 hover:bg-emerald-700"
               >
                 {isSendingPaymentMethods ? "Enviando..." : "Sí, enviar"}
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
-
-      {/* MODAL: Reenviar al postulante */}
-      {resendApplicantTarget && createPortal(
-        <div className="fixed inset-0 z-[99999999] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-[24px] w-full max-w-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-            <div className="p-6 text-center">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5 shadow-sm bg-blue-50 text-blue-600 border border-blue-100">
-                <Mail size={32} strokeWidth={2.5} />
-              </div>
-              <h2 className="text-xl font-black text-slate-800">Reenviar al postulante</h2>
-              <p className="text-sm text-slate-500 mt-2.5 font-medium leading-relaxed">
-                Se reenviará al correo registrado del postulante la confirmación de su solicitud.
-              </p>
-            </div>
-            <div className="p-4 bg-slate-50 border-t border-slate-100 flex gap-3">
-              <button
-                onClick={() => setResendApplicantTarget(null)}
-                disabled={isResendingApplicant}
-                className="flex-1 py-3 rounded-xl border border-slate-200 bg-white font-bold text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-50"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={executeResendApplicant}
-                disabled={isResendingApplicant}
-                className="flex-1 py-3 rounded-xl font-bold text-white shadow-md transition-colors disabled:opacity-50 bg-blue-600 hover:bg-blue-700"
-              >
-                {isResendingApplicant ? "Enviando..." : "Sí, reenviar"}
               </button>
             </div>
           </div>
