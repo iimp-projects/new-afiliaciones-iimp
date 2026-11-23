@@ -6,6 +6,23 @@ export const blocksNewApplication = (status: string) => status !== "REJECTED";
 export const canSubmitApplication = (status: string) => status === "DRAFT";
 export const canEditApplication = (status: string) => status === "DRAFT" || status === "OBSERVED";
 
+/**
+ * Un borrador sin información personal (por ejemplo, porque el alta del
+ * expediente se completó pero el guardado del paso 1 falló) no contiene nada
+ * recuperable: el formulario no puede reabrirse porque el paso de datos
+ * personales permanece bloqueado. Estos borradores no deben tratarse como una
+ * postulación existente: se ignoran al buscar el documento y se reutilizan al
+ * iniciar de nuevo, para no dejar al postulante en un ciclo sin salida.
+ */
+export const isUnstartedDraft = (status: string, draftData: unknown): boolean => {
+  if (status !== "DRAFT") return false;
+  // Si la consulta no cargó el campo no se puede clasificar; solo un valor
+  // explícito sin documento personal identifica un borrador no iniciado.
+  if (draftData === undefined) return false;
+  const personal = (draftData as { personalInformation?: { documentNumber?: unknown } } | null | undefined)?.personalInformation;
+  return typeof personal?.documentNumber !== "string" || personal.documentNumber.trim() === "";
+};
+
 type Notice = { action: string; title: string; description: string; badge: string; label: string; tone: "INFO" | "ACTION_REQUIRED" | "SUCCESS" | "WARNING" | "FINAL" };
 const matrix: Record<ApplicationState, { action: string; badge: string; tone: Notice["tone"]; post: [string, string, string]; query: [string, string, string] }> = {
   DRAFT: { action: "DRAFT_RECOVERY", badge: "Borrador", tone: "ACTION_REQUIRED", post: ["Tienes una postulación pendiente de completar", "Encontramos una solicitud que todavía no ha sido enviada. Puedes continuar desde donde la dejaste.", "Continuar postulación"], query: ["Tu postulación aún no ha sido enviada", "Encontramos una postulación en borrador. Todavía debes completar y enviar tu solicitud para que pueda iniciar el proceso de evaluación.", "Continuar mi postulación"] },

@@ -45,7 +45,7 @@ export function Navbar({ user, onToggleSidebar }: NavbarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [activeLang, setActiveLang] = useState<"ES" | "EN" | "QU">("ES");
-  const portalBreadcrumbs: Record<string, string> = { "/intranet/mi-cuenta": "Inicio", "/intranet/mi-cuenta/perfil": "Mi perfil", "/intranet/mi-cuenta/membresia": "Mi membresía", "/intranet/mi-cuenta/pagos": "Pagos y comprobantes", "/intranet/mi-cuenta/beneficios": "Beneficios", "/intranet/mi-cuenta/eventos": "Eventos", "/intranet/mi-cuenta/documentos": "Documentos", "/intranet/mi-cuenta/soporte": "Soporte" };
+  const portalBreadcrumbs: Record<string, string> = { "/intranet/mi-cuenta": "Inicio", "/intranet/mi-cuenta/perfil": "Mi perfil", "/intranet/mi-cuenta/carnet": "Mi carnet virtual", "/intranet/mi-cuenta/mis-avales": "Mis avales", "/intranet/mi-cuenta/membresia": "Mi membresía", "/intranet/mi-cuenta/pagos": "Pagos y comprobantes", "/intranet/mi-cuenta/beneficios": "Beneficios", "/intranet/mi-cuenta/eventos": "Eventos", "/intranet/mi-cuenta/documentos": "Documentos", "/intranet/mi-cuenta/soporte": "Soporte" };
   const portalPage = portalBreadcrumbs[pathname];
   const formatRemaining = (milliseconds: number | null) => {
     if (milliseconds === null) return "--:--:--";
@@ -331,7 +331,7 @@ export function Navbar({ user, onToggleSidebar }: NavbarProps) {
                 </div>
 
                 <div className="p-3 border-t border-slate-100 text-center bg-slate-50/80 rounded-b-2xl">
-                  <button onClick={() => { setIsNotifOpen(false); router.push(bellTab === "alerts" ? "/intranet/alertas" : "/intranet/notificaciones"); }} className="text-[12px] font-bold text-slate-500 hover:text-[#c39254] transition-colors">
+                  <button onClick={() => { setIsNotifOpen(false); router.push(bellTab === "alerts" ? "/intranet/notificaciones?tab=alertas" : "/intranet/notificaciones"); }} className="text-[12px] font-bold text-slate-500 hover:text-[#c39254] transition-colors">
                     {bellTab === "alerts" ? "Ir al Centro de Alertas" : "Ver todas las notificaciones"}
                   </button>
                 </div>

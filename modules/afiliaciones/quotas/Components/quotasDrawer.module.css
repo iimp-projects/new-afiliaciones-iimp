@@ -1,0 +1,64 @@
+@keyframes quotaOverlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes quotaOverlayOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes quotaDrawerIn {
+  from { opacity: 0; transform: translateX(36px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes quotaDrawerOut {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(36px); }
+}
+
+@keyframes quotaSectionRise {
+  from { opacity: 0; transform: translateY(7px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes quotaSwap {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.overlay {
+  animation: quotaOverlayIn 0.2s ease-out both;
+}
+
+.overlayClosing {
+  animation: quotaOverlayOut 0.2s ease-in both;
+}
+
+.panel {
+  animation: quotaDrawerIn 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.panelClosing {
+  animation: quotaDrawerOut 0.2s ease-in both;
+}
+
+.section {
+  animation: quotaSectionRise 0.24s ease-out both;
+}
+
+.delay1 { animation-delay: 0.04s; }
+.delay2 { animation-delay: 0.08s; }
+.delay3 { animation-delay: 0.12s; }
+.delay4 { animation-delay: 0.16s; }
+
+.swap {
+  animation: quotaSwap 0.18s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay, .overlayClosing, .panel, .panelClosing, .section, .swap {
+    animation: none;
+  }
+}

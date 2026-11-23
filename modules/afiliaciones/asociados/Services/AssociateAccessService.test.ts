@@ -3,6 +3,8 @@ import { describe, expect, it, beforeEach, vi } from "vitest";
 const db = vi.hoisted(() => ({
   $transaction: vi.fn(),
   membershipApplication: { findUnique: vi.fn() },
+  person: { findUnique: vi.fn() },
+  role: { findUnique: vi.fn() },
   user: { findFirst: vi.fn() },
   personContact: { update: vi.fn(), create: vi.fn() },
   auditLog: { create: vi.fn() },
@@ -18,7 +20,35 @@ import { AssociateAccessError, AssociateAccessService } from "./AssociateAccessS
 const application = (user: any = null, contacts: any[] = []) => ({ id: 10, applicationCode: "APP-10", status: "COMPLETED", deletedAt: null, email: "historic@example.com", phone: "999999999", personId: 2, person: { id: 2, firstName: "Ana", paternalLastName: "Prueba", maternalLastName: null, documentType: "DNI", documentNumber: "11111111", deletedAt: null, contacts, user } });
 
 describe("AssociateAccessService", () => {
-  beforeEach(() => { vi.clearAllMocks(); db.$transaction.mockImplementation((callback: any) => callback({ ...db, $executeRaw: vi.fn(), user: { ...db.user, update: vi.fn() } })); });
+  beforeEach(() => { vi.clearAllMocks(); db.$transaction.mockImplementation((callback: any) => callback({ ...db, $executeRaw: vi.fn(), user: { ...db.user, update: vi.fn(), create: vi.fn() } })); });
+
+  const personByQuota = (overrides: Record<string, unknown> = {}) => ({
+    id: 2, firstName: "Ana", paternalLastName: "Prueba", maternalLastName: null, documentType: "DNI", documentNumber: "11111111", deletedAt: null,
+    contacts: [{ id: 1, email: "ana@example.com", isPrimary: true }],
+    user: null,
+    sieAssociateRecords: [{ externalCode: "SIE-2", category: { code: "A", name: "Activo", allowsLogin: true, mappedRoleSlug: "ASOCIADO_ACTIVO" } }],
+    applications: [],
+    _count: { quotas: 1 },
+    ...overrides,
+  });
+
+  it("permite habilitar acceso por persona cuando tiene al menos una cuota", async () => {
+    db.person.findUnique.mockResolvedValue(personByQuota());
+    db.role.findUnique.mockResolvedValue({ slug: "ASOCIADO_ACTIVO", isActive: true });
+    db.user.findFirst.mockResolvedValue(null);
+
+    await expect(new AssociateAccessService().resolveByPerson(2)).resolves.toMatchObject({ status: "NOT_PROVISIONED", canRetryProvisioning: true, role: "ASOCIADO_ACTIVO" });
+  });
+
+  it("no habilita acceso sin cuotas registradas", async () => {
+    db.person.findUnique.mockResolvedValue(personByQuota({ _count: { quotas: 0 } }));
+    await expect(new AssociateAccessService().resolveByPerson(2)).resolves.toMatchObject({ status: "ERROR" });
+  });
+
+  it("respeta categorías que no permiten login al crear acceso nuevo", async () => {
+    db.person.findUnique.mockResolvedValue(personByQuota({ sieAssociateRecords: [{ externalCode: "SIE-2", category: { code: "V", name: "Vitalicio", allowsLogin: false, mappedRoleSlug: null } }] }));
+    await expect(new AssociateAccessService().resolveByPerson(2)).resolves.toMatchObject({ status: "ERROR" });
+  });
 
   it("reports NOT_PROVISIONED for an available email", async () => {
     db.membershipApplication.findUnique.mockResolvedValue(application()); db.user.findFirst.mockResolvedValue(null);

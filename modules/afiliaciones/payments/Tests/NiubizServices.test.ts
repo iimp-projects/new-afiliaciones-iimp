@@ -76,7 +76,11 @@ describe("Niubiz request builders", () => {
       amount: 300,
     });
 
-    expect(result).toEqual({ session: { sessionKey: "session-key" }, status: 201 });
+    expect(result.session).toEqual({ sessionKey: "session-key" });
+    expect(result.status).toBe(201);
+    expect(result.request.url).toBe(config.sessionUrl! + config.merchantId!);
+    expect(result.responseBody).toEqual({ sessionKey: "session-key" });
+    expect(typeof result.correlationId).toBe("string");
     expect(fetchMock.mock.calls[0]?.[0]).toBe(config.sessionUrl! + config.merchantId!);
     vi.unstubAllGlobals();
   });
@@ -99,7 +103,7 @@ describe("Niubiz request builders", () => {
       amount: 300,
       currency: "PEN",
       checkoutUrl: config.checkoutUrl,
-      callbackUrl: config.callbackUrl,
+      callbackUrl: `${config.callbackUrl}?purchaseNumber=77`,
       timeoutUrl: config.timeoutUrl,
       expirationMinutes: 5,
       merchantName: "IIMP",
@@ -123,6 +127,7 @@ describe("Niubiz request builders", () => {
         phone: "999999999",
         personId: 7,
         documentNumber: "12345678",
+        address: { street: "Calle Los Canarios 155-157, La Molina", city: "Lima", state: "Lima", countryCode: "PE", postalCode: "15024" },
       },
     }, "security-token");
 
@@ -131,6 +136,15 @@ describe("Niubiz request builders", () => {
       MDD31: "999999999",
       MDD32: "7",
       MDD34: "12345678",
+      MDD75: "Registrado",
+    });
+    expect(request.body.dataMap).toEqual({
+      cardholderCity: "Lima",
+      cardholderCountry: "PE",
+      cardholderAddress: "Calle Los Canarios 155-157, La Molina",
+      cardholderPostalCode: "15024",
+      cardholderState: "Lima",
+      cardholderPhoneNumber: "999999999",
     });
   });
 
@@ -209,7 +223,7 @@ describe("NiubizResponseMapper", () => {
       traceNumber: "trace-1",
       paymentMethod: PaymentMethod.UNKNOWN,
     });
-    expect(result.gatewayTransactionDate).toEqual(new Date(Date.UTC(2026, 8, 3, 15, 22, 21)));
+    expect(result.gatewayTransactionDate).toEqual(new Date(Date.UTC(2026, 8, 3, 20, 22, 21)));
     expect(result.gatewayPayload).toEqual({ transactionDate: "260903152221", brand: "visa", maskedCard: "455170******8059", paymentMethod: "UNKNOWN" });
     expect(result).not.toHaveProperty("transactionToken");
     expect(result).not.toHaveProperty("securityToken");

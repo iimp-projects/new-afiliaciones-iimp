@@ -4,12 +4,13 @@ import { Application } from "../Entities/Application";
 import { IApplicationRepository, SwornDeclarationDocument } from "./Interfaces/IApplicationRepository";
 import { UpdateDraftDTO } from "../DTOs/update-draft.dto";
 import { ApplicationDraft } from "../Models/ApplicationDraft";
-import { blocksNewApplication, canEditApplication, canSubmitApplication, currentApplicationStates } from "../Models/ApplicationAction";
+import { blocksNewApplication, canEditApplication, canSubmitApplication, currentApplicationStates, isUnstartedDraft } from "../Models/ApplicationAction";
 import { ApplicationFlowError } from "../Services/Exceptions/ApplicationFlowError";
 import { normalizeEmploymentInformation } from "../Models/EmploymentInformation";
 import { ContactUniquenessService } from "../Services/ContactUniquenessService";
 import { sponsorEligibilityWhere } from "../Services/SponsorEligibility";
 import { persistAcademicInfos } from "./AcademicInfoPersistence";
+import { deepMergeDraft } from "../utils/deepMerge";
 
 export class ApplicationRepository implements IApplicationRepository {
   constructor(private readonly db = prisma) {}
@@ -18,13 +19,21 @@ export class ApplicationRepository implements IApplicationRepository {
     return this.db.$transaction(async tx => {
       const key = `${application.documentType}:${application.documentNumber}:${application.affiliateType}`;
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${key}))`;
-      const existing = await tx.membershipApplication.findMany({ where: { documentType: application.documentType as never, documentNumber: application.documentNumber, affiliateType: application.affiliateType as never, deletedAt: null }, select: { id: true, status: true } });
-      if (existing.some(item => blocksNewApplication(item.status))) throw new ApplicationFlowError("APPLICATION_EXISTS", "Encontramos una solicitud asociada a este documento. Verifica tu identidad para continuar.");
-      if (existing.length && !existing.some(item => authorizedIds.includes(item.id))) throw new ApplicationFlowError("VERIFICATION_REQUIRED", "Verifica tu identidad antes de iniciar una nueva postulación.", 401);
-      await this.assertEmailIdentityAvailable(tx, application.email!, application.documentNumber!);
-      await this.assertContactUnique(tx, { email: application.email, phone: application.phone });
+      const existing = await tx.membershipApplication.findMany({ where: { documentType: application.documentType as never, documentNumber: application.documentNumber, affiliateType: application.affiliateType as never, deletedAt: null }, select: { id: true, status: true, draftData: true }, orderBy: [{ createdAt: "desc" }, { id: "desc" }] });
+      // Un borrador sin datos personales se reutiliza en lugar de bloquear el
+      // inicio: no contiene información recuperable y dejarlo como postulación
+      // vigente impediría completar el formulario.
+      const reusableDraft = existing.find(item => isUnstartedDraft(item.status, item.draftData));
+      const blocking = existing.filter(item => blocksNewApplication(item.status) && !isUnstartedDraft(item.status, item.draftData));
+      if (blocking.length) throw new ApplicationFlowError("APPLICATION_EXISTS", "Encontramos una solicitud asociada a este documento. Verifica tu identidad para continuar.");
+      if (!reusableDraft && existing.length && !existing.some(item => authorizedIds.includes(item.id))) throw new ApplicationFlowError("VERIFICATION_REQUIRED", "Verifica tu identidad antes de iniciar una nueva postulación.", 401);
+      await this.assertContactUnique(tx, { phone: application.phone, excludeApplicationId: reusableDraft?.id });
       const person = await tx.person.findUnique({ where: { documentType_documentNumber: { documentType: application.documentType as never, documentNumber: application.documentNumber! } }, include: { user: true } });
       if (person?.user?.type === "AFFILIATE") throw new ApplicationFlowError("APPLICATION_EXISTS", "No es posible iniciar otra postulación. Consulta tu solicitud o contacta al IIMP.");
+      if (reusableDraft) {
+        const reused = await tx.membershipApplication.update({ where: { id: reusableDraft.id }, data: { email: application.email!, phone: application.phone!, currentStep: 1 } });
+        return this.mapToEntity(reused);
+      }
       const created = await tx.membershipApplication.create({ data: { applicationCode: application.applicationCode!, trackingCode: application.trackingCode!, documentType: application.documentType as never, documentNumber: application.documentNumber!, affiliateType: application.affiliateType as never, email: application.email!, phone: application.phone!, status: "DRAFT", currentStep: 1, draftData: {} } });
       return this.mapToEntity(created);
     });
@@ -163,12 +172,15 @@ export class ApplicationRepository implements IApplicationRepository {
       if (!application || application.deletedAt || !canEditApplication(application.status) || (expectedStatus && application.status !== expectedStatus)) {
         throw new ApplicationFlowError("APPLICATION_NOT_EDITABLE", "El estado de tu solicitud cambió. Revisa las acciones disponibles desde Consultar.");
       }
-      const mergedDraft = { ...((application.draftData as Record<string, unknown>) ?? {}), ...dto.draftData };
+      const mergedDraft = deepMergeDraft(
+        (application.draftData as Record<string, unknown>) ?? {},
+        dto.draftData as unknown as Record<string, unknown>,
+      ) as Record<string, unknown>;
       if (mergedDraft.employmentInformation && typeof mergedDraft.employmentInformation === "object") {
         mergedDraft.employmentInformation = normalizeEmploymentInformation(mergedDraft.employmentInformation as ApplicationDraft["employmentInformation"] extends infer T ? NonNullable<T> : never);
       }
-      const personal = (mergedDraft.personalInformation ?? {}) as { primaryEmail?: string; phone?: string };
-      await this.assertContactUnique(tx, { email: personal.primaryEmail, phone: personal.phone, excludeApplicationId: application.id });
+      const personal = (mergedDraft.personalInformation ?? {}) as { phone?: string };
+      await this.assertContactUnique(tx, { phone: personal.phone, excludeApplicationId: application.id });
       const updated = await tx.membershipApplication.update({ where: { trackingCode }, data: { currentStep: application.status === "DRAFT" ? dto.currentStep : application.currentStep, draftData: mergedDraft as unknown as Prisma.InputJsonValue, lastAccessAt: new Date() } });
       return this.mapToEntity(updated);
     });
@@ -268,8 +280,7 @@ export class ApplicationRepository implements IApplicationRepository {
 
     const personal = draft.personalInformation;
 
-    await this.assertEmailIdentityAvailable(tx, application.email, personal.documentNumber);
-    await this.assertContactUnique(tx, { email: personal.primaryEmail, phone: personal.phone, excludeApplicationId: application.id });
+    await this.assertContactUnique(tx, { phone: personal.phone, excludeApplicationId: application.id });
 
     if (!personal.documentNumber) {
       throw new Error("El número de documento es obligatorio.");
@@ -299,53 +310,40 @@ export class ApplicationRepository implements IApplicationRepository {
     }
   }
 
-  private async assertEmailIdentityAvailable(tx: Prisma.TransactionClient, rawEmail: string, documentNumber: string): Promise<void> {
-    const email = rawEmail.trim().toLowerCase();
-    const owner = await tx.user.findFirst({
-      where: { email: { equals: email, mode: "insensitive" } },
-      select: { person: { select: { documentNumber: true } } },
-    });
-    if (owner?.person && owner.person.documentNumber !== documentNumber) {
-      throw new ApplicationFlowError("EMAIL_CONFLICT", "Este correo ya se encuentra asociado a una cuenta existente. Verifica el correo ingresado o utiliza otro correo para continuar.", 409);
-    }
-  }
-
   /**
-   * Garantiza que el correo y el celular no estén registrados por otra
-   * postulación. La misma postulación (excluida por id) puede volver a guardar
-   * sus propios valores sin considerarse duplicado.
+   * Garantiza que el celular no esté registrado por otra postulación. La misma
+   * postulación (excluida por id) puede volver a guardar su propio valor sin
+   * considerarse duplicado.
+   *
+   * El correo electrónico ya no se bloquea: distintas postulaciones, postulantes
+   * o avales pueden compartir el mismo correo.
    *
    * Regla de negocio: `REJECTED` es la única excepción. Cualquier otra
-   * postulación (incluida COMPLETED) bloquea la reutilización.
+   * postulación (incluida COMPLETED) bloquea la reutilización del celular.
    */
   private async assertContactUnique(
     tx: Prisma.TransactionClient,
-    input: { email?: string | null; phone?: string | null; excludeApplicationId?: number },
+    input: { phone?: string | null; excludeApplicationId?: number },
   ): Promise<void> {
-    const email = ContactUniquenessService.normalizeEmail(input.email);
     const phone = ContactUniquenessService.normalizePhone(input.phone);
-    if (!email && !phone) return;
+    if (!phone) return;
 
     const existing = await tx.membershipApplication.findMany({
       where: {
         deletedAt: null,
         status: { not: "REJECTED" },
       },
-      select: { id: true, email: true, phone: true, status: true },
+      select: { id: true, phone: true, status: true },
     });
 
     const conflict = ContactUniquenessService.detectConflict(
       existing.filter((item) => ContactUniquenessService.blocksDuplicateReuse(item.status)),
       {
-        email: input.email,
         phone: input.phone,
         excludeId: input.excludeApplicationId,
       },
     );
 
-    if (conflict.email) {
-      throw new ApplicationFlowError("DUPLICATE_EMAIL", "Este correo electrónico ya se encuentra registrado.", 409);
-    }
     if (conflict.phone) {
       throw new ApplicationFlowError("DUPLICATE_PHONE", "Este número de celular ya se encuentra registrado.", 409);
     }
@@ -508,6 +506,7 @@ export class ApplicationRepository implements IApplicationRepository {
       districtId,
       addressTypeId: addressType.id,
       street,
+      zipCode: personal?.postalCode?.trim() || null,
       foreignRegion: districtId ? null : personal?.foreignRegion?.trim() || null,
       foreignCity: districtId ? null : personal?.foreignCity?.trim() || null,
       isPrimary: true,

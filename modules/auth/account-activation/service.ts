@@ -7,6 +7,7 @@ import { getAppBaseUrl } from "@/lib/config/env";
 import { emailLayout } from "@/modules/shared/Email/EmailLayout";
 import { emailCta, emailInfoBox } from "@/modules/shared/Email/EmailComponents";
 import { escapeHtml } from "@/modules/shared/Email/EmailEscaping";
+import { buildAssociateCode } from "@/modules/shared/Utils/associateCode";
 
 const ACTIVATION_PREFIX = "account-activation:";
 const ACTIVATION_TTL_MS = 24 * 60 * 60 * 1000;
@@ -26,7 +27,7 @@ export class AccountActivationService {
     if (!activation) return;
 
     try {
-      await new MailService().sendMail({ to: activation.email, subject: "Bienvenido al IIMP | Activa tu cuenta", html: activationEmailTemplate(activation.name, activation.email, activation.role, resolveActivationUrl(activation.rawToken)) });
+      await new MailService().sendMail({ to: activation.email, subject: "Bienvenido al IIMP | Activa tu cuenta", html: activationEmailTemplate(activation.name, activation.email, activation.role, resolveActivationUrl(activation.rawToken), activation.associateCode) });
       console.info("[ACCOUNT_ACTIVATION_EMAIL] SENT", { userId, recipient: activation.email });
     } catch (error) {
       console.error("[ACCOUNT_ACTIVATION_EMAIL] FAILED", { userId, recipient: activation.email, error: error instanceof Error ? error.message : "unknown" });
@@ -45,7 +46,7 @@ export class AccountActivationService {
     return { email: activation.email, url: resolveActivationUrl(activation.rawToken) };
   }
 
-  private async mintActivation(userId: number): Promise<{ rawToken: string; email: string; name: string; role: string } | null> {
+  private async mintActivation(userId: number): Promise<{ rawToken: string; email: string; name: string; role: string; associateCode: string | null } | null> {
     return prisma.$transaction(async (tx) => {
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`${ACTIVATION_PREFIX}${userId}`}))`;
       const user = await tx.user.findUnique({ where: { id: userId }, include: { person: true, role: { select: { slug: true } }, credentials: { where: { type: CredentialType.PASSWORD, isActive: true }, select: { id: true } } } });
@@ -54,7 +55,7 @@ export class AccountActivationService {
       await tx.verificationToken.deleteMany({ where: { identifier } });
       const rawToken = crypto.randomBytes(32).toString("base64url");
       await tx.verificationToken.create({ data: { identifier, token: hashToken(rawToken), expires: new Date(Date.now() + ACTIVATION_TTL_MS) } });
-      return { rawToken, email: user.email, name: [user.person?.firstName, user.person?.paternalLastName].filter(Boolean).join(" ") || "Usuario", role: user.role?.slug ?? "USUARIO" };
+      return { rawToken, email: user.email, name: [user.person?.firstName, user.person?.paternalLastName].filter(Boolean).join(" ") || "Usuario", role: user.role?.slug ?? "USUARIO", associateCode: buildAssociateCode(user.person?.id) };
     });
   }
 
@@ -103,13 +104,14 @@ export function resolveActivationUrl(rawToken: string): string {
 
 function hashToken(rawToken: string) { return crypto.createHash("sha256").update(rawToken).digest("hex"); }
 
-function activationEmailTemplate(name: string, email: string, role: string, activationUrl: string) {
+function activationEmailTemplate(name: string, email: string, role: string, activationUrl: string, associateCode: string | null) {
   const completion = role === "ASOCIADO_ESTUDIANTE"
     ? "Tu proceso de afiliación como Asociado Estudiante ha sido aprobado y completado."
     : role === "ASOCIADO_ACTIVO"
       ? "Tu proceso de afiliación como Asociado Activo ha sido completado correctamente."
       : "Se ha creado una cuenta institucional para ti.";
-  return emailLayout({ category: "Cuenta de Asociado", title: "¡Bienvenido(a) al IIMP!", summary: completion, variant: "success", content: `<p>Hola, ${escapeHtml(name)}:</p><p>Ya puedes activar tu cuenta para ingresar al Portal de Asociados.</p>${emailInfoBox(`Tu usuario de acceso es:<br><strong>${escapeHtml(email)}</strong>`, "success")}<p>Para proteger tu cuenta, crea tu contraseña mediante el siguiente botón. El enlace tiene una vigencia limitada.</p>${emailCta("ACTIVAR MI CUENTA", activationUrl)}` });
+  const accessInfo = `Tu usuario de acceso es:<br><strong>${escapeHtml(email)}</strong>${associateCode ? `<br><br>Tu código de asociado es:<br><strong>${escapeHtml(associateCode)}</strong>` : ""}`;
+  return emailLayout({ category: "Cuenta de Asociado", title: "¡Bienvenido(a) al IIMP!", summary: completion, variant: "success", content: `<p>Hola, ${escapeHtml(name)}:</p><p>Ya puedes activar tu cuenta para ingresar al Portal de Asociados.</p>${emailInfoBox(accessInfo, "success")}<p>Para proteger tu cuenta, crea tu contraseña mediante el siguiente botón. El enlace tiene una vigencia limitada.</p>${emailCta("ACTIVAR MI CUENTA", activationUrl)}` });
 }
 
 export const accountActivationService = new AccountActivationService();

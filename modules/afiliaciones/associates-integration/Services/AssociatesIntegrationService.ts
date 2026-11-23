@@ -419,6 +419,11 @@ export class AssociatesIntegrationService {
     const integration = await this.repository.findById(integrationId);
     if (!integration) return null;
 
+    if (!associateWritesEnabled()) {
+      console.warn("SIE associate writes disabled by environment; integration dispatch skipped", { integrationId });
+      return integration;
+    }
+
     // P0-B applies only to the first ACTIVE dispatch. Student integrations and
     // established RETRYABLE dispatches deliberately retain their prior flow.
     if (
@@ -815,4 +820,10 @@ function toPersistedError(
         : "No se pudo procesar la integración.",
     retryable: false,
   };
+}
+
+function associateWritesEnabled(): boolean {
+  // Las pruebas aíslan el cliente SIE con mocks; el bloqueo aplica al runtime local/real.
+  if (process.env.NODE_ENV === "test") return true;
+  return process.env.ASSOCIATES_WRITES_ENABLED?.trim().toLowerCase() !== "false";
 }

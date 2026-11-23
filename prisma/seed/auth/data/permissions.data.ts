@@ -104,6 +104,14 @@ export const permissionsData: Prisma.PermissionCreateManyInput[] = [
   // ASSOCIATES (directorio)
   // ===========================================================================
   { action: "read", subject: "associates", description: "Consultar el directorio de asociados." },
+  { action: "update", subject: "associates", description: "Actualizar datos de contacto y dirección de asociados." },
+
+  // ===========================================================================
+  // QUOTAS (cuotas SIE)
+  // ===========================================================================
+  { action: "read", subject: "quotas", description: "Consultar cuotas de asociados." },
+  { action: "export", subject: "quotas", description: "Exportar cuotas de asociados." },
+  { action: "sync", subject: "quotas", description: "Ejecutar sincronizaciones de cuotas." },
 
   // ===========================================================================
   // CARDS (carnet virtual)

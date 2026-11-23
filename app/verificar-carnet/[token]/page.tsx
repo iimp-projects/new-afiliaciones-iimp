@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { verificationTokenRateLimiter } from "@/modules/auth/rate-limit/VerificationTokenRateLimiter";
 import { resolveCardData } from "@/modules/afiliaciones/carnet/Services/cardData";
-import { BadgeCheck, ShieldX } from "lucide-react";
+import { BadgeCheck, ShieldAlert, ShieldX } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -50,19 +50,26 @@ export default async function VerifyCardPage({ params }: { params: Promise<{ tok
   }
 
   const data = await resolveCardData(card.personId);
+  const vigente = data.eligible;
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10">
       <section className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50">
-          <BadgeCheck size={28} className="text-emerald-600" />
+        <div className={`mx-auto flex h-14 w-14 items-center justify-center rounded-2xl ${vigente ? "bg-emerald-50" : "bg-amber-50"}`}>
+          {vigente ? <BadgeCheck size={28} className="text-emerald-600" /> : <ShieldAlert size={28} className="text-amber-600" />}
         </div>
         <h1 className="mt-4 text-xl font-black text-slate-900">Credencial auténtica</h1>
         <p className="mt-1 text-sm text-slate-500">{publicName(data.firstName, data.paternalLastName)}</p>
         <p className="mt-1 text-sm font-semibold text-slate-700">{data.category ?? "Asociado IIMP"}</p>
-        <div className="mt-6 rounded-xl border border-slate-100 bg-slate-50 p-4 text-xs leading-5 text-slate-500">
-          Credencial auténtica. Vigencia institucional no confirmada.
-        </div>
+        {vigente ? (
+          <div className="mt-6 rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-xs leading-5 text-emerald-700">
+            Vigencia institucional vigente según las cuotas registradas.
+          </div>
+        ) : (
+          <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs leading-5 text-amber-800">
+            Vigencia institucional no vigente. La credencial es auténtica, pero la membresía no se encuentra al día.
+          </div>
+        )}
       </section>
     </main>
   );

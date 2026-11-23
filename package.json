@@ -22,7 +22,11 @@
     "sie-account:reconcile": "tsx scripts/sie-account-reconciliation.ts",
     "sie-user:provision": "tsx scripts/sie-user-provision.ts",
     "sie-legacy-credential": "tsx scripts/sie-legacy-credential.ts",
-    "sie-active-code-sync": "tsx scripts/sie-active-code-sync.ts"
+    "sie-active-code-sync": "tsx scripts/sie-active-code-sync.ts",
+    "quotas:sync": "tsx scripts/quotas-sync.ts",
+    "quotas:padron": "tsx scripts/quotas-padron.ts",
+    "quotas:export": "tsx scripts/quotas-export.ts",
+    "quotas:import": "tsx scripts/quotas-import.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.3",
@@ -41,6 +45,7 @@
     "d3": "^7.9.0",
     "exceljs": "^4.4.0",
     "jsonwebtoken": "^9.0.3",
+    "jszip": "^3.10.2",
     "lucide-react": "^1.25.0",
     "next": "16.4.3",
     "next-auth": "^5.0.0-beta.32",

@@ -16,6 +16,47 @@ export class NotifyApplicantService {
     const name = nameOf(p); const html = emailLayout({ category: "Estado de Postulación", title: "Confirmación de Solicitud", summary: "Tu solicitud fue registrada correctamente.", variant: "success", content: `<p>Estimado(a) <strong>${escapeHtml(name)}</strong>,</p><p>Confirmamos que su solicitud de incorporación como asociado al <strong>Instituto de Ingenieros de Minas del Perú (IIMP)</strong> ha sido registrada exitosamente.</p><p>Puede hacer seguimiento al estado de su trámite ingresando a nuestro portal con su tipo de documento, número de documento y correo registrado.</p>${emailCta("Consultar Estado de Solicitud", consultationUrl())}<p style="font-size:12px;color:#667085;text-align:center;">Adjunto a este correo encontrará su Declaración Jurada firmada registrada en el sistema.</p>` });
     await this.mailService.sendMail({ to, subject: "Confirmación de Solicitud - Postulación IIMP", html, attachments: signedDeclarationBuffer ? [{ filename: "Declaracion_Jurada_Firmada_IIMP.pdf", content: signedDeclarationBuffer, contentType: "application/pdf" }] : [] });
   }
+  async resendConfirmation(applicationId: number): Promise<{
+    sent: boolean;
+    reason?: "NOT_FOUND" | "NO_EMAIL" | "SEND_FAILED";
+  }> {
+    const { prisma } = await import("@/lib/prisma");
+    const app = await prisma.membershipApplication.findFirst({
+      where: { id: applicationId, deletedAt: null },
+      include: { person: true },
+    });
+    if (!app) return { sent: false, reason: "NOT_FOUND" };
+
+    const draft = typeof app.draftData === "string"
+      ? (() => { try { return JSON.parse(app.draftData as string); } catch { return null; } })()
+      : app.draftData;
+    const personal = (draft as any)?.personalInformation;
+    const to = app.email || personal?.primaryEmail || personal?.email;
+    if (!to) return { sent: false, reason: "NO_EMAIL" };
+
+    const name = app.person
+      ? `${app.person.firstName || ""} ${app.person.paternalLastName || ""}`.trim() || "Postulante"
+      : nameOf(personal);
+    const html = emailLayout({
+      category: "Estado de Postulación",
+      title: "Confirmación de Solicitud",
+      summary: "Reenvío de la confirmación de tu solicitud.",
+      variant: "info",
+      content: `<p>Estimado(a) <strong>${escapeHtml(name)}</strong>,</p><p>Le reenviamos la confirmación de que su solicitud de incorporación como asociado al <strong>Instituto de Ingenieros de Minas del Perú (IIMP)</strong> se encuentra registrada.</p><p>Puede hacer seguimiento al estado de su trámite ingresando a nuestro portal con su tipo de documento, número de documento y correo registrado.</p>${emailCta("Consultar Estado de Solicitud", consultationUrl())}`,
+    });
+
+    try {
+      await this.mailService.sendMail({
+        to,
+        subject: "Confirmación de Solicitud - Postulación IIMP",
+        html,
+      });
+      return { sent: true };
+    } catch {
+      return { sent: false, reason: "SEND_FAILED" };
+    }
+  }
+
   async notifyCorrectionReceived(application: Application, draft?: any) {
     const p = draft?.personalInformation; const to = application.email || p?.primaryEmail || p?.email; if (!to) return; const name = nameOf(p);
     const html = emailLayout({ category: "Estado de Postulación", title: "Subsanación de Solicitud Recibida", summary: "La información y documentación actualizada fueron recibidas.", variant: "info", content: `<p>Estimado(a) <strong>${escapeHtml(name)}</strong>,</p><p>Le confirmamos que la información y documentación corregida para su solicitud de incorporación al IIMP ha sido registrada exitosamente.</p>${emailInfoBox("Tu expediente ha pasado nuevamente a estado de <strong>evaluación</strong>. Por favor, permanece atento(a) a la respuesta institucional.", "info")}${emailCta("Consultar Estado de Solicitud", consultationUrl())}` });

@@ -89,12 +89,29 @@ export function determineMembershipType(cuotas: SieAssociateStateQuota[]): Membe
 
   if (typed.length === 0) return null;
 
-  const latest = [...cuotas].sort(byRecencyDesc)[0];
+  const sorted = [...cuotas].sort(byRecencyDesc);
+  const latest = sorted[0];
   const latestType = mapSieTipo(latest.tipo);
   if (latestType === null) return null;
 
+  // Estados terminales (Fallecido/Renunciante/Separado/Anulado) tienen prioridad
+  // absoluta: un vitalicio que renunció o falleció deja de ser elegible.
+  if (TERMINAL_MEMBERSHIP_TYPES.includes(latestType)) return latestType;
+
+  // Vitalicios (VITALICIO/HONORARIO) no dependen de cuotas facturadas recientes:
+  // una cuota vitalicia en el historial indica membresía vitalicia y prevalece
+  // sobre cuotas posteriores ACTIVE/STUDENT.
+  const lifetime = sorted.find((quota) => {
+    const type = mapSieTipo(quota.tipo);
+    return type !== null && LIFETIME_MEMBERSHIP_TYPES.includes(type);
+  });
+  if (lifetime) {
+    const lifetimeType = mapSieTipo(lifetime.tipo);
+    if (lifetimeType !== null) return lifetimeType;
+  }
+
   const key = recencyKey(latest);
-  for (const quota of [...cuotas].sort(byRecencyDesc)) {
+  for (const quota of sorted) {
     if (recencyKey(quota) !== key) break;
     if (mapSieTipo(quota.tipo) !== latestType) return null;
   }

@@ -1,5 +1,8 @@
 import type { NiubizTestConfig } from "../../Config/PaymentConfig";
-import type { NiubizAuthorizationRequest, NiubizAuthorizationResponse } from "../../DTOs/Niubiz/NiubizAuthorization.dto";
+import type {
+  NiubizAuthorizationRequest,
+  NiubizAuthorizationResponse,
+} from "../../DTOs/Niubiz/NiubizAuthorization.dto";
 import type { NiubizDataMap } from "../../DTOs/Niubiz/NiubizSession.dto";
 import { logNiubizAuthorizationStructure } from "./NiubizAuthorizationDiagnostics";
 
@@ -16,17 +19,26 @@ export interface BuildNiubizAuthorizationInput {
 }
 
 export class NiubizAuthorizationService {
-  buildRequest(config: NiubizTestConfig, input: BuildNiubizAuthorizationInput): NiubizAuthorizationRequest {
-    if (!config.authorizationUrl) throw new Error("Falta NIUBIZ_AUTHORIZATION_URL.");
+  buildRequest(
+    config: NiubizTestConfig,
+    input: BuildNiubizAuthorizationInput,
+  ): NiubizAuthorizationRequest {
+    if (!config.authorizationUrl)
+      throw new Error("Falta NIUBIZ_AUTHORIZATION_URL.");
 
     return {
       url: `${config.authorizationUrl.replace(/\/$/, "")}/${encodeURIComponent(input.merchantId)}`,
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: input.securityToken },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: input.securityToken,
+      },
       body: {
         ...(input.captureType ? { captureType: input.captureType } : {}),
         channel: "web",
-        ...(input.countable === undefined ? {} : { countable: input.countable }),
+        ...(input.countable === undefined
+          ? {}
+          : { countable: input.countable }),
         order: {
           amount: input.amount,
           tokenId: input.tokenId,
@@ -38,7 +50,10 @@ export class NiubizAuthorizationService {
     };
   }
 
-  async authorize(config: NiubizTestConfig, input: BuildNiubizAuthorizationInput): Promise<{ response: NiubizAuthorizationResponse; status: number }> {
+  async authorize(
+    config: NiubizTestConfig,
+    input: BuildNiubizAuthorizationInput,
+  ): Promise<{ response: NiubizAuthorizationResponse; status: number }> {
     const request = this.buildRequest(config, input);
     console.info("[NIUBIZ_AUTHORIZATION] Solicitud preparada.", {
       merchantId: input.merchantId,
@@ -59,17 +74,29 @@ export class NiubizAuthorizationService {
         signal: AbortSignal.timeout(20_000),
       });
     } catch (error) {
-      throw new NiubizAuthorizationNetworkError(error instanceof Error ? error.message : "No se pudo contactar Authorization de Niubiz.");
+      throw new NiubizAuthorizationNetworkError(
+        error instanceof Error
+          ? error.message
+          : "No se pudo contactar Authorization de Niubiz.",
+      );
     }
 
     const body = await response.json().catch(() => null);
-    if (!this.isRecord(body)) throw new NiubizAuthorizationHttpError(response.status);
+    if (!this.isRecord(body))
+      throw new NiubizAuthorizationHttpError(response.status);
     // QA/TEST-only structural inventory before the DTO and mapper ignore unknown fields.
     // This helper records keys and value types only; it never receives or logs request data.
     logNiubizAuthorizationStructure(body);
-    if (!response.ok) throw new NiubizAuthorizationHttpError(response.status, body as NiubizAuthorizationResponse);
+    if (!response.ok)
+      throw new NiubizAuthorizationHttpError(
+        response.status,
+        body as NiubizAuthorizationResponse,
+      );
 
-    return { response: body as NiubizAuthorizationResponse, status: response.status };
+    return {
+      response: body as NiubizAuthorizationResponse,
+      status: response.status,
+    };
   }
 
   private isRecord(value: unknown): value is Record<string, unknown> {
@@ -78,7 +105,10 @@ export class NiubizAuthorizationService {
 }
 
 export class NiubizAuthorizationHttpError extends Error {
-  constructor(readonly status: number, readonly response?: NiubizAuthorizationResponse) {
+  constructor(
+    readonly status: number,
+    readonly response?: NiubizAuthorizationResponse,
+  ) {
     super(`Niubiz Authorization respondiÃ³ HTTP ${status}.`);
   }
 }

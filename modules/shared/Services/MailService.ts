@@ -6,10 +6,15 @@ interface SendMailAttachment {
   filename: string;
   content: Buffer | string;
   contentType?: string;
+  /** Content-ID para imágenes inline referenciadas como `cid:<valor>` en el HTML. */
+  cid?: string;
+  contentDisposition?: "inline" | "attachment";
 }
 
 interface SendMailOptions {
   to: string;
+  cc?: string[];
+  bcc?: string[];
   subject: string;
   html: string;
   text?: string;
@@ -98,6 +103,8 @@ export class MailService {
       const info = await transporter.sendMail({
         from: `"${options.fromName ?? "IIMP Portal de Afiliaciones"}" <${this.from}>`,
         to: options.to,
+        cc: options.cc,
+        bcc: options.bcc,
         subject: options.subject,
         html: options.html,
         text: options.text,

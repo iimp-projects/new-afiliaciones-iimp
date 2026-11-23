@@ -1,10 +1,12 @@
-"use server";
+﻿"use server";
 /* eslint-disable @typescript-eslint/no-explicit-any -- legacy action contract is consumed by the shared drawer. */
 
+import { Gender, UserStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { contextService } from "@/modules/auth/context/service";
 import { resolveAffiliatePhoto } from "@/modules/shared/Services/AffiliatePhotoResolver";
-import { buildHistoricalWhere, buildV2Where, resolveInstitutionalCode } from "../Services/asociadosQuery";
+import { S3StorageService } from "@/modules/shared/Services/S3StorageService";
+import { buildHistoricalWhere, buildV2Where, resolveInstitutionalCode, type AssociateAdvancedFilters } from "../Services/asociadosQuery";
 
 interface FetchAsociadosParams {
   page?: number;
@@ -12,9 +14,68 @@ interface FetchAsociadosParams {
   search?: string;
   membershipType?: string;
   sort?: string;
+  gender?: string;
+  country?: string;
+  university?: string;
+  company?: string;
+  status?: string;
+  from?: string;
+  to?: string;
+  inactivos?: string;
+}
+
+const GENDER_VALUES = Object.values(Gender) as string[];
+const USER_STATUS_VALUES = Object.values(UserStatus) as string[];
+
+function positiveInt(value?: string): number | undefined {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined;
+}
+
+function dateBound(value: string | undefined, endOfDay: boolean): Date | undefined {
+  if (!value) return undefined;
+  const date = new Date(`${value}T${endOfDay ? "23:59:59.999" : "00:00:00.000"}`);
+  return Number.isNaN(date.getTime()) ? undefined : date;
+}
+
+function toPlain<T>(value: T): T {
+  if (value === null || value === undefined) return value;
+  if (typeof value === "bigint") return Number(value) as T;
+  if (Array.isArray(value)) return value.map((item) => toPlain(item)) as T;
+  if (typeof value === "object") {
+    const candidate = value as unknown as { toNumber?: unknown; toFixed?: unknown; getTime?: unknown };
+    if (typeof candidate.toNumber === "function" && typeof candidate.toFixed === "function") return Number(value) as T;
+    if (value instanceof Date) return value;
+    const plain: Record<string, unknown> = {};
+    for (const [key, item] of Object.entries(value as Record<string, unknown>)) plain[key] = toPlain(item);
+    return plain as T;
+  }
+  return value;
+}
+
+function resolveAdvanced(params: FetchAsociadosParams): AssociateAdvancedFilters {
+  return {
+    gender: params.gender && GENDER_VALUES.includes(params.gender) ? (params.gender as Gender) : undefined,
+    countryId: positiveInt(params.country),
+    universityId: positiveInt(params.university),
+    companyId: positiveInt(params.company),
+    accountStatus: params.status && USER_STATUS_VALUES.includes(params.status) ? (params.status as UserStatus) : undefined,
+    dateFrom: dateBound(params.from, false),
+    dateTo: dateBound(params.to, true),
+    includeInactive: params.inactivos === "1",
+  };
 }
 
 export type AssociateSource = "POSTULACION" | "SIE_HISTORICAL";
+
+async function resolveUserAvatar(image: string | null | undefined): Promise<string | null> {
+  if (!image) return null;
+  try {
+    return await new S3StorageService().getPresignedAvatarUrl(image);
+  } catch {
+    return null;
+  }
+}
 
 function roleForHistorical(affiliateType: string | null | undefined) {
   return affiliateType === "STUDENT"
@@ -26,12 +87,13 @@ export async function fetchAsociadosAction(params: FetchAsociadosParams) {
   try {
     await contextService.requirePermission("read", "associates");
 
-    const { page = 1, pageSize = 12, search, membershipType, sort = "desc" } = params;
+    const { page = 1, pageSize = 8, search, membershipType, sort = "desc" } = params;
     const skip = (page - 1) * pageSize;
     const orderByConfig = sort === "desc" ? ({ updatedAt: "desc" } as const) : ({ updatedAt: "asc" } as const);
+    const advanced = resolveAdvanced(params);
 
-    const v2Where = buildV2Where(search, membershipType);
-    const histWhere = buildHistoricalWhere(search, membershipType);
+    const v2Where = buildV2Where(search, membershipType, advanced);
+    const histWhere = buildHistoricalWhere(search, membershipType, advanced);
 
     const [v2Total, histTotal] = await Promise.all([
       prisma.membershipApplication.count({ where: v2Where }),
@@ -70,6 +132,7 @@ export async function fetchAsociadosAction(params: FetchAsociadosParams) {
                   employmentInfos: { orderBy: { updatedAt: "desc" }, include: { company: true, position: true } },
                   professionalExperiences: { orderBy: [{ isCurrent: "desc" }, { updatedAt: "desc" }], include: { company: true, position: true } },
                   sieAssociateRecords: { where: { linkStatus: "LINKED" }, include: { category: true } },
+                  quotas: { select: { concept: true, quotaNumber: true, year: true, periodStart: true, paidAt: true, amount: true, currency: true } },
                   applications: {
                     where: { deletedAt: null },
                     orderBy: { updatedAt: "desc" },
@@ -97,6 +160,7 @@ export async function fetchAsociadosAction(params: FetchAsociadosParams) {
                   academicInfos: { include: { specialty: true, university: true, degree: true } },
                   employmentInfos: { orderBy: { updatedAt: "desc" }, include: { company: true, position: true } },
                   professionalExperiences: { orderBy: [{ isCurrent: "desc" }, { updatedAt: "desc" }], include: { company: true, position: true } },
+                  quotas: { select: { concept: true, quotaNumber: true, year: true, periodStart: true, paidAt: true, amount: true, currency: true } },
                   user: { include: { role: true } },
                 },
               },
@@ -124,13 +188,14 @@ export async function fetchAsociadosAction(params: FetchAsociadosParams) {
           email: person?.user?.email ?? application.email,
           image: person?.user?.image ?? null,
           role: person?.user?.role ?? { slug: application.affiliateType === "STUDENT" ? "ASOCIADO_ESTUDIANTE" : "ASOCIADO_ACTIVO", name: application.affiliateType === "STUDENT" ? "Asociado Estudiante" : "Asociado Activo" },
+          membershipCategory: { code: application.affiliateType === "STUDENT" ? "E" : "A", name: application.affiliateType === "STUDENT" ? "Estudiante" : "Activo" },
           createdAt: person?.user?.createdAt ?? application.createdAt,
           updatedAt: application.updatedAt,
           lastLoginAt: person?.user?.lastLoginAt ?? null,
           systemUser: null,
           person: person ? { ...person, applications: [safeApplicationData] } : null,
           institutionalCode: person ? resolveInstitutionalCode(person) : null,
-          affiliateAvatarUrl: await resolveAffiliatePhoto(person?.applications ?? []),
+          affiliateAvatarUrl: (await resolveUserAvatar(person?.user?.image)) ?? (await resolveAffiliatePhoto(person?.applications ?? [])),
           sieCode: null,
           sieSourceType: null,
           sieSourceDescription: null,
@@ -138,9 +203,9 @@ export async function fetchAsociadosAction(params: FetchAsociadosParams) {
       })
     );
 
-    const histMapped = histRows
+    const histMapped = await Promise.all(histRows
       .filter((record) => record.person !== null)
-      .map((record) => {
+      .map(async (record) => {
         const person = record.person!;
         const affiliateType = record.category?.mappedAffiliateType ?? null;
         return {
@@ -150,18 +215,19 @@ export async function fetchAsociadosAction(params: FetchAsociadosParams) {
           email: person.user?.email ?? null,
           image: person.user?.image ?? null,
           role: person.user?.role ?? roleForHistorical(affiliateType),
+          membershipCategory: record.category ? { code: record.category.code, name: record.category.name } : null,
           createdAt: person.createdAt,
           updatedAt: record.updatedAt,
           lastLoginAt: person.user?.lastLoginAt ?? null,
           systemUser: null,
           person: { ...person, applications: [] },
           institutionalCode: record.externalCode,
-          affiliateAvatarUrl: null,
+          affiliateAvatarUrl: await resolveUserAvatar(person.user?.image),
           sieCode: record.externalCode,
           sieSourceType: record.sourceType,
           sieSourceDescription: record.sourceDescription,
         };
-      });
+      }));
 
     const data = [...v2Mapped, ...histMapped].sort((left, right) =>
       sort === "desc"
@@ -169,7 +235,7 @@ export async function fetchAsociadosAction(params: FetchAsociadosParams) {
         : new Date(left.updatedAt).getTime() - new Date(right.updatedAt).getTime()
     );
 
-    return { success: true, data, total: v2Total + histTotal, page, pageSize };
+    return { success: true, data: toPlain(data), total: v2Total + histTotal, page, pageSize };
   } catch (error: any) {
     console.error("[Fetch Asociados Error]:", error);
     return { success: false, message: "Error al obtener la lista de asociados.", data: [], total: 0 };

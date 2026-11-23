@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { paymentMethodLabel } from "@/modules/afiliaciones/payments/Models/PaymentMethod";
 import { formatPeruDateTime } from "@/modules/shared/Utils/formatPeruDateTime";
+import { maskEmail, maskPhone } from "@/modules/shared/Models/Verification";
 import type { ApplicationStatusData } from "../Models/ApplicationStatus";
 
 interface Props { data: ApplicationStatusData; onFinish?: () => void; }
@@ -29,8 +30,8 @@ export function StatusCompleted({ data, onFinish }: Props) {
   const employment = data.draftData?.employmentInformation ?? {};
   const fullName = data.applicantName || [personal.names, personal.fatherLastName, personal.motherLastName].filter(Boolean).join(" ") || "No disponible";
   const document = data.documentNumber || personal.documentNumber;
-  const email = data.email || personal.primaryEmail;
-  const phone = data.phone || personal.phone;
+  const email = maskEmail(data.email || personal.primaryEmail);
+  const phone = maskPhone(data.phone || personal.phone);
   const confettiFired = useRef(false);
 
   useEffect(() => {

@@ -10,7 +10,7 @@ interface AsociadosPaginationProps {
   pageSize?: number;
 }
 
-export function AsociadosPagination({ total, currentPage, pageSize = 12 }: AsociadosPaginationProps) {
+export function AsociadosPagination({ total, currentPage, pageSize = 8 }: AsociadosPaginationProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -117,7 +117,7 @@ export function AsociadosPagination({ total, currentPage, pageSize = 12 }: Asoci
           <div className="flex items-center gap-2">
             <span className="hidden sm:inline">Mostrar</span>
             <span className="h-9 px-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 font-bold flex items-center justify-center">
-              12
+              8
             </span>
             <span className="hidden sm:inline">por página</span>
           </div>

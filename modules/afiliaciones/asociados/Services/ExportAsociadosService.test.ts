@@ -21,6 +21,36 @@ const postulacionRecord = {
   affiliateType: "ACTIVE",
   createdAt: new Date("2026-01-01T10:00:00.000Z"),
   updatedAt: new Date("2026-01-02T10:00:00.000Z"),
+  draftData: {},
+  documents: [
+    {
+      category: "ID_DOCUMENT",
+      fileUrl: "afiliaciones/applications/1/documents/dni.pdf",
+      fileName: "dni.pdf",
+      mimeType: "application/pdf",
+      createdAt: new Date("2026-01-01T10:00:00.000Z"),
+      updatedAt: new Date("2026-01-02T10:00:00.000Z"),
+    },
+  ],
+  approvals: [
+    {
+      sponsorPerson: {
+        firstName: "Ana",
+        paternalLastName: "Torres",
+        maternalLastName: "Ríos",
+        contacts: [{ isPrimary: true, phoneNumber: "987654321", email: "ana@example.com" }],
+        user: { email: "ana.user@example.com" },
+      },
+    },
+  ],
+  validations: [
+    {
+      department: { code: "ASOCIADOS" },
+      validatedBy: {
+        person: { firstName: "Carla", paternalLastName: "Núñez", maternalLastName: "Soto" },
+      },
+    },
+  ],
   person: {
     firstName: "Juan",
     paternalLastName: "Perez",
@@ -48,10 +78,14 @@ const historicoRecord = {
   },
 };
 
-async function loadWorkbook(buffer: Buffer): Promise<ExcelJS.Worksheet> {
+async function loadWorkbook(buffer: Buffer): Promise<ExcelJS.Workbook> {
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.load(buffer as unknown as Parameters<typeof workbook.xlsx.load>[0]);
-  return workbook.getWorksheet("Padrón de Asociados")!;
+  return workbook;
+}
+
+async function loadWorksheet(buffer: Buffer): Promise<ExcelJS.Worksheet> {
+  return (await loadWorkbook(buffer)).getWorksheet("Padrón de Asociados")!;
 }
 
 describe("ExportAsociadosService", () => {
@@ -66,19 +100,28 @@ describe("ExportAsociadosService", () => {
     mocks.sieFindMany.mockResolvedValue([historicoRecord]);
 
     const service = new ExportAsociadosService();
-    const buffer = await service.execute({});
+    const worksheet = await loadWorksheet(await service.execute({}));
+    const headers = (worksheet.getRow(1).values as unknown[]).filter(Boolean) as string[];
 
-    const worksheet = await loadWorkbook(buffer);
     expect(worksheet.getRow(1).getCell(1).value).toBe("Código Institucional");
     expect(worksheet.rowCount).toBe(3);
     expect(worksheet.getRow(2).getCell(4).value).toBe("Juan Perez Garcia");
-    expect(worksheet.getRow(3).getCell(9).value).toBe("SIE Histórico");
+    expect(worksheet.getRow(3).getCell(headers.indexOf("Origen") + 1).value).toBe("SIE Histórico");
+  });
+
+  it("usa el código A-<personId> cuando no existe código institucional", async () => {
+    const record = {
+      ...postulacionRecord,
+      person: { ...postulacionRecord.person, id: 41, sieAssociateRecords: [] },
+    };
+    mocks.appFindMany.mockResolvedValue([record]);
+
+    const worksheet = await loadWorksheet(await new ExportAsociadosService().execute({}));
+
+    expect(worksheet.getRow(2).getCell(1).value).toBe("A-0041");
   });
 
   it("aplica los filtros de búsqueda y tipo de membresía a la consulta", async () => {
-    mocks.appFindMany.mockResolvedValue([]);
-    mocks.sieFindMany.mockResolvedValue([]);
-
     const service = new ExportAsociadosService();
     await service.execute({ search: "Perez", membershipType: "ACTIVE", sort: "asc" });
 
@@ -87,18 +130,44 @@ describe("ExportAsociadosService", () => {
     expect(appWhere.OR).toBeDefined();
 
     const sieWhere = mocks.sieFindMany.mock.calls[0][0].where;
-    expect(sieWhere.category).toEqual({ mappedAffiliateType: "ACTIVE" });
+    expect(sieWhere.category).toEqual({ code: "A" });
     expect(sieWhere.OR).toBeDefined();
   });
 
   it("excluye registros históricos sin persona", async () => {
-    mocks.appFindMany.mockResolvedValue([]);
     mocks.sieFindMany.mockResolvedValue([{ ...historicoRecord, person: null }]);
 
     const service = new ExportAsociadosService();
-    const buffer = await service.execute({});
+    const worksheet = await loadWorksheet(await service.execute({}));
 
-    const worksheet = await loadWorkbook(buffer);
     expect(worksheet.rowCount).toBe(1);
+  });
+
+  it("incluye avales, revisor y documentos con su propio enlace", async () => {
+    mocks.appFindMany.mockResolvedValue([postulacionRecord]);
+
+    const service = new ExportAsociadosService();
+    const workbook = await loadWorkbook(await service.execute({}));
+    const worksheet = workbook.getWorksheet("Padrón de Asociados")!;
+    const headers = (worksheet.getRow(1).values as unknown[]).filter(Boolean) as string[];
+    const row = worksheet.getRow(2);
+
+    expect(row.getCell(headers.indexOf("Aval 1 Nombre") + 1).value).toBe("Torres Ríos, Ana");
+    expect(row.getCell(headers.indexOf("Aval 1 Celular") + 1).value).toBe("987654321");
+    expect(row.getCell(headers.indexOf("Aval 1 Correo") + 1).value).toBe("ana@example.com");
+    expect(row.getCell(headers.indexOf("Revisor Asociados") + 1).value).toBe("Núñez Soto, Carla");
+    expect(row.getCell(headers.indexOf("Documento de Identidad") + 1).value).toMatchObject({
+      text: expect.stringContaining("/api/afiliaciones/postulacion/file?"),
+      hyperlink: expect.stringContaining("redirect=1"),
+    });
+
+    const documentsSheet = workbook.getWorksheet("Documentos");
+    expect(documentsSheet).toBeDefined();
+    expect(documentsSheet!.rowCount).toBe(2);
+    expect(documentsSheet!.getRow(2).getCell(2).value).toBe("Documento de Identidad");
+    expect(documentsSheet!.getRow(2).getCell(5).value).toMatchObject({
+      text: expect.stringContaining("/api/afiliaciones/postulacion/file?"),
+      hyperlink: expect.stringContaining("redirect=1"),
+    });
   });
 });

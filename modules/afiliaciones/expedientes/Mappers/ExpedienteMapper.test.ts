@@ -45,3 +45,38 @@ describe("ExpedienteMapper — subtítulo de documento", () => {
     expect(card.identity.subtitle).toBe("Documento P11219869");
   });
 });
+
+describe("ExpedienteMapper — origen del pago", () => {
+  const paidApp = (payment: Record<string, unknown>) => ({ ...app("DNI", "41000057"), payments: [payment] });
+  const paymentValidation = async (payment: Record<string, unknown>) => {
+    const card = await ExpedienteMapper.toCardData(paidApp(payment));
+    return card.atomicValidations?.find((validation) => validation.label === "Pago");
+  };
+
+  it("muestra Manual para pagos migrados con gateway BANK_TRANSFER", async () => {
+    const validation = await paymentValidation({ status: "PAID", gateway: "BANK_TRANSFER" });
+    expect(validation?.statusLabel).toBe("Pagado");
+    expect(validation?.assignee?.name).toBe("Manual");
+  });
+
+  it("muestra Manual para pagos registrados manualmente", async () => {
+    const validation = await paymentValidation({
+      status: "PAID",
+      gateway: "BANK_TRANSFER",
+      paymentChannel: "MANUAL",
+      gatewayPayload: { manualPayment: true },
+    });
+    expect(validation?.assignee?.name).toBe("Manual");
+  });
+
+  it("muestra Pasarela para pagos Niubiz", async () => {
+    const validation = await paymentValidation({ status: "PAID", gateway: "NIUBIZ", paymentChannel: "web" });
+    expect(validation?.assignee?.name).toBe("Pasarela");
+  });
+
+  it("no muestra origen cuando el pago está pendiente", async () => {
+    const validation = await paymentValidation({ status: "PENDING", gateway: "NIUBIZ" });
+    expect(validation?.statusLabel).toBe("Pendiente");
+    expect(validation?.assignee?.name).toBe("");
+  });
+});

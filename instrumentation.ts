@@ -10,17 +10,7 @@
  * para que el orquestador detecte el fallo en lugar de servir en estado roto.
  */
 export async function register(): Promise<void> {
-  if (process.env.NEXT_RUNTIME !== "nodejs") return;
-  if (process.env.NEXT_PHASE === "phase-production-build") return;
-
-  const { assertStartupConfig, ConfigurationError } = await import("./lib/config/env");
-  try {
-    assertStartupConfig();
-  } catch (error) {
-    if (error instanceof ConfigurationError) {
-      console.error(`[startup] ${error.message}`);
-      process.exit(1);
-    }
-    throw error;
+  if (process.env.NEXT_RUNTIME === "nodejs") {
+    await import("./instrumentation-node");
   }
 }

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { UserCircle } from "lucide-react";
+import { Fingerprint, Info, UserCircle, X } from "lucide-react";
 import { ApplicationStatusData } from "@/modules/afiliaciones/consulta/Models/ApplicationStatus";
 
 interface Props {
@@ -23,6 +23,7 @@ export default function PersonalDetailsStep({ data }: Props) {
   const personal = draft.personalInformation || {};
   const employment = draft.employmentInformation || {};
 
+  const [showDataNotice, setShowDataNotice] = useState(true);
   const [geoNames, setGeoNames] = useState({
     country: personal.countryId ? "Cargando..." : "Elegir",
     department: personal.departmentId ? "Cargando..." : "Elegir",
@@ -108,11 +109,43 @@ export default function PersonalDetailsStep({ data }: Props) {
 
   return (
     <div className="space-y-6 animate-in slide-in-from-right-4 duration-500 mb-8">
-      <section className="bg-white rounded-3xl border border-slate-200 shadow-sm relative z-20 overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-200 bg-[#f4f5f7] text-center">
-          <h3 className="text-sm font-bold text-slate-800 tracking-tight">Buscar y validar documento</h3>
+      {showDataNotice && (
+        <div role="status" className="relative rounded-2xl border border-sky-200 bg-sky-50 p-5 pr-12 text-sm text-slate-700 shadow-sm">
+          <div className="flex items-start gap-3">
+            <Info size={20} className="mt-0.5 shrink-0 text-sky-700" />
+            <div className="space-y-2">
+              <p className="font-semibold leading-relaxed">
+                Estos son sus datos personales con los que postuló y fueron aprobados según su condición de postulante. Cualquier modificación o duda, escriba a{" "}
+                <a href="mailto:asociados@iimp.org.pe" className="font-bold text-sky-700 underline underline-offset-2 hover:text-sky-900">asociados@iimp.org.pe</a> o{" "}
+                <a href="mailto:liset.otoya@iimp.org.pe" className="font-bold text-sky-700 underline underline-offset-2 hover:text-sky-900">liset.otoya@iimp.org.pe</a>.
+              </p>
+              <p className="text-xs font-medium text-sky-700/80">Lunes a viernes de 09:00 a 18:00 hrs.</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowDataNotice(false)}
+            aria-label="Cerrar aviso"
+            className="absolute right-3 top-3 rounded-full p-1.5 text-sky-700 transition-colors hover:bg-sky-100"
+          >
+            <X size={18} />
+          </button>
         </div>
-        <div className="p-6 md:p-8 flex justify-center">
+      )}
+      <section className="bg-[#FCFAF6] rounded-3xl p-6 sm:p-8 shadow-sm border border-[#E8D09E]/50 relative z-30">
+        <div className="flex items-start gap-5 border-b border-[#E8D09E]/30 pb-6 mb-8">
+          <div className="w-14 h-14 shrink-0 rounded-full border-2 border-[#D6A84A] flex items-center justify-center bg-white shadow-sm">
+            <Fingerprint size={28} className="text-[#C5A059]" />
+          </div>
+          <div>
+            <span className="inline-block px-3 py-1 rounded-full bg-[#F4E9D8] text-[#A67C00] text-[10px] font-bold uppercase tracking-widest mb-2">
+              Documento validado
+            </span>
+            <h2 className="text-xl sm:text-2xl font-black text-[#1E293B]">Verificación de Identidad</h2>
+            <p className="text-sm text-gray-500 font-medium mt-1">Datos recuperados de tu postulación.</p>
+          </div>
+        </div>
+        <div className="flex justify-center">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 w-full max-w-2xl">
             <DisabledInput label="Tipo de documento" value={tipoDoc} required />
             <DisabledInput label="Número de documento" value={numDoc} required />
@@ -120,12 +153,17 @@ export default function PersonalDetailsStep({ data }: Props) {
         </div>
       </section>
 
-      <section className="bg-white rounded-3xl border border-slate-200 shadow-sm relative z-20 overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-200 bg-[#f4f5f7] text-center">
-          <h3 className="text-sm font-bold text-slate-800 tracking-tight">Detalles personales</h3>
+      <section className="bg-white rounded-3xl border border-gray-200 shadow-sm relative z-20 transition-all duration-300">
+        <div className="px-8 py-5 border-b border-gray-100 flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-[#C5A059]/10 flex items-center justify-center">
+            <UserCircle className="w-5 h-5 text-[#C5A059]" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-[#2F3136] tracking-tight">Información Personal</h2>
+            <p className="text-xs text-gray-500 font-medium">Revise los datos registrados en su postulación.</p>
+          </div>
         </div>
-        
-        <div className="p-6 md:p-8">
+        <div className="p-8">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-5 sm:gap-6">
             <div className="md:col-span-5"><DisabledInput label="Nombres" value={nombres} required /></div>
             <div className="md:col-span-4"><DisabledInput label="Apellido paterno" value={apePaterno} required /></div>

@@ -5,18 +5,27 @@ export const communicationsModuleDefinition: ModuleDefinition = {
   description: "Módulo de correos masivos y comunicación institucional",
   navigation: [
     {
-      id: "group-communications",
-      title: "COMUNICACIONES",
+      id: "group-comunicaciones",
+      title: "Comunicaciones",
       type: "group",
+      collapsible: true,
+      icon: "Mail",
       audience: "administrative",
       order: 22,
       children: [
+        {
+          id: "nav-notifications",
+          title: "Notificaciones",
+          href: "/intranet/notificaciones",
+          icon: "Bell",
+          order: 1,
+        },
         {
           id: "nav-correos-masivos",
           title: "Correos Masivos",
           href: "/intranet/correos-masivos",
           icon: "Mail",
-          order: 1,
+          order: 2,
           permission: { action: "manage", subject: "all" },
         },
       ],

@@ -33,18 +33,22 @@ import type { IPaymentRepository, PaymentGatewayResult, PaymentTransaction, Pend
 import { PaymentAmountResolver } from "../Services/PaymentAmountResolver";
 import { PaymentService, PaymentServiceError } from "../Services/PaymentService";
 import { NiubizAuthorizationHttpError, NiubizAuthorizationNetworkError } from "../Services/Niubiz/NiubizAuthorizationService";
+import { NiubizSecurityHttpError } from "../Services/Niubiz/NiubizSecurityService";
 import { SystemSettingsError } from "../../../security/system-settings/Services/SystemSettingsService";
 
 const input: CreatePaymentInput = {
   applicationId: 42,
   billingData: {
     tipoDocumento: "RUC",
-    numeroDocumento: "10123456789",
+    numeroDocumento: "10123456780",
     razonSocial: "Empresa de prueba SAC",
     direccionFiscal: "Av. Prueba 123",
     responsable: "Responsable de prueba",
     emailFacturacion: "facturacion@example.com",
   },
+  billingConfirmed: true,
+  termsAccepted: true,
+  majorityAccepted: true,
 };
 
 const callbackPayload = { paymentId: 99, applicationId: input.applicationId, expiresAt: Date.now() + 60_000, purpose: "payment_callback" as const, jti: "test-jti" };
@@ -95,7 +99,7 @@ class PaymentRepositoryFake implements IPaymentRepository {
       email: "applicant@example.com",
       phone: "999999999",
       documentNumber: "12345678",
-      person: { firstName: "Ana", paternalLastName: "Pérez" },
+      person: { firstName: "Ana", paternalLastName: "Pérez", createdAt: new Date("2026-01-15T12:00:00Z"), address: { street: "Av. Prueba 123", city: "Lima", state: "Lima", countryCode: "PE", postalCode: "15024" } },
     };
   }
 
@@ -144,6 +148,24 @@ describe("PaymentService", () => {
 
     await expect(service.initiate(input, "expired-token"))
       .rejects.toMatchObject({ status: 403, code: "PAYMENT_AUTH_INVALID_OR_EXPIRED" } satisfies Partial<PaymentServiceError>);
+  });
+
+  it("rechaza el inicio cuando no se confirmó la facturación", async () => {
+    const service = new PaymentService(undefined, new MockPaymentProvider("PAID"), new PaymentRepositoryFake(), undefined, authorizedPayment);
+    await expect(service.initiate({ ...input, billingConfirmed: false }, "authorized"))
+      .rejects.toMatchObject({ status: 422, code: "PAYMENT_BILLING_NOT_CONFIRMED" } satisfies Partial<PaymentServiceError>);
+  });
+
+  it("rechaza el inicio cuando no se aceptaron los términos y condiciones", async () => {
+    const service = new PaymentService(undefined, new MockPaymentProvider("PAID"), new PaymentRepositoryFake(), undefined, authorizedPayment);
+    await expect(service.initiate({ ...input, termsAccepted: false }, "authorized"))
+      .rejects.toMatchObject({ status: 422, code: "PAYMENT_TERMS_NOT_ACCEPTED" } satisfies Partial<PaymentServiceError>);
+  });
+
+  it("rechaza el inicio cuando no se confirmó la mayoría de edad", async () => {
+    const service = new PaymentService(undefined, new MockPaymentProvider("PAID"), new PaymentRepositoryFake(), undefined, authorizedPayment);
+    await expect(service.initiate({ ...input, majorityAccepted: false }, "authorized"))
+      .rejects.toMatchObject({ status: 422, code: "PAYMENT_MAJORITY_NOT_CONFIRMED" } satisfies Partial<PaymentServiceError>);
   });
 
   it("provisiona la cuenta del asociado tras un pago PAID", async () => {
@@ -225,7 +247,7 @@ describe("PaymentService", () => {
 
     expect(settings.getRegistrationPrice).toHaveBeenCalledOnce();
     expect(repository.created).toMatchObject({ applicationId: 42, registrationAmount: 150, membershipFeeAmount: 150, totalAmount: 300, currency: "PEN" });
-    expect(repository.created?.billingData.numeroDocumento).toBe("10123456789");
+    expect(repository.created?.billingData.numeroDocumento).toBe("10123456780");
     expect(result).toMatchObject({ paymentId: 99, status: scenario, amount: 300, registrationAmount: 150, membershipFeeAmount: 150, currency: "PEN" });
     expect(repository.result?.status).toBe(scenario);
     expect(recalculate).toHaveBeenCalledTimes(scenario === "PAID" ? 1 : 0);
@@ -246,6 +268,33 @@ describe("PaymentService", () => {
 
     await expect(service.initiate(input, "authorized")).rejects.toMatchObject({ status: 503 } satisfies Partial<PaymentServiceError>);
     expect(repository.created).toBeUndefined();
+  });
+
+  it("libera el pago cuando el proveedor falla al iniciar la sesión", async () => {
+    const repository = new PaymentRepositoryFake();
+    const provider: PaymentProvider = {
+      gateway: PaymentGateway.NIUBIZ,
+      assertReady: vi.fn(),
+      initiate: vi.fn().mockRejectedValue(new Error("session failed")),
+    };
+    const service = new PaymentService(undefined, provider, repository, { recalculate: vi.fn() }, authorizedPayment);
+
+    await expect(service.initiate(input, "authorized")).rejects.toThrow("session failed");
+    expect(repository.result).toMatchObject({ status: PaymentStatus.FAILED, failureCode: "PAYMENT_INITIATION_FAILED" });
+  });
+
+  it("traduce un rechazo de Security de Niubiz a 503 sin dejar el pago bloqueado", async () => {
+    const repository = new PaymentRepositoryFake();
+    const provider: PaymentProvider = {
+      gateway: PaymentGateway.NIUBIZ,
+      assertReady: vi.fn(),
+      initiate: vi.fn().mockRejectedValue(new NiubizSecurityHttpError(401)),
+    };
+    const service = new PaymentService(undefined, provider, repository, { recalculate: vi.fn() }, authorizedPayment);
+
+    await expect(service.initiate(input, "authorized"))
+      .rejects.toMatchObject({ status: 503, code: "PAYMENT_NIUBIZ_UNAVAILABLE" } satisfies Partial<PaymentServiceError>);
+    expect(repository.result).toMatchObject({ status: PaymentStatus.FAILED, failureCode: "PAYMENT_INITIATION_FAILED" });
   });
 
   it("mantiene PENDING si faltan datos obligatorios de Authorization", async () => {
@@ -300,6 +349,24 @@ describe("PaymentService", () => {
     expect(repository.result?.failureCode).toBeUndefined();
   });
 
+  it("envía la incidencia cuando Niubiz rechaza el pago", async () => {
+    const repository = new PaymentRepositoryFake();
+    repository.paymentForAuthorization = { id: 99, applicationId: 42, totalAmount: 300, currency: "PEN", gateway: PaymentGateway.NIUBIZ, status: PaymentStatus.PENDING };
+    const provider = new NiubizPaymentProvider(niubizAuthorizationConfig, "TEST");
+    vi.spyOn(provider, "authorize").mockResolvedValue({
+      status: 200,
+      result: { status: PaymentStatus.FAILED, gatewayAmount: 300, gatewayCurrency: "PEN", gatewayPurchaseNumber: "99", failureCode: "116", failureReason: "Fondos insuficientes" },
+    });
+    const emailService = { sendIfNeeded: vi.fn(), sendIncidentIfNeeded: vi.fn() };
+    const service = new PaymentService(undefined, provider, repository, { recalculate: vi.fn() }, authorizedPayment, false, emailService as never);
+
+    await service.authorize({ applicationId: 42, paymentId: 99, transactionToken: "checkout-token" }, "authorized");
+
+    expect(repository.result).toMatchObject({ status: PaymentStatus.FAILED, failureCode: "116" });
+    expect(emailService.sendIncidentIfNeeded).toHaveBeenCalledWith(99);
+    expect(emailService.sendIfNeeded).not.toHaveBeenCalled();
+  });
+
   it("no marca PAID cuando monto, moneda u orden no coinciden con el pago", async () => {
     const repository = new PaymentRepositoryFake();
     repository.paymentForAuthorization = { id: 99, applicationId: 42, totalAmount: 300, currency: "PEN", gateway: PaymentGateway.NIUBIZ, status: PaymentStatus.PENDING };
@@ -334,6 +401,18 @@ describe("PaymentService", () => {
     expect(repository.paymentCreateCalls).toBe(0);
     expect(repository.billingCreateCalls).toBe(0);
     expect(repository.result).toBeUndefined();
+  });
+
+  it("propaga la fecha de registro de Person al comando del proveedor sin usarla como MDD77", async () => {
+    const repository = new PaymentRepositoryFake();
+    const provider: PaymentProvider = { gateway: PaymentGateway.MOCK, assertReady: vi.fn(), initiate: vi.fn().mockResolvedValue({ status: PaymentStatus.PAID }) };
+    const service = new PaymentService(undefined, provider, repository, { recalculate: vi.fn() }, authorizedPayment);
+
+    await service.initiate(input, "authorized");
+
+    expect(provider.initiate).toHaveBeenCalledWith(expect.objectContaining({
+      customer: expect.objectContaining({ personId: 7, registeredAt: expect.any(Date) }),
+    }));
   });
 
   it("mantiene bloqueado un Payment Niubiz PROCESSING en TEST", async () => {
@@ -413,9 +492,9 @@ describe("PaymentService", () => {
 
   it("rechaza datos RUC 20 manipulados y falla si SUNAT no está disponible", async () => {
     const repository = new PaymentRepositoryFake();
-    const lookup = { getRuc: vi.fn().mockResolvedValue({ status: "VERIFIED", data: { razonSocial: "Empresa oficial SAC", direccion: "Av. Oficial 123", numeroDocumento: "20123456789", estado: "ACTIVO", condicion: "HABIDO", departamento: "Lima", provincia: "Lima", distrito: "Lima" } }) };
+    const lookup = { getRuc: vi.fn().mockResolvedValue({ status: "VERIFIED", data: { razonSocial: "Empresa oficial SAC", direccion: "Av. Oficial 123", numeroDocumento: "20123456786", estado: "ACTIVO", condicion: "HABIDO", departamento: "Lima", provincia: "Lima", distrito: "Lima" } }) };
     const service = new PaymentService(undefined, new MockPaymentProvider("PENDING"), repository, { recalculate: vi.fn() }, authorizedPayment, false, undefined, undefined, lookup);
-    const request = { ...input, billingData: { ...input.billingData, numeroDocumento: "20123456789", razonSocial: "Manipulado", direccionFiscal: "Av. Alterada" } };
+    const request = { ...input, billingData: { ...input.billingData, numeroDocumento: "20123456786", razonSocial: "Manipulado", direccionFiscal: "Av. Alterada" } };
     await expect(service.initiate(request, "authorized")).rejects.toMatchObject({ status: 422 });
     lookup.getRuc.mockResolvedValueOnce({ status: "SERVICE_ERROR" });
     await expect(service.initiate({ ...request, billingData: { ...request.billingData, razonSocial: "Empresa oficial SAC", direccionFiscal: "Av. Oficial 123" } }, "authorized")).rejects.toMatchObject({ status: 502 });

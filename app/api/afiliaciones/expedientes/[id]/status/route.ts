@@ -5,6 +5,7 @@ import { ApplicationStatusCalculatorService } from "@/modules/afiliaciones/postu
 import { AssociatesIntegrationService } from "@/modules/afiliaciones/associates-integration/Services/AssociatesIntegrationService";
 import { processPreparedStudentIntegrationAfterCommit } from "@/modules/afiliaciones/expedientes/Services/AdministrativeStatusPostCommitService";
 import { NotifyComiteService } from "@/modules/afiliaciones/expedientes/Services/NotifyComiteService"; 
+import { notifyIncorporationPaymentRequest } from "@/modules/afiliaciones/payments/Services/IncorporationPaymentRequestEmailService";
 import { NotifyApplicantService } from "@/modules/afiliaciones/postulacion/Services/NotifyApplicantService";
 import { OBSERVATION_FIELD_KEYS } from "@/modules/afiliaciones/observations/ObservationFields";
 import { stripObservationMarkup } from "@/modules/afiliaciones/observations/ObservationText";
@@ -156,6 +157,8 @@ export async function PATCH(
         if (integrationId !== null) {
             await new AssociateProvisioningService().provisionCompletedApplication(appId);
         }
+
+        await notifyIncorporationPaymentRequest(appId);
 
         // 6. Lanzamiento de Eventos / Notificaciones (Fuera de la transacción para no bloquear)
         const attachment = attachmentUrl

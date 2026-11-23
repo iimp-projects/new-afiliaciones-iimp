@@ -1,4 +1,4 @@
-import { ApplicationStatus, CredentialType, UserStatus } from "@prisma/client";
+import { ApplicationStatus, CredentialType, UserStatus, UserType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { accountActivationService } from "@/modules/auth/account-activation/service";
 import { AssociateProvisioningService } from "./AssociateProvisioningService";
@@ -71,6 +71,96 @@ export class AssociateAccessService {
     }
 
     return { status: "NOT_PROVISIONED", email, applicant, canRetryProvisioning: true, canResendActivation: false, message: "La afiliación está completada, pero todavía no se ha habilitado el acceso al portal." };
+  }
+
+  async resolveByPerson(personId: number): Promise<AssociateAccessResult> {
+    const person = await prisma.person.findUnique({
+      where: { id: personId },
+      include: {
+        contacts: { orderBy: [{ isPrimary: "desc" }, { createdAt: "asc" }] },
+        user: { include: { role: { select: { slug: true } }, credentials: { where: { type: CredentialType.PASSWORD, isActive: true }, select: { id: true } } } },
+        sieAssociateRecords: { where: { provider: "SIE", linkStatus: "LINKED" }, include: { category: true }, orderBy: { updatedAt: "desc" }, take: 1 },
+        applications: { where: { deletedAt: null, status: ApplicationStatus.COMPLETED }, select: { id: true, affiliateType: true }, orderBy: { updatedAt: "desc" }, take: 1 },
+        _count: { select: { quotas: true } },
+      },
+    });
+    if (!person || person.deletedAt) return errorResult("La persona no está disponible para la gestión de acceso.");
+
+    const email = (person.contacts.find((contact) => contact.email)?.email || person.user?.email || "").trim().toLowerCase();
+    const record = person.sieAssociateRecords[0];
+    const category = record?.category ?? null;
+    const application = person.applications[0] ?? null;
+    const applicant = {
+      name: [person.firstName, person.paternalLastName, person.maternalLastName].filter(Boolean).join(" "),
+      documentNumber: person.documentNumber,
+      email,
+      applicationCode: record?.externalCode ?? (application ? `APP-${application.id}` : "SIN EXPEDIENTE"),
+    };
+
+    if (person.user) {
+      const user = person.user;
+      if (user.status === UserStatus.PENDING) return { status: "PENDING_ACTIVATION", userId: user.id, email: user.email, role: user.role?.slug, applicant, canRetryProvisioning: false, canResendActivation: true, message: "La cuenta fue creada y está pendiente de activación." };
+      if (user.status === UserStatus.ACTIVE && user.credentials.length > 0) return { status: "ACTIVE", userId: user.id, email: user.email, role: user.role?.slug, applicant, canRetryProvisioning: false, canResendActivation: false, message: "La cuenta está activa y el asociado ya puede ingresar al portal." };
+      return errorResult("La cuenta asociada no se encuentra en un estado habilitable.", user.id, user.email, user.role?.slug);
+    }
+
+    if (person._count.quotas < 1) return errorResult("La persona no tiene cuotas registradas que respalden su acceso al portal.", undefined, email);
+    if (!email) return errorResult("La persona no tiene un correo válido para crear la cuenta.", undefined, email);
+    if (category && !category.allowsLogin) {
+      return errorResult(`La categoría ${category.name} no habilita acceso al portal.`, undefined, email);
+    }
+
+    const roleSlug = category?.mappedRoleSlug
+      || (category?.code === "E" || application?.affiliateType === "STUDENT" ? "ASOCIADO_ESTUDIANTE" : "ASOCIADO_ACTIVO");
+    const role = await prisma.role.findUnique({ where: { slug: roleSlug }, select: { slug: true, isActive: true } });
+    if (!role || !role.isActive) return errorResult(`No existe un rol activo para ${roleSlug}.`, undefined, email);
+
+    const duplicate = await prisma.user.findFirst({
+      where: { email: { equals: email, mode: "insensitive" } },
+      include: { role: { select: { slug: true } }, person: { select: { firstName: true, paternalLastName: true, maternalLastName: true, documentType: true, documentNumber: true } } },
+    });
+    if (duplicate && duplicate.personId !== person.id) {
+      const conflictClassification = classifyConflict(person, duplicate.person);
+      return {
+        status: "CONFLICT", email, userId: duplicate.id, role: duplicate.role?.slug, applicant,
+        detectedAccount: { id: duplicate.id, email: duplicate.email, status: duplicate.status, role: duplicate.role?.slug, personName: [duplicate.person?.firstName, duplicate.person?.paternalLastName, duplicate.person?.maternalLastName].filter(Boolean).join(" ") || undefined },
+        conflictClassification,
+        canChangeEmail: false,
+        canRetryProvisioning: false,
+        canResendActivation: false,
+        message: "El correo registrado se encuentra asociado a otra cuenta. Se requiere revisión administrativa.",
+      };
+    }
+
+    return { status: "NOT_PROVISIONED", email, role: roleSlug, applicant, canRetryProvisioning: true, canResendActivation: false, message: "La persona tiene cuotas registradas, pero todavía no se ha habilitado su acceso al portal." };
+  }
+
+  async retryProvisioningByPerson(personId: number, actorUserId: number): Promise<AssociateAccessResult> {
+    const current = await this.resolveByPerson(personId);
+    if (current.status !== "NOT_PROVISIONED" || !current.role || !current.email) {
+      throw new AssociateAccessError("El acceso no está disponible para habilitación.");
+    }
+    const role = await prisma.role.findUnique({ where: { slug: current.role }, select: { id: true, isActive: true } });
+    if (!role || !role.isActive) throw new AssociateAccessError("No existe un rol activo para habilitar el acceso.", 409);
+
+    const created = await prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`associate-access-person:${personId}`}))`;
+      const person = await tx.person.findUnique({
+        where: { id: personId },
+        include: { contacts: { orderBy: [{ isPrimary: "desc" }, { createdAt: "asc" }] }, user: true },
+      });
+      if (!person || person.deletedAt) throw new AssociateAccessError("La persona no está disponible.", 404);
+      if (person.user) return person.user;
+      const email = (person.contacts.find((contact) => contact.email)?.email || current.email || "").trim().toLowerCase();
+      const duplicate = await tx.user.findFirst({ where: { email: { equals: email, mode: "insensitive" } }, select: { id: true, personId: true } });
+      if (duplicate && duplicate.personId !== person.id) throw new AssociateAccessError("El correo ya pertenece a otra cuenta.", 409);
+      const user = await tx.user.create({ data: { email, personId: person.id, roleId: role.id, status: UserStatus.PENDING, type: UserType.AFFILIATE } });
+      await tx.auditLog.create({ data: { userId: actorUserId, action: "ASSOCIATE_ACCESS_PROVISIONED_BY_QUOTA", entity: "User", entityId: String(user.id), newValues: { personId, role: current.role } } });
+      return user;
+    });
+
+    if (created.status === UserStatus.PENDING) await accountActivationService.createAndSendActivation(created.id);
+    return this.resolveByPerson(personId);
   }
 
   async retryProvisioning(applicationId: number, actorUserId: number): Promise<AssociateAccessResult> {

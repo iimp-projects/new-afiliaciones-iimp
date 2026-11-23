@@ -78,7 +78,10 @@ export class LoginService {
 
     // Cambio obligatorio de contraseña: el login tiene éxito, pero el frontend
     // debe redirigir al flujo de cambio antes de otorgar acceso pleno.
-    return { sessionId: session.id, mustChangePassword: user.mustChangePassword === true };
+    return {
+      sessionId: session.id,
+      mustChangePassword: ("mustChangePassword" in user && user.mustChangePassword === true),
+    };
   }
 }
 
