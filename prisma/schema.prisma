@@ -43,6 +43,7 @@ model User {
   operationalAlertNotes      OperationalAlertNote[]        @relation("OperationalAlertNoteAuthor")
   emailCampaignsCreated      EmailCampaign[]               @relation("EmailCampaignCreator")
   emailRecipientListsCreated EmailRecipientList[]          @relation("EmailRecipientListCreator")
+  quotaSyncRunsRequested     QuotaSyncRun[]                @relation("QuotaSyncRunRequester")
 
   @@index([email])
   @@index([status])
@@ -225,6 +226,8 @@ model Person {
   professionalExperiences ProfessionalExperience[]
   sieAssociateRecords     SieAssociateRecord[]
   associateCards          AssociateCard[]
+  quotas                  AssociateQuota[]
+  quotaSyncItems          QuotaSyncItem[]
 
   @@unique([documentType, documentNumber])
   @@index([documentNumber])
@@ -330,7 +333,8 @@ model MembershipApplication {
 
   areaValidations MembershipAreaValidation[]
 
-  documents ApplicationDocument[]
+  documents              ApplicationDocument[]
+  documentPrevalidations DocumentPrevalidation[]
 
   history MembershipHistory[]
 
@@ -479,6 +483,44 @@ model ApplicationDocument {
   @@index([approvedById])
   @@index([aiValidationStatus])
   @@map("membership_documents")
+}
+
+model DocumentPrevalidation {
+  id                      String                       @id @default(uuid())
+  applicationId           Int                          @map("application_id")
+  fileUrl                 String                       @map("file_url") @db.VarChar(500)
+  fileName                String                       @map("file_name") @db.VarChar(250)
+  mimeType                String                       @map("mime_type") @db.VarChar(100)
+  sizeBytes               BigInt                       @map("size_bytes")
+  fileHash                String                       @map("file_hash") @db.VarChar(64)
+  status                  DocumentPrevalidationStatus  @default(PENDING)
+  result                  DocumentPrevalidationResult?
+  extraction              Json?
+  applicantContext        Json?                        @map("applicant_context")
+  rules                   Json?
+  warnings                Json?
+  modelUsed               String?                      @map("model_used") @db.VarChar(100)
+  modelVersion            String?                      @map("model_version") @db.VarChar(100)
+  tokenUsage              Json?                        @map("token_usage")
+  attempts                Int?
+  extractionSchemaVersion String                       @map("extraction_schema_version") @db.VarChar(20)
+  promptVersion           String                       @map("prompt_version") @db.VarChar(20)
+  rulesVersion            String                       @map("rules_version") @db.VarChar(20)
+  durationMs              Int?                         @map("duration_ms")
+  extractionMs            Int?                         @map("extraction_ms")
+  rulesMs                 Int?                         @map("rules_ms")
+  cacheHit                Boolean                      @default(false) @map("cache_hit")
+  errorCode               String?                      @map("error_code") @db.VarChar(80)
+  analyzedAt              DateTime?                    @map("analyzed_at")
+  createdAt               DateTime                     @default(now()) @map("created_at")
+  updatedAt               DateTime                     @updatedAt @map("updated_at")
+  application             MembershipApplication        @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId, createdAt])
+  @@index([applicationId, fileHash])
+  @@index([fileHash])
+  @@index([status])
+  @@map("document_prevalidations")
 }
 
 model MembershipHistory {
@@ -1212,6 +1254,39 @@ enum SieLinkStatus {
   CONFLICT
 }
 
+enum QuotaConcept {
+  INSCRIPCION
+  CUOTA
+}
+
+enum QuotaAccountingStatus {
+  FACTURADO
+  PENDIENTE
+}
+
+enum QuotaSyncRunStatus {
+  PENDING
+  RUNNING
+  SUCCEEDED
+  PARTIAL
+  FAILED
+}
+
+enum QuotaSyncScope {
+  PERSON
+  BATCH
+  FULL
+}
+
+enum QuotaSyncItemStatus {
+  PENDING
+  RUNNING
+  SUCCEEDED
+  NO_DATA
+  NOT_FOUND
+  FAILED
+}
+
 // Estados a nivel de Área (Validación individual)
 enum ValidationStatus {
   PENDING
@@ -1237,6 +1312,19 @@ enum AiValidationStatus {
   VALIDATED
   REJECTED
   MANUAL_REVIEW_REQUIRED
+}
+
+enum DocumentPrevalidationStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  TECHNICAL_ERROR
+}
+
+enum DocumentPrevalidationResult {
+  PREVALIDATED
+  OBSERVED
+  NEEDS_REVIEW
 }
 
 enum DocumentCategory {
@@ -1296,6 +1384,7 @@ enum InvoiceType {
 enum BillingDocumentType {
   DNI
   CE
+  PASSPORT
   RUC
 }
 
@@ -1605,4 +1694,99 @@ model AssociateCard {
   person Person @relation(fields: [personId], references: [id], onDelete: Restrict)
 
   @@map("associate_cards")
+}
+
+model AssociateQuota {
+  id                          Int                   @id @default(autoincrement())
+  personId                    Int?                  @map("person_id")
+  institutionalCode           String?               @map("institutional_code") @db.VarChar(50)
+  provider                    String                @default("SIE") @db.VarChar(50)
+  documentType                DocumentType          @map("document_type")
+  documentNumberHash          String                @map("document_number_hash") @db.VarChar(64)
+  sourceKey                   String                @unique @map("source_key") @db.VarChar(160)
+  sourcePayloadHash           String                @map("source_payload_hash") @db.VarChar(64)
+  concept                     QuotaConcept
+  quotaNumber                 Int?                  @map("quota_number")
+  year                        Int
+  currency                    String                @db.VarChar(8)
+  amount                      Decimal               @db.Decimal(12, 2)
+  accountingStatus            QuotaAccountingStatus @map("accounting_status")
+  membershipType              String                @map("membership_type") @db.VarChar(40)
+  paidAt                      DateTime?             @map("paid_at") @db.Date
+  periodStart                 DateTime?             @map("period_start") @db.Date
+  periodEnd                   DateTime?             @map("period_end") @db.Date
+  receiptSerie                String?               @map("receipt_serie") @db.VarChar(20)
+  receiptNumber               String?               @map("receipt_number") @db.VarChar(30)
+  isPresentInLastSuccessfulSync Boolean             @default(true) @map("is_present_in_last_successful_sync")
+  firstSeenAt                 DateTime              @default(now()) @map("first_seen_at")
+  lastSeenAt                  DateTime              @default(now()) @map("last_seen_at")
+  createdAt                   DateTime              @default(now()) @map("created_at")
+  updatedAt                   DateTime              @updatedAt @map("updated_at")
+
+  person Person? @relation(fields: [personId], references: [id], onDelete: SetNull)
+
+  @@index([personId])
+  @@index([institutionalCode])
+  @@index([documentType, documentNumberHash])
+  @@index([year])
+  @@index([accountingStatus])
+  @@index([isPresentInLastSuccessfulSync])
+  @@index([lastSeenAt])
+  @@map("associate_quotas")
+}
+
+model QuotaSyncRun {
+  id                  Int                 @id @default(autoincrement())
+  status              QuotaSyncRunStatus  @default(PENDING)
+  scope               QuotaSyncScope      @default(PERSON)
+  requestedByUserId   Int?                @map("requested_by_user_id")
+  startedAt           DateTime            @default(now()) @map("started_at")
+  finishedAt          DateTime?           @map("finished_at")
+  totalAssociates     Int                 @default(0) @map("total_associates")
+  processedAssociates Int                 @default(0) @map("processed_associates")
+  syncedAssociates    Int                 @default(0) @map("synced_associates")
+  noDataAssociates    Int                 @default(0) @map("no_data_associates")
+  failedAssociates    Int                 @default(0) @map("failed_associates")
+  quotasInserted      Int                 @default(0) @map("quotas_inserted")
+  quotasUpdated       Int                 @default(0) @map("quotas_updated")
+  quotasUnchanged     Int                 @default(0) @map("quotas_unchanged")
+  checkpoint          Json?
+  summary             Json?
+  createdAt           DateTime            @default(now()) @map("created_at")
+  updatedAt           DateTime            @updatedAt @map("updated_at")
+
+  requestedBy User?            @relation("QuotaSyncRunRequester", fields: [requestedByUserId], references: [id], onDelete: SetNull)
+  items       QuotaSyncItem[]
+
+  @@index([status])
+  @@index([startedAt])
+  @@index([requestedByUserId])
+  @@map("quota_sync_runs")
+}
+
+model QuotaSyncItem {
+  id                Int                   @id @default(autoincrement())
+  syncRunId         Int                   @map("sync_run_id")
+  personId          Int?                  @map("person_id")
+  institutionalCode String?               @map("institutional_code") @db.VarChar(50)
+  identityHash      String                @map("identity_hash") @db.VarChar(64)
+  status            QuotaSyncItemStatus   @default(PENDING)
+  attempts          Int                   @default(0)
+  quotasRecovered   Int                   @default(0) @map("quotas_recovered")
+  recordsCreated    Int                   @default(0) @map("records_created")
+  recordsUpdated    Int                   @default(0) @map("records_updated")
+  errorCode         String?               @map("error_code") @db.VarChar(100)
+  startedAt         DateTime              @default(now()) @map("started_at")
+  finishedAt        DateTime?             @map("finished_at")
+  createdAt         DateTime              @default(now()) @map("created_at")
+  updatedAt         DateTime              @updatedAt @map("updated_at")
+
+  syncRun QuotaSyncRun @relation(fields: [syncRunId], references: [id], onDelete: Cascade)
+  person  Person?      @relation(fields: [personId], references: [id], onDelete: SetNull)
+
+  @@unique([syncRunId, identityHash])
+  @@index([syncRunId, status])
+  @@index([personId])
+  @@index([institutionalCode])
+  @@map("quota_sync_items")
 }

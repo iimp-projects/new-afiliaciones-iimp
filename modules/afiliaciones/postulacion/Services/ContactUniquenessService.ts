@@ -1,12 +1,14 @@
 /**
- * Unicidad de contacto (correo y celular) durante la postulación.
+ * Normalización y detección de conflictos de contacto durante la postulación.
  *
- * Encapsula la normalización y la detección de conflictos de forma pura para
- * que la regla de negocio sea testeable sin acceder a la base de datos.
+ * Encapsula la lógica de forma pura para que sea testeable sin acceder a la
+ * base de datos.
  *
  * Reglas:
- * - El correo se normaliza con trim + lowercase.
- * - El celular se normaliza conservando únicamente los dígitos.
+ * - El correo se normaliza con trim + lowercase, pero ya no bloquea la
+ *   postulación: puede repetirse entre postulaciones, postulantes y avales.
+ * - El celular se normaliza conservando únicamente los dígitos y sigue siendo
+ *   único por postulación.
  * - Una postulación no entra en conflicto consigo misma (se excluye por id).
  * - Solo una postulación REJECTED deja de bloquear la reutilización de contacto;
  *   cualquier otro estado (incluido COMPLETED) bloquea.

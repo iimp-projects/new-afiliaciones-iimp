@@ -1,10 +1,14 @@
 import { prisma } from "@/lib/prisma";
 import { MailService } from "@/modules/shared/Services/MailService";
+import { S3StorageService } from "@/modules/shared/Services/S3StorageService";
 import { DeclarationPdfService } from "@/modules/afiliaciones/postulacion/Services/DeclarationPdfService";
+import { APPLICATION_KEY_PREFIX, LEGACY_DOCUMENT_KEY_PREFIX } from "@/modules/afiliaciones/postulacion/Services/ApplicationDocumentAccess";
+import { signComiteReviewToken } from "./ComiteReviewToken";
 import { StatusChangeAttachmentService, type StatusChangeAttachmentRef, type ResolvedEmailAttachment } from "@/modules/afiliaciones/expedientes/Services/StatusChangeAttachmentService";
 import { ValidationAction } from "@prisma/client";
+import { getAppBaseUrl } from "@/lib/config/env";
 import { emailLayout } from "@/modules/shared/Email/EmailLayout";
-import { emailInfoBox } from "@/modules/shared/Email/EmailComponents";
+import { emailCta, emailInfoBox } from "@/modules/shared/Email/EmailComponents";
 import { escapeHtml } from "@/modules/shared/Email/EmailEscaping";
 
 export class NotifyComiteService {
@@ -39,9 +43,35 @@ export class NotifyComiteService {
     const avalesNames = isStudent ? "N/A (Aplica como Estudiante)" : avalesAprobados.map(a => `${a.sponsorPerson?.firstName} ${a.sponsorPerson?.paternalLastName}`).join(" y ");
     const postulanteName = `${app.person?.firstName} ${app.person?.paternalLastName}`;
 
-    const draft = typeof app.draftData === 'string' ? JSON.parse(app.draftData) : app.draftData;
-    const pdfService = new DeclarationPdfService();
-    const pdfBuffer = await pdfService.generate(draft, { allowedApplicationIds: [applicationId] });
+    // La declaración jurada que recibe el comité debe ser la versión FIRMADA
+    // por el postulante. Los expedientes legacy no tienen ese documento
+    // almacenado, por lo que en ese caso se conserva la generación histórica.
+    const signedDocument = await prisma.applicationDocument.findFirst({
+      where: { applicationId, category: "SWORN_DECLARATION" },
+      select: { fileUrl: true },
+      orderBy: { updatedAt: "desc" },
+    });
+
+    let declarationBuffer: Buffer | null = null;
+    let declarationFilename = `Declaracion_Jurada_Firmada_${app.applicationCode}.pdf`;
+    let declarationNotice = "Se adjunta la Declaración Jurada firmada por el postulante en formato PDF para su respectiva revisión técnica.";
+    if (signedDocument?.fileUrl) {
+      try {
+        declarationBuffer = await new S3StorageService().getObjectBuffer(
+          signedDocument.fileUrl,
+          [`${APPLICATION_KEY_PREFIX}/${applicationId}`, LEGACY_DOCUMENT_KEY_PREFIX],
+        );
+      } catch (error) {
+        console.error("[NotifyComite] No se pudo leer la declaración firmada; se usará la generada:", error instanceof Error ? error.message : "error desconocido");
+      }
+    }
+    if (!declarationBuffer) {
+      const draft = typeof app.draftData === "string" ? JSON.parse(app.draftData) : app.draftData;
+      const generated = await new DeclarationPdfService().generate(draft, { allowedApplicationIds: [applicationId] });
+      declarationBuffer = Buffer.from(generated);
+      declarationFilename = `Declaracion_Jurada_${app.applicationCode}.pdf`;
+      declarationNotice = "Se adjunta la Declaración Jurada registrada del postulante en formato PDF para su respectiva revisión técnica.";
+    }
 
     // Filtramos si se eligió a un usuario específico o a todos
     const userWhereClause = targetUserId 
@@ -53,8 +83,8 @@ export class NotifyComiteService {
       include: { person: true }
     });
     
-    const comiteEmails = comiteUsers.map(u => u.email).filter(Boolean).join(",");
-    if (!comiteEmails) {
+    const comiteRecipients = comiteUsers.filter((user) => Boolean(user.email));
+    if (comiteRecipients.length === 0) {
       if (isManualResend) throw new Error("No hay usuarios válidos en el comité para enviar el correo.");
       return;
     }
@@ -83,11 +113,12 @@ export class NotifyComiteService {
       </div>
     `;
 
-    const html = emailLayout({ category: "Comité Evaluador", title: "Expediente Listo para Evaluación", summary: "Notificación interna para Comité Evaluador.", variant: "info", content: `<p>Estimados miembros del Comité Evaluador,</p><p>El expediente de <strong>${escapeHtml(postulanteName)}</strong> (Cód: ${escapeHtml(app.applicationCode)}) ha superado exitosamente los filtros administrativos previos y está listo para su veredicto final.</p>${emailInfoBox(`<strong>Resumen de Aprobaciones:</strong><ul><li>✓ <strong>Avales:</strong> Confirmados por ${escapeHtml(avalesNames)}</li><li>✓ <strong>Atención al Asociado:</strong> Revisado por ${escapeHtml(asocName)}</li><li>✓ <strong>Logística:</strong> Validado por ${escapeHtml(logName)}</li></ul>`, "info")}<p>Se adjunta la ficha de postulación en formato PDF para su respectiva revisión técnica.</p>` });
+    const baseUrl = getAppBaseUrl();
+    const loginUrl = `${baseUrl}/login`;
 
     const attachments: ResolvedEmailAttachment[] = [{
-      filename: `Expediente_${app.applicationCode}.pdf`,
-      content: Buffer.from(pdfBuffer as any),
+      filename: declarationFilename,
+      content: declarationBuffer,
       contentType: "application/pdf"
     }];
     if (attachment?.attachmentUrl) {
@@ -100,17 +131,39 @@ export class NotifyComiteService {
       }
     }
 
-    await mailService.sendMail({
-      to: comiteEmails,
-      subject: `Nuevo Expediente para Comité - ${postulanteName}`,
-      html,
-      attachments
-    });
+    const notifiedNames: string[] = [];
+    for (const recipient of comiteRecipients) {
+      const reviewerName = recipient.person
+        ? `${recipient.person.firstName} ${recipient.person.paternalLastName}`.trim()
+        : recipient.email;
+      const token = signComiteReviewToken({ applicationId, committeeUserId: recipient.id });
+      const reviewUrl = `${baseUrl}/postulacion/comite/revisar?token=${encodeURIComponent(token)}`;
+      const approveUrl = `${reviewUrl}&decision=APPROVE`;
+      const rejectUrl = `${reviewUrl}&decision=REJECT`;
+
+      const html = emailLayout({ category: "Comité Evaluador", title: "Expediente Listo para Evaluación", summary: "Notificación interna para Comité Evaluador.", variant: "info", content: `<p>Estimado(a) <strong>${escapeHtml(reviewerName)}</strong>,</p><p>El expediente de <strong>${escapeHtml(postulanteName)}</strong> (Cód: ${escapeHtml(app.applicationCode)}) ha superado exitosamente los filtros administrativos previos y está listo para su veredicto final.</p>${emailInfoBox(`<strong>Resumen de Aprobaciones:</strong><ul><li>✓ <strong>Avales:</strong> Confirmados por ${escapeHtml(avalesNames)}</li><li>✓ <strong>Atención al Asociado:</strong> Revisado por ${escapeHtml(asocName)}</li><li>✓ <strong>Logística:</strong> Validado por ${escapeHtml(logName)}</li></ul>`, "info")}<p>${declarationNotice}</p>${emailCta("APROBAR", approveUrl)}${emailCta("RECHAZAR", rejectUrl)}<p style="font-size:12px;color:#667085;text-align:center;margin-top:4px;">El enlace estará disponible por <strong>7 días</strong>. También puede ingresar al portal: <a href="${escapeHtml(loginUrl)}" style="color:#C5A059;">${escapeHtml(loginUrl)}</a></p>` });
+
+      try {
+        await mailService.sendMail({
+          to: recipient.email,
+          subject: `Nuevo Expediente para Comité - ${postulanteName}`,
+          html,
+          attachments
+        });
+        notifiedNames.push(reviewerName);
+      } catch (error) {
+        console.error("[NotifyComite] No se pudo enviar al miembro del comité:", error instanceof Error ? error.message : "error desconocido");
+      }
+    }
+
+    if (notifiedNames.length === 0) {
+      throw new Error("No se pudo enviar la notificación a ningún miembro del comité.");
+    }
 
     // ¡LA MAGIA DEL HISTORIAL!: Inyectamos el evento en la Línea de Tiempo del expediente
     const comiteValidation = app.validations.find(v => v.department?.code === "COMITE");
     if (comiteValidation) {
-        const destNames = comiteUsers.map(u => `${u.person?.firstName} ${u.person?.paternalLastName}`).join(', ');
+        const destNames = notifiedNames.join(', ');
         await prisma.membershipValidationHistory.create({
             data: {
                 validationId: comiteValidation.id,

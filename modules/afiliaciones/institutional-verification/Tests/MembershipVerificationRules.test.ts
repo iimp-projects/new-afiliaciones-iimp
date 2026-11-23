@@ -81,6 +81,14 @@ describe("classifyVerification", () => {
     expect(result).toMatchObject({ status: "ELIGIBLE", membershipType: "HONORARIO", eligible: true, vigencia: "VIGENTE" });
   });
 
+  it("6. VITALICIO con cuota Estudiante posterior sigue siendo elegible", () => {
+    const result = classifyVerification(state([
+      quota({ anno: 2023, tipo: "Vitalicio", estadoContable: "Pendiente", fechaPago: "", fechaInicio: "", fechaFin: "" }),
+      quota({ anno: 2026, tipo: "Estudiante" }),
+    ]), NOW);
+    expect(result).toMatchObject({ status: "ELIGIBLE", membershipType: "VITALICIO", eligible: true, vigencia: "VIGENTE" });
+  });
+
   it.each(["Fallecido", "Renunciante", "Separado", "Anulado"] as const)("8. estado terminal %s no es elegible", (tipo) => {
     const result = classifyVerification(state([quota({ tipo })]), NOW);
     expect(result).toMatchObject({ status: "INELIGIBLE", associate: true, membershipType: tipo === "Fallecido" ? "FALLECIDO" : tipo === "Renunciante" ? "RENUNCIANTE" : tipo === "Separado" ? "SEPARADO" : "ANULADO", eligible: false, vigencia: null });
@@ -131,6 +139,30 @@ describe("determineMembershipType", () => {
       quota({ tipo: "Estudiante" }),
     ]);
     expect(result).toBeNull();
+  });
+
+  it("VITALICIO prevalece sobre una cuota Estudiante más reciente", () => {
+    const result = determineMembershipType([
+      quota({ anno: 2023, tipo: "Vitalicio", estadoContable: "Pendiente", fechaPago: "", fechaInicio: "", fechaFin: "" }),
+      quota({ anno: 2026, tipo: "Estudiante" }),
+    ]);
+    expect(result).toBe("VITALICIO");
+  });
+
+  it("HONORARIO prevalece sobre una cuota Estudiante más reciente", () => {
+    const result = determineMembershipType([
+      quota({ anno: 2023, tipo: "Honorario", estadoContable: "Pendiente", fechaPago: "", fechaInicio: "", fechaFin: "" }),
+      quota({ anno: 2026, tipo: "Estudiante" }),
+    ]);
+    expect(result).toBe("HONORARIO");
+  });
+
+  it("estado terminal posterior prevalece sobre vitalicio", () => {
+    const result = determineMembershipType([
+      quota({ anno: 2023, tipo: "Vitalicio", estadoContable: "Pendiente", fechaPago: "", fechaInicio: "", fechaFin: "" }),
+      quota({ anno: 2026, tipo: "Fallecido" }),
+    ]);
+    expect(result).toBe("FALLECIDO");
   });
 });
 

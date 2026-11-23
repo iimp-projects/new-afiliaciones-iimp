@@ -8,6 +8,7 @@ type FetchLike = typeof fetch;
 type TokenCache = { token: string; expiresAt: number };
 export type AssociatesCreateResult = { externalAssociateCode: number; externalMessage: string; httpStatus: number; receipt?: { type?: string; serie?: string; number?: string; pdfReference?: string } };
 type ErrorBody = { codigo?: string; mensaje?: string; identificador?: string; detalles?: string[] };
+type AssociateStateParseOptions = { allowEmptyInvoicedPaidDate?: boolean };
 
 export class AssociatesApiClient {
   private tokenCache: TokenCache | null = null;
@@ -31,12 +32,25 @@ export class AssociatesApiClient {
    * outbox processing, payments, application statuses, or timeline data.
    */
   async getAssociateState(input: SieAssociateStateRequest): Promise<SieAssociateState> {
+    return this.getStateWithRetry(input);
+  }
+
+  /**
+   * Variante exclusiva del dominio Cuotas. Permite fechaPago vacía en cuotas
+   * Facturado (Facturado no implica pagado), sin relajar el parser compartido
+   * que usan afiliaciones y pagos.
+   */
+  async getAssociateStateForQuotas(input: SieAssociateStateRequest): Promise<SieAssociateState> {
+    return this.getStateWithRetry(input, { allowEmptyInvoicedPaidDate: true });
+  }
+
+  private async getStateWithRetry(input: SieAssociateStateRequest, options?: AssociateStateParseOptions): Promise<SieAssociateState> {
     assertStateRequest(input);
-    try { return await this.getAssociateStateOnce(input); }
+    try { return await this.getAssociateStateOnce(input, options); }
     catch (error) {
       if (!(error instanceof AssociatesApiError) || error.httpStatus !== 401) throw error;
       this.tokenCache = null;
-      try { return await this.getAssociateStateOnce(input); }
+      try { return await this.getAssociateStateOnce(input, options); }
       catch (retryError) {
         if (retryError instanceof AssociatesApiError && retryError.httpStatus === 401) throw new AssociatesApiError(retryError.message, { ...retryError.options, retryable: false });
         throw retryError;
@@ -97,12 +111,12 @@ export class AssociatesApiClient {
     return { externalAssociateCode: body.codigo, externalMessage: typeof body.msg === "string" ? body.msg : "Success", httpStatus: response.status, receipt: body.contable ? { type: stringOrUndefined(body.contable.tipoDocumento), serie: stringOrUndefined(body.contable.serie), number: stringOrUndefined(body.contable.numero), pdfReference: stringOrUndefined(body.contable.pdfUrl) } : undefined };
   }
 
-  private async getAssociateStateOnce(input: SieAssociateStateRequest): Promise<SieAssociateState> {
+  private async getAssociateStateOnce(input: SieAssociateStateRequest, options?: AssociateStateParseOptions): Promise<SieAssociateState> {
     const token = await this.token();
     const query = new URLSearchParams({ tipo_documento: input.tipoDocumento, num_documento: input.numDocumento });
     const response = await this.request(`/asociados/estado?${query.toString()}`, { method: "GET", headers: { authorization: `Bearer ${token}` } }, "GET_ASSOCIATE_STATE");
     if (!response.ok) throw await this.toError(response, "GET_ASSOCIATE_STATE");
-    return parseAssociateState(await this.json(response, "GET_ASSOCIATE_STATE"));
+    return parseAssociateState(await this.json(response, "GET_ASSOCIATE_STATE"), options);
   }
 
   private async token(): Promise<string> {
@@ -127,7 +141,7 @@ export class AssociatesApiClient {
   private async toError(response: Response, operation: "LOGIN" | "CREATE_ASSOCIATE" | "GET_ASSOCIATE_STATE" | "LIST_ASSOCIATES"): Promise<AssociatesApiError> {
     const body = await this.json(response, operation, true) as ErrorBody | null;
     const retryable = operation === "LOGIN" ? response.status === 429 : response.status >= 500;
-    return new AssociatesApiError(body?.mensaje || `La API de asociados respondió HTTP ${response.status}.`, { httpStatus: response.status, code: body?.codigo, identifier: body?.identificador, details: Array.isArray(body?.detalles) ? body.detalles.filter((item): item is string => typeof item === "string") : undefined, retryable, operation, kind: httpErrorKind(response.status) });
+    return new AssociatesApiError(body?.mensaje || `La API de asociados respondió HTTP ${response.status}.`, { httpStatus: response.status, code: body?.codigo, identifier: body?.identificador, details: Array.isArray(body?.detalles) ? body.detalles.filter((item): item is string => typeof item === "string") : undefined, retryable, operation, kind: httpErrorKind(response.status), retryAfterMs: parseRetryAfterMs(response.headers.get("retry-after")) });
   }
 
   private async json(response: Response, operation: "LOGIN" | "CREATE_ASSOCIATE" | "GET_ASSOCIATE_STATE" | "LIST_ASSOCIATES", allowEmpty = false): Promise<any> {
@@ -138,23 +152,32 @@ export class AssociatesApiClient {
 
 function stringOrUndefined(value: unknown) { return typeof value === "string" && value.trim() ? value : undefined; }
 
+function parseRetryAfterMs(value: string | null): number | undefined {
+  if (!value) return undefined;
+  const seconds = Number(value);
+  if (Number.isFinite(seconds) && seconds >= 0) return Math.min(Math.round(seconds * 1000), 60_000);
+  const date = Date.parse(value);
+  if (Number.isNaN(date)) return undefined;
+  return Math.min(Math.max(0, date - Date.now()), 60_000);
+}
+
 function assertStateRequest(input: SieAssociateStateRequest): void {
   if (!input || !(input.tipoDocumento === "1" || input.tipoDocumento === "4" || input.tipoDocumento === "7") || typeof input.numDocumento !== "string" || !input.numDocumento.trim()) {
     throw new AssociatesApiError("La consulta de estado requiere un tipo y número de documento válidos.", { retryable: false, operation: "GET_ASSOCIATE_STATE" });
   }
 }
 
-function parseAssociateState(value: unknown): SieAssociateState {
+function parseAssociateState(value: unknown, options?: AssociateStateParseOptions): SieAssociateState {
   if (!isRecord(value) || typeof value.status !== "boolean") throw invalidStateResponse("La API de asociados devolvió un estado inválido.");
   if (value.status === false) {
     if (typeof value.message !== "string") throw invalidStateResponse("La API de asociados devolvió un mensaje de estado inválido.");
     return { status: false, message: value.message };
   }
   if (!Array.isArray(value.cuotas)) throw invalidStateResponse("La API de asociados devolvió cuotas inválidas.");
-  return { status: true, cuotas: value.cuotas.map(parseStateQuota) };
+  return { status: true, cuotas: value.cuotas.map((quota) => parseStateQuota(quota, options)) };
 }
 
-function parseStateQuota(value: unknown): SieAssociateStateQuota {
+function parseStateQuota(value: unknown, options?: AssociateStateParseOptions): SieAssociateStateQuota {
   if (!isRecord(value)) throw invalidStateResponse("La API de asociados devolvió una cuota inválida.");
   const concepto = oneOf(value.concepto, ["INSCRIPCION", "CUOTA"] as const);
   const numero = concepto === "INSCRIPCION"
@@ -164,7 +187,7 @@ function parseStateQuota(value: unknown): SieAssociateStateQuota {
   if (monto < 0) throw invalidStateResponse("La API de asociados devolvió un monto inválido.");
   const anno = finiteInteger(value.anno);
   const estadoContable = oneOf(value.estadoContable, ["Facturado", "Pendiente"] as const);
-  const fechaPago = dateField(value.fechaPago, estadoContable);
+  const fechaPago = dateField(value.fechaPago, estadoContable, options?.allowEmptyInvoicedPaidDate ?? false);
   const fechaInicio = dateField(value.fechaInicio, estadoContable, concepto === "INSCRIPCION");
   const fechaFin = dateField(value.fechaFin, estadoContable, concepto === "INSCRIPCION");
   return {

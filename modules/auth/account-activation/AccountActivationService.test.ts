@@ -35,7 +35,7 @@ describe("AccountActivationService", () => {
     process.env.NEXT_PUBLIC_APP_URL = "https://portal.example";
     const tx = {
       $executeRaw: vi.fn(),
-      user: { findUnique: vi.fn().mockResolvedValue({ id: 7, email: "ana@example.com", status: "PENDING", deletedAt: null, roleId: 2, person: { firstName: "Ana", paternalLastName: "Pérez" }, credentials: [] }) },
+      user: { findUnique: vi.fn().mockResolvedValue({ id: 7, email: "ana@example.com", status: "PENDING", deletedAt: null, roleId: 2, person: { id: 7, firstName: "Ana", paternalLastName: "Pérez" }, credentials: [] }) },
       verificationToken: { deleteMany: vi.fn(), create: vi.fn() },
     };
     db.$transaction.mockImplementationOnce((callback: (client: typeof tx) => unknown) => callback(tx));
@@ -46,13 +46,14 @@ describe("AccountActivationService", () => {
     const stored = tx.verificationToken.create.mock.calls[0][0].data.token;
     expect(stored).toMatch(/^[a-f0-9]{64}$/);
     expect(sendMail).toHaveBeenCalledWith(expect.objectContaining({ to: "ana@example.com", html: expect.stringContaining("activar-cuenta?token=") }));
+    expect(sendMail).toHaveBeenCalledWith(expect.objectContaining({ html: expect.stringContaining("A-0007") }));
   });
 
   it("createActivationUrl emite token y devuelve URL sin enviar correo", async () => {
     process.env.NEXT_PUBLIC_APP_URL = "https://portal.example";
     const tx = {
       $executeRaw: vi.fn(),
-      user: { findUnique: vi.fn().mockResolvedValue({ id: 7, email: "ana@example.com", status: "PENDING", deletedAt: null, roleId: 2, person: { firstName: "Ana", paternalLastName: "Pérez" }, credentials: [] }) },
+      user: { findUnique: vi.fn().mockResolvedValue({ id: 7, email: "ana@example.com", status: "PENDING", deletedAt: null, roleId: 2, person: { id: 7, firstName: "Ana", paternalLastName: "Pérez" }, credentials: [] }) },
       verificationToken: { deleteMany: vi.fn(), create: vi.fn() },
     };
     db.$transaction.mockImplementationOnce((callback: (client: typeof tx) => unknown) => callback(tx));
@@ -92,7 +93,7 @@ describe("AccountActivationService", () => {
     process.env.NEXT_PUBLIC_APP_URL = "https://portal.example";
     const tx = {
       $executeRaw: vi.fn(),
-      user: { findUnique: vi.fn().mockResolvedValue({ id: 7, email: "ana@example.com", status: "PENDING", deletedAt: null, roleId: 2, person: { firstName: "Ana", paternalLastName: "Pérez" }, credentials: [] }) },
+      user: { findUnique: vi.fn().mockResolvedValue({ id: 7, email: "ana@example.com", status: "PENDING", deletedAt: null, roleId: 2, person: { id: 7, firstName: "Ana", paternalLastName: "Pérez" }, credentials: [] }) },
       verificationToken: { deleteMany: vi.fn(), create: vi.fn() },
     };
     db.$transaction.mockImplementationOnce((callback: (client: typeof tx) => unknown) => callback(tx));

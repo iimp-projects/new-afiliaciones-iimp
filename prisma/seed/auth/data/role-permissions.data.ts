@@ -46,12 +46,21 @@ export const rolePermissionsData: RolePermissionMatrix = {
     ["read", "reports"],
     ["export", "reports"],
 
+    ["read", "quotas"],
+    ["export", "quotas"],
+    ["sync", "quotas"],
+
     ["read", "audit"],
 
     ["send", "notifications"],
 
     ["read", "configuration"],
     ["update", "configuration"],
+  ],
+
+  GERENCIA_GENERAL: [
+    ["read", "quotas"],
+    ["export", "quotas"],
   ],
 
   COMITE_EVALUADOR: [
@@ -79,21 +88,34 @@ export const rolePermissionsData: RolePermissionMatrix = {
     ["refund", "payments"],
     ["read", "reports"],
     ["export", "reports"],
+    ["read", "quotas"],
+    ["export", "quotas"],
+    ["sync", "quotas"],
   ],
 
   CONTABILIDAD: [
     ["read", "payments"],
     ["export", "payments"],
     ["read", "reports"],
+    ["read", "quotas"],
+    ["export", "quotas"],
   ],
 
   CAJA: [
     ["create", "payments"],
     ["read", "payments"],
     ["validate", "payments"],
+    ["read", "quotas"],
   ],
 
   ATENCION_ASOCIADO: [
+    ["create", "users"],
+    ["read", "users"],
+    ["update", "users"],
+    ["delete", "users"],
+    ["block", "users"],
+    ["unlock", "users"],
+    ["assign-role", "users"],
     ["read", "applications"],
     ["update", "applications"],
     ["observe", "applications"],
@@ -104,7 +126,11 @@ export const rolePermissionsData: RolePermissionMatrix = {
     ["read", "documents"],
     ["read", "memberships"],
     ["read", "associates"],
+    ["update", "associates"],
+    ["read", "cards"],
+    ["revoke", "cards"],
     ["read", "alerts"],
+    ["read", "quotas"],
   ],
 
   LOGISTICA: [
@@ -129,6 +155,8 @@ export const rolePermissionsData: RolePermissionMatrix = {
     ["read", "audit"],
     ["export", "audit"],
     ["read", "reports"],
+    ["read", "quotas"],
+    ["export", "quotas"],
   ],
 
   POSTULANTE: [

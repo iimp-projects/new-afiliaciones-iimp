@@ -1,7 +1,14 @@
 import type { NiubizAuthorizationResponse } from "../../DTOs/Niubiz/NiubizAuthorization.dto";
-import { getNiubizActionCode, NIUBIZ_APPROVED_ACTION_CODES, type NiubizActionCodeDefinition } from "./NiubizActionCodes";
+import {
+  getNiubizActionCode,
+  NIUBIZ_APPROVED_ACTION_CODES,
+  type NiubizActionCodeDefinition,
+} from "./NiubizActionCodes";
 
-export type NiubizAuthorizationOutcome = "APPROVED" | "BUSINESS_DECLINED" | "TECHNICAL_UNCERTAIN";
+export type NiubizAuthorizationOutcome =
+  | "APPROVED"
+  | "BUSINESS_DECLINED"
+  | "TECHNICAL_UNCERTAIN";
 
 export interface NiubizAuthorizationClassification {
   outcome: NiubizAuthorizationOutcome;
@@ -10,27 +17,43 @@ export interface NiubizAuthorizationClassification {
 }
 
 export class NiubizAuthorizationResultClassifier {
-  classify(response: NiubizAuthorizationResponse, httpStatus: number): NiubizAuthorizationClassification {
+  classify(
+    response: NiubizAuthorizationResponse,
+    httpStatus: number,
+  ): NiubizAuthorizationClassification {
     const actionCode = this.actionCode(response);
     const action = getNiubizActionCode(actionCode);
-    const authorized = (response.dataMap?.STATUS ?? response.data?.STATUS ?? response.STATUS) === "Authorized";
+    const authorized =
+      (response.dataMap?.STATUS ?? response.data?.STATUS ?? response.STATUS) ===
+      "Authorized";
     const httpProcessed = httpStatus >= 200 && httpStatus < 300;
     const httpFunctionalDecline = httpStatus === 400;
 
     if (authorized) {
-      return httpProcessed && actionCode && NIUBIZ_APPROVED_ACTION_CODES.has(actionCode)
+      return httpProcessed &&
+        actionCode &&
+        NIUBIZ_APPROVED_ACTION_CODES.has(actionCode)
         ? { outcome: "APPROVED", actionCode }
-        : { outcome: "TECHNICAL_UNCERTAIN", ...(actionCode ? { actionCode } : {}) };
+        : {
+            outcome: "TECHNICAL_UNCERTAIN",
+            ...(actionCode ? { actionCode } : {}),
+          };
     }
-    if ((httpProcessed || httpFunctionalDecline) && actionCode && action) return { outcome: "BUSINESS_DECLINED", actionCode, action };
-    return { outcome: "TECHNICAL_UNCERTAIN", ...(actionCode ? { actionCode } : {}) };
+    if ((httpProcessed || httpFunctionalDecline) && actionCode && action)
+      return { outcome: "BUSINESS_DECLINED", actionCode, action };
+    return {
+      outcome: "TECHNICAL_UNCERTAIN",
+      ...(actionCode ? { actionCode } : {}),
+    };
   }
 
   actionCode(response: NiubizAuthorizationResponse): string | undefined {
-    return this.nonEmptyString(response.order?.actionCode)
-      ?? this.nonEmptyString(response.dataMap?.ACTION_CODE)
-      ?? this.nonEmptyString(response.data?.ACTION_CODE)
-      ?? this.nonEmptyString(response.ACTION_CODE);
+    return (
+      this.nonEmptyString(response.order?.actionCode) ??
+      this.nonEmptyString(response.dataMap?.ACTION_CODE) ??
+      this.nonEmptyString(response.data?.ACTION_CODE) ??
+      this.nonEmptyString(response.ACTION_CODE)
+    );
   }
 
   responseCode(response: NiubizAuthorizationResponse): string | undefined {
@@ -38,9 +61,11 @@ export class NiubizAuthorizationResultClassifier {
   }
 
   failureReason(response: NiubizAuthorizationResponse): string | undefined {
-    return this.nonEmptyString(response.data?.ACTION_DESCRIPTION)
-      ?? this.nonEmptyString(response.dataMap?.ACTION_DESCRIPTION)
-      ?? this.nonEmptyString(response.ACTION_DESCRIPTION);
+    return (
+      this.nonEmptyString(response.data?.ACTION_DESCRIPTION) ??
+      this.nonEmptyString(response.dataMap?.ACTION_DESCRIPTION) ??
+      this.nonEmptyString(response.ACTION_DESCRIPTION)
+    );
   }
 
   gatewayErrorCode(response: NiubizAuthorizationResponse): string | undefined {
@@ -52,7 +77,8 @@ export class NiubizAuthorizationResultClassifier {
   }
 
   private codeString(value: unknown): string | undefined {
-    if (typeof value === "number" && Number.isFinite(value)) return String(value);
+    if (typeof value === "number" && Number.isFinite(value))
+      return String(value);
     return this.nonEmptyString(value);
   }
 }

@@ -4,6 +4,7 @@ import type {
   AtomicValidation, 
   PrimaryBadgeIcon 
 } from "@/modules/shared/Components/SmartCaseCard/types";
+import { formatFullName } from "@/modules/shared/Utils/personName";
 
 export class GetExpedientesService {
   constructor(private readonly repository: ExpedienteRepository) {}
@@ -32,7 +33,7 @@ export class GetExpedientesService {
 
     const items: SmartCaseCardData[] = records.map((app) => {
       // 1. NOMBRES E IDENTIDAD
-      const fullName = app.person ? `${app.person.firstName} ${app.person.paternalLastName} ${app.person.maternalLastName || ""}`.trim() : "Postulante Desconocido";
+      const fullName = formatFullName(app.person?.firstName, app.person?.paternalLastName, app.person?.maternalLastName) || "Postulante Desconocido";
       const initials = app.person ? `${app.person.firstName[0]}${app.person.paternalLastName[0]}` : "XX";
       const isStudent = app.affiliateType === "STUDENT";
       const avatarUrl = app.documents.length > 0 ? app.documents[0].fileUrl : null;

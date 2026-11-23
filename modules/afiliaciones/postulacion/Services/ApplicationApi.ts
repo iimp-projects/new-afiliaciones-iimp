@@ -4,6 +4,10 @@ import type { Application } from "../Entities/Application";
 import type { StartApplicationDto } from "../DTOs/start-application.dto";
 import type { UpdateDraftDTO } from "../DTOs/update-draft.dto";
 import type { ValidationResponseDTO } from "../DTOs/validation-response.dto";
+import type {
+  DocumentPrevalidationConfigResponse,
+  DocumentPrevalidationResponse,
+} from "@/modules/afiliaciones/document-validation/Models/DocumentPrevalidationDTO";
 import { ApplicationApiError } from "./ApplicationApiError";
 
 export class ApplicationApi {
@@ -126,6 +130,41 @@ export class ApplicationApi {
       throw new ApplicationApiError(result.message ?? "Error subiendo archivo.", result.code ?? "UPLOAD_FAILED", response.status);
     
     return result.data;
+  }
+
+  /**
+   * ============================================
+   * Prevalidación académica con IA (solo Estudiante)
+   * ============================================
+   */
+  async getDocumentPrevalidationConfig(): Promise<DocumentPrevalidationConfigResponse> {
+    const response = await fetch(`${this.baseUrl}/document-prevalidation`, {
+      method: "GET",
+      cache: "no-store",
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) return { enabled: false };
+    return result.data as DocumentPrevalidationConfigResponse;
+  }
+
+  async prevalidateAcademicDocument(file: File): Promise<DocumentPrevalidationResponse> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch(`${this.baseUrl}/document-prevalidation`, {
+      method: "POST",
+      body: formData,
+    });
+
+    const result = await response.json().catch(() => null);
+    if (!response.ok || !result?.success) {
+      throw new ApplicationApiError(
+        result?.message ?? "No fue posible completar la revisión automática.",
+        result?.code ?? "DOCUMENT_PREVALIDATION_FAILED",
+        response.status,
+      );
+    }
+    return result.data as DocumentPrevalidationResponse;
   }
 
   /**

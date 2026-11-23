@@ -20,6 +20,22 @@ export class UserService {
     return await this.repository.getPaginatedUsers(page, pageSize, search, status, roleId);
   }
 
+  async getRoleSlug(roleId: number) {
+    return this.repository.findRoleSlugById(roleId);
+  }
+
+  async getUserRoleId(userId: number) {
+    return this.repository.findUserRoleId(userId);
+  }
+
+  async getUserRoleSlug(userId: number) {
+    return this.repository.findUserRoleSlug(userId);
+  }
+
+  async getPrivilegedUserIds(userIds: number[], privilegedRoleSlugs: string[]) {
+    return this.repository.findUserIdsWithPrivilegedRole(userIds, privilegedRoleSlugs);
+  }
+
   async createUser(input: CreateUserInput, imageUrl?: string) {
     const existingUser = await this.repository.findUserByEmailIncludingDeleted(input.email);
     const documentOwner = await this.repository.findPersonByDocument(input.documentNumber);

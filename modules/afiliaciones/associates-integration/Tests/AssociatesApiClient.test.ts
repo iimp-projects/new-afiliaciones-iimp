@@ -61,6 +61,21 @@ describe("AssociatesApiClient", () => {
     expect(fetcher.mock.calls.map(([calledUrl]) => String(calledUrl)).some((calledUrl) => calledUrl.includes("/asociados") && !calledUrl.includes("/asociados/estado"))).toBe(false);
   });
 
+  it("permite fechaPago vacía en Facturado solo para el dominio Cuotas", async () => {
+    const stateWithEmptyPaidAt = associateState({ cuotas: [stateQuota({ fechaPago: "" })] });
+    const strictFetcher = vi.fn()
+      .mockResolvedValueOnce(response({ token: "a", expiraEnSegundos: 1800 }))
+      .mockResolvedValueOnce(response(stateWithEmptyPaidAt));
+    await expect(new AssociatesApiClient(config, strictFetcher as typeof fetch).getAssociateState({ tipoDocumento: "1", numDocumento: "1" }))
+      .rejects.toMatchObject({ kind: "INVALID_RESPONSE" });
+
+    const quotaFetcher = vi.fn()
+      .mockResolvedValueOnce(response({ token: "b", expiraEnSegundos: 1800 }))
+      .mockResolvedValueOnce(response(stateWithEmptyPaidAt));
+    await expect(new AssociatesApiClient(config, quotaFetcher as typeof fetch).getAssociateStateForQuotas({ tipoDocumento: "1", numDocumento: "1" }))
+      .resolves.toMatchObject({ status: true, cuotas: [{ fechaPago: "" }] });
+  });
+
   it("acepta status=false contractual sin tomar decisiones", async () => {
     const fetcher = vi.fn().mockResolvedValueOnce(response({ token: "a", expiraEnSegundos: 1800 })).mockResolvedValueOnce(response({ status: false, message: "No es asociado" }));
     await expect(new AssociatesApiClient(config, fetcher as typeof fetch).getAssociateState({ tipoDocumento: "4", numDocumento: "CE-1" })).resolves.toEqual({ status: false, message: "No es asociado" });

@@ -69,7 +69,7 @@ describe("fetchAsociadosAction — gate del directorio", () => {
 
     expect(where.provider).toBe("SIE");
     expect(where.linkStatus).toBe("LINKED");
-    expect(where.category).toMatchObject({ mappedAffiliateType: { not: null } });
+    expect(where.category).toMatchObject({ code: { in: ["A", "E", "V", "H", "T"] } });
     expect(where.person).toMatchObject({
       deletedAt: null,
       applications: { none: { status: "COMPLETED", deletedAt: null } },

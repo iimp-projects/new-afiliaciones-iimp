@@ -10,10 +10,11 @@ import { UsersFilterBar } from "../Components/UsersFilterBar";
 import { UsersPagination } from "../Components/UsersPagination";
 
 interface UsersViewProps {
-  roles: { id: number; name: string }[];
+  roles: { id: number; name: string; slug?: string }[];
+  canAssignPrivilegedRoles?: boolean;
 }
 
-export function UsersView({ roles }: UsersViewProps) {
+export function UsersView({ roles, canAssignPrivilegedRoles = true }: UsersViewProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [users, setUsers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -76,7 +77,7 @@ export function UsersView({ roles }: UsersViewProps) {
           <div className="flex items-start gap-3">
             <NavigationHeaderIcon href="/intranet/security/users" />
             <div>
-            <h1 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight leading-none">
+            <h1 className="text-xl sm:text-2xl font-medium text-slate-800 tracking-tight leading-none">
               Usuarios del Sistema
             </h1>
             <p className="text-xs sm:text-sm font-medium text-slate-500 mt-1.5">
@@ -137,6 +138,7 @@ export function UsersView({ roles }: UsersViewProps) {
           onClose={() => setIsModalOpen(false)} 
           onSuccess={() => { setIsModalOpen(false); fetchUsers(); }} 
           roles={roles} 
+          canAssignPrivilegedRoles={canAssignPrivilegedRoles}
         />
       )}
     </div>

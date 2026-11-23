@@ -6,6 +6,7 @@ import {
   forwardRef,
   useImperativeHandle,
   useRef,
+  ChangeEvent,
 } from "react";
 
 import {
@@ -32,6 +33,9 @@ import { applicationApi } from "../../Services/ApplicationApi";
 import type { ValidationResponseDTO } from "../../DTOs/validation-response.dto";
 import { ProcessLoadingOverlay } from "@/modules/shared/Components/ProcessLoadingOverlay";
 import { DocumentPreviewLoader } from "@/modules/shared/Components/DocumentPreviewLoader";
+import { DocumentPreviewModal } from "../DocumentPreviewModal";
+import { DocumentUploadActions } from "../DocumentUploadActions";
+import { validateDocumentUpload } from "../../Validators/StudentLetterFileValidator";
 
 export interface StepRef {
   submit: () => Promise<void>;
@@ -69,6 +73,7 @@ const emptyPersonalInformation: PersonalInformation = {
   provinceId: undefined,
   districtId: undefined,
   address: "",
+  postalCode: "",
   photo: null,
   identityDocument: null,
   identityVerified: false,
@@ -646,6 +651,11 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
     const [secureDniUrl, setSecureDniUrl] = useState<string | null>(null);
     const [previewState, setPreviewState] = useState({ photo: "idle" as "idle" | "loading" | "error", identity: "idle" as "idle" | "loading" | "error" });
     const [previewVersion, setPreviewVersion] = useState({ photo: 0, identity: 0 });
+    const [photoFileError, setPhotoFileError] = useState<string | null>(null);
+    const [identityFileError, setIdentityFileError] = useState<string | null>(null);
+    const [previewModal, setPreviewModal] = useState<{ title: string; url: string; type: string } | null>(null);
+    const photoInputRef = useRef<HTMLInputElement>(null);
+    const identityInputRef = useRef<HTMLInputElement>(null);
 
     const [countries, setCountries] = useState<CatalogItem[]>([]);
     const [departments, setDepartments] = useState<CatalogItem[]>([]);
@@ -936,6 +946,62 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
       setTouched((prev) => ({ ...prev, [field]: true }));
     }
 
+    const handlePhotoChange = (event: ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) {
+        event.target.value = "";
+        return;
+      }
+
+      const validationError = validateDocumentUpload(file, "photo");
+      if (validationError) {
+        setPhotoFileError(validationError);
+        event.target.value = "";
+        return;
+      }
+
+      setPhotoFileError(null);
+      updateField("photo", file);
+      event.target.value = "";
+    };
+
+    const handleIdentityChange = (event: ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) {
+        event.target.value = "";
+        return;
+      }
+
+      const validationError = validateDocumentUpload(file, "identity");
+      if (validationError) {
+        setIdentityFileError(validationError);
+        event.target.value = "";
+        return;
+      }
+
+      setIdentityFileError(null);
+      updateField("identityDocument", file);
+      event.target.value = "";
+    };
+
+    const handleRemovePhoto = () => {
+      if (!window.confirm("¿Deseas eliminar la fotografía adjunta?")) return;
+      setPhotoFileError(null);
+      setSecurePhotoUrl(null);
+      setPreviewState((previous) => ({ ...previous, photo: "idle" }));
+      updateField("photo", null as any);
+      if (photoInputRef.current) photoInputRef.current.value = "";
+    };
+
+    const handleRemoveIdentity = () => {
+      if (!window.confirm("¿Deseas eliminar el documento de identidad adjunto?")) return;
+      setIdentityFileError(null);
+      setSecureDniUrl(null);
+      setPreviewState((previous) => ({ ...previous, identity: "idle" }));
+      updateField("identityDocument", null as any);
+      if (identityInputRef.current) identityInputRef.current.value = "";
+    };
+
     useImperativeHandle(ref, () => ({
       submit: async () => {
         setGlobalError(null);
@@ -967,16 +1033,6 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
           await onSave(form);
           onNext();
         } catch (error: any) {
-          if (error?.code === "DUPLICATE_EMAIL") {
-            setTouched((prev) => ({ ...prev, primaryEmail: true }));
-            setErrors((prev) => ({
-              ...prev,
-              primaryEmail:
-                error.message ||
-                "Este correo electrónico ya se encuentra registrado.",
-            }));
-            return;
-          }
           if (error?.code === "DUPLICATE_PHONE") {
             setTouched((prev) => ({ ...prev, phone: true }));
             setErrors((prev) => ({
@@ -1057,6 +1113,8 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
         : null;
     const fotoObjectUrl = useStableObjectUrl(photoFile);
     const fotoPreviewFinal: string | null = fotoObjectUrl ?? securePhotoUrl;
+    const photoPreviewType =
+      photoFile?.type ?? (form.photo as any)?.type ?? "image/jpeg";
 
     const dniFile =
       typeof window !== "undefined" &&
@@ -1506,6 +1564,24 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
                 />
                 {getErrorText("address")}
               </div>
+
+              <div className="mt-4">
+                <label className="text-xs font-bold text-slate-700 mb-1.5 block uppercase">
+                  Código Postal <span className="text-slate-400 font-medium normal-case">(opcional)</span>
+                </label>
+                <input
+                  type="text"
+                  disabled={!isFormEnabled}
+                  inputMode="numeric"
+                  maxLength={10}
+                  placeholder="Ej. 15024"
+                  value={form.postalCode ?? ""}
+                  onChange={(e) => updateField("postalCode", e.target.value.replace(/\D/g, ""))}
+                  onBlur={() => handleBlur("postalCode")}
+                  className={getInputClass("postalCode")}
+                />
+                {getErrorText("postalCode")}
+              </div>
             </div>
           </div>
         </section>
@@ -1529,14 +1605,19 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
           <div className="p-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
+                {photoFileError && (
+                  <div className="mb-3 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-bold text-red-700">
+                    <XCircle size={16} className="mt-0.5 shrink-0" />
+                    <span>{photoFileError}</span>
+                  </div>
+                )}
                 <label className={getDropzoneClass("photo")}>
                   <input
+                    ref={photoInputRef}
                     type="file"
-                    accept="image/*"
+                    accept=".pdf,application/pdf,.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
                     disabled={!isFormEnabled}
-                    onChange={(e) =>
-                      updateField("photo", e.target.files?.[0] ?? null)
-                    }
+                    onChange={handlePhotoChange}
                     className="hidden"
                   />
                   {fotoPreviewFinal ? (
@@ -1546,14 +1627,26 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
                         error={previewState.photo === "error" ? "preview" : null}
                         onRetry={() => { setPreviewState((previous) => ({ ...previous, photo: "loading" })); setPreviewVersion((previous) => ({ ...previous, photo: previous.photo + 1 })); }}
                       >
-                        <img
-                          key={previewVersion.photo}
-                          src={fotoPreviewFinal}
-                          alt="Preview"
-                          onLoad={() => setPreviewState((previous) => (previous.photo === "idle" ? previous : { ...previous, photo: "idle" }))}
-                          onError={() => setPreviewState((previous) => (previous.photo === "error" ? previous : { ...previous, photo: "error" }))}
-                          className="w-full h-full object-cover opacity-90 group-hover:opacity-60 transition-opacity"
-                        />
+                        {photoPreviewType === "application/pdf" ? (
+                          <iframe
+                            key={previewVersion.photo}
+                            src={`${fotoPreviewFinal}#toolbar=0&navpanes=0&scrollbar=0`}
+                            onLoad={() => setPreviewState((previous) => (previous.photo === "idle" ? previous : { ...previous, photo: "idle" }))}
+                            onError={() => setPreviewState((previous) => (previous.photo === "error" ? previous : { ...previous, photo: "error" }))}
+                            className="absolute inset-0 h-full w-full pointer-events-none"
+                            style={{ border: 0, display: "block" }}
+                            title="Fotografía PDF"
+                          />
+                        ) : (
+                          <img
+                            key={previewVersion.photo}
+                            src={fotoPreviewFinal}
+                            alt="Preview"
+                            onLoad={() => setPreviewState((previous) => (previous.photo === "idle" ? previous : { ...previous, photo: "idle" }))}
+                            onError={() => setPreviewState((previous) => (previous.photo === "error" ? previous : { ...previous, photo: "error" }))}
+                            className="w-full h-full object-cover opacity-90 group-hover:opacity-60 transition-opacity"
+                          />
+                        )}
                         {isFormEnabled && (
                           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 backdrop-blur-sm cursor-pointer">
                             <span className="bg-white/90 px-4 py-2 rounded-xl text-sm font-bold text-[#2F3136] flex items-center gap-2 shadow-lg">
@@ -1589,21 +1682,39 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
                     </>
                   )}
                 </label>
+                {form.photo && isFormEnabled && (
+                  <DocumentUploadActions
+                    fileName={photoFile?.name ?? (form.photo as any)?.name ?? "Fotografía"}
+                    canView={Boolean(fotoPreviewFinal)}
+                    onView={() => {
+                      if (!fotoPreviewFinal) return;
+                      setPreviewModal({
+                        title: photoFile?.name ?? (form.photo as any)?.name ?? "Fotografía",
+                        url: fotoPreviewFinal,
+                        type: photoFile?.type ?? (form.photo as any)?.type ?? "image/jpeg",
+                      });
+                    }}
+                    onChange={() => photoInputRef.current?.click()}
+                    onRemove={handleRemovePhoto}
+                  />
+                )}
                 {getErrorText("photo")}
               </div>
 
               <div>
+                {identityFileError && (
+                  <div className="mb-3 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-bold text-red-700">
+                    <XCircle size={16} className="mt-0.5 shrink-0" />
+                    <span>{identityFileError}</span>
+                  </div>
+                )}
                 <label className={getDropzoneClass("identityDocument")}>
                   <input
+                    ref={identityInputRef}
                     type="file"
-                    accept=".pdf,image/*"
+                    accept=".pdf,.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
                     disabled={!isFormEnabled}
-                    onChange={(e) =>
-                      updateField(
-                        "identityDocument",
-                        e.target.files?.[0] ?? null,
-                      )
-                    }
+                    onChange={handleIdentityChange}
                     className="hidden"
                   />
                   {dniPreviewFinal ? (
@@ -1707,11 +1818,35 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
                     </>
                   )}
                 </label>
+                {form.identityDocument && isFormEnabled && (
+                  <DocumentUploadActions
+                    fileName={dniPreviewFinal?.name ?? "Documento de identidad"}
+                    canView={Boolean(dniPreviewFinal?.url)}
+                    onView={() => {
+                      if (!dniPreviewFinal?.url) return;
+                      setPreviewModal({
+                        title: dniPreviewFinal.name,
+                        url: dniPreviewFinal.url,
+                        type: dniPreviewFinal.type,
+                      });
+                    }}
+                    onChange={() => identityInputRef.current?.click()}
+                    onRemove={handleRemoveIdentity}
+                  />
+                )}
                 {getErrorText("identityDocument")}
               </div>
             </div>
           </div>
         </section>
+
+        <DocumentPreviewModal
+          open={Boolean(previewModal)}
+          title={previewModal?.title ?? "Documento"}
+          url={previewModal?.url ?? ""}
+          type={previewModal?.type ?? ""}
+          onClose={() => setPreviewModal(null)}
+        />
       </div>
     );
   },

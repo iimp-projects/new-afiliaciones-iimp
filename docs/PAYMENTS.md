@@ -17,7 +17,7 @@ El dominio ya contiene:
 - email de confirmación;
 - recálculo de solicitud e integración/provisión de asociado después de pago.
 
-El proveedor Niubiz aplica actualmente guards que exigen ambiente `TEST`. No declares producción lista sin validar contrato oficial, credenciales, callbacks, conciliación y seguridad.
+El proveedor Niubiz admite `PAYMENT_ENVIRONMENT=TEST` y `PAYMENT_ENVIRONMENT=PRODUCTION`. Producción exige el grupo completo `NIUBIZ_PROD_*` y sigue pendiente de validar contrato oficial, credenciales, callbacks, conciliación y seguridad antes de declararla lista. Para pruebas locales explícitas con credenciales de producción fuera de `NODE_ENV=production` se requiere `PAYMENT_ALLOW_PRODUCTION_OUTSIDE_PRODUCTION=true`; por defecto el arranque falla.
 
 ## Flujo
 
@@ -30,7 +30,7 @@ Consulta/UI
   → PaymentRepository crea PENDING
   → PaymentProvider
       ├─ MOCK: resultado simulado persistido
-      └─ NIUBIZ TEST: security → session → checkout
+      └─ NIUBIZ TEST/PRODUCTION: security → session → checkout
 
 Callback/authorize
   → referencia temporal + transactionToken
@@ -77,9 +77,13 @@ Gateways del schema: `NIUBIZ`, `IZIPAY`, `STRIPE`, `PAYPAL`, `BANK_TRANSFER`. Qu
 ## Configuración
 
 - `PAYMENT_PROVIDER`: `MOCK` o `NIUBIZ`.
-- `PAYMENT_ENVIRONMENT`: `TEST` o `PRODUCTION`; el proveedor actual solo declara readiness para TEST.
+- `PAYMENT_ENVIRONMENT`: `TEST` o `PRODUCTION`; el proveedor declara readiness según el grupo `NIUBIZ_TEST_*` o `NIUBIZ_PROD_*` configurado.
+- `PAYMENT_ALLOW_PRODUCTION_OUTSIDE_PRODUCTION`: opt-in local explícito para usar `PAYMENT_ENVIRONMENT=PRODUCTION` con `NODE_ENV` distinto de `production`. No usar en despliegues.
 - `PAYMENT_AUTH_SECRET`: secreto exclusivo de al menos 32 caracteres para firmar autorizaciones temporales de pago; no reutilizar `AUTH_SECRET`.
 - Variables `NIUBIZ_TEST_*` y `NIUBIZ_PROD_*`: consulta [ENVIRONMENT.md](ENVIRONMENT.md) y `PaymentConfig.ts`.
+- Datos del titular antes del pago: con proveedor Niubiz, `PaymentService` exige correo, celular, documento y dirección, distrito/ciudad, departamento y país. El **código postal es opcional**: se envía a Niubiz si existe y se omite si no. Si faltan los datos obligatorios, responde `422 PAYMENT_CARDHOLDER_DATA_INCOMPLETE` con la lista y **no crea un pago pendiente**.
+- `PAYMENT_ALLOW_CARDHOLDER_FALLBACK`: por defecto `false`. Solo en `TEST` permite que `NIUBIZ_TEST_CARDHOLDER_*` complete los campos faltantes en lugar de bloquear. No usar en producción.
+- `NIUBIZ_TEST_CARDHOLDER_*` y `NIUBIZ_PROD_CARDHOLDER_*` (`CITY`, `COUNTRY`, `ADDRESS`, `POSTAL_CODE`, `STATE`, `PHONE`, opcionales): datos institucionales de respaldo del `dataMap` de Session. Se aplican **campo por campo**: el dato real siempre gana; los de producción deben ser confirmados por IIMP/Niubiz.
 
 No copies payloads ni URLs desde ejemplos no oficiales. Los contratos del proveedor deben verificarse con documentación del producto contratado.
 

@@ -7,7 +7,7 @@ export const membershipCategoriesData: Prisma.MembershipCategoryCreateManyInput[
   { code: "R", name: "Renunciante", allowsLogin: false, mappedAffiliateType: null, mappedRoleSlug: null, isActive: true },
   { code: "U", name: "Anulado", allowsLogin: false, mappedAffiliateType: null, mappedRoleSlug: null, isActive: true },
   { code: "F", name: "Fallecido", allowsLogin: false, mappedAffiliateType: null, mappedRoleSlug: null, isActive: true },
-  { code: "V", name: "Vitalicio", allowsLogin: false, mappedAffiliateType: null, mappedRoleSlug: null, isActive: true },
-  { code: "H", name: "Honorario", allowsLogin: false, mappedAffiliateType: null, mappedRoleSlug: null, isActive: true },
-  { code: "T", name: "Adherente", allowsLogin: false, mappedAffiliateType: null, mappedRoleSlug: null, isActive: true },
+  { code: "V", name: "Vitalicio", allowsLogin: true, mappedAffiliateType: null, mappedRoleSlug: "ASOCIADO_ACTIVO", isActive: true },
+  { code: "H", name: "Honorario", allowsLogin: true, mappedAffiliateType: null, mappedRoleSlug: "ASOCIADO_ACTIVO", isActive: true },
+  { code: "T", name: "Adherente", allowsLogin: true, mappedAffiliateType: null, mappedRoleSlug: "ASOCIADO_ACTIVO", isActive: true },
 ];

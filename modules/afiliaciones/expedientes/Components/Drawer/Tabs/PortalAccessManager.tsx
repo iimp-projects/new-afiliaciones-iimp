@@ -20,11 +20,13 @@ export type PortalAccessState = {
 };
 type Action = "retry" | "resend-activation" | "change-email";
 
-export function PortalAccessManager({ applicationId, open, onClose, onAccessChanged }: { applicationId: number; open: boolean; onClose: () => void; onAccessChanged?: () => void }) {
+export function PortalAccessManager({ applicationId, open, onClose, onAccessChanged, allowPasswordReset = false, personId }: { applicationId: number; open: boolean; onClose: () => void; onAccessChanged?: () => void; allowPasswordReset?: boolean; personId?: number }) {
   const [access, setAccess] = useState<PortalAccessState | null>(null);
   const [loading, setLoading] = useState(false);
   const [confirmation, setConfirmation] = useState<Action | null>(null);
   const [newEmail, setNewEmail] = useState("");
+  const [resetConfirm, setResetConfirm] = useState(false);
+  const [resetting, setResetting] = useState(false);
 
   const load = async () => {
     const response = await fetch(`/api/afiliaciones/expedientes/${applicationId}/access`);
@@ -72,6 +74,22 @@ export function PortalAccessManager({ applicationId, open, onClose, onAccessChan
     }
   };
 
+  const resetPassword = async () => {
+    if (!personId) return;
+    setResetting(true);
+    try {
+      const response = await fetch(`/api/afiliaciones/asociados/person/${personId}/reset-password`, { method: "POST" });
+      const body = await response.json();
+      if (!response.ok || !body.success) throw new Error(body.message || "No se pudo restablecer la contraseña.");
+      toast.success(body.message);
+      setResetConfirm(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "No se pudo restablecer la contraseña.");
+    } finally {
+      setResetting(false);
+    }
+  };
+
   if (!open) return null;
   const conflict = access?.status === "CONFLICT";
   const canCorrectEmail = conflict && access?.conflictClassification === "DIFFERENT_IDENTITY" && access.canChangeEmail;
@@ -89,6 +107,23 @@ export function PortalAccessManager({ applicationId, open, onClose, onAccessChan
         {!access ? <div className="p-8 text-sm text-slate-500">Cargando estado de acceso…</div> : (
           <div className="space-y-5 p-6 text-sm">
             {conflict ? <ConflictContent access={access} newEmail={newEmail} onEmailChange={setNewEmail} canCorrectEmail={Boolean(canCorrectEmail)} /> : <AccessStatus access={access} />}
+            {allowPasswordReset && personId && access.status === "ACTIVE" && (
+              <section className="rounded-xl border border-amber-200 bg-amber-50/70 p-4">
+                <p className="font-bold text-amber-900">Restablecer contraseña</p>
+                <p className="mt-1 text-xs leading-5 text-slate-700">
+                  Se asignará por defecto su número de documento: <strong>{access.applicant?.documentNumber ?? "No disponible"}</strong>. El usuario deberá cambiarla en su próximo ingreso.
+                </p>
+                {resetConfirm ? (
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <span className="text-xs font-bold text-amber-900">¿Confirmas que la contraseña será su número de documento?</span>
+                    <button type="button" disabled={resetting} onClick={() => void resetPassword()} className="rounded-lg bg-amber-700 px-3 py-2 text-xs font-bold text-white disabled:opacity-60">{resetting ? "Restableciendo..." : "Sí, restablecer"}</button>
+                    <button type="button" disabled={resetting} onClick={() => setResetConfirm(false)} className="rounded-lg px-3 py-2 text-xs font-bold text-slate-600">Cancelar</button>
+                  </div>
+                ) : (
+                  <button type="button" onClick={() => setResetConfirm(true)} className="mt-3 rounded-lg border border-amber-300 bg-white px-3 py-2 text-xs font-bold text-amber-800 hover:bg-amber-100">Restablecer contraseña</button>
+                )}
+              </section>
+            )}
             {confirmation && (
               <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 font-bold text-amber-900">
                 {confirmation === "resend-activation" ? `¿Confirmas que deseas reenviar la activación a ${access.email ?? "esta cuenta"}?` : confirmation === "change-email" ? `¿Confirmas que deseas usar ${newEmail.trim().toLowerCase()} para habilitar una cuenta nueva de este postulante?` : "¿Confirmas que deseas habilitar el acceso al portal para este postulante?"}

@@ -1,5 +1,5 @@
 import { getAppBaseUrl } from "@/lib/config/env";
-import { escapeHtml, safeUrl } from "./EmailEscaping";
+import { escapeHtml, escapeHtmlAttribute, safeUrl } from "./EmailEscaping";
 import type { EmailVariant } from "./EmailComponents";
 
 export interface EmailLayoutOptions {
@@ -10,6 +10,25 @@ export interface EmailLayoutOptions {
   /** Se conserva por compatibilidad; la presentación ya no lo utiliza. */
   variant?: EmailVariant;
   content: string;
+  /**
+   * Permite sustituir el logotipo remoto por una referencia inline (`cid:`).
+   * Mantiene el comportamiento histórico cuando se omite.
+   */
+  logoUrl?: string;
+  /** Permite reemplazar el pie institucional completo cuando el flujo lo requiera. */
+  footerHtml?: string;
+  /** Ancho máximo del contenedor en píxeles (por defecto 640). */
+  maxWidth?: number;
+}
+
+function emailImageSrc(value: string): string {
+  if (/^cid:[A-Za-z0-9._-]+$/.test(value)) return escapeHtmlAttribute(value);
+  return safeUrl(value);
+}
+
+function normalizeMaxWidth(value: number): number {
+  if (!Number.isFinite(value)) return 640;
+  return Math.min(800, Math.max(320, Math.trunc(value)));
 }
 
 export function emailLogoUrl(): string | null {
@@ -17,10 +36,11 @@ export function emailLogoUrl(): string | null {
   catch { return null; }
 }
 
-export function emailLayout({ title, summary, category = "PORTAL DE AFILIACIONES", content }: EmailLayoutOptions): string {
-  const logo = emailLogoUrl();
-  const logoCell = logo ? `<img src="${safeUrl(logo)}" alt="Instituto de Ingenieros de Minas del Perú" width="180" style="display:block;width:180px;max-width:100%;height:auto;margin:0 auto 20px;border:0;outline:none;">` : "";
-  return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"></head><body style="margin:0;padding:0;background-color:#f3f4f6;font-family:Arial,Helvetica,sans-serif;color:#1f2937;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background-color:#f3f4f6;"><tr><td align="center" style="padding:30px 15px;"><table role="presentation" width="640" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:640px;background-color:#ffffff;border-radius:14px;overflow:hidden;border:1px solid #e5e7eb;"><tr><td height="6" style="height:6px;background-color:#C5A059;font-size:0;line-height:0;">&nbsp;</td></tr><tr><td align="center" style="background-color:#ffffff;padding:25px 35px 24px;border-bottom:1px solid #eeeeee;">${logoCell}<table role="presentation" width="55" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:0 auto 18px;"><tr><td height="3" style="height:3px;background-color:#C5A059;font-size:0;line-height:0;">&nbsp;</td></tr></table><div style="color:#9A7838;font-size:11px;line-height:16px;font-weight:bold;letter-spacing:2.4px;text-transform:uppercase;margin-bottom:10px;">${escapeHtml(category)}</div><div style="color:#18253a;font-size:24px;line-height:32px;font-weight:700;max-width:550px;margin:0 auto;">${escapeHtml(title)}</div>${summary ? `<div style="color:#7b8491;font-size:13px;line-height:20px;margin-top:9px;">${escapeHtml(summary)}</div>` : ""}</td></tr><tr><td style="padding:28px 45px 10px;color:#4b5563;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:22px;">${content}</td></tr>${emailFooter()}</table></td></tr></table></body></html>`;
+export function emailLayout({ title, summary, category = "PORTAL DE AFILIACIONES", content, logoUrl, footerHtml, maxWidth = 640 }: EmailLayoutOptions): string {
+  const logo = logoUrl ?? emailLogoUrl();
+  const logoCell = logo ? `<img src="${emailImageSrc(logo)}" alt="Instituto de Ingenieros de Minas del Perú" width="180" style="display:block;width:180px;max-width:100%;height:auto;margin:0 auto 20px;border:0;outline:none;">` : "";
+  const width = normalizeMaxWidth(maxWidth);
+  return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"></head><body style="margin:0;padding:0;background-color:#f3f4f6;font-family:Arial,Helvetica,sans-serif;color:#1f2937;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background-color:#f3f4f6;"><tr><td align="center" style="padding:30px 15px;"><table role="presentation" width="${width}" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:${width}px;background-color:#ffffff;border-radius:14px;overflow:hidden;border:1px solid #e5e7eb;"><tr><td height="6" style="height:6px;background-color:#C5A059;font-size:0;line-height:0;">&nbsp;</td></tr><tr><td align="center" style="background-color:#ffffff;padding:25px 35px 24px;border-bottom:1px solid #eeeeee;">${logoCell}<table role="presentation" width="55" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:0 auto 18px;"><tr><td height="3" style="height:3px;background-color:#C5A059;font-size:0;line-height:0;">&nbsp;</td></tr></table><div style="color:#9A7838;font-size:11px;line-height:16px;font-weight:bold;letter-spacing:2.4px;text-transform:uppercase;margin-bottom:10px;">${escapeHtml(category)}</div><div style="color:#18253a;font-size:24px;line-height:32px;font-weight:700;max-width:550px;margin:0 auto;">${escapeHtml(title)}</div>${summary ? `<div style="color:#7b8491;font-size:13px;line-height:20px;margin-top:9px;">${escapeHtml(summary)}</div>` : ""}</td></tr><tr><td style="padding:28px 45px 10px;color:#4b5563;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:22px;">${content}</td></tr>${footerHtml ?? emailFooter()}</table></td></tr></table></body></html>`;
 }
 
 export function emailParagraph(value: string): string { return `<p style="margin:0 0 16px;">${escapeHtml(value)}</p>`; }

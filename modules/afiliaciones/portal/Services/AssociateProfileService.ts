@@ -1,6 +1,8 @@
 import { ApplicationStatus, Gender, PhoneType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { calendarDateFromDatabase, calendarDateToDatabaseDate } from "../Utils/calendarDate";
+import { PERU_COUNTRY_ID } from "../Rules/ProfileCompletenessRules";
+import type { ProfileAddressInput } from "../Validators/ProfileAddressSchema";
 
 type ProfessionalProfile = {
   companyId: number | null;
@@ -52,6 +54,7 @@ export type AssociateProfileDTO = {
     street: string | null; reference: string | null; country: string | null; countryId: number | null;
     department: string | null; departmentId: number | null; province: string | null; provinceId: number | null;
     district: string | null; districtId: number | null;
+    postalCode: string | null; foreignRegion: string | null; foreignCity: string | null;
   };
   professional: ProfessionalProfile | null;
   academic: Array<{ university: string | null; specialty: string | null; degree: string | null; graduationYear: number | null; professionalAssociation: string | null; licenseNumber: string | null }>;
@@ -121,19 +124,20 @@ export class AssociateProfileService {
       identity: {
         fullName: [person.firstName, person.paternalLastName, person.maternalLastName].filter(Boolean).join(" "),
         firstName: person.firstName, paternalLastName: person.paternalLastName, maternalLastName: person.maternalLastName,
-        image: photo?.fileUrl ?? user.image, documentType: person.documentType, documentNumber: person.documentNumber,
+        image: user.image ?? photo?.fileUrl ?? null, documentType: person.documentType, documentNumber: person.documentNumber,
         birthDate: calendarDateFromDatabase(person.birthDate), gender: person.gender ?? null,
         nationality: person.nationality?.name ?? null, nationalityId: person.nationalityId,
       },
       contact: {
         primaryPhone: contact?.phoneNumber ?? application?.phone ?? draftContact.phone,
-        primaryEmail: contact?.email ?? application?.email ?? draftContact.primaryEmail,
+        primaryEmail: contact?.email ?? application?.email ?? draftContact.primaryEmail ?? user.email,
         secondaryEmail: secondary?.email ?? draftContact.secondaryEmail,
       },
       address: {
         street: address?.street ?? null, reference: address?.reference ?? null, country: address?.country?.name ?? null, countryId: address?.countryId ?? null,
         department: department?.name ?? address?.foreignRegion ?? null, departmentId: department?.id ?? null,
         province: province?.name ?? null, provinceId: province?.id ?? null, district: district?.name ?? address?.foreignCity ?? null, districtId: district?.id ?? null,
+        postalCode: address?.zipCode ?? null, foreignRegion: address?.foreignRegion ?? null, foreignCity: address?.foreignCity ?? null,
       },
       professional: professionalSource ? {
         companyId: company?.id ?? null, positionId: professionalSource.position?.id ?? null,
@@ -163,22 +167,8 @@ export class AssociateProfileService {
     await prisma.$transaction(async (tx) => {
       await tx.person.update({ where: { id: person.id }, data: { firstName: input.firstName, paternalLastName: input.paternalLastName, maternalLastName: input.maternalLastName, birthDate: calendarDateToDatabaseDate(input.birthDate), gender: input.gender, nationalityId: input.nationalityId } });
 
-      if (!input.image) return;
+      if (input.image) await tx.user.update({ where: { id: userId }, data: { image: input.image.key } });
 
-      const application = await tx.membershipApplication.findFirst({
-        where: { personId: person.id, status: ApplicationStatus.COMPLETED, deletedAt: null },
-        orderBy: { updatedAt: "desc" },
-        include: { documents: { orderBy: { updatedAt: "desc" } } },
-      });
-      if (!application) throw new Error("No se encontró una postulación completada para actualizar la fotografía.");
-
-      const photo = application.documents.find((document) =>
-        document.mimeType.startsWith("image/") &&
-        (document.category === "OTHER" || document.fileName.toLowerCase().includes("foto")),
-      );
-      const imageData = { fileUrl: input.image.key, fileName: input.image.fileName, mimeType: input.image.mimeType, sizeBytes: BigInt(input.image.sizeBytes) };
-      if (photo) await tx.applicationDocument.update({ where: { id: photo.id }, data: imageData });
-      else await tx.applicationDocument.create({ data: { applicationId: application.id, category: "OTHER", ...imageData } });
     });
     return this.getForUser(userId);
   }
@@ -197,18 +187,31 @@ export class AssociateProfileService {
     return this.getForUser(userId);
   }
 
-  async updateAddress(userId: number, input: { street: string; reference: string | null; countryId: number | null; districtId: number | null }) {
+  async updateAddress(userId: number, input: ProfileAddressInput) {
     const person = await this.personForUser(userId);
-    if (input.districtId) {
+    const isPeru = input.countryId === PERU_COUNTRY_ID;
+    const country = await prisma.country.findFirst({ where: { id: input.countryId, isActive: true }, select: { id: true } });
+    if (!country) throw new Error("El país seleccionado no es válido.");
+    if (isPeru && input.districtId) {
       const district = await prisma.district.findFirst({ where: { id: input.districtId, isActive: true }, include: { province: { include: { department: true } } } });
-      if (!district || (input.countryId && district.province.department.countryId !== input.countryId)) throw new Error("La ubicación seleccionada no es válida.");
+      if (!district || district.province.department.countryId !== input.countryId) throw new Error("La ubicación seleccionada no es válida.");
     }
+    const data = {
+      street: input.street,
+      reference: input.reference,
+      countryId: input.countryId,
+      districtId: isPeru ? input.districtId : null,
+      zipCode: input.postalCode,
+      foreignRegion: isPeru ? null : input.foreignRegion,
+      foreignCity: isPeru ? null : input.foreignCity,
+      isPrimary: true,
+    };
     const address = await prisma.address.findFirst({ where: { personId: person.id }, orderBy: [{ isPrimary: "desc" }, { createdAt: "asc" }] });
-    if (address) await prisma.address.update({ where: { id: address.id }, data: { street: input.street, reference: input.reference, countryId: input.countryId, districtId: input.districtId, foreignRegion: null, foreignCity: null, isPrimary: true } });
+    if (address) await prisma.address.update({ where: { id: address.id }, data });
     else {
       const home = await prisma.addressType.findFirst({ where: { code: "HOME", isActive: true } });
       if (!home) throw new Error("No está configurado el tipo de dirección Domicilio.");
-      await prisma.address.create({ data: { personId: person.id, addressTypeId: home.id, street: input.street, reference: input.reference, countryId: input.countryId, districtId: input.districtId, isPrimary: true } });
+      await prisma.address.create({ data: { personId: person.id, addressTypeId: home.id, ...data } });
     }
     return this.getForUser(userId);
   }

@@ -1,5 +1,9 @@
 # Plataforma de Afiliaciones IIMP — guía de trabajo
 
+## Política operativa de desarrollo y despliegues
+
+> **Antes de modificar, integrar o desplegar Afiliaciones IIMP, leer `docs/release-engineering/DEV-WORKFLOW-OPT-01.md` y aplicar su checklist. Si entra en conflicto con protecciones, reglas de seguridad o autorizaciones, respetar el control más estricto.**
+
 ## Contexto y fuentes de verdad
 
 Esta aplicación administra postulaciones, evaluaciones, avales, expedientes, asociados, seguridad y consulta pública del IIMP. El código y `prisma/schema.prisma` son la fuente de verdad cuando difieran de la documentación. No inventar reglas, campos, endpoints, credenciales ni contratos de proveedores.
@@ -51,3 +55,13 @@ Antes de modificar código Next.js, leer la guía aplicable de la versión insta
 
 El dominio futuro es `modules/afiliaciones/payments`. No implementar Niubiz, payloads, endpoints, firmas ni credenciales sin documentación oficial y requerimientos aprobados. El diseño nuevo debe seguir UI → PaymentApi → Route Handler/Server Action → PaymentService → PaymentRepository → Prisma, aislando proveedores detrás de un contrato. Consultar `docs/PAYMENTS.md` antes de tocar este dominio.
 
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

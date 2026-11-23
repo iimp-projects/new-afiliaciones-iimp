@@ -9,6 +9,9 @@ import { applicationApi } from "../../Services/ApplicationApi";
 import { ApplicationApiError } from "../../Services/ApplicationApiError";
 import { ProcessLoadingOverlay } from "@/modules/shared/Components/ProcessLoadingOverlay";
 import { GlobalModalRoot } from "@/modules/shared/Components/GlobalModalRoot";
+import { DocumentPreviewModal } from "../DocumentPreviewModal";
+import { DocumentUploadActions } from "../DocumentUploadActions";
+import { validateDocumentUpload } from "../../Validators/StudentLetterFileValidator";
 
 const DECLARACION_FILENAME = "Declaracion_Jurada_IIMP.pdf";
 
@@ -60,6 +63,9 @@ const DeclarationStep = forwardRef<StepRef, DeclarationStepProps>(
     const [declaracionFile, setDeclaracionFile] = useState<{ name: string; url: string; type: string } | null>(null);
     const [rawFile, setRawFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
+    const [fileError, setFileError] = useState<string | null>(null);
+    const [previewModal, setPreviewModal] = useState<{ title: string; url: string; type: string } | null>(null);
+    const declarationInputRef = useRef<HTMLInputElement>(null);
 
     // 👇 Estado para el Modal de Confirmación
     const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -132,12 +138,45 @@ const DeclarationStep = forwardRef<StepRef, DeclarationStepProps>(
 
     const handleDeclaracionChange = (e: ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
-      if (file) {
-        const objectUrl = URL.createObjectURL(file);
-        setDeclaracionFile({ name: file.name, url: objectUrl, type: file.type });
-        setRawFile(file); 
-        setForm(prev => ({ ...prev, declarationDocumentId: "PENDIENTE_SUBIDA" }));
+      if (!file) {
+        e.target.value = "";
+        return;
       }
+
+      const validationError = validateDocumentUpload(file, "declaration");
+      if (validationError) {
+        setFileError(validationError);
+        e.target.value = "";
+        return;
+      }
+
+      setFileError(null);
+      if (declaracionFile?.url.startsWith("blob:")) {
+        URL.revokeObjectURL(declaracionFile.url);
+      }
+
+      const objectUrl = URL.createObjectURL(file);
+      setDeclaracionFile({ name: file.name, url: objectUrl, type: file.type });
+      setRawFile(file);
+      setForm(prev => ({ ...prev, declarationDocumentId: "PENDIENTE_SUBIDA" }));
+      e.target.value = "";
+    };
+
+    const handleRemoveDeclaracion = () => {
+      if (!window.confirm("¿Deseas eliminar la declaración firmada adjunta? Tendrás que volver a subirla.")) {
+        return;
+      }
+
+      if (declaracionFile?.url.startsWith("blob:")) {
+        URL.revokeObjectURL(declaracionFile.url);
+      }
+
+      setDeclaracionFile(null);
+      setRawFile(null);
+      setFileError(null);
+      setPreviewModal(null);
+      setForm(prev => ({ ...prev, declarationDocumentId: "" }));
+      if (declarationInputRef.current) declarationInputRef.current.value = "";
     };
 
     // 👇 PRIMERA FASE: EL BOTÓN INFERIOR VALIDA Y MUESTRA EL MODAL
@@ -310,12 +349,26 @@ const DeclarationStep = forwardRef<StepRef, DeclarationStepProps>(
             )}
 
             <div>
+              {fileError && (
+                <div className="mb-3 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-bold text-red-700">
+                  <XCircle size={16} className="mt-0.5 shrink-0" />
+                  <span>{fileError}</span>
+                </div>
+              )}
               <label className={`group cursor-pointer relative overflow-hidden h-[260px] w-full border-2 border-dashed rounded-2xl p-6 transition-all duration-300 flex flex-col items-center justify-center text-center ${touched.declarationDocumentId && errors.declarationDocumentId ? "border-red-400 bg-red-50/30" : "border-gray-300 hover:border-[#C5A059] hover:bg-gray-50"}`}>
-                <input type="file" accept=".pdf" onChange={handleDeclaracionChange} className="hidden" />
+                <input ref={declarationInputRef} type="file" accept=".pdf,application/pdf,.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" onChange={handleDeclaracionChange} className="hidden" />
                 
                 {declaracionFile ? (
                   <div className="w-full h-full absolute inset-0 bg-white flex flex-col items-center justify-center overflow-hidden">
-                    <iframe src={`${declaracionFile.url}#toolbar=0&navpanes=0&scrollbar=0`} className="w-full h-full pointer-events-none" />
+                    {declaracionFile.type.startsWith("image/") ? (
+                      <img
+                        src={declaracionFile.url}
+                        alt="Declaración firmada"
+                        className="h-full w-full object-contain"
+                      />
+                    ) : (
+                      <iframe src={`${declaracionFile.url}#toolbar=0&navpanes=0&scrollbar=0`} className="w-full h-full pointer-events-none" />
+                    )}
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 backdrop-blur-sm cursor-pointer">
                       <span className="bg-white/90 px-4 py-2 rounded-xl text-sm font-bold text-[#2F3136] flex items-center gap-2 shadow-lg"><UploadCloud size={16} /> Cambiar Documento Firmado</span>
                     </div>
@@ -324,17 +377,40 @@ const DeclarationStep = forwardRef<StepRef, DeclarationStepProps>(
                   <>
                     <div className="w-14 h-14 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center mb-4 group-hover:bg-[#C5A059]/10 group-hover:text-[#C5A059] transition-colors"><FileText className="w-6 h-6" /></div>
                     <h3 className="text-sm font-bold text-[#2F3136] mb-1">Adjuntar Solicitud Firmada <span className="text-red-500">*</span></h3>
-                    <p className="text-xs text-gray-500 mb-4 max-w-[200px]">Solo archivos PDF. Peso máximo: 3MB.</p>
+                    <p className="text-xs text-gray-500 mb-4 max-w-[200px]">PDF, JPG, JPEG, PNG o WEBP. Peso máximo: 3MB.</p>
                     <div className="inline-flex items-center gap-2 text-[#C5A059] font-bold text-xs uppercase tracking-wider"><UploadCloud size={16} /> Seleccionar Archivo PDF</div>
                   </>
                 )}
               </label>
+              {declaracionFile && (
+                <DocumentUploadActions
+                  fileName={declaracionFile.name}
+                  canView={Boolean(declaracionFile.url)}
+                  onView={() => {
+                    setPreviewModal({
+                      title: declaracionFile.name,
+                      url: declaracionFile.url,
+                      type: declaracionFile.type,
+                    });
+                  }}
+                  onChange={() => declarationInputRef.current?.click()}
+                  onRemove={handleRemoveDeclaracion}
+                />
+              )}
               {touched.declarationDocumentId && errors.declarationDocumentId && (
                 <p className="text-red-500 text-xs font-bold mt-2 text-center">{errors.declarationDocumentId}</p>
               )}
             </div>
           </div>
         </section>
+
+        <DocumentPreviewModal
+          open={Boolean(previewModal)}
+          title={previewModal?.title ?? "Declaración firmada"}
+          url={previewModal?.url ?? ""}
+          type={previewModal?.type ?? "application/pdf"}
+          onClose={() => setPreviewModal(null)}
+        />
       </div>
     );
   }

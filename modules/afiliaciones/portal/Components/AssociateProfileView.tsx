@@ -49,6 +49,9 @@ type Draft = {
   departmentId: string;
   provinceId: string;
   districtId: string;
+  postalCode: string;
+  foreignRegion: string;
+  foreignCity: string;
 };
 type EmploymentDraft = { companyId: string; positionId: string; area: string; workingAddress: string; workPhone: string; workExtension: string; workEmail: string };
 
@@ -98,7 +101,29 @@ export function AssociateProfileView() {
     departmentId: "",
     provinceId: "",
     districtId: "",
+    postalCode: "",
+    foreignRegion: "",
+    foreignCity: "",
   });
+  const beginEdit = (profile: AssociateProfileDTO) => {
+    setD({
+      firstName: profile.identity.firstName, paternalLastName: profile.identity.paternalLastName, maternalLastName: profile.identity.maternalLastName ?? "", birthDate: profile.identity.birthDate?.slice(0, 10) ?? "", gender: profile.identity.gender ?? "", nationalityId: String(profile.identity.nationalityId ?? ""),
+      primaryPhone: profile.contact.primaryPhone ?? "",
+      secondaryEmail: profile.contact.secondaryEmail ?? "",
+      street: profile.address.street ?? "",
+      reference: profile.address.reference ?? "",
+      countryId: String(profile.address.countryId ?? ""),
+      departmentId: String(profile.address.departmentId ?? ""),
+      provinceId: String(profile.address.provinceId ?? ""),
+      districtId: String(profile.address.districtId ?? ""),
+      postalCode: profile.address.postalCode ?? "",
+      foreignRegion: profile.address.foreignRegion ?? "",
+      foreignCity: profile.address.foreignCity ?? "",
+    });
+    setEdit(true);
+  };
+
+  const autoEditApplied = useRef(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
   const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
@@ -144,6 +169,14 @@ export function AssociateProfileView() {
         setErr("No fue posible cargar tu perfil.");
       });
   }, []);
+
+  useEffect(() => {
+    if (!p || autoEditApplied.current) return;
+    if (new URLSearchParams(window.location.search).get("editar") === "1") {
+      autoEditApplied.current = true;
+      beginEdit(p);
+    }
+  }, [p]);
 
   const openEmployment = () => {
     setEmploymentError(null);
@@ -229,20 +262,7 @@ export function AssociateProfileView() {
   const start = () => {
     setErr(null);
     setNote(null);
-
-    setD({
-      firstName: p.identity.firstName, paternalLastName: p.identity.paternalLastName, maternalLastName: p.identity.maternalLastName ?? "", birthDate: p.identity.birthDate?.slice(0, 10) ?? "", gender: p.identity.gender ?? "", nationalityId: String(p.identity.nationalityId ?? ""),
-      primaryPhone: p.contact.primaryPhone ?? "",
-      secondaryEmail: p.contact.secondaryEmail ?? "",
-      street: p.address.street ?? "",
-      reference: p.address.reference ?? "",
-      countryId: String(p.address.countryId ?? ""),
-      departmentId: String(p.address.departmentId ?? ""),
-      provinceId: String(p.address.provinceId ?? ""),
-      districtId: String(p.address.districtId ?? ""),
-    });
-
-    setEdit(true);
+    beginEdit(p);
   };
 
   /* SAVE */
@@ -253,7 +273,27 @@ export function AssociateProfileView() {
     setNote(null);
 
     try {
-      let response = await fetch("/api/mi-cuenta/perfil/contacto", {
+      const identity = new FormData();
+      identity.set("firstName", d.firstName);
+      identity.set("paternalLastName", d.paternalLastName);
+      identity.set("maternalLastName", d.maternalLastName);
+      identity.set("birthDate", d.birthDate);
+      identity.set("gender", d.gender);
+      identity.set("nationalityId", d.nationalityId);
+      if (profileImageFile) identity.set("image", profileImageFile);
+
+      let response = await fetch("/api/mi-cuenta/perfil", {
+        method: "PATCH",
+        body: identity,
+      });
+
+      let body = await response.json();
+
+      if (!response.ok) {
+        throw new Error(body.message);
+      }
+
+      response = await fetch("/api/mi-cuenta/perfil/contacto", {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -264,7 +304,7 @@ export function AssociateProfileView() {
         }),
       });
 
-      let body = await response.json();
+      body = await response.json();
 
       if (!response.ok) {
         throw new Error(body.message);
@@ -278,8 +318,11 @@ export function AssociateProfileView() {
         body: JSON.stringify({
           street: d.street,
           reference: d.reference || null,
-          countryId: d.countryId ? Number(d.countryId) : null,
+          countryId: d.countryId ? Number(d.countryId) : 0,
           districtId: d.districtId ? Number(d.districtId) : null,
+          postalCode: d.postalCode || null,
+          foreignRegion: d.countryId === "1" ? null : d.foreignRegion || null,
+          foreignCity: d.countryId === "1" ? null : d.foreignCity || null,
         }),
       });
 
@@ -315,6 +358,7 @@ export function AssociateProfileView() {
   const member =
     p.membership.type === "STUDENT" ? "Asociado estudiante" : "Asociado activo";
   const isStudent = p.membership.type === "STUDENT";
+  const isPeruDraft = d.countryId === "1";
 
   const opts = (
     label: string,
@@ -776,58 +820,101 @@ export function AssociateProfileView() {
         }),
       )}
 
-      {opts(
-        "Departamento",
-        d.departmentId,
-        departments,
-        (value) =>
-          setD({
-            ...d,
-            departmentId: value,
-            provinceId: "",
-            districtId: "",
-          }),
-        !d.countryId,
+      {isPeruDraft && (
+        <>
+          {opts(
+            "Departamento",
+            d.departmentId,
+            departments,
+            (value) =>
+              setD({
+                ...d,
+                departmentId: value,
+                provinceId: "",
+                districtId: "",
+              }),
+            !d.countryId,
+          )}
+
+          {opts(
+            "Provincia",
+            d.provinceId,
+            provinces,
+            (value) =>
+              setD({
+                ...d,
+                provinceId: value,
+                districtId: "",
+              }),
+            !d.departmentId,
+          )}
+
+          {opts(
+            "Distrito",
+            d.districtId,
+            districts,
+            (value) =>
+              setD({
+                ...d,
+                districtId: value,
+              }),
+            !d.provinceId,
+          )}
+        </>
       )}
 
-      {opts(
-        "Provincia",
-        d.provinceId,
-        provinces,
-        (value) =>
-          setD({
-            ...d,
-            provinceId: value,
-            districtId: "",
-          }),
-        !d.departmentId,
+      {!isPeruDraft && d.countryId && (
+        <>
+          <label className="grid gap-1.5 text-sm font-semibold text-slate-700">
+            Región / Estado
+            <input
+              type="text"
+              value={d.foreignRegion}
+              onChange={(event) => setD({ ...d, foreignRegion: event.target.value })}
+              placeholder="Ej. Kabul"
+              className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#b48a37] focus:ring-2 focus:ring-[#b48a37]/10"
+            />
+          </label>
+
+          <label className="grid gap-1.5 text-sm font-semibold text-slate-700">
+            Ciudad
+            <input
+              type="text"
+              value={d.foreignCity}
+              onChange={(event) => setD({ ...d, foreignCity: event.target.value })}
+              placeholder="Ej. Kabul"
+              className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#b48a37] focus:ring-2 focus:ring-[#b48a37]/10"
+            />
+          </label>
+        </>
       )}
 
-      {opts(
-        "Distrito",
-        d.districtId,
-        districts,
-        (value) =>
-          setD({
-            ...d,
-            districtId: value,
-          }),
-        !d.provinceId,
-      )}
+      <label className="grid gap-1.5 text-sm font-semibold text-slate-700">
+        Código postal
+        <input
+          type="text"
+          inputMode="numeric"
+          value={d.postalCode}
+          onChange={(event) => setD({ ...d, postalCode: event.target.value.replace(/[^\dA-Za-z-]/g, "") })}
+          placeholder="Ej. 15024"
+          className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#b48a37] focus:ring-2 focus:ring-[#b48a37]/10"
+        />
+      </label>
     </div>
   ) : (
     <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
-      {[
+      {([
         ["Correo principal", p.contact.primaryEmail],
         ["Correo secundario", p.contact.secondaryEmail],
         ["Celular", p.contact.primaryPhone],
         ["Dirección", p.address.street],
         ["Referencia", p.address.reference],
         ["País", p.address.country],
-        ["Departamento", p.address.department],
-        ["Provincia", p.address.province],
-        ["Distrito", p.address.district],
-      ].map(([label, value]) => (
+        ...(p.address.countryId === 1
+          ? [["Departamento", p.address.department], ["Provincia", p.address.province], ["Distrito", p.address.district]]
+          : [["Región / Estado", p.address.foreignRegion], ["Ciudad", p.address.foreignCity]]),
+        ["Código postal", p.address.postalCode],
+      ] as Array<[string, string | null]>).map(([label, value]) => (
         <Read key={label} label={label} value={value} />
       ))}
     </div>

@@ -15,6 +15,7 @@ export interface NavigationNode {
     subtitle?: string;
     openInNewTab?: boolean;
     type?: NavigationNodeType; // <-- Si es "group", actúa como título de sección
+    collapsible?: boolean; // <-- Grupo desplegable (acordeón) cuando es true
     permission?: NavigationPermission;
     children?: NavigationNode[];
     order?: number;

@@ -7,6 +7,7 @@ import { Archive, Bell, CheckCheck, Inbox, RefreshCw } from "lucide-react";
 import type { NotificationDTO } from "../Mappers/NotificationMapper";
 import { notificationsApi } from "../Api/NotificationsApi";
 import { getNotificationPresentation, getNotificationSeverityLabel } from "../Types/NotificationTypes";
+import { InfoBanner } from "@/modules/shared/Components/InfoBanner";
 
 type Tab = "ALL" | "UNREAD" | "ARCHIVED";
 
@@ -129,10 +130,10 @@ export function NotificationsCenter() {
   );
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
+    <div className="mx-auto w-full max-w-[1600px]">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-black text-slate-800">Centro de Notificaciones</h1>
+          <h1 className="text-2xl font-medium text-slate-800">Centro de Notificaciones</h1>
           <p className="mt-1 text-sm font-medium text-slate-500">
             {unread > 0 ? `Tienes ${unread} notificaci${unread === 1 ? "ón" : "ones"} sin leer.` : "Estás al día."}
           </p>
@@ -146,6 +147,10 @@ export function NotificationsCenter() {
           Marcar todas como leídas
         </button>
       </div>
+
+      <InfoBanner title="¿Qué son las notificaciones?" storageKey="iimp:info-banner:notificaciones">
+        Aquí se concentran los avisos y mensajes de tu cuenta y de tus expedientes. Las no leídas se resaltan en dorado; márcalas como leídas o archívalas cuando ya las hayas revisado.
+      </InfoBanner>
 
       <div className="mb-4 flex gap-1 rounded-xl bg-slate-100 p-1">
         {TABS.map((item) => (
@@ -216,7 +221,7 @@ export function NotificationsCenter() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start justify-between gap-2">
-                        <h3 className={`text-sm font-extrabold ${notification.status === "UNREAD" ? "text-slate-800" : "text-slate-600"}`}>
+                        <h3 className={`text-sm font-semibold ${notification.status === "UNREAD" ? "text-slate-800" : "text-slate-600"}`}>
                           {notification.title || presentation.label}
                         </h3>
                         {notification.status === "UNREAD" && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[#c39254]" />}

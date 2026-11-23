@@ -49,11 +49,39 @@ export class TransactionalEmailRepository {
     }
   }
 
+  async findByIdempotencyKey(idempotencyKey: string): Promise<{ id: number; status: TransactionalEmailStatus } | null> {
+    return prisma.transactionalEmail.findUnique({
+      where: { idempotencyKey },
+      select: { id: true, status: true },
+    });
+  }
+
   async markSending(id: number): Promise<void> {
     await prisma.transactionalEmail.update({
       where: { id },
       data: { status: TransactionalEmailStatus.SENDING, attemptCount: { increment: 1 } },
     });
+  }
+
+  /**
+   * Reclama el envío de forma atómica. Devuelve `false` si otro proceso ya lo
+   * reclamó o si el correo ya fue aceptado, evitando envíos duplicados.
+   */
+  async tryMarkSending(id: number): Promise<boolean> {
+    const result = await prisma.transactionalEmail.updateMany({
+      where: {
+        id,
+        status: {
+          in: [
+            TransactionalEmailStatus.PENDING,
+            TransactionalEmailStatus.FAILED,
+            TransactionalEmailStatus.RETRY_PENDING,
+          ],
+        },
+      },
+      data: { status: TransactionalEmailStatus.SENDING, attemptCount: { increment: 1 } },
+    });
+    return result.count === 1;
   }
 
   async markAccepted(id: number, messageId?: string): Promise<void> {

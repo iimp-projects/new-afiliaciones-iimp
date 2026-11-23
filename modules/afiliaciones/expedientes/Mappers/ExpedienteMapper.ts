@@ -8,6 +8,8 @@ import { S3StorageService } from "@/modules/shared/Services/S3StorageService";
 import { APPLICATION_KEY_PREFIX, LEGACY_DOCUMENT_KEY_PREFIX } from "@/modules/afiliaciones/postulacion/Services/ApplicationDocumentAccess";
 import { LIMA_TIME_ZONE } from "@/modules/shared/Utils/formatPeruDateTime";
 import { documentTypeLabel } from "@/modules/shared/Utils/documentType";
+import { formatFullName } from "@/modules/shared/Utils/personName";
+import { paymentOriginLabel } from "@/modules/afiliaciones/payments/Models/PaymentOrigin";
 import type {
   SmartCaseCardData,
   AtomicValidation,
@@ -18,9 +20,7 @@ import type {
 export class ExpedienteMapper {
   static async toCardData(app: any): Promise<SmartCaseCardData> {
     const person = app.person;
-    const fullName = person
-      ? `${person.firstName} ${person.paternalLastName} ${person.maternalLastName || ""}`.trim()
-      : "Desconocido";
+    const fullName = formatFullName(person?.firstName, person?.paternalLastName, person?.maternalLastName) || "Desconocido";
     const initials = person
       ? `${person.firstName.charAt(0)}${person.paternalLastName.charAt(0)}`
       : "--";
@@ -48,8 +48,10 @@ export class ExpedienteMapper {
     // ==========================================
     // 2. LECTURA DE ÁREAS
     // ==========================================
-    const isPaid = app.payments?.[0]?.status === PaymentStatus.PAID;
+    const latestPayment = app.payments?.[0];
+    const isPaid = latestPayment?.status === PaymentStatus.PAID;
     const isPaymentResolved = isStudent || isPaid;
+    const paymentOrigin = isPaid ? paymentOriginLabel(latestPayment) : "";
 
     const approvals = app.approvals || [];
     const approvedCount = approvals.filter(
@@ -315,7 +317,7 @@ export class ExpedienteMapper {
           ? "bg-emerald-50 text-emerald-700"
           : "bg-amber-50 text-amber-700",
         assignee: {
-          name: isStudent ? "" : isPaid ? "Pasarela" : "",
+          name: isStudent ? "" : isPaid ? paymentOrigin || "Pasarela" : "",
           timeRelative: "",
         },
       },

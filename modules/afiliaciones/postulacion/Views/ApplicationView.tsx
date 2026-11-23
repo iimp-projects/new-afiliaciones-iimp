@@ -71,7 +71,7 @@ export default function ApplicationView({
     trackingCode ?? null,
   );
   const [applicationId, setApplicationId] = useState<number | null>(null);
-  const [isStepValid, setIsStepValid] = useState(false);
+  const [isFooterBlocked, setIsFooterBlocked] = useState(false);
   const [flowError, setFlowError] = useState<{ code: string; message: string } | null>(null);
   useEffect(() => {
     const handleFlow = (event: Event) => setFlowError((event as CustomEvent<{ code: string; message: string }>).detail);
@@ -255,16 +255,21 @@ export default function ApplicationView({
   // CONTROL DE NAVEGACIÓN
   // ========================================================
   const nextStep = () => {
+    setIsFooterBlocked(false);
     refreshCompletedSteps(currentStep);
     setCurrentStep((previous) => previous + 1);
   };
 
   const previousStep = () => {
+    setIsFooterBlocked(false);
     setCurrentStep((previous) => (previous <= 1 ? 1 : previous - 1));
   };
 
   const changeStep = (step: number) => {
-    if (completedSteps.includes(step)) setCurrentStep(step);
+    if (completedSteps.includes(step)) {
+      setIsFooterBlocked(false);
+      setCurrentStep(step);
+    }
   };
 
   const handleFooterNext = () => {
@@ -356,8 +361,8 @@ export default function ApplicationView({
       <div className="w-full min-h-screen bg-[#F7F8FA] relative font-sans antialiased flex flex-col">
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#2a1700] via-[#C5A059]/90 to-[#4a2d00] z-0 overflow-hidden">
           <div
-            className="absolute inset-0 z-0 opacity-20 mix-blend-overlay bg-cover bg-center"
-            style={{ backgroundImage: "url('/images/minero.jpg')" }}
+            className="absolute inset-0 z-0 opacity-20 mix-blend-overlay bg-cover bg-center pointer-events-none"
+            style={{ backgroundImage: "url('/images/minero.jpg')", backgroundPosition: "center 30%" }}
           ></div>
           <div className="absolute bottom-0 left-0 w-full h-[50vh] bg-gradient-to-t from-[#F7F8FA] to-transparent z-10"></div>
         </div>
@@ -577,7 +582,7 @@ export default function ApplicationView({
             onBack={previousStep}
             onSave={saveAcademicStudies}
             onNext={nextStep}
-            onValidityChange={setIsStepValid}
+            onBlockingChange={setIsFooterBlocked}
           />
         )}
 
@@ -589,7 +594,6 @@ export default function ApplicationView({
             onBack={previousStep}
             onSave={saveEmploymentInformation}
             onNext={nextStep}
-            onValidityChange={setIsStepValid}
           />
         )}
 
@@ -602,7 +606,6 @@ export default function ApplicationView({
             onBack={previousStep}
             onSave={saveEndorsements}
             onNext={nextStep}
-            onValidityChange={setIsStepValid}
           />
         )}
 
@@ -615,7 +618,6 @@ export default function ApplicationView({
             onBack={previousStep}
             onSave={saveEndorsements}
             onNext={() => {}}
-            onValidityChange={setIsStepValid}
             onFinalSubmit={submitFinalApplication}
           />
         )}
@@ -624,6 +626,7 @@ export default function ApplicationView({
       <ApplicationFooter
         currentStep={currentStep}
         isSubmitting={saving}
+        nextDisabled={isFooterBlocked}
         showCancel={true}
         showPrevious={currentStep > 1}
         nextLabel={

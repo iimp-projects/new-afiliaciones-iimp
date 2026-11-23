@@ -120,6 +120,42 @@ export class UserRepository {
     });
   }
 
+  async findRoleSlugById(roleId: number) {
+    const role = await prisma.role.findUnique({
+      where: { id: roleId },
+      select: { slug: true },
+    });
+    return role?.slug ?? null;
+  }
+
+  async findUserRoleId(userId: number) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { roleId: true },
+    });
+    return user?.roleId ?? null;
+  }
+
+  async findUserRoleSlug(userId: number) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: { select: { slug: true } } },
+    });
+    return user?.role?.slug ?? null;
+  }
+
+  async findUserIdsWithPrivilegedRole(userIds: number[], privilegedRoleSlugs: string[]) {
+    if (userIds.length === 0) return [];
+    const users = await prisma.user.findMany({
+      where: {
+        id: { in: userIds },
+        role: { slug: { in: privilegedRoleSlugs } },
+      },
+      select: { id: true },
+    });
+    return users.map((user) => user.id);
+  }
+
   async createUserWithPerson(
     data: CreateUserInput,
     imageUrl: string | undefined,

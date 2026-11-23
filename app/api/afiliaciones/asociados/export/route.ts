@@ -5,6 +5,7 @@ import { apiAuthorizationStatus, requireApiPermission } from "@/modules/auth/con
 export async function GET(request: NextRequest) {
   try {
     await requireApiPermission("read", "associates");
+    await requireApiPermission("read", "documents");
     const searchParams = request.nextUrl.searchParams;
 
     const service = new ExportAsociadosService();

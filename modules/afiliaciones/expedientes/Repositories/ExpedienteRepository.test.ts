@@ -3,12 +3,16 @@ import { ExpedienteRepository } from "./ExpedienteRepository";
 
 const mocks = vi.hoisted(() => ({
   applicationFindUnique: vi.fn(),
+  applicationCount: vi.fn(),
+  applicationFindMany: vi.fn(),
 }));
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     membershipApplication: {
       findUnique: mocks.applicationFindUnique,
+      count: mocks.applicationCount,
+      findMany: mocks.applicationFindMany,
     },
   },
 }));
@@ -124,5 +128,62 @@ describe("ExpedienteRepository.getById — datos de contacto del aval", () => {
       },
       orderBy: { createdAt: "asc" },
     });
+  });
+});
+
+describe("ExpedienteRepository.getPaginated — filtros avanzados", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.applicationCount.mockResolvedValue(0);
+    mocks.applicationFindMany.mockResolvedValue([]);
+  });
+
+  it("combina filtros de persona, evaluación y avales en el where", async () => {
+    await new ExpedienteRepository().getPaginated({
+      page: 1,
+      pageSize: 10,
+      gender: "FEMALE",
+      countryId: 5,
+      universityId: 7,
+      company: "ACME SAC",
+      evaluatorId: 3,
+      endorsementStatus: "APPROVED",
+    });
+
+    const { where } = mocks.applicationFindMany.mock.calls[0][0];
+    expect(where.person).toEqual({
+      gender: "FEMALE",
+      addresses: { some: { countryId: 5 } },
+      academicInfos: { some: { universityId: 7 } },
+    });
+    expect(where.AND).toEqual([
+      {
+        OR: [
+          { draftData: { path: ["employmentInformation", "companyName"], string_contains: "ACME SAC" } },
+          { person: { employmentInfos: { some: { company: { name: { contains: "ACME SAC", mode: "insensitive" } } } } } },
+        ],
+      },
+      {
+        OR: [
+          { validations: { some: { validatedById: 3 } } },
+          { areaValidations: { some: { validatedById: 3 } } },
+        ],
+      },
+      { approvals: { some: { status: "APPROVED" } } },
+    ]);
+  });
+
+  it("ignora filtros avanzados cuando llegan como 'Todos' o vacíos", async () => {
+    await new ExpedienteRepository().getPaginated({
+      page: 1,
+      pageSize: 10,
+      gender: "Todos",
+      endorsementStatus: "Todos",
+      countryId: undefined,
+    });
+
+    const { where } = mocks.applicationFindMany.mock.calls[0][0];
+    expect(where.person).toBeUndefined();
+    expect(where.AND).toBeUndefined();
   });
 });
