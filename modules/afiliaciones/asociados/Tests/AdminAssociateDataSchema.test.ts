@@ -46,13 +46,37 @@ describe("adminAssociateDataSchema", () => {
         termOrSemester: null,
       },
       employment: {
+        employmentStatus: "EMPLOYED",
         companyId: 4,
         positionId: 5,
+        companyName: "Empresa Demo",
+        positionName: "Ingeniero",
+        companyTaxId: "20123456789",
         area: "Operaciones",
         workingAddress: "Av. Trabajo 456",
         workPhone: "988888888",
         workExtension: "12",
         workEmail: "ana@empresa.com",
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("acepta situación laboral sin actividad", () => {
+    const result = adminAssociateDataSchema.safeParse({
+      ...base,
+      employment: {
+        employmentStatus: "NOT_WORKING",
+        companyId: null,
+        positionId: null,
+        companyName: null,
+        positionName: null,
+        companyTaxId: null,
+        area: null,
+        workingAddress: null,
+        workPhone: null,
+        workExtension: null,
+        workEmail: null,
       },
     });
     expect(result.success).toBe(true);

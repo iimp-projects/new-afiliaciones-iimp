@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { 
     MoreVertical, CheckCircle2, Clock, XCircle, 
-    MinusCircle, AlertCircle, AlertTriangle, Eye, Users, Send, Mail, CreditCard, Phone, User, GraduationCap, KeyRound, Pencil, Hash
+    MinusCircle, AlertCircle, AlertTriangle, Eye, Users, Send, Mail, CreditCard, Phone, User, GraduationCap, KeyRound, Pencil, Hash, IdCard
 } from "lucide-react";
 import { canManagePortalAccess, type SmartCaseCardProps } from "./types";
 import { FallbackAvatar } from "./FallbackAvatar";
@@ -38,6 +38,7 @@ export function SmartCaseCard({
   editLabel = "Editar datos",
   onGenerateCode,
   onManageAccess,
+  onViewCarnet,
   onManualPayment,
   onViewAvales, 
   onNotifyCommittee, 
@@ -110,6 +111,12 @@ export function SmartCaseCard({
               {onEdit && (
                 <button onClick={(e) => { e.stopPropagation(); setIsMenuOpen(false); onEdit(); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-[#C5A059] transition-colors outline-none">
                   <Pencil size={15} strokeWidth={2.5} /> {editLabel}
+                </button>
+              )}
+
+              {onViewCarnet && (
+                <button onClick={(e) => { e.stopPropagation(); setIsMenuOpen(false); onViewCarnet(); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-[#C5A059] transition-colors outline-none">
+                  <IdCard size={15} strokeWidth={2.5} /> Carné virtual
                 </button>
               )}
 

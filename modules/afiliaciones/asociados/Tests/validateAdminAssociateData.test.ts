@@ -35,8 +35,12 @@ const base = {
     termOrSemester: null,
   },
   employment: {
+    employmentStatus: "EMPLOYED",
     companyId: 4,
     positionId: 5,
+    companyName: "Empresa Demo",
+    positionName: "Ingeniero",
+    companyTaxId: "20123456789",
     area: "Operaciones",
     workingAddress: "Av. Trabajo 456, Lima",
     workPhone: "988888888",
@@ -51,6 +55,16 @@ const validate = (input: AdminAssociateDataInput, isStudent = false) =>
 describe("validateAdminAssociateData", () => {
   it("acepta una ficha completa válida", () => {
     expect(validate(base)).toEqual({});
+  });
+
+  it("acepta apellido materno vacío o nulo", () => {
+    expect(validate({ ...base, identity: { ...base.identity, maternalLastName: null } })).toEqual({});
+    expect(validate({ ...base, identity: { ...base.identity, maternalLastName: "" } })).toEqual({});
+  });
+
+  it("valida el formato cuando se ingresa apellido materno", () => {
+    const errors = validate({ ...base, identity: { ...base.identity, maternalLastName: "G0mez" } });
+    expect(errors["identity.maternalLastName"]).toBeDefined();
   });
 
   it("valida nombres, documento, fecha y género", () => {
@@ -108,6 +122,26 @@ describe("validateAdminAssociateData", () => {
       academic: { ...base.academic!, licenseNumber: null },
     });
     expect(errors["academic.licenseNumber"]).toBeDefined();
+  });
+
+  it("acepta situación laboral sin actividad y no exige datos de empleo", () => {
+    const errors = validate({
+      ...base,
+      employment: {
+        employmentStatus: "NOT_WORKING",
+        companyId: null,
+        positionId: null,
+        companyName: null,
+        positionName: null,
+        companyTaxId: null,
+        area: null,
+        workingAddress: null,
+        workPhone: null,
+        workExtension: null,
+        workEmail: null,
+      },
+    });
+    expect(errors).toEqual({});
   });
 
   it("valida los datos laborales", () => {

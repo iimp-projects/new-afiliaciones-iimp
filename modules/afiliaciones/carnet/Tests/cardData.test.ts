@@ -13,6 +13,7 @@ type PersonRow = {
   firstName: string;
   paternalLastName: string;
   maternalLastName: string | null;
+  associateCode?: string | null;
   user: { image: string | null } | null;
   applications: Array<{
     status: string;
@@ -43,9 +44,10 @@ describe("resolveCardData (regla simplificada temporal)", () => {
   const activeCompleted = { status: "COMPLETED", affiliateType: "ACTIVE" as const, documents: [], associateIntegration: null };
   const studentCompleted = { status: "COMPLETED", affiliateType: "STUDENT" as const, documents: [], associateIntegration: null };
 
-  it("Activo + COMPLETED → elegible y usa el código local A- si no hay código SIE", async () => {
+  it("Activo + COMPLETED → elegible y usa el código correlativo persistido", async () => {
     const person: PersonRow = {
       firstName: "María", paternalLastName: "Pérez", maternalLastName: "López",
+      associateCode: "A-00041",
       user: { image: null },
       applications: [activeCompleted],
       sieAssociateRecords: [],
@@ -53,13 +55,14 @@ describe("resolveCardData (regla simplificada temporal)", () => {
     const result = await resolveCardData(1, buildDb({ person }));
     expect(result.eligible).toBe(true);
     expect(result.category).toBe("Asociado Activo");
-    expect(result.code).toBe("A-0001");
+    expect(result.code).toBe("A-00041");
     expect(result.notFound).toBe(false);
   });
 
-  it("Estudiante + COMPLETED → elegible y usa el código local A- si no hay código SIE", async () => {
+  it("Estudiante + COMPLETED → elegible y usa el código correlativo persistido", async () => {
     const person: PersonRow = {
       firstName: "Juan", paternalLastName: "García", maternalLastName: null,
+      associateCode: "A-00042",
       user: { image: null },
       applications: [studentCompleted],
       sieAssociateRecords: [],
@@ -67,7 +70,20 @@ describe("resolveCardData (regla simplificada temporal)", () => {
     const result = await resolveCardData(1, buildDb({ person }));
     expect(result.eligible).toBe(true);
     expect(result.category).toBe("Asociado Estudiante");
-    expect(result.code).toBe("A-0001");
+    expect(result.code).toBe("A-00042");
+  });
+
+  it("sin código persistido ni SIE → queda pendiente de sincronización", async () => {
+    const person: PersonRow = {
+      firstName: "Ana", paternalLastName: "Ríos", maternalLastName: null,
+      associateCode: null,
+      user: { image: null },
+      applications: [activeCompleted],
+      sieAssociateRecords: [],
+    };
+    const result = await resolveCardData(1, buildDb({ person }));
+    expect(result.eligible).toBe(true);
+    expect(result.code).toBeNull();
   });
 
   it("asociado histórico SIE con categoría Activo → elegible aunque no tenga postulación", async () => {
@@ -212,6 +228,7 @@ describe("issueCard", () => {
     (db as unknown as { associateCard: { create: typeof create } }).associateCard.create = create;
     const first = await issueCard(1, db);
     expect(first.verificationToken).toBe("tok1");
+    expect(first.created).toBe(true);
     expect(create).toHaveBeenCalledTimes(1);
 
     // Segunda llamada: ya existe ISSUED, no crea de nuevo.
@@ -220,6 +237,7 @@ describe("issueCard", () => {
       .mockResolvedValue({ verificationToken: "tok1", status: "ISSUED" });
     const second = await issueCard(1, db);
     expect(second.verificationToken).toBe("tok1");
+    expect(second.created).toBe(false);
     expect(create).toHaveBeenCalledTimes(1);
   });
 
@@ -234,6 +252,7 @@ describe("issueCard", () => {
       .mockResolvedValue({ verificationToken: "raced", status: "ISSUED" });
     const result = await issueCard(1, db);
     expect(result.verificationToken).toBe("raced");
+    expect(result.created).toBe(false);
   });
 
   it("no reactiva una credencial revocada", async () => {

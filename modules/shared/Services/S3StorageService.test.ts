@@ -28,6 +28,25 @@ describe("S3StorageService.getObjectKey", () => {
       .toThrow(/no pertenece/);
   });
 
+  it("acepta una URL de otro bucket S3 fuera de producción", () => {
+    const service = new S3StorageService();
+    expect(service.getObjectKey("https://legacy-bucket.s3.us-east-2.amazonaws.com/afiliaciones/applications/5/photos/a.jpg"))
+      .toBe("afiliaciones/applications/5/photos/a.jpg");
+  });
+
+  it("rechaza una URL de otro bucket S3 en producción", () => {
+    const env = process.env as Record<string, string | undefined>;
+    const previous = env.NODE_ENV;
+    env.NODE_ENV = "production";
+    try {
+      const service = new S3StorageService();
+      expect(() => service.getObjectKey("https://legacy-bucket.s3.us-east-2.amazonaws.com/afiliaciones/applications/5/photos/a.jpg"))
+        .toThrow(/no pertenece/);
+    } finally {
+      env.NODE_ENV = previous;
+    }
+  });
+
   it("rechaza path traversal y segmentos inválidos", () => {
     const service = new S3StorageService();
     expect(() => service.getObjectKey("afiliaciones/applications/5/../../secret")).toThrow(/no es válida/);

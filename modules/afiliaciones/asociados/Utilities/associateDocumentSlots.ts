@@ -6,6 +6,7 @@ export type AssociateDocumentSlot =
   | "DEGREE_CERTIFICATE"
   | "RECOMMENDATION_LETTER"
   | "PAYMENT_VOUCHER"
+  | "SWORN_DECLARATION"
   | "OTHER";
 
 export const ASSOCIATE_DOCUMENT_SLOT_LABELS: Record<AssociateDocumentSlot, string> = {
@@ -16,13 +17,14 @@ export const ASSOCIATE_DOCUMENT_SLOT_LABELS: Record<AssociateDocumentSlot, strin
   DEGREE_CERTIFICATE: "Título o grado",
   RECOMMENDATION_LETTER: "Carta de recomendación",
   PAYMENT_VOUCHER: "Comprobante de pago",
+  SWORN_DECLARATION: "Declaración jurada firmada",
   OTHER: "Documento adicional",
 };
 
 export function requiredAssociateDocumentSlots(isStudent: boolean): AssociateDocumentSlot[] {
   return isStudent
     ? ["ID_DOCUMENT", "PHOTO", "STUDY_CERTIFICATE"]
-    : ["ID_DOCUMENT", "PHOTO"];
+    : ["ID_DOCUMENT", "PHOTO", "SWORN_DECLARATION"];
 }
 
 export function resolveAssociateDocumentSlot(document: {
@@ -41,7 +43,7 @@ export function resolveAssociateDocumentSlot(document: {
 }
 
 export function associateDocumentCategory(slot: AssociateDocumentSlot): {
-  category: "ID_DOCUMENT" | "CV" | "DEGREE_CERTIFICATE" | "RECOMMENDATION_LETTER" | "PAYMENT_VOUCHER" | "OTHER";
+  category: "ID_DOCUMENT" | "CV" | "DEGREE_CERTIFICATE" | "RECOMMENDATION_LETTER" | "PAYMENT_VOUCHER" | "SWORN_DECLARATION" | "OTHER";
   fileNamePrefix?: string;
 } {
   if (slot === "PHOTO") return { category: "OTHER", fileNamePrefix: "Fotografia" };

@@ -167,7 +167,7 @@ export default function PersonalDetailsStep({ data }: Props) {
           <div className="grid grid-cols-1 md:grid-cols-12 gap-5 sm:gap-6">
             <div className="md:col-span-5"><DisabledInput label="Nombres" value={nombres} required /></div>
             <div className="md:col-span-4"><DisabledInput label="Apellido paterno" value={apePaterno} required /></div>
-            <div className="md:col-span-3"><DisabledInput label="Apellido materno" value={apeMaterno} required /></div>
+            <div className="md:col-span-3"><DisabledInput label="Apellido materno" value={apeMaterno} /></div>
 
             <div className="md:col-span-4"><DisabledInput label="Correo electrónico" value={correo} required /></div>
             <div className="md:col-span-3"><DisabledInput label="Celular" value={celular} required /></div>
