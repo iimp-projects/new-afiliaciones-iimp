@@ -1,0 +1,96 @@
+import { generateKeyPairSync } from "node:crypto";
+import { verify, type JwtPayload } from "jsonwebtoken";
+import { describe, expect, it } from "vitest";
+import type { GoogleWalletConfig } from "@/lib/config/wallet";
+import type { WalletCardSnapshot } from "../Types/wallet";
+import { GoogleWalletClient, buildGenericObjectPayload } from "../Google/GoogleWalletClient";
+
+const { privateKey, publicKey } = generateKeyPairSync("rsa", {
+  modulusLength: 2048,
+  publicKeyEncoding: { type: "spki", format: "pem" },
+  privateKeyEncoding: { type: "pkcs8", format: "pem" },
+});
+
+const config: GoogleWalletConfig = {
+  issuerId: "338800000001",
+  classId: "338800000001.iimp_carne",
+  serviceAccount: { clientEmail: "wallet@example.iam.gserviceaccount.com", privateKey },
+  classAutoCreate: true,
+};
+
+const snapshot: WalletCardSnapshot = {
+  personId: 1,
+  cardId: "card_abc",
+  fullName: "Ana Pérez",
+  associateCode: "A-1",
+  membershipType: "Asociado Activo",
+  membershipStatus: "Vigente",
+  issuedAt: "20/11/2026",
+  verificationUrl: "https://portal.example/verificar-carnet/token",
+  revoked: false,
+};
+
+const appBaseUrl = "https://portal.example";
+
+function jsonResponse(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
+}
+
+describe("GoogleWalletClient", () => {
+  it("crea el objeto y genera un JWT de incorporación firmado", async () => {
+    const calls: Array<{ url: string; method: string; authorization: string | null }> = [];
+    const fetchImpl = async (input: string, init?: RequestInit): Promise<Response> => {
+      const method = init?.method ?? "GET";
+      const authorization = new Headers(init?.headers).get("authorization");
+      calls.push({ url: input, method, authorization });
+      if (input === "https://oauth2.googleapis.com/token") return jsonResponse({ access_token: "access-token", expires_in: 3600 });
+      if (input.includes("/genericClass/")) return jsonResponse({});
+      if (input.includes("/genericObject/") && method === "GET") return new Response(null, { status: 404 });
+      if (input.endsWith("/genericObject") && method === "POST") return jsonResponse({});
+      return new Response(null, { status: 200 });
+    };
+
+    const client = new GoogleWalletClient(config, appBaseUrl, { fetchImpl, now: () => new Date("2026-11-24T12:00:00Z") });
+    const result = await client.createSaveLink(snapshot);
+
+    expect(result.created).toBe(true);
+    expect(result.objectId).toBe("338800000001.iimp_card_card_abc");
+    expect(result.link.startsWith("https://pay.google.com/gp/v/save/")).toBe(true);
+
+    const jwt = result.link.split("/").at(-1) as string;
+    const decoded = verify(jwt, publicKey, { algorithms: ["RS256"] }) as JwtPayload;
+    expect(decoded.iss).toBe(config.serviceAccount.clientEmail);
+    expect(decoded.aud).toBe("google");
+    expect(decoded.typ).toBe("savetowallet");
+    expect(decoded.origins).toEqual([appBaseUrl]);
+    expect((decoded.payload as { genericObjects: Array<{ id: string }> }).genericObjects[0].id).toBe(result.objectId);
+    expect(JSON.stringify(decoded)).not.toContain("PRIVATE KEY");
+
+    const objectCreate = calls.find((call) => call.method === "POST" && call.url.endsWith("/genericObject"));
+    expect(objectCreate?.authorization).toBe("Bearer access-token");
+  });
+
+  it("actualiza un objeto existente sin duplicarlo", async () => {
+    const calls: Array<{ url: string; method: string }> = [];
+    const fetchImpl = async (input: string, init?: RequestInit): Promise<Response> => {
+      const method = init?.method ?? "GET";
+      calls.push({ url: input, method });
+      if (input === "https://oauth2.googleapis.com/token") return jsonResponse({ access_token: "access-token", expires_in: 3600 });
+      if (input.includes("/genericClass/")) return jsonResponse({});
+      if (input.includes("/genericObject/") && method === "GET") return jsonResponse({ id: "338800000001.iimp_card_card_abc" });
+      return jsonResponse({});
+    };
+    const client = new GoogleWalletClient(config, appBaseUrl, { fetchImpl });
+    const result = await client.createSaveLink(snapshot);
+    expect(result.created).toBe(false);
+    expect(calls.some((call) => call.method === "POST" && call.url.endsWith("/genericObject"))).toBe(false);
+    expect(calls.some((call) => call.method === "PATCH" && call.url.includes("/genericObject/"))).toBe(true);
+  });
+
+  it("incluye el estado institucional y el QR existente en el objeto", () => {
+    const payload = buildGenericObjectPayload({ config, snapshot: { ...snapshot, revoked: true }, appBaseUrl });
+    expect(payload.state).toBe("INACTIVE");
+    expect(payload.barcode.value).toBe(snapshot.verificationUrl);
+    expect(JSON.stringify(payload)).not.toContain("DNI");
+  });
+});

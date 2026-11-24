@@ -323,7 +323,7 @@ function AssociateExecutiveSummary({ user, application, completion, payments, is
           </div>
           <div className="flex flex-col justify-between gap-1 sm:flex-row sm:items-center">
             <dt className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Código de asociado</dt>
-            <dd className="text-sm font-black text-[#C5A059]">{user.institutionalCode ?? user.person?.documentNumber ?? "No disponible"}</dd>
+            <dd className="text-sm font-black text-[#C5A059]">{user.person?.associateCode ?? user.institutionalCode ?? user.person?.documentNumber ?? "No disponible"}</dd>
           </div>
         </dl>
       </div>

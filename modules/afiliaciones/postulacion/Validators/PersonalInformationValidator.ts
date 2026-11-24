@@ -32,19 +32,25 @@ export class PersonalInformationValidator extends BaseValidator {
   }
 
   private validateNames(data: PersonalInformation): void {
-    const nameFields = [
+    const requiredNameFields = [
       { key: "names" as const, label: "nombres" },
       { key: "fatherLastName" as const, label: "apellido paterno" },
-      { key: "motherLastName" as const, label: "apellido materno" },
     ];
 
-    nameFields.forEach(({ key, label }) => {
+    requiredNameFields.forEach(({ key, label }) => {
       if (ValidationRules.required(data[key], key, this, "REQ", `El ${label} es obligatorio.`)) {
         ValidationRules.minLength(data[key], 2, key, this, "MIN", `Debe tener al menos 2 caracteres.`);
         ValidationRules.maxLength(data[key], 100, key, this, "MAX", `Máximo 100 caracteres permitidos.`);
         ValidationRules.onlyLetters(data[key], key, this, "LETTERS", `Solo se permiten letras, tildes y espacios.`);
       }
     });
+
+    const motherLastName = data.motherLastName?.trim();
+    if (motherLastName) {
+      ValidationRules.minLength(motherLastName, 2, "motherLastName", this, "MIN", "Debe tener al menos 2 caracteres.");
+      ValidationRules.maxLength(motherLastName, 100, "motherLastName", this, "MAX", "Máximo 100 caracteres permitidos.");
+      ValidationRules.onlyLetters(motherLastName, "motherLastName", this, "LETTERS", "Solo se permiten letras, tildes y espacios.");
+    }
   }
 
   private validateBirthInformation(data: PersonalInformation): void {

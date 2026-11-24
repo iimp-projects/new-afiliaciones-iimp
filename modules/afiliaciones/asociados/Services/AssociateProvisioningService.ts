@@ -1,6 +1,7 @@
 import { ApplicationStatus, Prisma, UserStatus, UserType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { accountActivationService } from "@/modules/auth/account-activation/service";
+import { associateCodeService } from "./AssociateCodeService";
 
 export class AssociateProvisioningError extends Error { constructor(message: string) { super(message); } }
 export interface AssociateProvisioningResult { userId: number; created: boolean; role: "ASOCIADO_ACTIVO" | "ASOCIADO_ESTUDIANTE"; activationRequired: boolean; }
@@ -17,6 +18,7 @@ export class AssociateProvisioningService {
       const email = (application.person.contacts.find((contact) => contact.email)?.email || application.email || "").trim().toLowerCase();
       if (!documentNumber) throw new AssociateProvisioningError("Falta el documento de la persona; no se puede crear la cuenta.");
       if (!email) throw new AssociateProvisioningError("Falta el correo de la persona; no se puede crear la cuenta.");
+      await associateCodeService.assignForPerson(application.person.id, tx);
       const roleSlug: AssociateProvisioningResult["role"] = application.affiliateType === "STUDENT" ? "ASOCIADO_ESTUDIANTE" : "ASOCIADO_ACTIVO";
       const role = await tx.role.findUnique({ where: { slug: roleSlug } });
       if (!role || !role.isActive) throw new AssociateProvisioningError(`No existe un rol activo para ${roleSlug}.`);

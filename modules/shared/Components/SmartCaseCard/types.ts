@@ -110,6 +110,7 @@ export interface SmartCaseCardProps {
   editLabel?: string;
   onGenerateCode?: () => void;
   onManageAccess?: () => void;
+  onViewCarnet?: () => void;
   onManualPayment?: () => void;
   onViewAvales?: () => void;
   onNotifyCommittee?: () => void;

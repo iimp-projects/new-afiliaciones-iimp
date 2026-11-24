@@ -111,14 +111,22 @@ export class AssociateAdminDataService {
       if (input.academic.degreeId && !degree) throw new AssociateAdminDataError("El grado seleccionado no es válido.", 400);
     }
 
-    if (input.employment) {
-      const [company, position] = await Promise.all([
-        input.employment.companyId ? prisma.company.findFirst({ where: { id: input.employment.companyId, isActive: true }, select: { id: true } }) : null,
-        input.employment.positionId ? prisma.jobPosition.findFirst({ where: { id: input.employment.positionId, isActive: true }, select: { id: true } }) : null,
-      ]);
-      if (input.employment.companyId && !company) throw new AssociateAdminDataError("La empresa seleccionada no es válida.", 400);
-      if (input.employment.positionId && !position) throw new AssociateAdminDataError("El cargo seleccionado no es válido.", 400);
-    }
+    const [employmentCompany, employmentPosition] = input.employment
+      ? await Promise.all([
+          input.employment.companyId
+            ? prisma.company.findFirst({ where: { id: input.employment.companyId, isActive: true }, select: { id: true, name: true } })
+            : input.employment.companyName
+              ? prisma.company.findFirst({ where: { name: { equals: input.employment.companyName, mode: "insensitive" }, isActive: true }, select: { id: true, name: true } })
+              : null,
+          input.employment.positionId
+            ? prisma.jobPosition.findFirst({ where: { id: input.employment.positionId, isActive: true }, select: { id: true, name: true } })
+            : input.employment.positionName
+              ? prisma.jobPosition.findFirst({ where: { name: { equals: input.employment.positionName, mode: "insensitive" }, isActive: true }, select: { id: true, name: true } })
+              : null,
+        ])
+      : [null, null];
+    if (input.employment?.companyId && !employmentCompany) throw new AssociateAdminDataError("La empresa seleccionada no es válida.", 400);
+    if (input.employment?.positionId && !employmentPosition) throw new AssociateAdminDataError("El cargo seleccionado no es válido.", 400);
 
     const contact = person.contacts[0];
     const alternate = person.contacts.find((item) => item.id !== contact?.id && item.email);
@@ -176,25 +184,36 @@ export class AssociateAdminDataService {
       }
 
       if (input.employment) {
-        const employmentData = { ...input.employment };
-        if (employment) await tx.employmentInfo.update({ where: { id: employment.id }, data: employmentData });
-        else await tx.employmentInfo.create({ data: { personId, ...employmentData } });
+        if (input.employment.employmentStatus === "NOT_WORKING") {
+          if (employment) await tx.employmentInfo.delete({ where: { id: employment.id } });
+        } else {
+          const employmentData = {
+            companyId: employmentCompany?.id ?? null,
+            positionId: employmentPosition?.id ?? null,
+            area: input.employment.area,
+            workingAddress: input.employment.workingAddress,
+            workPhone: input.employment.workPhone,
+            workExtension: input.employment.workExtension,
+            workEmail: input.employment.workEmail,
+          };
+          if (employment) await tx.employmentInfo.update({ where: { id: employment.id }, data: employmentData });
+          else await tx.employmentInfo.create({ data: { personId, ...employmentData } });
+        }
       }
 
-      if (options.applicationId) {
-        const application = await tx.membershipApplication.findFirst({
-          where: { id: options.applicationId, personId, deletedAt: null },
-          select: { id: true, draftData: true, email: true },
-        });
-        if (!application) throw new AssociateAdminDataError("El expediente no pertenece a la persona indicada.", 400);
+      const application = await tx.membershipApplication.findFirst({
+        where: options.applicationId ? { id: options.applicationId, personId, deletedAt: null } : { personId, deletedAt: null },
+        orderBy: { updatedAt: "desc" },
+        select: { id: true, draftData: true, email: true },
+      });
+      if (options.applicationId && !application) throw new AssociateAdminDataError("El expediente no pertenece a la persona indicada.", 400);
+      if (application) {
 
-        const [country, district, university, specialty, company, position] = await Promise.all([
+        const [country, district, university, specialty] = await Promise.all([
           tx.country.findUnique({ where: { id: input.address.countryId }, select: { name: true } }),
           input.address.districtId ? tx.district.findUnique({ where: { id: input.address.districtId }, include: { province: { include: { department: true } } } }) : null,
           input.academic?.universityId ? tx.university.findUnique({ where: { id: input.academic.universityId }, select: { name: true } }) : null,
           input.academic?.specialtyId ? tx.specialty.findUnique({ where: { id: input.academic.specialtyId }, select: { name: true } }) : null,
-          input.employment?.companyId ? tx.company.findUnique({ where: { id: input.employment.companyId }, select: { name: true } }) : null,
-          input.employment?.positionId ? tx.jobPosition.findUnique({ where: { id: input.employment.positionId }, select: { name: true } }) : null,
         ]);
 
         const current = (application.draftData && typeof application.draftData === "object" && !Array.isArray(application.draftData))
@@ -245,15 +264,21 @@ export class AssociateAdminDataService {
         }
 
         if (input.employment) {
-          employmentInformation.companyId = input.employment.companyId;
-          employmentInformation.positionId = input.employment.positionId;
-          employmentInformation.companyName = company?.name ?? employmentInformation.companyName ?? null;
-          employmentInformation.position = position?.name ?? employmentInformation.position ?? null;
-          employmentInformation.area = input.employment.area;
-          employmentInformation.workEmail = input.employment.workEmail;
-          employmentInformation.workPhone = input.employment.workPhone;
-          employmentInformation.workExtension = input.employment.workExtension;
-          employmentInformation.workingAddress = input.employment.workingAddress;
+          const status = input.employment.employmentStatus;
+          employmentInformation.employmentStatus = status;
+          employmentInformation.isIndependent = status === "SELF_EMPLOYED";
+          employmentInformation.isUnemployed = status === "NOT_WORKING";
+          employmentInformation.companyId = employmentCompany?.id ?? null;
+          employmentInformation.positionId = employmentPosition?.id ?? null;
+          employmentInformation.companyTaxId = input.employment.companyTaxId ?? "";
+          employmentInformation.companyName = status === "NOT_WORKING" ? "" : input.employment.companyName ?? employmentCompany?.name ?? null;
+          employmentInformation.positionName = status === "NOT_WORKING" ? "" : input.employment.positionName ?? employmentPosition?.name ?? null;
+          employmentInformation.position = employmentInformation.positionName;
+          employmentInformation.area = status === "NOT_WORKING" ? "" : input.employment.area;
+          employmentInformation.workEmail = status === "NOT_WORKING" ? "" : input.employment.workEmail;
+          employmentInformation.workPhone = status === "NOT_WORKING" ? "" : input.employment.workPhone;
+          employmentInformation.workExtension = status === "NOT_WORKING" ? "" : input.employment.workExtension;
+          employmentInformation.workingAddress = status === "NOT_WORKING" ? "" : input.employment.workingAddress;
         }
 
         await tx.membershipApplication.update({

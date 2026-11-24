@@ -72,6 +72,19 @@ describe("POST /api/afiliaciones/postulacion/generate-pdf authorization", () => 
     );
   });
 
+  it("permite a un administrador con permiso de edición de asociados generar con applicationId", async () => {
+    mocks.getInternalApiUser.mockResolvedValue({ id: 1 });
+    mocks.hasPermission.mockImplementation(async (action: string, subject: string) => action === "update" && subject === "associates");
+
+    const response = await POST(pdfRequest({ body: { draft: { membershipType: "ACTIVE" }, applicationId: 42 } }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.generate).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ allowedApplicationIds: [42] }),
+    );
+  });
+
   it("no produce allowedApplicationIds vacío para interno sin body.applicationId (caso 3)", async () => {
     mocks.getInternalApiUser.mockResolvedValue({ id: 1 });
     mocks.hasPermission.mockImplementation(async (action: string, subject: string) => action === "read" && subject === "memberships");

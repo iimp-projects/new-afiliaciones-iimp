@@ -3,7 +3,7 @@ import { AffiliateType, Prisma, PrismaClient } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { resolveAffiliatePhoto } from "@/modules/shared/Services/AffiliatePhotoResolver";
 import { S3StorageService } from "@/modules/shared/Services/S3StorageService";
-import { buildAssociateCode } from "@/modules/shared/Utils/associateCode";
+import { resolveAssociateCode } from "@/modules/shared/Utils/associateCode";
 import { currentQuotaYear } from "@/modules/afiliaciones/quotas/Services/quotaPendingScope";
 import { MAX_PENDING_QUOTAS } from "../Models/cardRules";
 
@@ -30,6 +30,7 @@ export type ExistingCard = {
   generated: boolean;
   status: "ISSUED" | "REVOKED" | null;
   verificationToken: string | null;
+  issuedAt: Date | null;
   revokedAt: Date | null;
   revokedReason: string | null;
 };
@@ -64,6 +65,7 @@ type PersonWithCardSources = {
   firstName: string;
   paternalLastName: string;
   maternalLastName: string | null;
+  associateCode: string | null;
   user: { image: string | null } | null;
   applications: Array<{
     status: string;
@@ -141,9 +143,15 @@ async function countPendingQuotas(personId: number, db: Database): Promise<numbe
  * Resuelve los datos institucionales del carnet y su elegibilidad. Es
  * estrictamente de solo lectura: nunca crea registros ni consulta SIE.
  */
+export interface ResolveCardDataOptions {
+  /** Evita resolver la foto (y sus URLs firmadas) cuando solo se requiere el estado institucional. */
+  readonly includePhoto?: boolean;
+}
+
 export async function resolveCardData(
   personId: number,
   db: Database = prisma,
+  options: ResolveCardDataOptions = {},
 ): Promise<CardData & CardEligibility & { notFound: boolean }> {
   const person = await db.person.findUnique({
     where: { id: personId, deletedAt: null },
@@ -196,16 +204,17 @@ export async function resolveCardData(
       : null;
   // Código institucional SIE: se conserva solo para presentación. Si aún no existe,
   // el carnet usa el mismo código local A-<personId> que muestra la ficha del asociado.
-  const code = migrated
-    ? migrated.externalCode.trim()
-    : completed
-      ? String(completed.associateIntegration!.externalAssociateCode)
-      : buildAssociateCode(personId);
+  const code = resolveAssociateCode(person)
+    ?? (migrated
+      ? migrated.externalCode.trim()
+      : completed
+        ? String(completed.associateIntegration!.externalAssociateCode)
+        : null);
   const category = affiliateType ? affiliateTypeLabel(affiliateType) : null;
 
   const pendingQuotaCount = await countPendingQuotas(personId, db);
   const { eligible, reason } = eligibility(person, migrated, completed, pendingQuotaCount);
-  const photoUrl = await resolvePhotoUrl(person);
+  const photoUrl = options.includePhoto === false ? null : await resolvePhotoUrl(person);
 
   return {
     firstName: person.firstName,
@@ -229,13 +238,41 @@ export function newVerificationToken(): string {
 
 export async function getCard(personId: number, db: Database = prisma): Promise<ExistingCard> {
   const card = await db.associateCard.findUnique({ where: { personId } });
-  if (!card) return { generated: false, status: null, verificationToken: null, revokedAt: null, revokedReason: null };
+  if (!card) return { generated: false, status: null, verificationToken: null, issuedAt: null, revokedAt: null, revokedReason: null };
   return {
     generated: true,
     status: card.status,
     verificationToken: card.verificationToken,
+    issuedAt: card.createdAt,
     revokedAt: card.revokedAt,
     revokedReason: card.revokedReason,
+  };
+}
+
+export type CardRecord = {
+  id: string;
+  personId: number;
+  verificationToken: string;
+  status: "ISSUED" | "REVOKED";
+  issuedAt: Date;
+  revokedAt: Date | null;
+  revokedReason: string | null;
+  updatedAt: Date;
+};
+
+/** Registro institucional del carné; único por persona. */
+export async function getCardRecord(personId: number, db: Database = prisma): Promise<CardRecord | null> {
+  const card = await db.associateCard.findUnique({ where: { personId } });
+  if (!card) return null;
+  return {
+    id: card.id,
+    personId: card.personId,
+    verificationToken: card.verificationToken,
+    status: card.status,
+    issuedAt: card.createdAt,
+    revokedAt: card.revokedAt,
+    revokedReason: card.revokedReason,
+    updatedAt: card.updatedAt,
   };
 }
 
@@ -243,21 +280,23 @@ export async function getCard(personId: number, db: Database = prisma): Promise<
  * Crea la credencial si no existe. Idempotente ante solicitudes simultáneas
  * (único por persona + P2002). Nunca reactiva automáticamente una revocada.
  */
+export type IssuedCard = { verificationToken: string; status: "ISSUED"; created: boolean };
+
 export async function issueCard(
   personId: number,
   db: Database = prisma,
-): Promise<{ verificationToken: string; status: "ISSUED" }> {
+): Promise<IssuedCard> {
   const existing = await db.associateCard.findUnique({ where: { personId } });
-  if (existing?.status === "ISSUED") return { verificationToken: existing.verificationToken, status: "ISSUED" };
+  if (existing?.status === "ISSUED") return { verificationToken: existing.verificationToken, status: "ISSUED", created: false };
   if (existing?.status === "REVOKED") throw new CardError("Credencial revocada. Solicite la regeneración administrativa.", "REVOKED");
 
   try {
     const created = await db.associateCard.create({ data: { personId, verificationToken: newVerificationToken() } });
-    return { verificationToken: created.verificationToken, status: "ISSUED" };
+    return { verificationToken: created.verificationToken, status: "ISSUED", created: true };
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       const raced = await db.associateCard.findUnique({ where: { personId } });
-      if (raced?.status === "ISSUED") return { verificationToken: raced.verificationToken, status: "ISSUED" };
+      if (raced?.status === "ISSUED") return { verificationToken: raced.verificationToken, status: "ISSUED", created: false };
     }
     throw error;
   }

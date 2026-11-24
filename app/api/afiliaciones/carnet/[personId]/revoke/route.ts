@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { requireApiPermission } from "@/modules/auth/context/api-authorization";
 import { prisma } from "@/lib/prisma";
 import { CardError, revokeCard } from "@/modules/afiliaciones/carnet/Services/cardData";
+import { enqueueWalletSync, kickWalletSync } from "@/modules/afiliaciones/carnet/wallet/Services/walletSyncQueue";
 
 export async function POST(request: Request, { params }: { params: Promise<{ personId: string }> }) {
   try {
@@ -16,16 +17,22 @@ export async function POST(request: Request, { params }: { params: Promise<{ per
       return NextResponse.json({ success: false, message: "Debe indicar un motivo válido (máximo 500 caracteres)." }, { status: 422 });
     }
 
-    await revokeCard(personId, reason);
-    await prisma.auditLog.create({
-      data: {
-        userId: user.id,
-        action: "REVOKE_CARD",
-        entity: "AssociateCard",
-        entityId: String(personId),
-        newValues: { reason },
-      },
+    await prisma.$transaction(async (tx) => {
+      await revokeCard(personId, reason, tx);
+      const card = await tx.associateCard.findUnique({ where: { personId }, select: { id: true } });
+      if (card) await enqueueWalletSync(tx, card.id, "REVOKE");
+      await tx.auditLog.create({
+        data: {
+          userId: user.id,
+          action: "REVOKE_CARD",
+          entity: "AssociateCard",
+          entityId: String(personId),
+          newValues: { reason },
+        },
+      });
     });
+
+    after(() => kickWalletSync());
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -1,4 +1,4 @@
-import { ApplicationStatus, Currency, DocumentCategory, PaymentGateway, PaymentMethod, PaymentStatus, Prisma } from "@prisma/client";
+import { ApplicationStatus, BillingDocumentType, BillingReceiptType, BillingVerificationSource, BillingVerificationStatus, Currency, DocumentCategory, DocumentType, PaymentGateway, PaymentMethod, PaymentStatus, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { S3StorageService } from "@/modules/shared/Services/S3StorageService";
 import { ApplicationStatusCalculatorService } from "@/modules/afiliaciones/postulacion/Services/ApplicationStatusCalculatorService";
@@ -91,7 +91,22 @@ export class ManualPaymentRegistrationService {
 
     const application = await prisma.membershipApplication.findUnique({
       where: { id: input.applicationId },
-      select: { id: true, status: true, deletedAt: true },
+      select: {
+        id: true,
+        status: true,
+        deletedAt: true,
+        documentType: true,
+        documentNumber: true,
+        email: true,
+        person: {
+          select: {
+            firstName: true,
+            paternalLastName: true,
+            maternalLastName: true,
+            addresses: { select: { street: true, isPrimary: true, countryId: true } },
+          },
+        },
+      },
     });
     if (!application || application.deletedAt) throw new ManualPaymentError("El expediente no existe.", 404);
     if (application.status !== ApplicationStatus.READY_FOR_PAYMENT) {
@@ -145,6 +160,9 @@ export class ManualPaymentRegistrationService {
         select: { id: true },
       });
       paymentId = payment.id;
+
+      const billing = buildManualPaymentBilling(application, payment.id);
+      if (billing) await tx.billing.create({ data: billing });
 
       await tx.applicationDocument.create({
         data: {
@@ -218,4 +236,51 @@ export class ManualPaymentRegistrationService {
 
     return { paymentId, applicationStatus, warnings };
   }
+}
+
+const BILLING_DOCUMENT_TYPE: Partial<Record<DocumentType, BillingDocumentType>> = {
+  DNI: BillingDocumentType.DNI,
+  CE: BillingDocumentType.CE,
+  PASSPORT: BillingDocumentType.PASSPORT,
+};
+
+type ManualBillingSource = {
+  documentType: DocumentType;
+  documentNumber: string;
+  email: string;
+  person: {
+    firstName: string;
+    paternalLastName: string;
+    maternalLastName: string | null;
+    addresses: { street: string; isPrimary: boolean; countryId: number | null }[];
+  } | null;
+};
+
+/**
+ * Un pago manual no captura datos de facturación, pero la integración SIE exige
+ * un Billing persistido. Se emite una boleta a nombre de la propia persona.
+ */
+function buildManualPaymentBilling(source: ManualBillingSource, paymentId: number) {
+  const person = source.person;
+  if (!person) return null;
+  const documentType = BILLING_DOCUMENT_TYPE[source.documentType];
+  const fullName = [person.firstName, person.paternalLastName, person.maternalLastName]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+  if (!documentType || !fullName || !source.documentNumber.trim()) return null;
+  const address = person.addresses.find((item) => item.isPrimary) ?? person.addresses[0] ?? null;
+  return {
+    paymentId,
+    taxId: source.documentNumber,
+    businessName: fullName,
+    billingAddress: address?.street.trim() || null,
+    billingEmail: source.email.trim() || null,
+    documentType,
+    receiptType: BillingReceiptType.BOLETA,
+    billingContact: fullName,
+    countryId: address?.countryId ?? null,
+    verificationSource: BillingVerificationSource.PERSON_DATA,
+    verificationStatus: BillingVerificationStatus.VERIFIED,
+  };
 }

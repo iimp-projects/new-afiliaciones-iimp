@@ -14,7 +14,11 @@ const PDF_RATE_LIMIT_WINDOW_MINUTES = 15;
 export async function POST(request: NextRequest) {
   try {
     const user = await getInternalApiUser();
-    const internalAccess = Boolean(user && await contextService.hasPermission("read", "memberships"));
+    const internalAccess = Boolean(user && (
+      await contextService.hasPermission("read", "memberships")
+      || await contextService.hasPermission("update", "applications")
+      || await contextService.hasPermission("update", "associates")
+    ));
     const token = request.cookies.get(QUERY_COOKIE)?.value;
     const resolution = queryAuthorization.resolveAccess(token);
     if (resolution.status === "EXPIRED") {
