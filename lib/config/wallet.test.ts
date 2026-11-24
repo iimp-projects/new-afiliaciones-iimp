@@ -6,6 +6,7 @@ import {
   getWalletConfig,
   getWalletFlags,
   getWalletSimulationEnabled,
+  getWalletSimulationFailure,
   getWalletSyncConfig,
   isCertificateCurrentlyValid,
 } from "./wallet";
@@ -108,6 +109,11 @@ describe("wallet config", () => {
     expect(getWalletSimulationEnabled({ NODE_ENV: "test", CARD_WALLET_LOCAL_SIMULATION: "1" })).toBe(false);
     expect(getWalletSimulationEnabled({ NODE_ENV: "production", CARD_WALLET_LOCAL_SIMULATION: "true" })).toBe(false);
     expect(getWalletSimulationEnabled({ NODE_ENV: "development" })).toBe(false);
+  });
+
+  it("solo permite forzar fallos simulados fuera de producción", () => {
+    expect(getWalletSimulationFailure({ NODE_ENV: "development", CARD_WALLET_LOCAL_SIMULATION: "true", CARD_WALLET_LOCAL_SIMULATION_FAILURE: "google" })).toBe("GOOGLE");
+    expect(getWalletSimulationFailure({ NODE_ENV: "production", CARD_WALLET_LOCAL_SIMULATION: "true", CARD_WALLET_LOCAL_SIMULATION_FAILURE: "apple" })).toBeNull();
   });
 
   it("resuelve la configuración del procesador con límites válidos", () => {

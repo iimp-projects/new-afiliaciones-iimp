@@ -129,6 +129,7 @@ function service(overrides: {
   googleClient?: { createSaveLink: ReturnType<typeof vi.fn>; syncObject: ReturnType<typeof vi.fn> };
   push?: { notify: ReturnType<typeof vi.fn> };
   audit?: ReturnType<typeof vi.fn>;
+  simulation?: boolean;
 } = {}) {
   const audit = overrides.audit ?? vi.fn(async () => undefined);
   const googleClient = overrides.googleClient ?? {

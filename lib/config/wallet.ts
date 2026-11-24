@@ -159,6 +159,13 @@ export function getWalletSimulationEnabled(env: EnvSource = process.env): boolea
   return env.CARD_WALLET_LOCAL_SIMULATION?.trim().toLowerCase() === "true";
 }
 
+/** Fuerza un fallo transitorio de sincronización solo en simulación local. */
+export function getWalletSimulationFailure(env: EnvSource = process.env): "GOOGLE" | "APPLE" | null {
+  if (!getWalletSimulationEnabled(env)) return null;
+  const value = env.CARD_WALLET_LOCAL_SIMULATION_FAILURE?.trim().toUpperCase();
+  return value === "GOOGLE" || value === "APPLE" ? value : null;
+}
+
 export function getGoogleWalletConfig(env: EnvSource = process.env): GoogleWalletConfig | null {
   const issuerId = text(env, "GOOGLE_WALLET_ISSUER_ID");
   const classId = text(env, "GOOGLE_WALLET_CLASS_ID");

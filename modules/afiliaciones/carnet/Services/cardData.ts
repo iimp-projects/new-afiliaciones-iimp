@@ -83,7 +83,10 @@ async function resolvePhotoUrl(person: PersonWithCardSources): Promise<string | 
   const photo = await resolveAffiliatePhoto(person.applications as never);
   if (photo) return photo;
   const avatar = person.user?.image ?? null;
-  if (avatar) return await new S3StorageService().getPresignedAvatarUrl(avatar);
+  if (avatar) {
+    if (avatar.startsWith("/")) return avatar;
+    return await new S3StorageService().getPresignedAvatarUrl(avatar);
+  }
   return null;
 }
 

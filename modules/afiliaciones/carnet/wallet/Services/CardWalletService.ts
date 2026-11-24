@@ -1,4 +1,4 @@
-﻿import { getWalletConfig, getWalletSimulationEnabled, type AppleWalletConfig, type GoogleWalletConfig, type WalletConfig } from "@/lib/config/wallet";
+﻿import { getWalletConfig, getWalletSimulationEnabled, getWalletSimulationFailure, type AppleWalletConfig, type GoogleWalletConfig, type WalletConfig } from "@/lib/config/wallet";
 import { getCardRecord, resolveCardData } from "@/modules/afiliaciones/carnet/Services/cardData";
 import { ApplePassBuilder, loadApplePassAssets } from "../Apple/ApplePassBuilder";
 import { ApplePushService } from "../Apple/ApplePushService";
