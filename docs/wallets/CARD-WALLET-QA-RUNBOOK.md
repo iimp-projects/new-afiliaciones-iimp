@@ -184,16 +184,51 @@ solicitar publicación.
   EC2 lee solo parámetros de su namespace.
 - No reutilizar credenciales LOCAL. Preservar LOCAL/PROD.
 
-## 11. Estado de fases
+## 11. Estado de fases (actualizado tras ejecución)
 
 | Fase | Estado |
 | --- | --- |
 | Credenciales QA / OAuth / Issuer | COMPLETED |
 | Generic Class QA | COMPLETED |
 | Aislamiento código + pruebas | COMPLETED |
-| Secreto SSM QA | BLOCKED (mapeo env no verificado) |
-| Migraciones/backup QA | BLOCKED (sin acceso/ejecución segura) |
-| Deploy app/worker QA | BLOCKED (código no en `origin/qa`; pipeline incompleto) |
-| Fixture sintético QA | BLOCKED (sin acceso a base QA) |
-| QR HTTPS / E2E QA | PENDING (requiere deploy) |
+| Secreto SSM QA | COMPLETED |
+| Backup PostgreSQL QA | COMPLETED |
+| Migraciones QA | NOT_APPLICABLE (ya aplicadas y verificadas) |
+| Deploy app QA | COMPLETED |
+| Worker persistente QA | COMPLETED (systemd timer) |
+| Fixture sintético QA | COMPLETED (personId 13286) |
+| Generic Object QA / JWT | COMPLETED |
+| QR HTTPS QA | COMPLETED |
+| Revocación / reemisión QA | COMPLETED |
+| Apple deshabilitado | COMPLETED |
 | Instalación física Android | PENDING |
+
+## 12. Despliegue ejecutado — resultados reales (2026-11-25)
+
+- Rama QA: `feature/card-google-wallet-qa-deploy` (base `996eabe` + Wallet).
+- Commit desplegado: `56bbf01` (código Wallet `ab771ab`; imagen idéntica).
+- Workflow `qa-deploy.yml` run **45709542656**: SUCCESS.
+- Imagen app: `qa-56bbf01…-45709542656-1`, digest `sha256:76e7a4d9…`.
+- Imagen worker: `qa-wallet-sync-56bbf01…-45709542656-1`, digest `sha256:ef12864c…`.
+- Backup QA: `/data/backups/wallet-qa-pre-20261125T205022Z.dump` (12.3 MB,
+  sha256 `929783a9…`, `pg_restore --list` verificado).
+- Migraciones Wallet ya aplicadas; no se reaplicaron.
+- SSM QA: parámetros `CARD_GOOGLE_WALLET_*`, `CARD_APPLE_WALLET_ENABLED=false`,
+  `CARD_WALLET_ALLOWED_PERSON_IDS=13286`, `GOOGLE_WALLET_OBJECT_PREFIX=iimp_qa_card_`
+  y `GOOGLE_WALLET_SERVICE_ACCOUNT_JSON_B64` (SecureString, base64). Valores no
+  versionados.
+- Fixture: `wallet.qa.activo@iimp.org.pe` (personId 13286, código `QA-TEST-0001`,
+  carné `ISSUED`).
+- Emisión real: objeto `3388000000023251742.iimp_qa_card_qacard…`, enlace
+  `pay.google.com`, `created=true`; objeto `active`, barcode presente, 1 objeto.
+- Worker: `afiliaciones-qa-wallet-sync.timer` enabled/active; ciclo real
+  (`claimed`/`completed`) conectado a Google QA.
+- Revocación: pase `REVOKED`, job `COMPLETED`, objeto Google `inactive`, QR
+  `revocada`.
+- Reemisión: pase `SYNCED`, job `COMPLETED`, objeto `active`, QR válido.
+- Apple: sin botón ni simulación en QA (`NODE_ENV=production`, flag false).
+- LOCAL y PROD sin modificaciones.
+- Nota: logins repetidos de Puppeteer pueden chocar con el rate-limit por IP de
+  QA (control existente), no con Wallet.
+- Pendiente: instalación física en Android (el responsable debe usar el fixture y
+  la contraseña temporal entregada por canal seguro).
