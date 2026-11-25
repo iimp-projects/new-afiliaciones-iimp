@@ -16,6 +16,8 @@ function buildTx(overrides: Partial<Tx> = {}): Tx {
     $executeRaw: vi.fn(),
     role: { findUnique: vi.fn() },
     user: { findUnique: vi.fn(), findFirst: vi.fn(), create: vi.fn(), update: vi.fn() },
+    person: { findUnique: vi.fn().mockResolvedValue({ associateCode: null }), update: vi.fn() },
+    associateCodeSequence: { upsert: vi.fn().mockResolvedValue({ lastValue: 1 }) },
     auditLog: { create: vi.fn() },
     ...overrides,
   };

@@ -56,13 +56,19 @@ export function validateAdminAssociateData(
   for (const [field, value, label] of [
     ["identity.firstName", identity.firstName, "nombres"],
     ["identity.paternalLastName", identity.paternalLastName, "apellido paterno"],
-    ["identity.maternalLastName", identity.maternalLastName, "apellido materno"],
   ] as const) {
     if (!required(field, value, `El ${label} es obligatorio.`)) continue;
     const text = String(value ?? "").trim();
     if (text.length < 2) set(field, "Debe tener al menos 2 caracteres.");
     else if (text.length > 100) set(field, "Máximo 100 caracteres permitidos.");
     else if (!LETTERS.test(value ?? "")) set(field, "Solo se permiten letras, tildes y espacios.");
+  }
+
+  const maternalLastName = identity.maternalLastName?.trim() ?? "";
+  if (maternalLastName) {
+    if (maternalLastName.length < 2) set("identity.maternalLastName", "Debe tener al menos 2 caracteres.");
+    else if (maternalLastName.length > 100) set("identity.maternalLastName", "Máximo 100 caracteres permitidos.");
+    else if (!LETTERS.test(maternalLastName)) set("identity.maternalLastName", "Solo se permiten letras, tildes y espacios.");
   }
 
   if (!required("identity.documentNumber", identity.documentNumber, "Ingrese el número de documento.")) {
@@ -154,35 +160,52 @@ export function validateAdminAssociateData(
   }
 
   if (employment) {
-    if (!employment.companyId) set("employment.companyId", "Seleccione la empresa.");
-    if (!employment.positionId) set("employment.positionId", "Seleccione el cargo.");
-    if (employment.area && !meaningful(employment.area, 2)) set("employment.area", "Ingrese un área o departamento válido.");
-    if (employment.area && employment.area.length > 150) set("employment.area", "El área no puede superar los 150 caracteres.");
+    const status = employment.employmentStatus;
+    if (!status) {
+      set("employment.employmentStatus", "Seleccione la situación laboral.");
+    } else if (status !== "NOT_WORKING") {
+      const employer = status === "EMPLOYED" ? "empleado" : "independiente";
+      const companyName = normalized(employment.companyName);
+      if (status === "EMPLOYED" && !companyName) set("employment.companyName", "El nombre de la empresa es obligatorio.");
+      else if (companyName && companyName.length < 2) set("employment.companyName", "Debe tener al menos 2 caracteres.");
+      else if (companyName.length > 250) set("employment.companyName", "Máximo 250 caracteres.");
 
-    const workPhone = employment.workPhone?.trim() ?? "";
-    if (!required("employment.workPhone", workPhone, "El teléfono es obligatorio.")) {
-      // sin teléfono no se valida formato
-    } else {
-      const phoneDigits = digits(workPhone);
-      if (!/^[0-9+\s\-()]{7,20}$/.test(workPhone)) set("employment.workPhone", "El teléfono no es válido.");
-      else if (phoneDigits.length < 7 || phoneDigits.length > 15 || /^0+$/.test(phoneDigits)) set("employment.workPhone", "Ingrese un teléfono válido.");
+      const positionName = normalized(employment.positionName);
+      if (!positionName) set("employment.positionName", status === "EMPLOYED" ? "El cargo es obligatorio." : "La actividad o profesión principal es obligatoria.");
+      else if (positionName.length < 2) set("employment.positionName", "Debe tener al menos 2 caracteres.");
+      else if (positionName.length > 150) set("employment.positionName", "Máximo 150 caracteres.");
+
+      const taxId = normalized(employment.companyTaxId);
+      if (taxId && (!/^\d+$/.test(taxId) || taxId.length !== 11)) set("employment.companyTaxId", "El RUC debe tener 11 dígitos.");
+
+      if (employment.area && !meaningful(employment.area, 2)) set("employment.area", `Ingrese un área o departamento válido para el/la ${employer}.`);
+      if (employment.area && employment.area.length > 150) set("employment.area", "El área no puede superar los 150 caracteres.");
+
+      const workPhone = employment.workPhone?.trim() ?? "";
+      if (!required("employment.workPhone", workPhone, "El teléfono es obligatorio.")) {
+        // sin teléfono no se valida formato
+      } else {
+        const phoneDigits = digits(workPhone);
+        if (!/^[0-9+\s\-()]{7,20}$/.test(workPhone)) set("employment.workPhone", "El teléfono no es válido.");
+        else if (phoneDigits.length < 7 || phoneDigits.length > 15 || /^0+$/.test(phoneDigits)) set("employment.workPhone", "Ingrese un teléfono válido.");
+      }
+
+      const workEmail = employment.workEmail?.trim() ?? "";
+      if (!required("employment.workEmail", workEmail, "El correo profesional es obligatorio.")) {
+        // sin correo no se valida formato
+      } else if (!EMAIL.test(workEmail)) set("employment.workEmail", "El correo corporativo no es válido.");
+
+      if (employment.workExtension && employment.workExtension.trim()) {
+        if (employment.workExtension.trim().length > 10) set("employment.workExtension", "El anexo no puede superar los 10 caracteres.");
+        else if (!/^\d+$/.test(employment.workExtension.trim())) set("employment.workExtension", "El anexo debe contener únicamente números.");
+      }
+
+      const workingAddress = employment.workingAddress?.trim() ?? "";
+      if (!required("employment.workingAddress", workingAddress, "La dirección laboral es obligatoria.")) {
+        // sin dirección no se valida formato
+      } else if (workingAddress.length > 250) set("employment.workingAddress", "La dirección no puede superar los 250 caracteres.");
+      else if (!isValidEmploymentAddress(workingAddress)) set("employment.workingAddress", "Ingrese una dirección con información válida.");
     }
-
-    const workEmail = employment.workEmail?.trim() ?? "";
-    if (!required("employment.workEmail", workEmail, "El correo profesional es obligatorio.")) {
-      // sin correo no se valida formato
-    } else if (!EMAIL.test(workEmail)) set("employment.workEmail", "El correo corporativo no es válido.");
-
-    if (employment.workExtension && employment.workExtension.trim()) {
-      if (employment.workExtension.trim().length > 10) set("employment.workExtension", "El anexo no puede superar los 10 caracteres.");
-      else if (!/^\d+$/.test(employment.workExtension.trim())) set("employment.workExtension", "El anexo debe contener únicamente números.");
-    }
-
-    const workingAddress = employment.workingAddress?.trim() ?? "";
-    if (!required("employment.workingAddress", workingAddress, "La dirección laboral es obligatoria.")) {
-      // sin dirección no se valida formato
-    } else if (workingAddress.length > 250) set("employment.workingAddress", "La dirección no puede superar los 250 caracteres.");
-    else if (!isValidEmploymentAddress(workingAddress)) set("employment.workingAddress", "Ingrese una dirección con información válida.");
   }
 
   return errors;

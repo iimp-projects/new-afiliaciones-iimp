@@ -24,8 +24,9 @@ describe("Autorización de notificación al Comité", () => {
     }
   });
 
-  it("ningún rol evaluador depende de update:memberships para esta acción", () => {
-    for (const role of ["ATENCION_ASOCIADO", "LOGISTICA", "LEGAL", "COMUNICACIONES"]) {
+  it("solo Atención al Asociado puede gestionar acceso al portal con update:memberships", () => {
+    expect(hasPermission("ATENCION_ASOCIADO", "update", "memberships")).toBe(true);
+    for (const role of ["LOGISTICA", "LEGAL", "COMUNICACIONES"]) {
       expect(hasPermission(role, "update", "memberships")).toBe(false);
     }
   });

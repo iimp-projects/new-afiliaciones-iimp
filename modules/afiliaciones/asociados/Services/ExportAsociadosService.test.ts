@@ -109,16 +109,16 @@ describe("ExportAsociadosService", () => {
     expect(worksheet.getRow(3).getCell(headers.indexOf("Origen") + 1).value).toBe("SIE Histórico");
   });
 
-  it("usa el código A-<personId> cuando no existe código institucional", async () => {
+  it("usa el código correlativo almacenado cuando no existe código institucional", async () => {
     const record = {
       ...postulacionRecord,
-      person: { ...postulacionRecord.person, id: 41, sieAssociateRecords: [] },
+      person: { ...postulacionRecord.person, id: 41, associateCode: "A-00041", sieAssociateRecords: [] },
     };
     mocks.appFindMany.mockResolvedValue([record]);
 
     const worksheet = await loadWorksheet(await new ExportAsociadosService().execute({}));
 
-    expect(worksheet.getRow(2).getCell(1).value).toBe("A-0041");
+    expect(worksheet.getRow(2).getCell(1).value).toBe("A-00041");
   });
 
   it("aplica los filtros de búsqueda y tipo de membresía a la consulta", async () => {

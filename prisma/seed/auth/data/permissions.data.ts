@@ -120,6 +120,14 @@ export const permissionsData: Prisma.PermissionCreateManyInput[] = [
   { action: "revoke", subject: "cards", description: "Revocar o regenerar carnets virtuales." },
 
   // ===========================================================================
+  // ACCESS CONTROL (control de accesos)
+  // ===========================================================================
+  { action: "read", subject: "access_control", description: "Consultar sedes, presencia y movimientos de control de accesos." },
+  { action: "operate", subject: "access_control", description: "Validar credenciales y registrar ingresos/salidas." },
+  { action: "manage", subject: "access_control", description: "Administrar sedes, puntos, políticas y operadores." },
+  { action: "export", subject: "access_control", description: "Exportar reportes de control de accesos." },
+
+  // ===========================================================================
   // CATALOGS
   // ===========================================================================
   { action: "create", subject: "catalogs", description: "Crear catálogos." },

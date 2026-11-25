@@ -7,7 +7,7 @@ import {
 
 describe("associateDocumentSlots", () => {
   it("exige identidad y foto a todos, y constancia al estudiante", () => {
-    expect(requiredAssociateDocumentSlots(false)).toEqual(["ID_DOCUMENT", "PHOTO"]);
+    expect(requiredAssociateDocumentSlots(false)).toEqual(["ID_DOCUMENT", "PHOTO", "SWORN_DECLARATION"]);
     expect(requiredAssociateDocumentSlots(true)).toEqual(["ID_DOCUMENT", "PHOTO", "STUDY_CERTIFICATE"]);
   });
 

@@ -26,6 +26,7 @@ const storage = { uploadFile: vi.fn().mockResolvedValue("afiliaciones/applicatio
 
 const tx = {
   payment: { create: vi.fn().mockResolvedValue({ id: 99 }) },
+  billing: { create: vi.fn().mockResolvedValue({ id: 55 }) },
   applicationDocument: { create: vi.fn().mockResolvedValue({ id: "doc-1" }) },
   auditLog: { create: vi.fn().mockResolvedValue({ id: 1 }) },
 };
@@ -55,7 +56,20 @@ describe("ManualPaymentRegistrationService", () => {
     vi.clearAllMocks();
     prismaMock.$transaction.mockImplementation(async (callback: (client: typeof tx) => unknown) => callback(tx));
     prismaMock.payment.findFirst.mockResolvedValue(null);
-    prismaMock.membershipApplication.findUnique.mockResolvedValue({ id: 10, status: ApplicationStatus.READY_FOR_PAYMENT, deletedAt: null });
+    prismaMock.membershipApplication.findUnique.mockResolvedValue({
+      id: 10,
+      status: ApplicationStatus.READY_FOR_PAYMENT,
+      deletedAt: null,
+      documentType: "DNI",
+      documentNumber: "45123499",
+      email: "postulante@example.com",
+      person: {
+        firstName: "Enrique",
+        paternalLastName: "Lazo",
+        maternalLastName: "Quevedo",
+        addresses: [{ street: "Av. Brasil 123", isPrimary: true, countryId: 1 }],
+      },
+    });
   });
 
   it("registra un pago manual, completa el expediente y envía correos", async () => {
@@ -73,6 +87,18 @@ describe("ManualPaymentRegistrationService", () => {
     }));
     expect(tx.applicationDocument.create).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({ category: DocumentCategory.PAYMENT_VOUCHER, fileName: "voucher.pdf" }),
+    }));
+    expect(tx.billing.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        paymentId: 99,
+        receiptType: "BOLETA",
+        documentType: "DNI",
+        taxId: "45123499",
+        businessName: "Enrique Lazo Quevedo",
+        billingAddress: "Av. Brasil 123",
+        billingEmail: "postulante@example.com",
+        countryId: 1,
+      }),
     }));
     expect(calculator.recalculate).toHaveBeenCalled();
     expect(provisioning.provisionCompletedApplication).toHaveBeenCalledWith(10);

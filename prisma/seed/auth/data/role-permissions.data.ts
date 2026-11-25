@@ -52,6 +52,11 @@ export const rolePermissionsData: RolePermissionMatrix = {
 
     ["read", "audit"],
 
+    ["read", "access_control"],
+    ["operate", "access_control"],
+    ["manage", "access_control"],
+    ["export", "access_control"],
+
     ["send", "notifications"],
 
     ["read", "configuration"],
@@ -125,10 +130,13 @@ export const rolePermissionsData: RolePermissionMatrix = {
     ["upload", "documents"],
     ["read", "documents"],
     ["read", "memberships"],
+    ["update", "memberships"],
     ["read", "associates"],
     ["update", "associates"],
     ["read", "cards"],
     ["revoke", "cards"],
+    ["read", "access_control"],
+    ["operate", "access_control"],
     ["read", "alerts"],
     ["read", "quotas"],
   ],
@@ -144,6 +152,13 @@ export const rolePermissionsData: RolePermissionMatrix = {
     ["validate", "documents"],
     ["read", "memberships"],
     ["read", "associates"],
+    ["read", "access_control"],
+    ["operate", "access_control"],
+  ],
+
+  OPERACIONES: [
+    ["read", "access_control"],
+    ["operate", "access_control"],
   ],
 
   MESA_PARTES: [
@@ -157,6 +172,8 @@ export const rolePermissionsData: RolePermissionMatrix = {
     ["read", "reports"],
     ["read", "quotas"],
     ["export", "quotas"],
+    ["read", "access_control"],
+    ["export", "access_control"],
   ],
 
   POSTULANTE: [
