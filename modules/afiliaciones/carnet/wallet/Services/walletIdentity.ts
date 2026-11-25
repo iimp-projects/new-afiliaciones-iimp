@@ -5,8 +5,13 @@ export interface AppleTokenSecret {
   readonly secret: string;
 }
 
-export function googleWalletObjectId(issuerId: string, cardId: string): string {
-  return `${issuerId}.iimp_card_${cardId}`;
+/**
+ * Identificador estable del objeto Google. El prefijo define el namespace del
+ * ambiente (`iimp_card_` histórico LOCAL, `iimp_qa_card_` QA) y se mantiene
+ * configurable para no alterar pases ya emitidos.
+ */
+export function googleWalletObjectId(issuerId: string, cardId: string, prefix = "iimp_card_"): string {
+  return `${issuerId}.${prefix}${cardId}`;
 }
 
 export function appleWalletSerialNumber(cardId: string): string {

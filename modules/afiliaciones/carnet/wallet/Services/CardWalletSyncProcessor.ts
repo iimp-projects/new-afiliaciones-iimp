@@ -17,6 +17,7 @@ const PERMANENT_ERROR_CODES = new Set([
   "CARD_REVOKED",
   "NOT_FOUND",
   "FORBIDDEN",
+  "ALLOWLIST_BLOCKED",
 ]);
 
 export function isPermanentSyncError(code: string | undefined): boolean {

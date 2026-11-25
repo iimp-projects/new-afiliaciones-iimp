@@ -5,10 +5,13 @@ import {
   getGoogleWalletConfig,
   getWalletConfig,
   getWalletFlags,
+  getWalletProviderMode,
   getWalletSimulationEnabled,
   getWalletSimulationFailure,
   getWalletSyncConfig,
   isCertificateCurrentlyValid,
+  isGoogleWalletEmissionAllowed,
+  isWalletProviderSimulation,
 } from "./wallet";
 
 const baseUrl = "https://portal.example";
@@ -125,5 +128,59 @@ describe("wallet config", () => {
       CARD_WALLET_SYNC_INTERVAL_SECONDS: "30",
     });
     expect(config).toEqual({ enabled: true, batchSize: 10, maxAttempts: 5, leaseSeconds: 90, intervalSeconds: 30 });
+  });
+
+  it("permite Google real y Apple simulado simultáneamente en local", () => {
+    const env = {
+      NODE_ENV: "development",
+      CARD_WALLET_LOCAL_SIMULATION: "true",
+      CARD_GOOGLE_WALLET_MODE: "REAL",
+      CARD_APPLE_WALLET_MODE: "SIMULATION",
+    };
+    expect(getWalletProviderMode("GOOGLE", env)).toBe("REAL");
+    expect(getWalletProviderMode("APPLE", env)).toBe("SIMULATION");
+    expect(isWalletProviderSimulation("GOOGLE", env)).toBe(false);
+    expect(isWalletProviderSimulation("APPLE", env)).toBe(true);
+  });
+
+  it("bloquea la simulación por proveedor en producción", () => {
+    const env = {
+      NODE_ENV: "production",
+      CARD_WALLET_LOCAL_SIMULATION: "true",
+      CARD_APPLE_WALLET_MODE: "SIMULATION",
+      CARD_GOOGLE_WALLET_MODE: "SIMULATION",
+    };
+    expect(getWalletProviderMode("GOOGLE", env)).toBe("REAL");
+    expect(getWalletProviderMode("APPLE", env)).toBe("REAL");
+    expect(isWalletProviderSimulation("APPLE", env)).toBe(false);
+  });
+
+  it("resuelve el namespace QA y usa el prefijo histórico por defecto", () => {
+    const qa = getGoogleWalletConfig({
+      ...googleEnv(),
+      GOOGLE_WALLET_CLASS_ID: "338800000001.iimp_membership_qa",
+      GOOGLE_WALLET_OBJECT_PREFIX: "iimp_qa_card_",
+    });
+    expect(qa?.classId).toBe("338800000001.iimp_membership_qa");
+    expect(qa?.objectPrefix).toBe("iimp_qa_card_");
+    expect(getGoogleWalletConfig(googleEnv())?.objectPrefix).toBe("iimp_card_");
+  });
+
+  it("rechaza una clase de un emisor distinto para evitar cruces de entorno", () => {
+    expect(getGoogleWalletConfig({ ...googleEnv(), GOOGLE_WALLET_CLASS_ID: "999.otra_clase" })).toBeNull();
+  });
+
+  it("aplica allowlist de emisión solo cuando está configurada", () => {
+    const open = getGoogleWalletConfig(googleEnv())!;
+    expect(isGoogleWalletEmissionAllowed(open, { personId: 5, associateCode: "A-REAL" })).toBe(true);
+
+    const restricted = getGoogleWalletConfig({
+      ...googleEnv(),
+      CARD_WALLET_ALLOWED_ASSOCIATE_PREFIXES: "QA-TEST-,WLT",
+      CARD_WALLET_ALLOWED_PERSON_IDS: "4242",
+    })!;
+    expect(isGoogleWalletEmissionAllowed(restricted, { personId: 1, associateCode: "QA-TEST-0001" })).toBe(true);
+    expect(isGoogleWalletEmissionAllowed(restricted, { personId: 4242, associateCode: null })).toBe(true);
+    expect(isGoogleWalletEmissionAllowed(restricted, { personId: 1, associateCode: "A-REAL" })).toBe(false);
   });
 });

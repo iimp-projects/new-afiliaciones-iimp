@@ -14,8 +14,11 @@ const { privateKey, publicKey } = generateKeyPairSync("rsa", {
 const config: GoogleWalletConfig = {
   issuerId: "338800000001",
   classId: "338800000001.iimp_carne",
+  objectPrefix: "iimp_card_",
   serviceAccount: { clientEmail: "wallet@example.iam.gserviceaccount.com", privateKey },
   classAutoCreate: true,
+  allowedPersonIds: [],
+  allowedAssociateCodePrefixes: [],
 };
 
 const snapshot: WalletCardSnapshot = {
@@ -85,6 +88,34 @@ describe("GoogleWalletClient", () => {
     expect(result.created).toBe(false);
     expect(calls.some((call) => call.method === "POST" && call.url.endsWith("/genericObject"))).toBe(false);
     expect(calls.some((call) => call.method === "PATCH" && call.url.includes("/genericObject/"))).toBe(true);
+  });
+
+  it("usa el namespace QA en el identificador y en el JWT", async () => {
+    const qaConfig: GoogleWalletConfig = { ...config, classId: "338800000001.iimp_membership_qa", objectPrefix: "iimp_qa_card_" };
+    const fetchImpl = async (input: string, init?: RequestInit): Promise<Response> => {
+      const method = init?.method ?? "GET";
+      if (input === "https://oauth2.googleapis.com/token") return jsonResponse({ access_token: "access-token", expires_in: 3600 });
+      if (input.includes("/genericClass/")) return jsonResponse({});
+      if (input.includes("/genericObject/") && method === "GET") return new Response(null, { status: 404 });
+      if (input.endsWith("/genericObject") && method === "POST") return jsonResponse({});
+      return new Response(null, { status: 200 });
+    };
+    const client = new GoogleWalletClient(qaConfig, appBaseUrl, { fetchImpl, now: () => new Date("2026-11-24T12:00:00Z") });
+    const result = await client.createSaveLink(snapshot);
+    expect(result.objectId).toBe("338800000001.iimp_qa_card_card_abc");
+    expect(buildGenericObjectPayload({ config: qaConfig, snapshot, appBaseUrl }).classId).toBe("338800000001.iimp_membership_qa");
+  });
+
+  it("rechaza modificar un objeto existente de otra clase", async () => {
+    const fetchImpl = async (input: string, init?: RequestInit): Promise<Response> => {
+      const method = init?.method ?? "GET";
+      if (input === "https://oauth2.googleapis.com/token") return jsonResponse({ access_token: "access-token", expires_in: 3600 });
+      if (input.includes("/genericClass/")) return jsonResponse({});
+      if (input.includes("/genericObject/") && method === "GET") return jsonResponse({ id: "338800000001.iimp_card_card_abc", classId: "338800000001.otra_clase" });
+      return jsonResponse({});
+    };
+    const client = new GoogleWalletClient(config, appBaseUrl, { fetchImpl });
+    await expect(client.createSaveLink(snapshot)).rejects.toThrow(/otra clase/i);
   });
 
   it("incluye el estado institucional y el QR existente en el objeto", () => {

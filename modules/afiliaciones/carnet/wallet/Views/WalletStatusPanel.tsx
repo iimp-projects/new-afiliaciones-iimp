@@ -25,6 +25,7 @@ interface PassSummary {
 interface StatusBody {
   enabled: { google: boolean; apple: boolean };
   configured: { google: boolean; apple: boolean };
+  modes: { google: "REAL" | "SIMULATION"; apple: "REAL" | "SIMULATION" };
   simulation: boolean;
   card: { generated: boolean; status: "ISSUED" | "REVOKED" | null; eligible: boolean };
   passes: PassSummary[];
@@ -69,6 +70,7 @@ function providerData(status: StatusBody, provider: "GOOGLE" | "APPLE") {
     name: provider === "GOOGLE" ? "Google Wallet" : "Apple Wallet",
     enabled: provider === "GOOGLE" ? status.enabled.google : status.enabled.apple,
     configured: provider === "GOOGLE" ? status.configured.google : status.configured.apple,
+    mode: provider === "GOOGLE" ? status.modes?.google ?? "REAL" : status.modes?.apple ?? "REAL",
     pass,
   };
 }
@@ -140,7 +142,7 @@ export function WalletStatusPanel({ personId, canManage }: { personId: number; c
 
       {status?.simulation && (
         <p role="status" className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-[11px] font-semibold leading-5 text-amber-800">
-          Modo simulación local: los pases mostrados no fueron emitidos por Google ni Apple.
+          Modo simulación local en {[status.modes?.google === "SIMULATION" ? "Google Wallet" : null, status.modes?.apple === "SIMULATION" ? "Apple Wallet" : null].filter(Boolean).join(" y ")}: esos pases no fueron emitidos por el proveedor real.
         </p>
       )}
 
@@ -150,13 +152,23 @@ export function WalletStatusPanel({ personId, canManage }: { personId: number; c
             const data = providerData(status, provider);
             const label = !data.enabled
               ? "Deshabilitado"
-              : !data.configured
-                ? "Sin configurar"
-                : data.pass?.job
-                  ? JOB_LABEL[data.pass.job.status]
-                  : data.pass
-                    ? STATUS_LABEL[data.pass.syncStatus]
-                    : "No emitido";
+              : data.pass?.job
+                ? JOB_LABEL[data.pass.job.status]
+                : data.pass
+                  ? STATUS_LABEL[data.pass.syncStatus]
+                  : data.mode === "SIMULATION"
+                    ? "Simulación local"
+                    : !data.configured
+                      ? "Sin configurar"
+                      : "No emitido";
+            const jobStatus = data.pass?.job?.status;
+            const tone = data.pass?.syncStatus === "FAILED" || data.pass?.lastErrorCode || jobStatus === "FAILED"
+              ? "bg-red-50 text-red-700"
+              : jobStatus === "PENDING" || jobStatus === "PROCESSING" || jobStatus === "RETRY"
+                ? "bg-amber-50 text-amber-700"
+                : data.pass?.syncStatus === "REVOKED" || !data.enabled || !data.configured || !data.pass
+                  ? "bg-slate-100 text-slate-500"
+                  : "bg-emerald-50 text-emerald-700";
             return (
               <div key={provider} className="rounded-lg border border-slate-200 p-3">
                 <div className="flex items-center justify-between gap-3">
@@ -164,13 +176,14 @@ export function WalletStatusPanel({ personId, canManage }: { personId: number; c
                     {provider === "APPLE" ? <Smartphone size={14} aria-hidden="true" /> : <Wallet size={14} aria-hidden="true" />}
                     {data.name}
                   </p>
-                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${data.pass?.syncStatus === "FAILED" ? "bg-red-50 text-red-700" : data.pass?.syncStatus === "REVOKED" ? "bg-slate-100 text-slate-600" : "bg-emerald-50 text-emerald-700"}`}>{label}</span>
+                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${tone}`}>{label}</span>
                 </div>
                 <dl className="mt-2 space-y-1 text-[11px] leading-5 text-slate-500">
+                  <div className="flex justify-between gap-3"><dt>Modo</dt><dd className="text-right">{data.mode === "SIMULATION" ? "Simulación local" : "Real (prueba)"}</dd></div>
                   <div className="flex justify-between gap-3"><dt>Última sincronización</dt><dd className="text-right">{formatDate(data.pass?.lastSyncedAt ?? null)}</dd></div>
                   {data.pass?.job && <div className="flex justify-between gap-3"><dt>Operación</dt><dd className="text-right">{data.pass.job.operation === "REVOKE" ? "Revocación" : "Actualización"}</dd></div>}
                   {data.pass?.job && <div className="flex justify-between gap-3"><dt>Intentos</dt><dd className="text-right">{data.pass.job.attemptCount}/{data.pass.job.maxAttempts}</dd></div>}
-                  {data.pass?.job?.nextAttemptAt && <div className="flex justify-between gap-3"><dt>Próximo reintento</dt><dd className="text-right">{formatDate(data.pass.job.nextAttemptAt)}</dd></div>}
+                  {data.pass?.job?.status === "RETRY" && data.pass.job.nextAttemptAt && <div className="flex justify-between gap-3"><dt>Próximo reintento</dt><dd className="text-right">{formatDate(data.pass.job.nextAttemptAt)}</dd></div>}
                   {provider === "APPLE" && <div className="flex justify-between gap-3"><dt>Dispositivos registrados</dt><dd className="text-right">{data.pass?.deviceCount ?? 0}</dd></div>}
                   {data.pass?.lastErrorCode && <div className="text-red-600">{ERROR_LABEL[data.pass.lastErrorCode] ?? "La sincronización requiere revisión."}</div>}
                 </dl>

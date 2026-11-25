@@ -1,4 +1,5 @@
 import { X509Certificate } from "node:crypto";
+import { readFileSync } from "node:fs";
 import type { EnvSource } from "./env";
 import { getAppBaseUrl } from "./env";
 
@@ -19,13 +20,55 @@ export interface WalletFlags {
 export interface GoogleServiceAccount {
   readonly clientEmail: string;
   readonly privateKey: string;
+  readonly projectId?: string;
 }
+
+export type WalletProviderMode = "REAL" | "SIMULATION";
 
 export interface GoogleWalletConfig {
   readonly issuerId: string;
   readonly classId: string;
+  /** Prefijo del namespace de objetos, p. ej. `iimp_card_` (LOCAL) o `iimp_qa_card_` (QA). */
+  readonly objectPrefix: string;
   readonly serviceAccount: GoogleServiceAccount;
   readonly classAutoCreate: boolean;
+  /** Allowlist QA por personId y/o prefijo de código de asociado. Vacía = sin restricción. */
+  readonly allowedPersonIds: readonly number[];
+  readonly allowedAssociateCodePrefixes: readonly string[];
+}
+
+const DEFAULT_GWALLET_OBJECT_PREFIX = "iimp_card_";
+
+function normalizeObjectPrefix(value: string | null): string | null {
+  const prefix = (value ?? DEFAULT_GWALLET_OBJECT_PREFIX).trim();
+  return /^[A-Za-z0-9_]+$/.test(prefix) ? prefix : null;
+}
+
+function parseCsv(value: string | undefined): string[] {
+  return (value ?? "").split(",").map((entry) => entry.trim()).filter(Boolean);
+}
+
+function parsePersonIds(value: string | undefined): number[] {
+  return parseCsv(value)
+    .map((entry) => Number(entry))
+    .filter((entry) => Number.isInteger(entry) && entry > 0);
+}
+
+/**
+ * Restricción de emisión para ambientes con datos institucionales (QA). Sin
+ * allowlist configurada no restringe (LOCAL). Con allowlist, solo autoriza por
+ * personId o por prefijo de código de asociado sintético.
+ */
+export function isGoogleWalletEmissionAllowed(
+  config: GoogleWalletConfig,
+  subject: { readonly personId: number; readonly associateCode: string | null },
+): boolean {
+  const restricted = config.allowedPersonIds.length > 0 || config.allowedAssociateCodePrefixes.length > 0;
+  if (!restricted) return true;
+  if (config.allowedPersonIds.includes(subject.personId)) return true;
+  const code = subject.associateCode?.trim();
+  if (code && config.allowedAssociateCodePrefixes.some((prefix) => code.startsWith(prefix))) return true;
+  return false;
 }
 
 export interface AppleApnsConfig {
@@ -60,6 +103,7 @@ export interface WalletSyncConfig {
 export interface WalletConfig {
   readonly appBaseUrl: string;
   readonly flags: WalletFlags;
+  readonly modes: { readonly google: WalletProviderMode; readonly apple: WalletProviderMode };
   readonly google: GoogleWalletConfig | null;
   readonly apple: AppleWalletConfig | null;
 }
@@ -107,16 +151,36 @@ function readPem(env: EnvSource, base64Variable: string, pathVariable: string): 
 }
 
 function parseServiceAccount(env: EnvSource): GoogleServiceAccount | null {
-  const raw = text(env, "GOOGLE_WALLET_SERVICE_ACCOUNT_JSON") ?? text(env, "GOOGLE_WALLET_SERVICE_ACCOUNT_JSON_B64");
-  if (!raw) return null;
-  const json = raw.trim().startsWith("{") ? raw : decodeBase64(raw, "GOOGLE_WALLET_SERVICE_ACCOUNT_JSON_B64");
+  const inline = text(env, "GOOGLE_WALLET_SERVICE_ACCOUNT_JSON");
+  const base64 = text(env, "GOOGLE_WALLET_SERVICE_ACCOUNT_JSON_B64");
+  const file = text(env, "GOOGLE_WALLET_CREDENTIALS_FILE");
+  let json: string | null = null;
+  let sourceName = "GOOGLE_WALLET_SERVICE_ACCOUNT_JSON";
+  if (inline) {
+    json = inline.trim().startsWith("{") ? inline : decodeBase64(inline, "GOOGLE_WALLET_SERVICE_ACCOUNT_JSON_B64");
+  } else if (base64) {
+    json = decodeBase64(base64, "GOOGLE_WALLET_SERVICE_ACCOUNT_JSON_B64");
+  } else if (file) {
+    sourceName = "GOOGLE_WALLET_CREDENTIALS_FILE";
+    try {
+      json = readFileSync(file, "utf8");
+    } catch {
+      throw new Error("GOOGLE_WALLET_CREDENTIALS_FILE no se pudo leer.");
+    }
+  }
+  if (!json) return null;
   try {
-    const parsed = JSON.parse(json) as { client_email?: unknown; private_key?: unknown };
+    const parsed = JSON.parse(json) as { type?: unknown; project_id?: unknown; client_email?: unknown; private_key?: unknown };
+    if (parsed.type !== undefined && parsed.type !== "service_account") return null;
     if (typeof parsed.client_email !== "string" || typeof parsed.private_key !== "string") return null;
     if (!parsed.private_key.includes("-----BEGIN")) return null;
-    return { clientEmail: parsed.client_email, privateKey: parsed.private_key };
+    return {
+      clientEmail: parsed.client_email,
+      privateKey: parsed.private_key,
+      projectId: typeof parsed.project_id === "string" ? parsed.project_id : undefined,
+    };
   } catch {
-    throw new Error("GOOGLE_WALLET_SERVICE_ACCOUNT_JSON no contiene un JSON válido.");
+    throw new Error(`${sourceName} no contiene un JSON válido.`);
   }
 }
 
@@ -166,16 +230,41 @@ export function getWalletSimulationFailure(env: EnvSource = process.env): "GOOGL
   return value === "GOOGLE" || value === "APPLE" ? value : null;
 }
 
+/**
+ * Modo por proveedor. En producción la simulación nunca se habilita, aunque
+ * exista la variable. `CARD_<PROVIDER>_WALLET_MODE` permite convivir con Google
+ * real y Apple simulado en local.
+ */
+export function getWalletProviderMode(provider: "GOOGLE" | "APPLE", env: EnvSource = process.env): WalletProviderMode {
+  if (env.NODE_ENV === "production") return "REAL";
+  const configured = env[`CARD_${provider}_WALLET_MODE`]?.trim().toUpperCase();
+  if (configured === "REAL") return "REAL";
+  if (configured === "SIMULATION") return "SIMULATION";
+  return getWalletSimulationEnabled(env) ? "SIMULATION" : "REAL";
+}
+
+export function isWalletProviderSimulation(provider: "GOOGLE" | "APPLE", env: EnvSource = process.env): boolean {
+  return getWalletProviderMode(provider, env) === "SIMULATION";
+}
+
 export function getGoogleWalletConfig(env: EnvSource = process.env): GoogleWalletConfig | null {
   const issuerId = text(env, "GOOGLE_WALLET_ISSUER_ID");
   const classId = text(env, "GOOGLE_WALLET_CLASS_ID");
   const serviceAccount = parseServiceAccount(env);
-  if (!issuerId || !classId || !serviceAccount) return null;
+  const objectPrefix = normalizeObjectPrefix(text(env, "GOOGLE_WALLET_OBJECT_PREFIX"));
+  if (!issuerId || !classId || !serviceAccount || !objectPrefix) return null;
+  const normalizedClassId = normalizeClassId(issuerId, classId);
+  // Falla de forma segura si la clase configurada no pertenece al issuer: evita
+  // que un ambiente modifique clases de otro emisor/entorno por error.
+  if (!normalizedClassId.startsWith(`${issuerId}.`)) return null;
   return {
     issuerId,
-    classId: normalizeClassId(issuerId, classId),
+    classId: normalizedClassId,
+    objectPrefix,
     serviceAccount,
     classAutoCreate: env.GOOGLE_WALLET_CLASS_AUTO_CREATE?.trim().toLowerCase() !== "false",
+    allowedPersonIds: parsePersonIds(env.CARD_WALLET_ALLOWED_PERSON_IDS),
+    allowedAssociateCodePrefixes: parseCsv(env.CARD_WALLET_ALLOWED_ASSOCIATE_PREFIXES),
   };
 }
 
@@ -234,6 +323,7 @@ export function getWalletConfig(env: EnvSource = process.env): WalletConfig {
   return {
     appBaseUrl: getAppBaseUrl(env, { allowDevDefault: true }),
     flags: getWalletFlags(env),
+    modes: { google: getWalletProviderMode("GOOGLE", env), apple: getWalletProviderMode("APPLE", env) },
     google: getGoogleWalletConfig(env),
     apple: getAppleWalletConfig(env),
   };

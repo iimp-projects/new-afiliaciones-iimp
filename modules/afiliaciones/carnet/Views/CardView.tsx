@@ -34,12 +34,12 @@ function CardFace({ data, verificationUrl, issuedAt = null, mode = "issued" }: {
   const vigencia = (data.pendingQuotaCount ?? 0) > MAX_PENDING_QUOTAS ? "Restringida" : data.eligible ? "Vigente" : "Por confirmar";
   const issuedAtLabel = formatIssuedAt(issuedAt);
 
-  return <article className="group relative isolate mx-auto aspect-[1.7/1] w-full max-w-[680px] overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-[0_18px_45px_-24px_rgba(20,35,61,0.5)] transition duration-200 motion-safe:hover:-translate-y-0.5 motion-safe:hover:shadow-[0_24px_50px_-24px_rgba(20,35,61,0.6)]">
+  return <article className="group relative isolate mx-auto min-h-[300px] w-full max-w-[680px] overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-[0_18px_45px_-24px_rgba(20,35,61,0.5)] transition duration-200 motion-safe:hover:-translate-y-0.5 motion-safe:hover:shadow-[0_24px_50px_-24px_rgba(20,35,61,0.6)] sm:aspect-[1.7/1] sm:min-h-0">
     <div className="absolute inset-x-0 top-0 h-[24%] bg-gradient-to-r from-white 48% via-[#f8f1e3] 63% to-[#a87924]" />
     <div className="absolute left-[61%] top-0 h-[24%] w-9 -skew-x-[28deg] border-l border-white/70 bg-white/30" />
     <div className="absolute bottom-[-32%] left-[-4%] h-[52%] w-[76%] rounded-[50%] border border-[#c5953e]/25" />
     <div className="absolute bottom-[-38%] left-[16%] h-[56%] w-[72%] rounded-[50%] border border-[#c5953e]/15" />
-    <div className="relative grid h-full grid-rows-[24%_1fr_14%]">
+    <div className="relative grid h-full min-h-[300px] grid-rows-[auto_1fr_auto] sm:min-h-0 sm:grid-rows-[24%_1fr_14%]">
       <header className="flex items-center justify-between gap-4 px-5 sm:px-7">
         <img src="/images/logo-iimp.png" alt="Instituto de Ingenieros de Minas del Perú" className="h-11 w-auto max-w-[52%] object-contain sm:h-14" />
         <p className="pr-1 text-right text-[10px] font-semibold tracking-[0.22em] text-white sm:text-xs">CARNET<br className="sm:hidden" /> INSTITUCIONAL</p>
@@ -88,7 +88,7 @@ function PreparingCard({ label }: { label: string }) {
   return <section className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-[0_20px_50px_-42px_rgba(20,35,61,0.6)] sm:p-6" aria-busy="true">
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
       <div className="mx-auto w-full max-w-[680px]">
-        <div className="aspect-[1.7/1] w-full animate-pulse rounded-[22px] bg-slate-100" />
+        <div className="min-h-[300px] w-full animate-pulse rounded-[22px] bg-slate-100 sm:aspect-[1.7/1] sm:min-h-0" />
         <div className="mt-5 flex flex-col gap-3 sm:flex-row"><div className="h-12 flex-1 animate-pulse rounded-xl bg-slate-100" /><div className="h-12 flex-1 animate-pulse rounded-xl bg-slate-100" /></div>
       </div>
       <div className="h-56 animate-pulse rounded-[20px] bg-slate-100" />
@@ -97,7 +97,7 @@ function PreparingCard({ label }: { label: string }) {
   </section>;
 }
 
-export function CardView({ data, card, issuanceEnabled, verificationBaseUrl, wallet }: { data: CardViewData | null; card: CardViewState | null; issuanceEnabled: boolean; verificationBaseUrl: string; wallet: { googleEnabled: boolean; appleEnabled: boolean; simulation?: boolean } }) {
+export function CardView({ data, card, issuanceEnabled, verificationBaseUrl, wallet }: { data: CardViewData | null; card: CardViewState | null; issuanceEnabled: boolean; verificationBaseUrl: string; wallet: { googleEnabled: boolean; appleEnabled: boolean; googleSimulation?: boolean; appleSimulation?: boolean; simulation?: boolean } }) {
   const router = useRouter();
   const [localCard, setLocalCard] = useState<CardViewState | null>(null);
   const [phase, setPhase] = useState<"idle" | "preparing" | "error">("idle");
@@ -185,7 +185,12 @@ export function CardView({ data, card, issuanceEnabled, verificationBaseUrl, wal
           <StatusPanel data={data} card={effectiveCard} />
         </div>
         {(wallet.googleEnabled || wallet.appleEnabled) && (
-          <WalletButtons googleEnabled={wallet.googleEnabled} appleEnabled={wallet.appleEnabled} simulation={wallet.simulation} />
+          <WalletButtons
+            googleEnabled={wallet.googleEnabled}
+            appleEnabled={wallet.appleEnabled}
+            googleSimulation={wallet.googleSimulation ?? wallet.simulation}
+            appleSimulation={wallet.appleSimulation ?? wallet.simulation}
+          />
         )}
       </section>;
     }

@@ -32,7 +32,12 @@ export interface CardWalletRepository {
   findPassByExternalId(provider: WalletProvider, externalPassId: string): Promise<WalletPassRow | null>;
   getCardPersonId(cardId: string): Promise<number | null>;
   listPasses(cardId: string): Promise<WalletPassWithCount[]>;
-  ensurePass(cardId: string, provider: WalletProvider, externalPassId: string): Promise<WalletPassRow>;
+  ensurePass(
+    cardId: string,
+    provider: WalletProvider,
+    externalPassId: string,
+    options?: { adoptSimulated?: boolean },
+  ): Promise<WalletPassRow>;
   markSynced(id: string, at: Date): Promise<void>;
   markFailed(id: string, errorCode: string): Promise<void>;
   markRevoked(id: string, at: Date): Promise<void>;
@@ -94,8 +99,25 @@ export class PrismaCardWalletRepository implements CardWalletRepository {
     return rows.map((row) => ({ ...toPassRow(row), deviceCount: row._count.appleRegistrations }));
   }
 
-  async ensurePass(cardId: string, provider: WalletProvider, externalPassId: string): Promise<WalletPassRow> {
+  async ensurePass(
+    cardId: string,
+    provider: WalletProvider,
+    externalPassId: string,
+    options: { adoptSimulated?: boolean } = {},
+  ): Promise<WalletPassRow> {
     try {
+      // Transición controlada SOLO de un pase simulado local hacia su
+      // identificador real estable. Un pase real existente no se sobrescribe.
+      if (options.adoptSimulated) {
+        const existing = await prisma.cardWalletPass.findUnique({ where: { cardId_provider: { cardId, provider } } });
+        if (existing && existing.externalPassId !== externalPassId && existing.externalPassId.startsWith("SIMULATED-")) {
+          const updated = await prisma.cardWalletPass.update({
+            where: { id: existing.id },
+            data: { externalPassId, syncStatus: "PENDING", lastErrorCode: null, revokedAt: null },
+          });
+          return toPassRow(updated);
+        }
+      }
       const row = await prisma.cardWalletPass.upsert({
         where: { cardId_provider: { cardId, provider } },
         create: { cardId, provider, externalPassId },
@@ -114,7 +136,7 @@ export class PrismaCardWalletRepository implements CardWalletRepository {
   async markSynced(id: string, at: Date): Promise<void> {
     await prisma.cardWalletPass.update({
       where: { id },
-      data: { syncStatus: "SYNCED", version: { increment: 1 }, lastSyncedAt: at, lastErrorCode: null },
+      data: { syncStatus: "SYNCED", version: { increment: 1 }, lastSyncedAt: at, lastErrorCode: null, revokedAt: null },
     });
   }
 

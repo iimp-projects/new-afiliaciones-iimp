@@ -1,5 +1,7 @@
 export type WalletProvider = "GOOGLE" | "APPLE";
 
+export type WalletProviderMode = "REAL" | "SIMULATION";
+
 export type WalletSyncStatus = "PENDING" | "SYNCED" | "FAILED" | "REVOKED";
 
 export type WalletErrorCode =
@@ -79,6 +81,7 @@ export interface WalletPassSummary {
 export interface WalletStatusDto {
   readonly enabled: { readonly google: boolean; readonly apple: boolean };
   readonly configured: { readonly google: boolean; readonly apple: boolean };
+  readonly modes: { readonly google: WalletProviderMode; readonly apple: WalletProviderMode };
   readonly simulation: boolean;
   readonly card: { readonly generated: boolean; readonly status: "ISSUED" | "REVOKED" | null; readonly eligible: boolean };
   readonly passes: readonly WalletPassSummary[];

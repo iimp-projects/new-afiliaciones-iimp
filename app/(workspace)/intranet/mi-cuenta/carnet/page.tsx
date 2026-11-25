@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { contextService } from "@/modules/auth/context/service";
 import { prisma } from "@/lib/prisma";
 import { getAppBaseUrl, getCardIssuanceEnabled } from "@/lib/config/env";
-import { getWalletFlags, getWalletSimulationEnabled } from "@/lib/config/wallet";
+import { getWalletFlags, getWalletProviderMode } from "@/lib/config/wallet";
 import { getCard, resolveCardData } from "@/modules/afiliaciones/carnet/Services/cardData";
 import { CardView } from "@/modules/afiliaciones/carnet/Views/CardView";
 import { AssociateProfileService } from "@/modules/afiliaciones/portal/Services/AssociateProfileService";
@@ -19,11 +19,13 @@ export default async function CarnetPage() {
   const account = await prisma.user.findUnique({ where: { id: user.id }, select: { personId: true } });
   const issuanceEnabled = getCardIssuanceEnabled();
   const flags = getWalletFlags();
-  const simulation = getWalletSimulationEnabled();
+  const googleMode = getWalletProviderMode("GOOGLE");
+  const appleMode = getWalletProviderMode("APPLE");
   const wallet = {
-    googleEnabled: flags.googleEnabled || simulation,
-    appleEnabled: flags.appleEnabled || simulation,
-    simulation,
+    googleEnabled: flags.googleEnabled || googleMode === "SIMULATION",
+    appleEnabled: flags.appleEnabled || appleMode === "SIMULATION",
+    googleSimulation: googleMode === "SIMULATION",
+    appleSimulation: appleMode === "SIMULATION",
   };
   const verificationBaseUrl = getAppBaseUrl(process.env, { allowDevDefault: true });
 

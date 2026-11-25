@@ -17,8 +17,11 @@ import { getCardRecord } from "@/modules/afiliaciones/carnet/Services/cardData";
 const google: GoogleWalletConfig = {
   issuerId: "3388",
   classId: "3388.class",
+  objectPrefix: "iimp_card_",
   serviceAccount: { clientEmail: "wallet@example.com", privateKey: "-----BEGIN TEST KEY-----\nkey\n-----END TEST KEY-----" },
   classAutoCreate: true,
+  allowedPersonIds: [],
+  allowedAssociateCodePrefixes: [],
 };
 
 const apple: AppleWalletConfig = {
@@ -40,6 +43,7 @@ function walletConfig(enabled = true): WalletConfig {
   return {
     appBaseUrl: "https://portal.example",
     flags: { googleEnabled: enabled, appleEnabled: enabled },
+    modes: { google: "REAL", apple: "SIMULATION" },
     google,
     apple,
   };
@@ -170,9 +174,30 @@ describe("CardWalletService", () => {
     const result = await wallet.getGoogleLink(1, 9);
     expect(result.status).toBe("LINK_READY");
     expect(googleClient.createSaveLink).toHaveBeenCalledWith(snapshot);
-    expect(repo.ensurePass).toHaveBeenCalledWith("card_abc", "GOOGLE", "3388.iimp_card_card_abc");
+    expect(repo.ensurePass).toHaveBeenCalledWith("card_abc", "GOOGLE", "3388.iimp_card_card_abc", { adoptSimulated: true });
     expect(repo.markSynced).toHaveBeenCalled();
     expect(audit).toHaveBeenCalledWith(expect.objectContaining({ action: "CARD_WALLET_GOOGLE_LINK_READY", outcome: "SUCCESS" }));
+  });
+
+  it("usa el namespace configurado en el identificador del objeto", async () => {
+    const base = walletConfig();
+    const qa: WalletConfig = { ...base, google: { ...base.google!, objectPrefix: "iimp_qa_card_" } };
+    const repo = repository();
+    const { service: wallet } = service({ repo, config: qa });
+    await wallet.getGoogleLink(1, 9);
+    expect(repo.ensurePass).toHaveBeenCalledWith("card_abc", "GOOGLE", "3388.iimp_qa_card_card_abc", { adoptSimulated: true });
+  });
+
+  it("bloquea la emisión real fuera de la allowlist sintética", async () => {
+    const base = walletConfig();
+    const restricted: WalletConfig = {
+      ...base,
+      google: { ...base.google!, allowedAssociateCodePrefixes: ["QA-TEST-"] },
+    };
+    const { service: wallet, googleClient, audit } = service({ config: restricted });
+    await expect(wallet.getGoogleLink(1, 9)).rejects.toMatchObject({ code: "NOT_ELIGIBLE" });
+    expect(googleClient.createSaveLink).not.toHaveBeenCalled();
+    expect(audit).toHaveBeenCalledWith(expect.objectContaining({ code: "ALLOWLIST_BLOCKED" }));
   });
 
   it("marca el error del proveedor sin romper la operación institucional", async () => {

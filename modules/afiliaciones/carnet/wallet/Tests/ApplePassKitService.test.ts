@@ -23,6 +23,7 @@ const apple: AppleWalletConfig = {
 const config: WalletConfig = {
   appBaseUrl: "https://portal.example",
   flags: { googleEnabled: false, appleEnabled: true },
+  modes: { google: "REAL", apple: "SIMULATION" },
   google: null,
   apple,
 };
@@ -105,7 +106,7 @@ function makeService(r: CardWalletRepository, build = vi.fn(async () => Buffer.f
     getConfig: () => config,
     makeBuilder: () => ({ build }),
     audit,
-    loadCard: async () => state,
+    loadCard: async () => state,
   });
 }
 

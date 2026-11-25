@@ -1,4 +1,4 @@
-﻿import { getWalletConfig, getWalletSimulationEnabled, getWalletSimulationFailure, type AppleWalletConfig, type GoogleWalletConfig, type WalletConfig } from "@/lib/config/wallet";
+﻿import { getWalletConfig, getWalletProviderMode, getWalletSimulationFailure, isGoogleWalletEmissionAllowed, type AppleWalletConfig, type GoogleWalletConfig, type WalletConfig } from "@/lib/config/wallet";
 import { getCardRecord, resolveCardData } from "@/modules/afiliaciones/carnet/Services/cardData";
 import { ApplePassBuilder, loadApplePassAssets } from "../Apple/ApplePassBuilder";
 import { ApplePushService } from "../Apple/ApplePushService";
@@ -12,11 +12,12 @@ import {
   type GoogleWalletLinkDto,
   type WalletPassSummary,
   type WalletProvider,
+  type WalletProviderMode,
   type WalletSimulationLinkDto,
   type WalletStatusDto,
 } from "../Types/wallet";
 import { writeWalletAudit, type WalletAuditEvent } from "./walletAudit";
-import { appleWalletSerialNumber, deriveApplePassAuthenticationToken } from "./walletIdentity";
+import { appleWalletSerialNumber, deriveApplePassAuthenticationToken, googleWalletObjectId } from "./walletIdentity";
 import { loadWalletCard, type WalletCardState } from "./walletState";
 
 export interface WalletSyncResult {
@@ -39,6 +40,8 @@ export interface CardWalletServiceDeps {
   readonly jobRepo?: CardWalletSyncJobRepository;
   readonly getConfig?: () => WalletConfig;
   readonly simulation?: () => boolean;
+  readonly providerMode?: (provider: WalletProvider) => WalletProviderMode;
+  readonly simulationFailure?: () => WalletProvider | null;
   readonly makeGoogleClient?: (config: GoogleWalletConfig, appBaseUrl: string) => GoogleClientLike;
   readonly makeAppleBuilder?: (config: AppleWalletConfig) => Pick<ApplePassBuilder, "build">;
   readonly makePush?: (config: AppleWalletConfig) => ApplePushLike | null;
@@ -81,7 +84,8 @@ export class CardWalletService {
   private readonly repo: CardWalletRepository;
   private readonly jobRepo: CardWalletSyncJobRepository;
   private readonly config: () => WalletConfig;
-  private readonly simulation: () => boolean;
+  private readonly providerMode: (provider: WalletProvider) => WalletProviderMode;
+  private readonly simulationFailure: () => WalletProvider | null;
   private readonly makeGoogleClient: NonNullable<CardWalletServiceDeps["makeGoogleClient"]>;
   private readonly makeAppleBuilder: NonNullable<CardWalletServiceDeps["makeAppleBuilder"]>;
   private readonly makePush: NonNullable<CardWalletServiceDeps["makePush"]>;
@@ -93,7 +97,11 @@ export class CardWalletService {
     this.repo = deps.repo ?? new PrismaCardWalletRepository();
     this.jobRepo = deps.jobRepo ?? new PrismaCardWalletSyncJobRepository();
     this.config = deps.getConfig ?? (() => getWalletConfig());
-    this.simulation = deps.simulation ?? (() => getWalletSimulationEnabled());
+    this.providerMode = deps.providerMode ?? ((provider) => {
+      if (deps.simulation) return deps.simulation() ? "SIMULATION" : "REAL";
+      return getWalletProviderMode(provider);
+    });
+    this.simulationFailure = deps.simulationFailure ?? (() => getWalletSimulationFailure());
     this.makeGoogleClient = deps.makeGoogleClient ?? ((config, appBaseUrl) => new GoogleWalletClient(config, appBaseUrl));
     this.makeAppleBuilder = deps.makeAppleBuilder ?? ((config) => new ApplePassBuilder(new OpenSslPassSigner(config), () => loadApplePassAssets()));
     this.makePush = deps.makePush ?? ((config) => (config.apns ? new ApplePushService(config.apns, config.passTypeIdentifier) : null));
@@ -104,12 +112,14 @@ export class CardWalletService {
 
   async getStatus(personId: number): Promise<WalletStatusDto> {
     const config = this.config();
+    const modes = { google: this.providerMode("GOOGLE"), apple: this.providerMode("APPLE") };
     const card = await getCardRecord(personId);
     if (!card) {
       return {
         enabled: { google: config.flags.googleEnabled, apple: config.flags.appleEnabled },
         configured: { google: config.google !== null, apple: config.apple !== null },
-        simulation: this.simulation(),
+        modes,
+        simulation: modes.google === "SIMULATION" || modes.apple === "SIMULATION",
         card: { generated: false, status: null, eligible: false },
         passes: [],
       };
@@ -121,14 +131,15 @@ export class CardWalletService {
     return {
       enabled: { google: config.flags.googleEnabled, apple: config.flags.appleEnabled },
       configured: { google: config.google !== null, apple: config.apple !== null },
-      simulation: this.simulation(),
+      modes,
+      simulation: modes.google === "SIMULATION" || modes.apple === "SIMULATION",
       card: { generated: true, status: card.status, eligible: Boolean(data?.eligible) },
       passes: rows.map((row) => passSummary(row.provider, row, row.deviceCount, jobsByPass.get(row.id))),
     };
   }
 
   async getGoogleLink(personId: number, actorUserId?: number): Promise<GoogleWalletLinkDto> {
-    if (this.simulation()) {
+    if (this.providerMode("GOOGLE") === "SIMULATION") {
       const simulated = await this.getSimulationLink(personId, "GOOGLE", actorUserId);
       return { link: simulated.link, created: false, objectId: simulated.externalPassId, status: "LINK_READY" };
     }
@@ -140,8 +151,19 @@ export class CardWalletService {
       throw new WalletError("PROVIDER_NOT_CONFIGURED", "Google Wallet aún no está configurado por el IIMP.");
     }
     const state = await this.loadCard(personId);
-    const objectId = `${config.google.issuerId}.iimp_card_${state.card.id}`;
-    const pass = await this.repo.ensurePass(state.card.id, "GOOGLE", objectId).catch((error) => {
+    if (!isGoogleWalletEmissionAllowed(config.google, { personId, associateCode: state.snapshot.associateCode })) {
+      await this.audit({
+        action: "CARD_WALLET_GOOGLE_LINK_READY",
+        personId,
+        actorUserId,
+        provider: "GOOGLE",
+        outcome: "FAILURE",
+        code: "ALLOWLIST_BLOCKED",
+      });
+      throw new WalletError("NOT_ELIGIBLE", "La emisión de Google Wallet no está autorizada para este asociado en este entorno.");
+    }
+    const objectId = googleWalletObjectId(config.google.issuerId, state.card.id, config.google.objectPrefix);
+    const pass = await this.repo.ensurePass(state.card.id, "GOOGLE", objectId, { adoptSimulated: true }).catch((error) => {
       throw new WalletError("PROVIDER_ERROR", "No pudimos preparar tu billetera digital.", { cause: error });
     });
     try {
@@ -194,7 +216,7 @@ export class CardWalletService {
   }
 
   async createApplePass(personId: number, actorUserId?: number): Promise<ApplePassResult> {
-    if (this.simulation()) {
+    if (this.providerMode("APPLE") === "SIMULATION") {
       throw new WalletError("PROVIDER_DISABLED", "Apple Wallet está en modo de simulación local.");
     }
     const config = this.config();
@@ -300,9 +322,13 @@ export class CardWalletService {
     personId: number,
     actorUserId?: number,
   ): Promise<WalletSyncResult> {
-    if (this.simulation()) {
+    if (this.providerMode(pass.provider) === "SIMULATION") {
       if (!pass.externalPassId.startsWith("SIMULATED-")) {
         return { provider: pass.provider, status: "FAILED", code: "LOCAL_SIMULATION" };
+      }
+      if (this.simulationFailure() === pass.provider) {
+        await this.repo.markFailed(pass.id, "SIMULATED_TRANSIENT_ERROR").catch(() => undefined);
+        return { provider: pass.provider, status: "FAILED", code: "SIMULATED_TRANSIENT_ERROR" };
       }
       if (state.snapshot.revoked) await this.repo.markRevoked(pass.id, this.now());
       else await this.repo.markSynced(pass.id, this.now());
@@ -313,7 +339,16 @@ export class CardWalletService {
         await this.repo.markFailed(pass.id, "GOOGLE_NOT_CONFIGURED").catch(() => undefined);
         return { provider: "GOOGLE", status: "FAILED", code: "GOOGLE_NOT_CONFIGURED" };
       }
+      if (!isGoogleWalletEmissionAllowed(config.google, { personId, associateCode: state.snapshot.associateCode })) {
+        await this.repo.markFailed(pass.id, "ALLOWLIST_BLOCKED").catch(() => undefined);
+        return { provider: "GOOGLE", status: "FAILED", code: "ALLOWLIST_BLOCKED" };
+      }
       try {
+        // Transición controlada de fixtures locales: si el pase estaba en modo
+        // simulación, se adopta el identificador real estable antes de sincronizar.
+        await this.repo
+          .ensurePass(state.card.id, "GOOGLE", googleWalletObjectId(config.google.issuerId, state.card.id, config.google.objectPrefix), { adoptSimulated: true })
+          .catch(() => undefined);
         const client = this.makeGoogleClient(config.google, config.appBaseUrl);
         await client.syncObject(state.snapshot);
         if (state.snapshot.revoked) await this.repo.markRevoked(pass.id, this.now());

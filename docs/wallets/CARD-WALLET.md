@@ -402,3 +402,274 @@ reales. No se publicó información real en este entorno.
   implementados y probados de forma simulada.
 - Funcionamiento real Google/Apple: **NOT VALIDATED** hasta contar con credenciales,
   certificados y dispositivos físicos.
+
+## 16. CARD-WALLET-LOCAL-COMPLETION-03 — cierre local
+
+Ejecución local sobre `local_bd_afiliaciones` (PostgreSQL 17, `localhost:5432`).
+Sin despliegues, sin AWS, sin commits. Las migraciones `20261124180000` y
+`20261124190000` ya estaban aplicadas y **no se reaplicaron**.
+
+### 16.1 Defectos reales corregidos
+
+1. **Sincronización quedaba `requeued` en vez de `COMPLETED`.**
+   `complete()` comparaba `updated_at` (`TIMESTAMP(3)` sin zona) contra un `Date`
+   que Prisma enlaza como `timestamptz` (`05:01:02.646-05` vs almacenado
+   `10:01:02.646`), por lo que la igualdad nunca se cumplía y todo trabajo se
+   devolvía a `PENDING`. Se normaliza el valor reclamado con `AT TIME ZONE 'UTC'`
+   antes de comparar. Evidencia: el worker pasó de `claimed=2, completed=0,
+   requeued=2` a `claimed=2, completed=2, requeued=0`.
+2. **`revokedAt` no se limpiaba al re-sincronizar un carné reemitido.**
+   `markSynced()` ahora fija `revokedAt = null`, evitando pases `SYNCED` con
+   fecha de revocación residual.
+3. **Fallo transitorio local no estaba conectado.** `getWalletSimulationFailure()`
+   se importaba pero no se usaba. Ahora `syncPass()` devuelve
+   `SIMULATED_TRANSIENT_ERROR` para el proveedor configurado, lo que ejercita el
+   camino de reintento real del outbox.
+
+### 16.2 Worker local y comandos npm
+
+```bash
+npm run wallet:sync         # un ciclo: recover + reconcile + claim + process + metrics
+npm run wallet:sync:watch   # ciclos periódicos secuenciales con SIGINT/SIGTERM
+```
+
+- `wallet:sync` usa `scripts/process-card-wallet-jobs.ts` (one-shot).
+- `wallet:sync:watch` usa `scripts/process-card-wallet-jobs-watch.ts`: sin
+  solapamiento, respeta `CARD_WALLET_SYNC_INTERVAL_SECONDS`, recupera leases al
+  reiniciar y cierra ordenadamente.
+- Resultados verificados en PostgreSQL: trabajo `COMPLETED`, fallo transitorio →
+  `RETRY` con `SIMULATED_TRANSIENT_ERROR` y `next_attempt_at`, recuperación a
+  `COMPLETED` tras desactivar el fallo, revocación → pases `REVOKED`. En los tres
+  casos `requeued=0` (ownership/lease correcto).
+
+### 16.3 Responsive y UX
+
+- El carné usa proporción fija `1.7:1` solo desde `sm`; en móvil crece con el
+  contenido (`min-h-[300px]`, filas `auto/1fr/auto`), eliminando la superposición
+  del pie con los datos que ocurría a 320–390 px.
+- Verificado sin desbordamiento horizontal en 320, 375, 390, 430, 768, 1024,
+  1440 y 1920 px (Puppeteer, `scrollWidth == clientWidth`).
+- Botones Wallet: bloqueo síncrono anti doble clic con `useRef`; Apple Wallet con
+  estilo propio (gradiente grafito + brillo/destellos) y `prefers-reduced-motion`.
+- Panel admin: badges semánticos (verde solo para saludable; ámbar para
+  pendiente/procesando/reintento; rojo para fallo; gris para deshabilitado/
+  sin configurar/revocado).
+
+### 16.4 Pruebas ejecutadas (evidencia)
+
+| Verificación | Resultado |
+| --- | --- |
+| `npm run typecheck` | OK |
+| `npx vitest run lib/config/wallet.test.ts modules/afiliaciones/carnet/wallet/Tests` | 7 archivos, 48 pruebas OK |
+| `npm test` (suite completa) | 289 archivos, 2467 pruebas OK, 0 fallos |
+| `npx prisma validate` | Válido |
+| `npm run security:secrets` | Sin coincidencias de alta confianza |
+| `npm run build` | OK |
+| `git diff --check` | OK |
+| Docker `wallet-sync` | Imagen construida; Node 22.23.5, OpenSSL 3.0.22, Prisma Client y tsx presentes; worker conectó a la BD local (`completed=2` en métricas) |
+| Docker `runner` | Imagen construida; arranca en `NODE_ENV=production` y `/login` responde 200 con placeholders locales |
+| Puppeteer | Asociado vigente + Google/Apple simulación, asociado sin carné, no elegible, admin (API 200) y CAJA (403); sin errores JS en flujos válidos |
+
+Capturas locales (fuera de Git):
+`C:\Users\maxic\AppData\Local\Temp\opencode\wallet-evidence\`
+(`01`–`05`, `06`, `09`, `16`–`18`, variantes responsive 320–1920,
+`puppeteer-report.json`, `responsive-report.json`).
+
+### 16.5 Usuarios sintéticos locales
+
+`wallet.local.activo`, `wallet.local.nuevo`, `wallet.local.sinmembresia`,
+`wallet.local.admin`, `wallet.local.caja` (`@iimp.org.pe`). Sus contraseñas se
+resetean localmente mediante un script temporal con `WALLET_LOCAL_PASSWORD`
+inyectada por variable de entorno; **no se versiona ninguna contraseña**.
+El usuario `activo` conserva un carné `ISSUED` y ambos pases en `SYNCED`
+(`SIMULATED-*`).
+
+### 16.6 Aislamiento de simulación (recordatorio verificado)
+
+- `getWalletSimulationEnabled()` exige `NODE_ENV !== production` **y** flag
+  explícito; en las imágenes Docker (`NODE_ENV=production`) la simulación queda
+  bloqueada.
+- Un pase real no puede marcarse como sincronizado por el adaptador simulado
+  (`LOCAL_SIMULATION`); un pase `SIMULATED-*` no se envía a proveedores reales ni
+  genera APNs.
+- Las rutas de simulación validan sesión, propiedad del carné y elegibilidad.
+
+### 16.7 Pendientes externos (sin cambios respecto a lo anterior)
+
+- QA/PROD **NOT AUTHORIZED**; AWS/SSM/Secrets Manager sin tocar.
+- Google Wallet real y Apple Wallet real siguen **NOT VALIDATED**: requieren
+  aprobación de clase Google, certificados Apple, APNs y dispositivos físicos.
+- El badge oficial de Apple sigue **BLOCKED** por licencia; se mantiene botón
+  propio accesible.
+
+## 17. CARD-GOOGLE-WALLET-REAL-LOCAL-04 — Google real en local
+
+Esta fase conecta **Google Wallet real** con datos sintéticos, manteniendo **Apple
+Wallet en simulación**. Solo entorno local; sin QA, PROD, AWS ni publicación.
+
+### 17.1 Configuración
+
+- Proyecto Google Cloud: `iimp-digital-wallet` (número `736997702590`).
+- API habilitada: `walletobjects.googleapis.com`.
+- Issuer ID: `3388000000023251742`.
+- Class ID local: `3388000000023251742.iimp_membership_local`.
+- Cuenta de servicio: `iimp-wallet-service-local@iimp-digital-wallet.iam.gserviceaccount.com`
+  (permiso Desarrollador; publicación **no** solicitada).
+- Credenciales: `C:/IIMP/secrets/google-wallet/...json`, **fuera de htdocs**, sin
+  copia expuesta. ACL restringida a Administradores/SYSTEM y el usuario local
+  (lectura). No se versiona ni se imprime el contenido.
+
+Variables server-side efectivas (`.env` local, ignorado por Git):
+
+```env
+CARD_GOOGLE_WALLET_ENABLED=true
+CARD_APPLE_WALLET_ENABLED=true
+CARD_GOOGLE_WALLET_MODE=REAL
+CARD_APPLE_WALLET_MODE=SIMULATION
+CARD_WALLET_LOCAL_SIMULATION=true        # habilita la simulación de Apple
+GOOGLE_WALLET_ISSUER_ID=3388000000023251742
+GOOGLE_WALLET_CLASS_ID=3388000000023251742.iimp_membership_local
+GOOGLE_WALLET_CREDENTIALS_FILE=C:/IIMP/secrets/google-wallet/<archivo>.json
+GOOGLE_WALLET_CLASS_AUTO_CREATE=true
+```
+
+`getWalletProviderMode(provider)` resuelve el modo por proveedor y **nunca**
+habilita simulación en `NODE_ENV=production`.
+
+### 17.2 Diagnóstico real
+
+```bash
+npm run wallet:google:doctor                 # solo lectura
+npx tsx scripts/wallet-google-doctor.ts --create   # crea/reutiliza la clase
+npx tsx scripts/wallet-google-doctor.ts --object <objectId>
+```
+
+Evidencia obtenida (sin exponer tokens):
+
+```text
+OAuth authentication: OK
+Google Wallet API connectivity: OK
+Issuer access: OK
+Class exists: YES
+Object query: OK
+Objects in class: 1
+Object state: active
+Object class matches: OK
+Object barcode: PRESENT
+```
+
+Resultado `--create`: `Class operation: CREATED`; ejecuciones posteriores la
+reutilizan (GET `200`, sin duplicados).
+
+### 17.3 Generic Object real
+
+- Objeto: `3388000000023251742.iimp_card_<cardId>` (identificador opaco estable,
+  sin DNI/correo/nombre).
+- Primera emisión: `created=true`; segunda: `created=false` (GET + PATCH,
+  idempotente) y `Objects in class: 1` (sin duplicados).
+- Enlace: `https://pay.google.com/gp/v/save/<JWT RS256>` (el JWT no se imprime).
+- Transición controlada: un pase local `SIMULATED-GOOGLE-*` se adopta a su
+  identificador real solo para el fixture sintético; un pase real no se
+  sobrescribe.
+- En local (`http://localhost`) se omite `logo.sourceUri` y `origins` para no
+  enviar a Google una URL inalcanzable; la verificación legal de publicación
+  queda pendiente.
+
+### 17.4 Sincronización, revocación y reemisión reales
+
+Worker `npm run wallet:sync` con el fixture sintético:
+
+| Acción | Resultado |
+| --- | --- |
+| Emisión | Google Object `created=true`, pase `SYNCED` |
+| Repetición | `created=false`, sin duplicados |
+| Revocación | job `COMPLETED`; objeto Google `state=inactive`; QR inválido |
+| Reemisión | job `COMPLETED`; objeto `state=active`; QR válido; `revokedAt=null` |
+
+Apple permaneció en simulación (sin APNs ni llamadas a Apple).
+
+### 17.5 Seguridad y modo por proveedor
+
+- Sin sesión: `POST /wallet/google` → 403; `GET /carnet/{personId}/wallet` → 401;
+  `GET /wallet/apple` → 403 (denegado).
+- `CARD_WALLET_LOCAL_SIMULATION` no puede activarse en producción; el modo por
+  proveedor se resuelve en servidor.
+- `.env` ignorado por Git; `security:secrets` sin coincidencias; credenciales con
+  ACL restringida y fuera del web root.
+- No se solicitó publicación; la cuenta opera en modo demostración (posible
+  etiqueta **TEST ONLY** en Android).
+
+### 17.6 Limitación del QR local y prueba Android
+
+El QR contiene `http://localhost:3000/verificar-carnet/<token>`. Un Android no
+resuelve `localhost` de la PC. La verificación local se validó por HTTP; para
+probarla desde un teléfono se requiere una LAN controlada (autorizada) con datos
+sintéticos. No se abren puertos públicos ni túneles.
+
+Flujo manual de instalación física (pendiente de evidencia):
+
+1. Iniciar sesión local como `wallet.local.activo@iimp.org.pe`.
+2. Abrir `/intranet/mi-cuenta/carnet`.
+3. Presionar **Agregar a Google Wallet** (genera el enlace real).
+4. Abrir el enlace con una cuenta Google autorizada en el emisor (demo mode).
+5. Confirmar y abrir Google Wallet en el Android.
+6. Verificar campos y QR. La instalación física no se declara hasta confirmarla.
+
+### 17.7 Capturas locales
+
+`C:\Users\maxic\AppData\Local\Temp\opencode\google-wallet-evidence\`:
+`02-asociado-carne-wallet-real.png`, `03-admin-google-wallet-estado.png`,
+`05-apple-wallet-simulacion-local.png`, `06-google-wallet-revocacion.png`,
+`01-admin-directorio.png`, más reportes JSON sanitizados.
+
+### 17.8 Pruebas
+
+`npm run typecheck`, `eslint --quiet`, 50 pruebas Wallet/config, suite completa
+2469/2469, `prisma validate`, `security:secrets`, `npm run build` y
+`git diff --check` en verde. Autenticación/objeto reales validados vía API de
+Google; instalación física en Android **PENDING**.
+
+## 18. CARD-GOOGLE-WALLET-QA-DEPLOYMENT-05 — estado QA
+
+Objetivo: Google Wallet real en QA con **datos sintéticos**, Apple deshabilitado,
+sin publicación y sin tocar LOCAL/PROD. Runbook detallado:
+`docs/wallets/CARD-WALLET-QA-RUNBOOK.md`.
+
+### 18.1 Evidencia real ejecutada
+
+- Credenciales QA (`iimp-wallet-service-qa@...`) validadas de forma sanitizada:
+  `type=service_account`, proyecto correcto, clave RS256 compatible.
+- Autenticación real QA: `OAuth OK`, `API OK`, `Issuer access OK`.
+- `Generic Class` QA `3388000000023251742.iimp_membership_qa`: `CREATED` y luego
+  reutilizada (`Class exists: YES`, `Objects in class: 0`).
+- LOCAL **intacto**: clase `..._local`, `Objects in class: 1`, objeto `active`,
+  `class matches: OK`.
+
+### 18.2 Aislamiento por ambiente (código)
+
+- `GOOGLE_WALLET_OBJECT_PREFIX`: namespace del objeto (`iimp_card_` histórico
+  LOCAL por defecto, `iimp_qa_card_` QA). El identificador LOCAL existente no
+  cambia.
+- `getGoogleWalletConfig` rechaza clases de otro issuer (`null`) y valida el
+  prefijo del namespace antes de crear/modificar objetos.
+- El cliente rechaza modificar un objeto existente cuya `classId` no coincida.
+- Allowlist QA: `CARD_WALLET_ALLOWED_ASSOCIATE_PREFIXES` (p. ej. `QA-TEST-`) y/o
+  `CARD_WALLET_ALLOWED_PERSON_IDS`. Aplica en emisión (`getGoogleLink`) y en el
+  worker (`syncPass`); `ALLOWLIST_BLOCKED` es error permanente (sin reintentos).
+- Pruebas: 57 Wallet/config (antes 50), suite completa 2476/2476.
+
+### 18.3 Bloqueo de despliegue (no ejecutado)
+
+`origin/qa` **no contiene** el módulo Wallet (`CardWalletService.ts` ausente), por
+lo que la app QA actual no tiene esta funcionalidad. Además:
+
+- `qa-deploy.yml` solo publica la imagen `app` y la despliega por SSM; **no**
+  ejecuta migraciones ni provisiona worker.
+- No existe servicio persistente `wallet-sync` en la instancia QA.
+- El mapeo SSM→env del contenedor no está versionado en el repo (compose en la
+  instancia), por lo que la inyección del JSON de Google QA no está verificada.
+- No hay fixture sintético QA (`wallet.qa.activo`) creado ni acceso directo a la
+  base QA (PostgreSQL local en la instancia, CIDR restringido).
+
+Por seguridad **no** se desplegó, no se crearon secretos SSM ni se modificó AWS.
+El plan exacto y los comandos quedan en el runbook.

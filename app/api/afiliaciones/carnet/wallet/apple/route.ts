@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getWalletSimulationEnabled } from "@/lib/config/wallet";
+import { isWalletProviderSimulation } from "@/lib/config/wallet";
 import { consumeRateLimit } from "@/lib/security/rate-limit";
 import { contextService } from "@/modules/auth/context/service";
 import { CardWalletService } from "@/modules/afiliaciones/carnet/wallet/Services/CardWalletService";
@@ -20,7 +20,7 @@ export async function GET() {
       throw new WalletError("RATE_LIMITED", "Demasiadas solicitudes. Intenta nuevamente en un momento.");
     }
     const personId = await resolveAffiliatePersonId(user.id);
-    if (getWalletSimulationEnabled()) {
+    if (isWalletProviderSimulation("APPLE")) {
       const data = await new CardWalletService().getAppleSimulationLink(personId, user.id);
       return NextResponse.json(
         { success: true, data: { ...data, simulated: true } },

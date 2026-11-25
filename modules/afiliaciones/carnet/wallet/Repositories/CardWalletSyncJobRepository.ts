@@ -232,15 +232,19 @@ export class PrismaCardWalletSyncJobRepository implements CardWalletSyncJobRepos
   }
 
   async complete(id: string, workerId: string, claimedUpdatedAt: Date, expectedOperation: SyncOperation): Promise<boolean> {
+    // `updated_at` es TIMESTAMP(3) sin zona; Prisma enlaza un Date como
+    // timestamptz. Convertimos el valor reclamado a la misma representación
+    // naïve (UTC) para comparar con precisión de milisegundos.
+    const claimedNaive = Prisma.sql`(${claimedUpdatedAt} AT TIME ZONE 'UTC')`;
     const rows = await prisma.$queryRaw<Array<{ status: string }>>(Prisma.sql`
       UPDATE "card_wallet_sync_jobs"
       SET "status" = CASE
-            WHEN "updated_at" = ${claimedUpdatedAt} AND "operation" = ${expectedOperation}::"CardWalletSyncOperation" THEN 'COMPLETED'::"CardWalletSyncJobStatus"
+            WHEN "updated_at" = ${claimedNaive} AND "operation" = ${expectedOperation}::"CardWalletSyncOperation" THEN 'COMPLETED'::"CardWalletSyncJobStatus"
             ELSE 'PENDING'::"CardWalletSyncJobStatus"
           END,
-          "completed_at" = CASE WHEN "updated_at" = ${claimedUpdatedAt} THEN now() ELSE NULL END,
-          "attempt_count" = CASE WHEN "updated_at" = ${claimedUpdatedAt} THEN "attempt_count" ELSE 0 END,
-          "next_attempt_at" = CASE WHEN "updated_at" = ${claimedUpdatedAt} THEN "next_attempt_at" ELSE now() END,
+          "completed_at" = CASE WHEN "updated_at" = ${claimedNaive} THEN now() ELSE NULL END,
+          "attempt_count" = CASE WHEN "updated_at" = ${claimedNaive} THEN "attempt_count" ELSE 0 END,
+          "next_attempt_at" = CASE WHEN "updated_at" = ${claimedNaive} THEN "next_attempt_at" ELSE now() END,
           "last_error_code" = NULL,
           "last_error_message" = NULL,
           "locked_at" = NULL,
