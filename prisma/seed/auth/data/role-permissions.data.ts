@@ -130,6 +130,7 @@ export const rolePermissionsData: RolePermissionMatrix = {
     ["upload", "documents"],
     ["read", "documents"],
     ["read", "memberships"],
+    ["update", "memberships"],
     ["read", "associates"],
     ["update", "associates"],
     ["read", "cards"],
