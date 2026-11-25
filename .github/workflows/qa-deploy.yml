@@ -139,6 +139,20 @@ jobs:
           cache-to: type=gha,mode=max,scope=qa-web-image
           provenance: false
 
+      - name: Build and push QA wallet worker image
+        id: worker
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: wallet-sync
+          push: true
+          tags: ${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY }}:qa-wallet-sync-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          build-args: |
+            NEXT_PUBLIC_APP_URL=${{ env.QA_BASE_URL }}
+          cache-from: type=gha,scope=qa-web-image
+          cache-to: type=gha,mode=max,scope=qa-wallet-worker
+          provenance: false
+
       - name: Verify image is available in ECR
         env:
           EXPECTED_DIGEST: ${{ steps.build.outputs.digest }}
