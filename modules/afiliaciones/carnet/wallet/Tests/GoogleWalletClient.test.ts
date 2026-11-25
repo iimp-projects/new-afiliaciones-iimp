@@ -104,6 +104,13 @@ describe("GoogleWalletClient", () => {
     const result = await client.createSaveLink(snapshot);
     expect(result.objectId).toBe("338800000001.iimp_qa_card_card_abc");
     expect(buildGenericObjectPayload({ config: qaConfig, snapshot, appBaseUrl }).classId).toBe("338800000001.iimp_membership_qa");
+
+    // Regresión: el JWT debe apuntar al mismo objeto creado (con prefijo QA),
+    // no a un id sin prefijo que no existe.
+    const jwt = result.link.split("/").at(-1) as string;
+    const decoded = verify(jwt, publicKey, { algorithms: ["RS256"] }) as JwtPayload;
+    const referenced = (decoded.payload as { genericObjects: Array<{ id: string }> }).genericObjects[0].id;
+    expect(referenced).toBe(result.objectId);
   });
 
   it("rechaza modificar un objeto existente de otra clase", async () => {

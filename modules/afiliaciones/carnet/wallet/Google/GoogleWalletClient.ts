@@ -113,7 +113,8 @@ export class GoogleWalletClient {
     await this.ensureClass(accessToken);
     const payload = buildGenericObjectPayload({ config: this.config, snapshot, appBaseUrl: this.appBaseUrl });
     const created = await this.upsertObject(accessToken, payload);
-    const jwt = this.signSaveJwt(googleWalletObjectId(this.config.issuerId, snapshot.cardId));
+    // El JWT debe referenciar EXACTAMENTE el objeto creado (mismo objectPrefix).
+    const jwt = this.signSaveJwt(payload.id);
     return {
       link: `https://pay.google.com/gp/v/save/${jwt}`,
       created,
