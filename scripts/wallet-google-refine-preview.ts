@@ -24,7 +24,8 @@ import type { WalletCardSnapshot } from "@/modules/afiliaciones/carnet/wallet/Ty
  * - Relee el objeto y compara los campos aplicados.
  *
  * Uso (solo QA):
- *   npm run wallet:google:refine -- --variant gold [--object <id>] [--print-link]
+ *   npm run wallet:google:refine -- --variant champagne [--object <id>] [--print-link]
+ *   Variantes: champagne (prioritaria), soft-gold, ivory, gold.
  */
 const VISUAL_FIELDS = [
   "cardTitle",
@@ -146,9 +147,10 @@ export async function runGoogleWalletRefine(): Promise<number> {
     return 1;
   }
 
-  const variantArg = (argValue("--variant") ?? "gold").toLowerCase();
-  if (variantArg !== "gold" && variantArg !== "ivory") {
-    console.error(`Variante no válida: ${variantArg}. Use "gold" o "ivory".`);
+  const variantArg = (argValue("--variant") ?? "champagne").toLowerCase();
+  const validVariants: readonly WalletBrandVariant[] = ["champagne", "soft-gold", "ivory", "gold"];
+  if (!validVariants.includes(variantArg as WalletBrandVariant)) {
+    console.error(`Variante no válida: ${variantArg}. Use champagne, soft-gold, ivory o gold.`);
     return 1;
   }
   const variant = variantArg as WalletBrandVariant;

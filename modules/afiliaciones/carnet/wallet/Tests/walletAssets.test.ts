@@ -24,8 +24,8 @@ function readPngHeader(file: string) {
  */
 describe("Google Wallet brand assets", () => {
   const assets = [
-    { file: "wide-logo-light-v2.png", width: 1280, height: 400 },
-    { file: "wide-logo-dark-v2.png", width: 1280, height: 400 },
+    { file: "wide-logo-dark-v3.png", width: 1280, height: 400 },
+    { file: "wide-logo-light-v3.png", width: 1280, height: 400 },
     { file: "hero-v2.png", width: 1032, height: 812 },
     { file: "logo-square-v1.png", width: 720, height: 720 },
   ] as const;

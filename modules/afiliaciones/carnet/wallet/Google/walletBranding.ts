@@ -10,15 +10,20 @@ import type { WalletCardSnapshot } from "../Types/wallet";
  * `hexBackgroundColor` nativo y, en la cabecera móvil, reemplaza al logo
  * cuadrado + `cardTitle` (ver template oficial de Generic Pass).
  */
-export const WALLET_BRAND_VERSION = "20261126-premium-gold-2";
+export const WALLET_BRAND_VERSION = "20261126-champagne-1";
 
-export type WalletBrandVariant = "gold" | "ivory";
+export type WalletBrandVariant = "champagne" | "soft-gold" | "ivory" | "gold";
 
 export interface WalletBrandPalette {
   readonly gold: string;
   readonly goldLight: string;
   readonly goldAccent: string;
+  readonly champagne: string;
+  readonly champagneStart: string;
+  readonly champagneEnd: string;
+  readonly softGold: string;
   readonly ivory: string;
+  readonly ink: string;
   readonly white: string;
   readonly text: string;
   readonly textSecondary: string;
@@ -42,21 +47,32 @@ export interface WalletBrand {
 }
 
 /**
- * Dos variantes listas para evaluar. `gold` es la prioritaria: fondo dorado
- * institucional real (#7F561E, token `--color-primary` de `app/globals.css`) y
- * lockup marfil transparente para alto contraste. `ivory` conserva el lockup
- * oficial oscuro sobre marfil premium.
+ * Variantes de presentación. `champagne` (#DCC69C) es la prioritaria: dorado
+ * claro, elegante y con lockup oscuro de alto contraste. `soft-gold` e `ivory`
+ * mantienen el mismo lockup oscuro sobre tonos más cálidos/claros. `gold`
+ * conserva el dorado institucional oscuro (#7F561E) con lockup marfil como
+ * alternativa.
  */
 export const WALLET_BRAND_VARIANTS = {
-  gold: {
-    background: "#7F561E",
-    wideLogo: "images/wallet/gold/wide-logo-light-v2.png",
+  champagne: {
+    background: "#DCC69C",
+    wideLogo: "images/wallet/gold/wide-logo-dark-v3.png",
+    hero: "images/wallet/gold/hero-v2.png",
+  },
+  "soft-gold": {
+    background: "#CBB17D",
+    wideLogo: "images/wallet/gold/wide-logo-dark-v3.png",
     hero: "images/wallet/gold/hero-v2.png",
   },
   ivory: {
-    background: "#FAF8F3",
-    wideLogo: "images/wallet/gold/wide-logo-dark-v2.png",
-    hero: "images/wallet/gold/hero-v1.png",
+    background: "#F3EBDD",
+    wideLogo: "images/wallet/gold/wide-logo-dark-v3.png",
+    hero: "images/wallet/gold/hero-v2.png",
+  },
+  gold: {
+    background: "#7F561E",
+    wideLogo: "images/wallet/gold/wide-logo-light-v3.png",
+    hero: "images/wallet/gold/hero-v2.png",
   },
 } as const satisfies Record<WalletBrandVariant, { background: string; wideLogo: string; hero: string }>;
 
@@ -71,14 +87,19 @@ const BASE_PALETTE = {
   gold: "#7F561E",
   goldLight: "#C39254",
   goldAccent: "#A87924",
-  ivory: "#FAF8F3",
+  champagne: "#DCC69C",
+  champagneStart: "#F4E8CF",
+  champagneEnd: "#BDA16D",
+  softGold: "#CBB17D",
+  ivory: "#F3EBDD",
+  ink: "#49361C",
   white: "#FFFFFF",
   text: "#1F1F1F",
   textSecondary: "#5F5E5D",
   statusOk: "#237A45",
 } as const;
 
-export function buildWalletBrand(variant: WalletBrandVariant = "gold"): WalletBrand {
+export function buildWalletBrand(variant: WalletBrandVariant = "champagne"): WalletBrand {
   const selected = WALLET_BRAND_VARIANTS[variant];
   return {
     version: WALLET_BRAND_VERSION,
@@ -91,10 +112,10 @@ export function buildWalletBrand(variant: WalletBrandVariant = "gold"): WalletBr
 }
 
 /**
- * Variante activa del pase. Para evaluar marfil premium, cambiar a `ivory` o
- * ejecutar `npm run wallet:google:refine -- --variant ivory`.
+ * Variante activa del pase. `champagne` es la prioritaria; se puede alternar con
+ * `npm run wallet:google:refine -- --variant soft-gold|ivory|gold`.
  */
-export const WALLET_BRAND = buildWalletBrand("gold");
+export const WALLET_BRAND = buildWalletBrand("champagne");
 
 export function resolveWalletAsset(appBaseUrl: string, assetPath: string): string | null {
   if (!/^https:\/\//i.test(appBaseUrl)) return null;

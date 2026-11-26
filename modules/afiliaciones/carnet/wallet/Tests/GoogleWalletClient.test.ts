@@ -138,7 +138,7 @@ describe("GoogleWalletClient", () => {
     expect(object.cardTitle.defaultValue.value).toBe("Carné IIMP");
     expect(object.header.defaultValue.value).toBe(snapshot.fullName);
     expect(object.subheader.defaultValue.value).toBe(snapshot.membershipType);
-    expect(object.hexBackgroundColor).toBe("#7F561E");
+    expect(object.hexBackgroundColor).toBe("#DCC69C");
     expect(object.textModulesData.map((module) => module.id)).toEqual([
       "membership_type",
       "membership_status",
@@ -151,8 +151,9 @@ describe("GoogleWalletClient", () => {
 
     const serialized = JSON.stringify(object);
     expect(serialized).toContain("/images/wallet/gold/logo-square-v1.png");
-    expect(serialized).toContain("/images/wallet/gold/wide-logo-light-v2.png");
+    expect(serialized).toContain("/images/wallet/gold/wide-logo-dark-v3.png");
     expect(serialized).not.toContain("wide-logo-v1.png");
+    expect(serialized).not.toContain("wide-logo-light-v2.png");
     expect(serialized).toContain("/images/wallet/gold/hero-v2.png");
 
     const cls = buildGenericClassPayload(config);
@@ -163,20 +164,30 @@ describe("GoogleWalletClient", () => {
     expect(JSON.stringify(cls.classTemplateInfo)).toContain("object.linksModuleData.uris['verify']");
   });
 
-  it("prepara las dos variantes con recursos transparentes versionados", () => {
-    const gold = buildWalletBrand("gold");
+  it("prepara las cuatro variantes con recursos transparentes versionados", () => {
+    const champagne = buildWalletBrand("champagne");
+    const softGold = buildWalletBrand("soft-gold");
     const ivory = buildWalletBrand("ivory");
-    expect(gold.palette.background).toBe("#7F561E");
-    expect(gold.assets.wideLogo).toContain("wide-logo-light-v2.png");
-    expect(ivory.palette.background).toBe("#FAF8F3");
-    expect(ivory.assets.wideLogo).toContain("wide-logo-dark-v2.png");
+    const gold = buildWalletBrand("gold");
 
-    const goldObject = buildGenericObjectPayload({ config, snapshot, appBaseUrl, brand: gold });
-    const ivoryObject = buildGenericObjectPayload({ config, snapshot, appBaseUrl, brand: ivory });
-    expect(goldObject.hexBackgroundColor).toBe("#7F561E");
-    expect(ivoryObject.hexBackgroundColor).toBe("#FAF8F3");
-    expect(JSON.stringify(goldObject)).toContain("wide-logo-light-v2.png");
-    expect(JSON.stringify(ivoryObject)).toContain("wide-logo-dark-v2.png");
+    expect(champagne.palette.background).toBe("#DCC69C");
+    expect(softGold.palette.background).toBe("#CBB17D");
+    expect(ivory.palette.background).toBe("#F3EBDD");
+    expect(gold.palette.background).toBe("#7F561E");
+
+    expect(champagne.assets.wideLogo).toContain("wide-logo-dark-v3.png");
+    expect(softGold.assets.wideLogo).toContain("wide-logo-dark-v3.png");
+    expect(ivory.assets.wideLogo).toContain("wide-logo-dark-v3.png");
+    expect(gold.assets.wideLogo).toContain("wide-logo-light-v3.png");
+
+    for (const brand of [champagne, softGold, ivory, gold]) {
+      const object = buildGenericObjectPayload({ config, snapshot, appBaseUrl, brand });
+      expect(object.hexBackgroundColor).toBe(brand.palette.background);
+      expect(JSON.stringify(object)).toContain(brand.assets.wideLogo);
+    }
+    expect(champagne.palette.champagne).toBe("#DCC69C");
+    expect(champagne.palette.champagneStart).toBe("#F4E8CF");
+    expect(champagne.palette.champagneEnd).toBe("#BDA16D");
   });
 
   it("la sincronización del worker re-aplica color, jerarquía y recursos", async () => {
@@ -197,9 +208,9 @@ describe("GoogleWalletClient", () => {
 
     expect(patchBodies).toHaveLength(1);
     const body = JSON.parse(patchBodies[0]) as Record<string, unknown>;
-    expect(body.hexBackgroundColor).toBe("#7F561E");
+    expect(body.hexBackgroundColor).toBe("#DCC69C");
     expect(body.cardTitle).toEqual({ defaultValue: { language: "es", value: "Carné IIMP" } });
-    expect(JSON.stringify(body.wideLogo)).toContain("wide-logo-light-v2.png");
+    expect(JSON.stringify(body.wideLogo)).toContain("wide-logo-dark-v3.png");
     expect(JSON.stringify(body)).not.toContain("wide-logo-v1.png");
   });
 
