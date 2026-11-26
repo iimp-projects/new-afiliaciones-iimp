@@ -215,9 +215,18 @@ export async function runGoogleWalletRefine(): Promise<number> {
   const backupDir = join(tmpdir(), "afiliaciones-wallet-refine");
   mkdirSync(backupDir, { recursive: true });
   const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+  const expectedPrefix = `${google.issuerId}.${google.objectPrefix}`;
   let failures = 0;
+  let skipped = 0;
 
   for (const before of targets) {
+    // Objetos de diagnóstico/legado de la misma clase pero fuera del namespace
+    // del ambiente no se tocan: protege contra cambios cruzados.
+    if (!before.id.startsWith(expectedPrefix)) {
+      console.info(`SKIP ${before.id}: fuera del namespace ${expectedPrefix} (no se modifica)`);
+      skipped += 1;
+      continue;
+    }
     const objectId = before.id;
     const safeId = objectId.replace(/[^a-zA-Z0-9._-]/g, "_");
     const backupFile = join(backupDir, `${safeId}-visual-backup-${stamp}.json`);
@@ -275,7 +284,9 @@ export async function runGoogleWalletRefine(): Promise<number> {
     else console.info(`SAVE_LINK_FILE ${linkFile}`);
   }
 
-  console.info(`Objects refined: ${targets.length - failures}/${targets.length}`);
+  console.info(
+    `Objects refined: ${targets.length - failures - skipped}/${targets.length} (skipped=${skipped}, failed=${failures})`,
+  );
   return failures === 0 ? 0 : 1;
 }
 
