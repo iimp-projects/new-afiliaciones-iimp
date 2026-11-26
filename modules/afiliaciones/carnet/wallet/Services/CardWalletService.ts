@@ -104,7 +104,24 @@ export class CardWalletService {
     this.simulationFailure = deps.simulationFailure ?? (() => getWalletSimulationFailure());
     this.makeGoogleClient = deps.makeGoogleClient ?? ((config, appBaseUrl) => new GoogleWalletClient(config, appBaseUrl));
     this.makeAppleBuilder = deps.makeAppleBuilder ?? ((config) => new ApplePassBuilder(new OpenSslPassSigner(config), () => loadApplePassAssets()));
-    this.makePush = deps.makePush ?? ((config) => (config.apns ? new ApplePushService(config.apns, config.passTypeIdentifier) : null));
+    this.makePush = deps.makePush ?? ((config) => {
+      if (!config.updatesEnabled) return null;
+      // Mecanismo documentado para Wallet: el push usa el mismo certificado y
+      // clave del Pass Type ID que firma el pase (auth por certificado TLS).
+      // El token .p8 queda como fallback si en el futuro no hubiera certificado.
+      return new ApplePushService(
+        config.apns,
+        config.passTypeIdentifier,
+        undefined,
+        undefined,
+        undefined,
+        {
+          certificatePem: config.certificatePem,
+          privateKeyPem: config.privateKeyPem,
+          passphrase: config.keyPassphrase,
+        },
+      );
+    });
     this.audit = deps.audit ?? writeWalletAudit;
     this.now = deps.now ?? (() => new Date());
     this.loadCard = deps.loadCard ?? loadWalletCard;
