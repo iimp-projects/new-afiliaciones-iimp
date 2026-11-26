@@ -1343,7 +1343,7 @@ const PersonalDataStep = forwardRef<StepRef, PersonalDataStepProps>(
               </div>
               <div>
                 <label className="text-xs font-bold text-slate-700 mb-1.5 block uppercase">
-                  Apellido Materno <span className="text-red-500">*</span>
+                  Apellido Materno <span className="text-slate-400 font-medium normal-case">(opcional)</span>
                 </label>
                 <input
                   type="text"

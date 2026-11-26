@@ -7,7 +7,7 @@ import { getAppBaseUrl } from "@/lib/config/env";
 import { emailLayout } from "@/modules/shared/Email/EmailLayout";
 import { emailCta, emailInfoBox } from "@/modules/shared/Email/EmailComponents";
 import { escapeHtml } from "@/modules/shared/Email/EmailEscaping";
-import { buildAssociateCode } from "@/modules/shared/Utils/associateCode";
+import { resolveAssociateCode } from "@/modules/shared/Utils/associateCode";
 
 const ACTIVATION_PREFIX = "account-activation:";
 const ACTIVATION_TTL_MS = 24 * 60 * 60 * 1000;
@@ -55,7 +55,7 @@ export class AccountActivationService {
       await tx.verificationToken.deleteMany({ where: { identifier } });
       const rawToken = crypto.randomBytes(32).toString("base64url");
       await tx.verificationToken.create({ data: { identifier, token: hashToken(rawToken), expires: new Date(Date.now() + ACTIVATION_TTL_MS) } });
-      return { rawToken, email: user.email, name: [user.person?.firstName, user.person?.paternalLastName].filter(Boolean).join(" ") || "Usuario", role: user.role?.slug ?? "USUARIO", associateCode: buildAssociateCode(user.person?.id) };
+      return { rawToken, email: user.email, name: [user.person?.firstName, user.person?.paternalLastName].filter(Boolean).join(" ") || "Usuario", role: user.role?.slug ?? "USUARIO", associateCode: resolveAssociateCode(user.person) };
     });
   }
 

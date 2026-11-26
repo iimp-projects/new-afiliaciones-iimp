@@ -107,3 +107,85 @@
     font-size: 85%; /* El equivalente exacto a tener el zoom al 80% */
   }
 }
+
+/* --- Wallet buttons (local) --- */
+@layer components {
+  .wallet-silver {
+    background: linear-gradient(135deg, #f8fafc 0%, #dfe7ef 22%, #ffffff 42%, #cbd5e1 60%, #f1f5f9 78%, #d8e1eb 100%);
+    border-color: #c3ceda;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 -1px 0 rgba(148, 163, 184, 0.4), 0 12px 26px -20px rgba(15, 23, 42, 0.55);
+  }
+  .wallet-silver:hover {
+    background: linear-gradient(135deg, #ffffff 0%, #e8eef5 22%, #ffffff 42%, #d5dde7 60%, #f8fafc 78%, #e2e8f0 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 1), inset 0 -1px 0 rgba(148, 163, 184, 0.45), 0 16px 30px -22px rgba(15, 23, 42, 0.6);
+  }
+  .wallet-silver::before {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, transparent 24%, rgba(255, 255, 255, 0.72) 46%, transparent 66%);
+    transform: translateX(-130%) skewX(-10deg);
+    animation: wallet-sheen 4.8s ease-in-out infinite;
+  }
+  @keyframes wallet-sheen {
+    0%, 58% { transform: translateX(-130%) skewX(-10deg); }
+    86%, 100% { transform: translateX(130%) skewX(-10deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .wallet-silver::before { animation: none; opacity: 0.35; transform: translateX(-20%) skewX(-10deg); }
+  }
+
+  .wallet-apple {
+    background:
+      radial-gradient(120% 140% at 16% 0%, rgba(122, 162, 255, 0.3), transparent 42%),
+      radial-gradient(120% 140% at 84% 100%, rgba(191, 90, 242, 0.26), transparent 46%),
+      linear-gradient(140deg, #2c313d 0%, #15171e 38%, #050608 70%, #1b1f29 100%);
+    border-color: #2a2f3a;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24), inset 0 -1px 0 rgba(0, 0, 0, 0.6), 0 14px 28px -18px rgba(2, 6, 23, 0.9);
+  }
+  .wallet-apple:hover {
+    background:
+      radial-gradient(120% 140% at 16% 0%, rgba(140, 178, 255, 0.4), transparent 44%),
+      radial-gradient(120% 140% at 84% 100%, rgba(205, 112, 255, 0.32), transparent 48%),
+      linear-gradient(140deg, #343a48 0%, #191c24 38%, #08090d 70%, #212633 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.32), inset 0 -1px 0 rgba(0, 0, 0, 0.6), 0 18px 32px -18px rgba(2, 6, 23, 0.95);
+  }
+  .wallet-apple::before {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: linear-gradient(115deg, transparent 26%, rgba(255, 255, 255, 0.4) 46%, rgba(190, 210, 255, 0.28) 53%, transparent 68%);
+    transform: translateX(-130%) skewX(-10deg);
+    animation: wallet-apple-sheen 5.4s ease-in-out infinite;
+  }
+  .wallet-apple::after {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background-image:
+      radial-gradient(2px 2px at 18% 28%, rgba(255, 255, 255, 0.95), transparent 60%),
+      radial-gradient(1.5px 1.5px at 73% 20%, rgba(200, 220, 255, 0.95), transparent 60%),
+      radial-gradient(1.5px 1.5px at 88% 66%, rgba(255, 255, 255, 0.85), transparent 60%),
+      radial-gradient(2px 2px at 36% 80%, rgba(214, 192, 255, 0.9), transparent 60%),
+      radial-gradient(1.5px 1.5px at 57% 46%, rgba(255, 255, 255, 0.8), transparent 60%);
+    opacity: 0.5;
+    animation: wallet-apple-twinkle 3.8s ease-in-out infinite;
+  }
+  @keyframes wallet-apple-sheen {
+    0%, 56% { transform: translateX(-130%) skewX(-10deg); }
+    84%, 100% { transform: translateX(130%) skewX(-10deg); }
+  }
+  @keyframes wallet-apple-twinkle {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 0.9; transform: scale(1.015); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .wallet-apple::before { animation: none; opacity: 0.3; transform: translateX(-20%) skewX(-10deg); }
+    .wallet-apple::after { animation: none; opacity: 0.4; }
+  }
+}

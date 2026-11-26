@@ -1,8 +1,9 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { requireApiPermission } from "@/modules/auth/context/api-authorization";
 import { prisma } from "@/lib/prisma";
 import { getCardIssuanceEnabled } from "@/lib/config/env";
 import { CardError, regenerateCard } from "@/modules/afiliaciones/carnet/Services/cardData";
+import { enqueueWalletSync, kickWalletSync } from "@/modules/afiliaciones/carnet/wallet/Services/walletSyncQueue";
 
 export async function POST(_: Request, { params }: { params: Promise<{ personId: string }> }) {
   try {
@@ -18,16 +19,23 @@ export async function POST(_: Request, { params }: { params: Promise<{ personId:
       return NextResponse.json({ success: false, message: "Identificador inválido." }, { status: 400 });
     }
 
-    const regenerated = await regenerateCard(personId);
-    await prisma.auditLog.create({
-      data: {
-        userId: user.id,
-        action: "REGENERATE_CARD",
-        entity: "AssociateCard",
-        entityId: String(personId),
-        newValues: { previousTokenRevoked: true },
-      },
+    const regenerated = await prisma.$transaction(async (tx) => {
+      const result = await regenerateCard(personId, tx);
+      const card = await tx.associateCard.findUnique({ where: { personId }, select: { id: true } });
+      if (card) await enqueueWalletSync(tx, card.id, "SYNC");
+      await tx.auditLog.create({
+        data: {
+          userId: user.id,
+          action: "REGENERATE_CARD",
+          entity: "AssociateCard",
+          entityId: String(personId),
+          newValues: { previousTokenRevoked: true },
+        },
+      });
+      return result;
     });
+
+    after(() => kickWalletSync());
 
     return NextResponse.json({ success: true, data: { verificationToken: regenerated.verificationToken } });
   } catch (error) {

@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { documentTypeLabel } from "@/modules/shared/Utils/documentType";
 import { formatPeruDateTime } from "@/modules/shared/Utils/formatPeruDateTime";
 import { formatFullName } from "@/modules/shared/Utils/personName";
-import { buildAssociateCode } from "@/modules/shared/Utils/associateCode";
+import { resolveAssociateCode } from "@/modules/shared/Utils/associateCode";
 import {
   EXPEDIENTE_DOCUMENT_SLOTS,
   buildCurrentExpedienteDocuments,
@@ -230,7 +230,7 @@ export class ExportAsociadosService {
             .map((approval: AsociadoApproval) => sponsorDetails(approval));
 
       const values: Record<string, ExcelCellValue> = {
-        [COLUMNS.code]: resolveInstitutionalCode(person) ?? buildAssociateCode(person?.id) ?? "",
+        [COLUMNS.code]: resolveAssociateCode(person) ?? resolveInstitutionalCode(person) ?? "",
         [COLUMNS.documentType]: documentTypeLabel(application.documentType),
         [COLUMNS.documentNumber]: application.documentNumber,
         [COLUMNS.fullName]: fullName(person),
@@ -274,7 +274,7 @@ export class ExportAsociadosService {
       const person = record.person;
 
       const values: Record<string, ExcelCellValue> = {
-        [COLUMNS.code]: record.externalCode?.trim() || buildAssociateCode(person.id) || "",
+        [COLUMNS.code]: resolveAssociateCode(person) ?? record.externalCode?.trim() ?? "",
         [COLUMNS.documentType]: documentTypeLabel(person.documentType),
         [COLUMNS.documentNumber]: person.documentNumber,
         [COLUMNS.fullName]: fullName(person),

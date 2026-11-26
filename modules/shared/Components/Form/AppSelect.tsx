@@ -251,7 +251,7 @@ export function AppSelect({
         className={label ? "mb-1.5 block text-[10px] font-bold uppercase tracking-[.13em] text-slate-500" : "sr-only"}
       >
         {label}
-        {required && <span aria-hidden="true"> *</span>}
+        {required && <span aria-hidden="true" className="text-red-500"> *</span>}
       </label>
       <button
         ref={buttonRef}

@@ -68,6 +68,67 @@ describe("AdminAssociateDataDialog helpers", () => {
     expect(initial.employment?.companyId).toBe(4);
   });
 
+  it("prioriza los datos capturados en el borrador de postulación", () => {
+    const initial = buildAdminAssociateDataInitial({
+      ...user,
+      draftData: {
+        personalInformation: {
+          names: "Ana María",
+          fatherLastName: "Pérez",
+          motherLastName: "Soto",
+          documentType: "CE",
+          documentNumber: "123456789",
+          birthDate: "1991-02-03",
+          gender: "FEMALE",
+          phone: "911111111",
+          primaryEmail: "ana.postulacion@example.com",
+          secondaryEmail: "",
+          countryId: 2,
+          departmentId: null,
+          provinceId: null,
+          districtId: null,
+          address: "Av. Borrador 789",
+          postalCode: "20000",
+          foreignRegion: "Lima",
+          foreignCity: "Lima",
+        },
+        academicStudies: [{
+          degreeId: 9,
+          specialtyId: 8,
+          institutionId: 7,
+          degreeTitle: "Bachiller",
+          specialty: "Ingeniería",
+          professionalAssociation: "CIP",
+          registrationNumber: "98765",
+          graduationYear: 2018,
+          cycle: 8,
+        }],
+        employmentInformation: {
+          employmentStatus: "SELF_EMPLOYED",
+          companyTaxId: "20123456789",
+          companyName: "Consultora Demo",
+          positionName: "Consultor",
+          area: "Proyectos",
+          workingAddress: "Av. Trabajo 100",
+          workPhone: "922222222",
+          workEmail: "consultor@example.com",
+        },
+      },
+    });
+    expect(initial.identity.firstName).toBe("Ana María");
+    expect(initial.identity.maternalLastName).toBe("Soto");
+    expect(initial.identity.documentType).toBe("CE");
+    expect(initial.contact.primaryEmail).toBe("ana.postulacion@example.com");
+    expect(initial.address.countryId).toBe(2);
+    expect(initial.academic?.universityId).toBe(7);
+    expect(initial.academic?.licenseNumber).toBe("98765");
+    expect(initial.academic?.termOrSemester).toBe("8");
+    expect(initial.employment?.employmentStatus).toBe("SELF_EMPLOYED");
+    expect(initial.employment?.companyTaxId).toBe("20123456789");
+    expect(initial.employment?.companyName).toBe("Consultora Demo");
+    expect(initial.employment?.positionName).toBe("Consultor");
+  });
+
   it("reconoce estudiantes por rol o por tipo de afiliación", () => {
     expect(isStudentAssociate(user)).toBe(false);
     expect(isStudentAssociate({ ...user, role: { slug: "ASOCIADO_ESTUDIANTE" } })).toBe(true);

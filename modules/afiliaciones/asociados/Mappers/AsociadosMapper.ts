@@ -3,7 +3,7 @@ import { shouldShowEvaluationContext, type AtomicValidation, type AtomicValidati
 import { formatCalendarDate, formatPeruDate } from "@/modules/shared/Utils/formatPeruDateTime";
 import { documentTypeLabel } from "@/modules/shared/Utils/documentType";
 import { formatFullName } from "@/modules/shared/Utils/personName";
-import { buildAssociateCode } from "@/modules/shared/Utils/associateCode";
+import { resolveAssociateCode } from "@/modules/shared/Utils/associateCode";
 import { paymentOriginLabel } from "@/modules/afiliaciones/payments/Models/PaymentOrigin";
 
 const MEMBERSHIP_PALETTE: Record<string, { border: string; badge: string }> = {
@@ -85,9 +85,9 @@ export class AsociadosMapper {
     const initials = `${user.person?.firstName?.charAt(0) ?? ""}${user.person?.paternalLastName?.charAt(0) ?? ""}`.toUpperCase();
     const documentNumber = user.person?.documentNumber ?? "No registrado";
     const institutionalCode = user.institutionalCode ?? null;
-    const generatedAssociateCode = buildAssociateCode(user.person?.id ?? (isHistorical ? user.id : null));
-    const displayCode = institutionalCode ?? generatedAssociateCode;
-    const displayCodeSource = institutionalCode ? "SIE" : generatedAssociateCode ? "IIMP" : undefined;
+    const associateCode = resolveAssociateCode(user.person) ?? (typeof user.associateCode === "string" ? user.associateCode : null);
+    const displayCode = associateCode ?? institutionalCode;
+    const displayCodeSource = associateCode ? "IIMP" : institutionalCode ? "SIE" : undefined;
     const code = isHistorical ? (institutionalCode ?? documentNumber) : documentNumber;
     const documentType = user.person?.documentType;
     const primaryContact = user.person?.contacts?.find((contact: any) => contact.isPrimary) ?? user.person?.contacts?.[0];

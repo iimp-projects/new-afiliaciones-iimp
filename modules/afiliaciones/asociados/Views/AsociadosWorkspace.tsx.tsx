@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { Download, FolderDown, Pencil, ShieldCheck, UsersRound } from "lucide-react";
 import { toast } from "sonner";
-import { buildAssociateCode } from "@/modules/shared/Utils/associateCode";
+import { formatAssociateCode, resolveAssociateCode } from "@/modules/shared/Utils/associateCode";
 import { SmartCaseCard } from "@/modules/shared/Components/SmartCaseCard/SmartCaseCard";
 import { SmartCaseRow } from "@/modules/shared/Components/SmartCaseCard/SmartCaseRow";
 import { InspectionDrawer } from "@/modules/shared/Components/InspectionDrawer/InspectionDrawer";
@@ -15,6 +15,7 @@ import { AsociadoDetailContent } from "./AsociadoDetailContent";
 import { AdminAssociateDataDialog, isStudentAssociate } from "../Components/AdminAssociateDataDialog";
 import { AssociateInfoButton } from "../Components/AssociateInfoButton";
 import { AssociateAccessDialog } from "../Components/AssociateAccessDialog";
+import { AdminCarnetDialog } from "@/modules/afiliaciones/carnet/Views/AdminCarnetDialog";
 import { AsociadosFilterBar } from "../Components/AsociadosFilterBar";
 import { AsociadosPagination } from "../Components/AsociadosPagination";
 
@@ -28,6 +29,7 @@ interface AsociadosWorkspaceProps {
   canResetSandboxPayments: boolean;
   canReadMemberships: boolean;
   canUpdateAssociateData: boolean;
+  canReadCards: boolean;
 }
 
 function buildExportParams(query: string, membershipType: string, sort: string): URLSearchParams {
@@ -59,11 +61,13 @@ export function AsociadosWorkspace({
   canResetSandboxPayments,
   canReadMemberships,
   canUpdateAssociateData,
+  canReadCards,
 }: AsociadosWorkspaceProps) {
   const [viewMode] = useState<"grid" | "list">("grid");
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [editUser, setEditUser] = useState<any>(null);
   const [accessTarget, setAccessTarget] = useState<{ personId: number; applicationId?: number } | null>(null);
+  const [carnetTarget, setCarnetTarget] = useState<number | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
   const [isDownloadingDocuments, setIsDownloadingDocuments] = useState(false);
@@ -72,7 +76,14 @@ export function AsociadosWorkspace({
 
   const handleGenerateCode = (user: any) => {
     const personId = Number(user?.person?.id ?? (user?.source === "SIE_HISTORICAL" ? user?.id : 0));
-    const code = buildAssociateCode(personId);
+    let code = resolveAssociateCode(user?.person);
+    if (!code) {
+      try {
+        code = formatAssociateCode(personId);
+      } catch {
+        code = null;
+      }
+    }
     if (!code) {
       toast.error("No se pudo generar el código.", { description: "El asociado no tiene un identificador de persona válido." });
       return;
@@ -247,6 +258,7 @@ export function AsociadosWorkspace({
                 data={AsociadosMapper.toCardData(user)}
                 onClick={() => setSelectedUser(user)}
                 onEdit={canUpdateAssociateData ? () => setEditUser(user) : undefined}
+                onViewCarnet={canReadCards && Number(user.person?.id) > 0 ? () => setCarnetTarget(Number(user.person.id)) : undefined}
                 onGenerateCode={!user.institutionalCode && Number(user.person?.id) > 0 ? () => handleGenerateCode(user) : undefined}
                 onManageAccess={canUpdateAssociateData ? () => {
                   const applications = user.person?.applications ?? user.applications ?? [];
@@ -320,6 +332,10 @@ export function AsociadosWorkspace({
           open
           onClose={() => setAccessTarget(null)}
         />
+      )}
+
+      {carnetTarget !== null && carnetTarget > 0 && (
+        <AdminCarnetDialog personId={carnetTarget} open onClose={() => setCarnetTarget(null)} />
       )}
 
       <DownloadAllDocumentsModal

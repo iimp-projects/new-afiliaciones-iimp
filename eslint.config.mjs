@@ -18,6 +18,7 @@ const eslintConfig = defineConfig([
     // Default ignores of eslint-config-next:
     ".next/**",
     ".agents/**",
+    ".tmp/**",
     "out/**",
     "build/**",
     "next-env.d.ts",
