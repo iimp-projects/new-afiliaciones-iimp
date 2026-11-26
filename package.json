@@ -26,6 +26,7 @@
     "wallet:sync": "tsx scripts/process-card-wallet-jobs.ts",
     "wallet:sync:watch": "tsx scripts/process-card-wallet-jobs-watch.ts",
     "wallet:google:doctor": "tsx scripts/wallet-google-doctor.ts",
+    "wallet:google:branding": "tsx scripts/wallet-google-branding.ts",
     "quotas:sync": "tsx scripts/quotas-sync.ts",
     "quotas:padron": "tsx scripts/quotas-padron.ts",
     "quotas:export": "tsx scripts/quotas-export.ts",

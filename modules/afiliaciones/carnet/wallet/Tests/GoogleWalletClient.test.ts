@@ -3,7 +3,7 @@ import { verify, type JwtPayload } from "jsonwebtoken";
 import { describe, expect, it } from "vitest";
 import type { GoogleWalletConfig } from "@/lib/config/wallet";
 import type { WalletCardSnapshot } from "../Types/wallet";
-import { GoogleWalletClient, buildGenericObjectPayload } from "../Google/GoogleWalletClient";
+import { GoogleWalletClient, buildGenericClassPayload, buildGenericObjectPayload } from "../Google/GoogleWalletClient";
 
 const { privateKey, publicKey } = generateKeyPairSync("rsa", {
   modulusLength: 2048,
@@ -130,5 +130,38 @@ describe("GoogleWalletClient", () => {
     expect(payload.state).toBe("INACTIVE");
     expect(payload.barcode.value).toBe(snapshot.verificationUrl);
     expect(JSON.stringify(payload)).not.toContain("DNI");
+  });
+
+  it("aplica branding premium dorado y plantillas nativas", () => {
+    const object = buildGenericObjectPayload({ config, snapshot, appBaseUrl });
+    expect(object.cardTitle.defaultValue.value).toBe("Carné Digital IIMP");
+    expect(object.hexBackgroundColor).toBe("#FAF8F3");
+    expect(object.textModulesData.map((module) => module.id)).toEqual([
+      "membership_type",
+      "membership_status",
+      "associate_code",
+      "issued_at",
+      "institution",
+    ]);
+    expect(object.linksModuleData.uris[0].description).toBe("Verificar autenticidad del carné");
+    expect(object.linksModuleData.uris[0].uri).toBe(snapshot.verificationUrl);
+
+    const serialized = JSON.stringify(object);
+    expect(serialized).toContain("/images/wallet/gold/logo-square-v1.png");
+    expect(serialized).toContain("/images/wallet/gold/wide-logo-v1.png");
+    expect(serialized).toContain("/images/wallet/gold/hero-v1.png");
+
+    const cls = buildGenericClassPayload(config, appBaseUrl);
+    expect(cls.localizedTitle.defaultValue.value).toBe("Carné Digital IIMP");
+    expect(cls.hexBackgroundColor).toBe("#FAF8F3");
+    expect(cls.classTemplateInfo.cardTemplateOverride.cardRowTemplateInfos).toHaveLength(2);
+    expect(JSON.stringify(cls.classTemplateInfo)).toContain("object.textModulesData['associate_code']");
+    expect(JSON.stringify(cls.classTemplateInfo)).toContain("object.linksModuleData.uris['verify']");
+  });
+
+  it("omite imágenes cuando el origen no es HTTPS", () => {
+    const object = buildGenericObjectPayload({ config, snapshot, appBaseUrl: "http://localhost:3000" });
+    const serialized = JSON.stringify(object);
+    expect(serialized).not.toContain("/images/wallet/gold/");
   });
 });

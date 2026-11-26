@@ -2,6 +2,7 @@ import { sign } from "jsonwebtoken";
 import type { GoogleWalletConfig } from "@/lib/config/wallet";
 import { WalletError, type GoogleWalletLinkDto, type WalletCardSnapshot } from "../Types/wallet";
 import { googleWalletObjectId } from "../Services/walletIdentity";
+import { buildClassTemplateInfo, buildWalletLinks, buildWalletTextModules, resolveWalletAsset, WALLET_BRAND } from "./walletBranding";
 
 const WALLET_API = "https://walletobjects.googleapis.com/walletobjects/v1";
 const OAUTH_TOKEN_URL = "https://oauth2.googleapis.com/token";
@@ -45,11 +46,12 @@ const MAX_ATTEMPTS = 3;
 export function buildGenericClassPayload(config: GoogleWalletConfig, appBaseUrl: string) {
   return {
     id: config.classId,
-    issuerName: "Instituto de Ingenieros de Minas del Perú",
+    issuerName: WALLET_BRAND.issuerName,
     reviewStatus: "UNDER_REVIEW",
-    localizedTitle: localized("Carné Virtual IIMP"),
-    hexBackgroundColor: "#FFFFFF",
+    localizedTitle: localized(WALLET_BRAND.cardTitle),
+    hexBackgroundColor: WALLET_BRAND.palette.ivory,
     homepageUri: { uri: appBaseUrl },
+    classTemplateInfo: buildClassTemplateInfo(),
   };
 }
 
@@ -59,33 +61,33 @@ export function buildGenericObjectPayload(input: {
   appBaseUrl: string;
 }) {
   const { config, snapshot, appBaseUrl } = input;
-  // Google descarga `logo.sourceUri` desde sus servidores: solo se incluye con
-  // un origen HTTPS público. En local (http://localhost) se omite para no enviar
-  // una URL inalcanzable al proveedor.
-  const logo = /^https:\/\//i.test(appBaseUrl)
-    ? { logo: { sourceUri: { uri: `${appBaseUrl.replace(/\/+$/, "")}/images/logo-iimp.png` } } }
-    : {};
+  // Google descarga las imágenes desde sus servidores: solo se incluyen con un
+  // origen HTTPS público. En local (http://localhost) se omiten para no enviar
+  // URLs inalcanzables al proveedor.
+  const logoUrl = resolveWalletAsset(appBaseUrl, WALLET_BRAND.assets.logo);
+  const wideLogoUrl = resolveWalletAsset(appBaseUrl, WALLET_BRAND.assets.wideLogo);
+  const heroUrl = resolveWalletAsset(appBaseUrl, WALLET_BRAND.assets.hero);
+  const images = {
+    ...(logoUrl ? { logo: { sourceUri: { uri: logoUrl, description: "IIMP" } } } : {}),
+    ...(wideLogoUrl ? { wideLogo: { sourceUri: { uri: wideLogoUrl, description: WALLET_BRAND.issuerName } } } : {}),
+    ...(heroUrl ? { heroImage: { sourceUri: { uri: heroUrl } } } : {}),
+  };
   return {
     id: googleWalletObjectId(config.issuerId, snapshot.cardId, config.objectPrefix),
     classId: config.classId,
     state: snapshot.revoked ? "INACTIVE" : "ACTIVE",
-    cardTitle: localized("Instituto de Ingenieros de Minas del Perú"),
+    cardTitle: localized(WALLET_BRAND.cardTitle),
     header: localized(snapshot.fullName),
     subheader: localized(snapshot.membershipType),
-    hexBackgroundColor: "#FFFFFF",
-    ...logo,
+    hexBackgroundColor: WALLET_BRAND.palette.ivory,
+    ...images,
     barcode: {
       type: "QR_CODE",
       value: snapshot.verificationUrl,
       alternateText: snapshot.associateCode,
     },
-    textModulesData: [
-      { id: "associate_code", header: "Código de asociado", body: snapshot.associateCode },
-      { id: "membership_type", header: "Membresía", body: snapshot.membershipType },
-      { id: "membership_status", header: "Estado", body: snapshot.membershipStatus },
-      { id: "issued_at", header: "Fecha de emisión", body: snapshot.issuedAt },
-      { id: "verification", header: "Verificación", body: snapshot.verificationUrl },
-    ],
+    textModulesData: buildWalletTextModules(snapshot),
+    linksModuleData: buildWalletLinks(snapshot),
   };
 }
 
@@ -186,6 +188,50 @@ export class GoogleWalletClient {
     const expiresIn = typeof body.expires_in === "number" ? body.expires_in : 3600;
     this.tokenCache = { value: body.access_token, expiresAtMs: nowMs + expiresIn * 1000 };
     return body.access_token;
+  }
+
+  async getClassJson(): Promise<{ status: number; body: unknown }> {
+    const accessToken = await this.accessToken();
+    const response = await this.request(`${WALLET_API}/genericClass/${encodeURIComponent(this.config.classId)}`, {
+      headers: this.authHeaders(accessToken),
+    });
+    let body: unknown = null;
+    try {
+      body = await response.json();
+    } catch {
+      body = null;
+    }
+    return { status: response.status, body };
+  }
+
+  /** Aplica el branding (plantillas/colores) a la clase existente o la crea. */
+  async applyClassBranding(): Promise<{ status: number; operation: "UPDATED" | "CREATED" | "REUSED" }> {
+    if (!this.config.classId.startsWith(`${this.config.issuerId}.`)) {
+      throw new WalletError("PROVIDER_NOT_CONFIGURED", "La clase de Google Wallet no corresponde al emisor configurado.");
+    }
+    const accessToken = await this.accessToken();
+    const current = await this.request(`${WALLET_API}/genericClass/${encodeURIComponent(this.config.classId)}`, {
+      headers: this.authHeaders(accessToken),
+    });
+    if (!current.ok) {
+      const operation = await this.ensureClass(accessToken);
+      return { status: current.status, operation };
+    }
+    const payload = buildGenericClassPayload(this.config, this.appBaseUrl);
+    const response = await this.request(`${WALLET_API}/genericClass/${encodeURIComponent(this.config.classId)}`, {
+      method: "PATCH",
+      headers: { ...this.authHeaders(accessToken), "content-type": "application/json" },
+      body: JSON.stringify({
+        issuerName: payload.issuerName,
+        localizedTitle: payload.localizedTitle,
+        hexBackgroundColor: payload.hexBackgroundColor,
+        classTemplateInfo: payload.classTemplateInfo,
+      }),
+    });
+    if (!response.ok) {
+      throw new WalletError("PROVIDER_ERROR", "No pudimos actualizar el diseño de la clase de Google Wallet.");
+    }
+    return { status: response.status, operation: "UPDATED" };
   }
 
   private async ensureClass(accessToken: string): Promise<"CREATED" | "REUSED"> {
