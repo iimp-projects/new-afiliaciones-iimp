@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import type { GoogleWalletConfig } from "@/lib/config/wallet";
 import type { WalletCardSnapshot } from "../Types/wallet";
 import { GoogleWalletClient, buildGenericClassPayload, buildGenericObjectPayload } from "../Google/GoogleWalletClient";
+import { buildWalletBrand } from "../Google/walletBranding";
 
 const { privateKey, publicKey } = generateKeyPairSync("rsa", {
   modulusLength: 2048,
@@ -134,8 +135,10 @@ describe("GoogleWalletClient", () => {
 
   it("aplica branding premium dorado y plantillas nativas", () => {
     const object = buildGenericObjectPayload({ config, snapshot, appBaseUrl });
-    expect(object.cardTitle.defaultValue.value).toBe("Carné Digital IIMP");
-    expect(object.hexBackgroundColor).toBe("#FAF8F3");
+    expect(object.cardTitle.defaultValue.value).toBe("Carné IIMP");
+    expect(object.header.defaultValue.value).toBe(snapshot.fullName);
+    expect(object.subheader.defaultValue.value).toBe(snapshot.membershipType);
+    expect(object.hexBackgroundColor).toBe("#7F561E");
     expect(object.textModulesData.map((module) => module.id)).toEqual([
       "membership_type",
       "membership_status",
@@ -148,8 +151,9 @@ describe("GoogleWalletClient", () => {
 
     const serialized = JSON.stringify(object);
     expect(serialized).toContain("/images/wallet/gold/logo-square-v1.png");
-    expect(serialized).toContain("/images/wallet/gold/wide-logo-v1.png");
-    expect(serialized).toContain("/images/wallet/gold/hero-v1.png");
+    expect(serialized).toContain("/images/wallet/gold/wide-logo-light-v2.png");
+    expect(serialized).not.toContain("wide-logo-v1.png");
+    expect(serialized).toContain("/images/wallet/gold/hero-v2.png");
 
     const cls = buildGenericClassPayload(config);
     expect(cls.id).toBe(config.classId);
@@ -157,6 +161,46 @@ describe("GoogleWalletClient", () => {
     expect(cls.classTemplateInfo.cardTemplateOverride.cardRowTemplateInfos).toHaveLength(2);
     expect(JSON.stringify(cls.classTemplateInfo)).toContain("object.textModulesData['associate_code']");
     expect(JSON.stringify(cls.classTemplateInfo)).toContain("object.linksModuleData.uris['verify']");
+  });
+
+  it("prepara las dos variantes con recursos transparentes versionados", () => {
+    const gold = buildWalletBrand("gold");
+    const ivory = buildWalletBrand("ivory");
+    expect(gold.palette.background).toBe("#7F561E");
+    expect(gold.assets.wideLogo).toContain("wide-logo-light-v2.png");
+    expect(ivory.palette.background).toBe("#FAF8F3");
+    expect(ivory.assets.wideLogo).toContain("wide-logo-dark-v2.png");
+
+    const goldObject = buildGenericObjectPayload({ config, snapshot, appBaseUrl, brand: gold });
+    const ivoryObject = buildGenericObjectPayload({ config, snapshot, appBaseUrl, brand: ivory });
+    expect(goldObject.hexBackgroundColor).toBe("#7F561E");
+    expect(ivoryObject.hexBackgroundColor).toBe("#FAF8F3");
+    expect(JSON.stringify(goldObject)).toContain("wide-logo-light-v2.png");
+    expect(JSON.stringify(ivoryObject)).toContain("wide-logo-dark-v2.png");
+  });
+
+  it("la sincronización del worker re-aplica color, jerarquía y recursos", async () => {
+    const patchBodies: string[] = [];
+    const fetchImpl = async (input: string, init?: RequestInit): Promise<Response> => {
+      const method = init?.method ?? "GET";
+      if (input === "https://oauth2.googleapis.com/token") return jsonResponse({ access_token: "access-token", expires_in: 3600 });
+      if (input.includes("/genericClass/")) return jsonResponse({});
+      if (input.includes("/genericObject/") && method === "GET") return jsonResponse({ id: "338800000001.iimp_card_card_abc", classId: config.classId });
+      if (method === "PATCH" && input.includes("/genericObject/")) {
+        patchBodies.push(String(init?.body ?? ""));
+        return jsonResponse({});
+      }
+      return jsonResponse({});
+    };
+    const client = new GoogleWalletClient(config, appBaseUrl, { fetchImpl });
+    await client.syncObject(snapshot);
+
+    expect(patchBodies).toHaveLength(1);
+    const body = JSON.parse(patchBodies[0]) as Record<string, unknown>;
+    expect(body.hexBackgroundColor).toBe("#7F561E");
+    expect(body.cardTitle).toEqual({ defaultValue: { language: "es", value: "Carné IIMP" } });
+    expect(JSON.stringify(body.wideLogo)).toContain("wide-logo-light-v2.png");
+    expect(JSON.stringify(body)).not.toContain("wide-logo-v1.png");
   });
 
   it("omite imágenes cuando el origen no es HTTPS", () => {

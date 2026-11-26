@@ -2,7 +2,14 @@ import { sign } from "jsonwebtoken";
 import type { GoogleWalletConfig } from "@/lib/config/wallet";
 import { WalletError, type GoogleWalletLinkDto, type WalletCardSnapshot } from "../Types/wallet";
 import { googleWalletObjectId } from "../Services/walletIdentity";
-import { buildClassTemplateInfo, buildWalletLinks, buildWalletTextModules, resolveWalletAsset, WALLET_BRAND } from "./walletBranding";
+import {
+  buildClassTemplateInfo,
+  buildWalletLinks,
+  buildWalletTextModules,
+  resolveWalletAsset,
+  WALLET_BRAND,
+  type WalletBrand,
+} from "./walletBranding";
 
 const WALLET_API = "https://walletobjects.googleapis.com/walletobjects/v1";
 const OAUTH_TOKEN_URL = "https://oauth2.googleapis.com/token";
@@ -59,27 +66,28 @@ export function buildGenericObjectPayload(input: {
   config: GoogleWalletConfig;
   snapshot: WalletCardSnapshot;
   appBaseUrl: string;
+  brand?: WalletBrand;
 }) {
-  const { config, snapshot, appBaseUrl } = input;
+  const { config, snapshot, appBaseUrl, brand = WALLET_BRAND } = input;
   // Google descarga las imágenes desde sus servidores: solo se incluyen con un
   // origen HTTPS público. En local (http://localhost) se omiten para no enviar
   // URLs inalcanzables al proveedor.
-  const logoUrl = resolveWalletAsset(appBaseUrl, WALLET_BRAND.assets.logo);
-  const wideLogoUrl = resolveWalletAsset(appBaseUrl, WALLET_BRAND.assets.wideLogo);
-  const heroUrl = resolveWalletAsset(appBaseUrl, WALLET_BRAND.assets.hero);
+  const logoUrl = resolveWalletAsset(appBaseUrl, brand.assets.logo);
+  const wideLogoUrl = resolveWalletAsset(appBaseUrl, brand.assets.wideLogo);
+  const heroUrl = resolveWalletAsset(appBaseUrl, brand.assets.hero);
   const images = {
     ...(logoUrl ? { logo: { sourceUri: { uri: logoUrl, description: "IIMP" } } } : {}),
-    ...(wideLogoUrl ? { wideLogo: { sourceUri: { uri: wideLogoUrl, description: WALLET_BRAND.issuerName } } } : {}),
+    ...(wideLogoUrl ? { wideLogo: { sourceUri: { uri: wideLogoUrl, description: brand.issuerName } } } : {}),
     ...(heroUrl ? { heroImage: { sourceUri: { uri: heroUrl } } } : {}),
   };
   return {
     id: googleWalletObjectId(config.issuerId, snapshot.cardId, config.objectPrefix),
     classId: config.classId,
     state: snapshot.revoked ? "INACTIVE" : "ACTIVE",
-    cardTitle: localized(WALLET_BRAND.cardTitle),
+    cardTitle: localized(brand.cardTitle),
     header: localized(snapshot.fullName),
     subheader: localized(snapshot.membershipType),
-    hexBackgroundColor: WALLET_BRAND.palette.ivory,
+    hexBackgroundColor: brand.palette.background,
     ...images,
     barcode: {
       type: "QR_CODE",
@@ -121,6 +129,22 @@ export class GoogleWalletClient {
       link: `https://pay.google.com/gp/v/save/${jwt}`,
       created,
       objectId: payload.id,
+      status: "LINK_READY",
+    };
+  }
+
+  /**
+   * Genera un enlace de incorporación para un objeto ya existente, sin crear ni
+   * modificar el objeto. Reutiliza exactamente la misma firma JWT del flujo
+   * oficial; no altera IDs ni credenciales.
+   */
+  buildSaveLink(objectId: string): GoogleWalletLinkDto {
+    this.assertObjectScope(objectId);
+    const jwt = this.signSaveJwt(objectId);
+    return {
+      link: `https://pay.google.com/gp/v/save/${jwt}`,
+      created: false,
+      objectId,
       status: "LINK_READY",
     };
   }
@@ -202,6 +226,62 @@ export class GoogleWalletClient {
       body = null;
     }
     return { status: response.status, body };
+  }
+
+  /** Lista objetos de la clase configurada (solo lectura). */
+  async listObjects(maxResults = 50): Promise<{ status: number; body: unknown }> {
+    const accessToken = await this.accessToken();
+    const response = await this.request(
+      `${WALLET_API}/genericObject?classId=${encodeURIComponent(this.config.classId)}&maxResults=${maxResults}`,
+      { headers: this.authHeaders(accessToken) },
+    );
+    let body: unknown = null;
+    try {
+      body = await response.json();
+    } catch {
+      body = null;
+    }
+    return { status: response.status, body };
+  }
+
+  /** Devuelve el JSON remoto de un objeto del namespace configurado. */
+  async getObjectJson(objectId: string): Promise<{ status: number; body: unknown }> {
+    this.assertObjectScope(objectId);
+    const accessToken = await this.accessToken();
+    const response = await this.request(`${WALLET_API}/genericObject/${encodeURIComponent(objectId)}`, {
+      headers: this.authHeaders(accessToken),
+    });
+    let body: unknown = null;
+    try {
+      body = await response.json();
+    } catch {
+      body = null;
+    }
+    return { status: response.status, body };
+  }
+
+  /**
+   * PATCH acotado a los campos indicados de un objeto del namespace. No crea
+   * duplicados, no cambia IDs y solo debe usarse para atributos de presentación.
+   */
+  async patchObject(
+    objectId: string,
+    fields: Record<string, unknown>,
+  ): Promise<{ status: number; ok: boolean; body: unknown }> {
+    this.assertObjectScope(objectId);
+    const accessToken = await this.accessToken();
+    const response = await this.request(`${WALLET_API}/genericObject/${encodeURIComponent(objectId)}`, {
+      method: "PATCH",
+      headers: { ...this.authHeaders(accessToken), "content-type": "application/json" },
+      body: JSON.stringify(fields),
+    });
+    let body: unknown = null;
+    try {
+      body = await response.json();
+    } catch {
+      body = null;
+    }
+    return { status: response.status, ok: response.ok, body };
   }
 
   /** Aplica el branding (plantillas/colores) a la clase existente o la crea. */

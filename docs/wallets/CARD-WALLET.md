@@ -676,6 +676,11 @@ El plan exacto y los comandos quedan en el runbook.
 
 ## 19. Branding premium dorado de Google Wallet (QA)
 
+> **Nota:** el `wideLogo` con degradado dorado + placa marfil y el fondo
+> `#FAF8F3` descritos en esta sección fueron reemplazados por el refinamiento de
+> la §20 (`wide-logo-light-v2.png`, fondo `#7F561E`). Se conserva el resto del
+> historial.
+
 - **Paleta institucional real** (`app/globals.css`): dorado `#7F561E` (primary),
   `#C39254` (primary-container), `#A87924` (acento UI), marfil `#FAF8F3`, texto
   `#1F1F1F`/`#5F5E5D`, estado `#237A45`. Sin azul marino.
@@ -706,3 +711,109 @@ El plan exacto y los comandos quedan en el runbook.
 - **Rollback**: el JSON previo de la clase queda en
   `%TEMP%\afiliaciones-wallet-branding\`; se puede re-PATCH el template anterior y
   re-sincronizar los objetos. No se alteran IDs, QR ni estado.
+
+## 20. Refinamiento de la tarjeta de confirmación web (GOOGLE-WALLET-WEB-PREVIEW-REFINEMENT-04)
+
+Esta fase corrige únicamente la presentación de la tarjeta que Google muestra al
+presionar **Agregar a Google Wallet**. La integración funcional (IDs, JWT, QR,
+credenciales, clase y reglas) no cambió.
+
+### 20.1 Qué campos usa realmente la pantalla de confirmación
+
+Según la plantilla oficial de Generic Pass
+(`developers.google.com/wallet/generic/resources/template`):
+
+- **Card title**: con `wideLogo` definido usa `wideLogo` (o `logo`), `header` y
+  `hexBackgroundColor`. Sin `wideLogo` usa `logo`, `cardTitle`, `header` y
+  `hexBackgroundColor`.
+- **Title row**: `header` y `subheader`.
+- En móvil, cuando existe `wideLogo`, la cabecera por defecto (logo + `cardTitle`)
+  se reemplaza por el `wideLogo`. Por eso el logotipo debe bastarse por sí solo.
+- `cardTemplateOverride` y `listTemplateOverride` **no** permiten cambiar la
+  cabecera ni la pantalla de confirmación: `cardTemplateOverride` añade filas y
+  `listTemplateOverride` controla la vista de lista de Wallet. No se usaron para
+  forzar la pantalla.
+
+Jerarquía aplicada: `cardTitle = "Carné IIMP"`, `header` = nombre completo,
+`subheader` = tipo de membresía. Se conserva toda la información previa.
+
+### 20.2 Recursos corregidos (PNG transparente real, 1280×400)
+
+Se eliminó el fondo dorado incrustado, la placa marfil interna y los márgenes
+excesivos. El lockup horizontal oficial (escudo + "Instituto de Ingenieros de
+Minas del Perú") se recorta, se le retira el fondo marfil `#FAF8F3` con alfa real
+y se compone al 90 % del alto del lienzo 16:5, centrado (≈84 % de ancho útil).
+
+- `public/images/wallet/gold/wide-logo-light-v2.png` — lockup marfil (negativo)
+  transparente para fondo dorado (Variante A). Geometría del escudo intacta; solo
+  cambia el tono para contraste.
+- `public/images/wallet/gold/wide-logo-dark-v2.png` — lockup oficial oscuro
+  (texto grafito + escudo dorado) transparente para fondo marfil (Variante B).
+- `public/images/wallet/gold/hero-v2.png` — topografía sutil transparente de bajo
+  alfa para que el fondo nativo se vea uniforme (la Variante B conserva
+  `hero-v1.png` marfil).
+- La versión de caché sube a `20261126-premium-gold-2` en todas las URLs.
+
+Validación de los recursos: 1280×400, PNG RGBA (color type 6), esquinas con
+alfa 0, 71.4 % de transparencia y bbox de contenido centrado. Prueba automática:
+`modules/afiliaciones/carnet/wallet/Tests/walletAssets.test.ts`.
+
+### 20.3 Variantes y selección
+
+| Variante | Fondo `hexBackgroundColor` | `wideLogo` | Texto Google |
+| --- | --- | --- | --- |
+| **A — Dorado institucional (activa)** | `#7F561E` (`--color-primary` real del repo) | `wide-logo-light-v2.png` | Claro (auto-contraste) |
+| B — Marfil premium | `#FAF8F3` | `wide-logo-dark-v2.png` | Oscuro |
+
+Se evaluó el dorado suave `#BDA16D` como referencia inicial, pero el escudo
+dorado del lockup oficial pierde contraste sobre ese tono (y forzaría texto
+oscuro). Se selecciona **A** con el `--color-primary` institucional `#7F561E`:
+lockup marfil sobre dorado profundo, ratio ≈ 6.1:1, identidad reconocible y sin
+rectángulo/placa blanca. B queda lista para comparar con `--variant ivory`.
+
+### 20.4 Actualización técnica segura (QA)
+
+`npm run wallet:google:refine -- --variant gold [--object <id>] [--print-link]`
+
+El script `scripts/wallet-google-refine-preview.ts`:
+
+1. **Aborta** si el destino parece LOCAL (`*_local` o `iimp_card_`) o si el origen
+   no es HTTPS (evita que el PATCH borre los PNG).
+2. Verifica por `HEAD`/`GET` que `logo`, `wideLogo` y `heroImage` sean PNG `200`
+   accesibles.
+3. Respalda el objeto remoto completo en
+   `%TEMP%\afiliaciones-wallet-refine\<id>-visual-backup-<ts>.json`.
+4. Aplica `PATCH` **solo** a `cardTitle`, `header`, `subheader`,
+   `hexBackgroundColor`, `logo`, `wideLogo`, `heroImage`. No toca `state`,
+   `barcode`, `textModules`, `links`, IDs ni la firma JWT.
+5. Relee el objeto (`GET`) y compara los siete campos; falla si Google no los
+   devuelve.
+6. Genera un enlace firmado nuevo con la misma lógica JWT y lo escribe en
+   `%TEMP%\afiliaciones-wallet-refine\<id>-save-link-<ts>.txt` (no se imprime el
+   bearer salvo `--print-link`).
+
+El worker y `wallet:google:refresh-objects` reutilizan
+`buildGenericObjectPayload`, por lo que preservan color y recursos versionados en
+futuras sincronizaciones (cubierto por prueba de `syncObject`).
+
+### 20.5 Estado real y bloqueo
+
+- Código, assets, typecheck y pruebas focales: **PASS** (wallet 49/49).
+- Guard LOCAL verificado: el script aborta sin tocar el objeto.
+- Diagnóstico QA **solo lectura**: OAuth/API/issuer `OK`, clase QA existe y tiene
+  **5 objetos**. `wide-logo-v1.png` responde `200`; `wide-logo-light-v2.png`,
+  `wide-logo-dark-v2.png` y `hero-v2.png` responden **404** (aún no desplegados).
+- `PATCH` real, relectura y captura de la pantalla web en QA: **BLOCKED**. Este
+  entorno local apunta a LOCAL por HTTP (`AUTH_URL=http://localhost:3000`), el
+  origen HTTPS de QA vive en la EC2 y los PNG nuevos no están publicados allí. No
+  se modificó LOCAL, PROD, AWS ni credenciales.
+- Próximo paso único: desplegar este cambio en QA y ejecutar
+  `wallet:google:refine -- --variant gold` allí; luego validar la captura real en
+  Android/web. El script aborta si algún PNG no responde `200`.
+
+### 20.6 Rollback
+
+Restaurar el backup de `%TEMP%\afiliaciones-wallet-refine\...json` con el mismo
+`PATCH` de campos visuales, o volver a ejecutar `wallet:google:refresh-objects`
+con la versión de branding anterior. No se eliminan objetos ni se alteran IDs, QR
+ni estado.
