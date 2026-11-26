@@ -682,6 +682,7 @@ export function ExpedientesWorkspace({ currentUser }: { currentUser?: any }) {
               name: editDialog.payload.affiliateType === "STUDENT" ? "Estudiante" : "Activo",
             },
             affiliateAvatarUrl: editDialog.payload.person.user?.image ?? null,
+            draftData: editDialog.payload.draftData ?? null,
             source: "V2",
           }}
           isStudent={editDialog.payload.affiliateType === "STUDENT"}

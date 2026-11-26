@@ -44,6 +44,10 @@ model User {
   emailCampaignsCreated      EmailCampaign[]               @relation("EmailCampaignCreator")
   emailRecipientListsCreated EmailRecipientList[]          @relation("EmailRecipientListCreator")
   quotaSyncRunsRequested     QuotaSyncRun[]                @relation("QuotaSyncRunRequester")
+  accessSessionsStarted      AccessSession[]               @relation("AccessSessionEntryRegisteredBy")
+  accessSessionsEnded        AccessSession[]               @relation("AccessSessionExitRegisteredBy")
+  accessMovementsRegistered  AccessMovement[]              @relation("AccessMovementRegisteredBy")
+  accessOperatorAssignments  AccessOperatorAssignment[]
 
   @@index([email])
   @@index([status])
@@ -204,6 +208,7 @@ model Person {
   id                      Int                      @id @default(autoincrement())
   documentType            DocumentType             @map("document_type")
   documentNumber          String                   @map("document_number") @db.VarChar(50)
+  associateCode           String?                  @unique @map("associate_code") @db.VarChar(20)
   firstName               String                   @map("first_name") @db.VarChar(150)
   paternalLastName        String                   @map("paternal_last_name") @db.VarChar(150)
   maternalLastName        String?                  @map("maternal_last_name") @db.VarChar(150)
@@ -228,6 +233,8 @@ model Person {
   associateCards          AssociateCard[]
   quotas                  AssociateQuota[]
   quotaSyncItems          QuotaSyncItem[]
+  accessSessions          AccessSession[]
+  accessMovements         AccessMovement[]
 
   @@unique([documentType, documentNumber])
   @@index([documentNumber])
@@ -1692,8 +1699,109 @@ model AssociateCard {
   updatedAt         DateTime            @updatedAt @map("updated_at")
 
   person Person @relation(fields: [personId], references: [id], onDelete: Restrict)
+  accessMovements AccessMovement[]
+  walletPasses CardWalletPass[]
+  walletSyncJobs CardWalletSyncJob[]
 
   @@map("associate_cards")
+}
+
+enum CardWalletProvider {
+  GOOGLE
+  APPLE
+}
+
+enum CardWalletSyncStatus {
+  PENDING
+  SYNCED
+  FAILED
+  REVOKED
+}
+
+/// Identificador externo del pase por proveedor. No almacena datos personales:
+/// solo relaciona el carné institucional con el objeto/pase emitido.
+model CardWalletPass {
+  id             String               @id @default(cuid())
+  cardId         String               @map("card_id")
+  provider       CardWalletProvider
+  externalPassId String               @map("external_pass_id") @db.VarChar(255)
+  syncStatus     CardWalletSyncStatus @default(PENDING) @map("sync_status")
+  version        Int                  @default(1)
+  lastErrorCode  String?              @map("last_error_code") @db.VarChar(80)
+  lastSyncedAt   DateTime?            @map("last_synced_at")
+  revokedAt      DateTime?            @map("revoked_at")
+  createdAt      DateTime             @default(now()) @map("created_at")
+  updatedAt      DateTime             @updatedAt @map("updated_at")
+
+  card               AssociateCard            @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  appleRegistrations ApplePassRegistration[]
+  syncJob            CardWalletSyncJob?
+
+  @@unique([cardId, provider])
+  @@unique([provider, externalPassId])
+  @@index([provider, syncStatus])
+  @@map("card_wallet_passes")
+}
+
+enum CardWalletSyncOperation {
+  SYNC
+  REVOKE
+}
+
+enum CardWalletSyncJobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  RETRY
+  FAILED
+  SUPERSEDED
+}
+
+/// Outbox persistente por pase. La clave única por walletPassId serializa los
+/// cambios de un mismo pase y evita trabajos duplicados.
+model CardWalletSyncJob {
+  id               String                 @id @default(cuid())
+  cardId           String                 @map("card_id")
+  walletPassId     String                 @unique @map("wallet_pass_id")
+  provider         CardWalletProvider
+  operation        CardWalletSyncOperation @default(SYNC)
+  status           CardWalletSyncJobStatus @default(PENDING)
+  targetVersion    Int                    @default(1) @map("target_version")
+  attemptCount     Int                    @default(0) @map("attempt_count")
+  maxAttempts      Int                    @default(8) @map("max_attempts")
+  nextAttemptAt    DateTime               @default(now()) @map("next_attempt_at")
+  lockedAt         DateTime?              @map("locked_at")
+  lockedBy         String?                @map("locked_by") @db.VarChar(120)
+  leaseExpiresAt   DateTime?              @map("lease_expires_at")
+  lastErrorCode    String?                @map("last_error_code") @db.VarChar(80)
+  lastErrorMessage String?                @map("last_error_message") @db.VarChar(500)
+  createdAt        DateTime               @default(now()) @map("created_at")
+  updatedAt        DateTime               @updatedAt @map("updated_at")
+  completedAt      DateTime?              @map("completed_at")
+
+  card       AssociateCard   @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  walletPass CardWalletPass @relation(fields: [walletPassId], references: [id], onDelete: Cascade)
+
+  @@index([status, nextAttemptAt])
+  @@index([cardId])
+  @@map("card_wallet_sync_jobs")
+}
+
+/// Registro de dispositivos del protocolo PassKit de Apple. El token de
+/// autenticación del pase no se persiste: se deriva con HMAC del serial.
+model ApplePassRegistration {
+  id                      String   @id @default(cuid())
+  passId                  String   @map("pass_id")
+  deviceLibraryIdentifier String   @map("device_library_identifier") @db.VarChar(160)
+  pushToken               String   @map("push_token") @db.VarChar(200)
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+
+  pass CardWalletPass @relation(fields: [passId], references: [id], onDelete: Cascade)
+
+  @@unique([passId, deviceLibraryIdentifier])
+  @@index([deviceLibraryIdentifier])
+  @@map("apple_pass_registrations")
 }
 
 model AssociateQuota {
@@ -1789,4 +1897,195 @@ model QuotaSyncItem {
   @@index([personId])
   @@index([institutionalCode])
   @@map("quota_sync_items")
+}
+
+model AssociateCodeSequence {
+  id        Int      @id @default(1)
+  lastValue Int      @default(0) @map("last_value")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("associate_code_sequence")
+}
+
+// ===========================================================================
+// CONTROL DE ACCESOS (ACCESS-CONTROL-01)
+// ===========================================================================
+
+enum AccessMovementMode {
+  ENTRY
+  EXIT
+  BOTH
+}
+
+enum AccessSessionStatus {
+  OPEN
+  CLOSED
+  ADMINISTRATIVELY_CLOSED
+}
+
+enum AccessMovementType {
+  ENTRY
+  EXIT
+}
+
+enum AccessValidationResult {
+  ALLOWED
+  DENIED
+  REVIEW_REQUIRED
+}
+
+enum AccessMovementSource {
+  QR_USB
+  QR_CAMERA
+  MANUAL_SEARCH
+  ADMIN_OVERRIDE
+}
+
+model AccessSite {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique @db.VarChar(40)
+  name        String   @db.VarChar(150)
+  address     String?  @db.VarChar(250)
+  description String?  @db.Text
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  points              AccessPoint[]
+  sessions            AccessSession[]
+  movements           AccessMovement[]
+  policies            AccessPolicy[]
+  operatorAssignments AccessOperatorAssignment[]
+
+  @@index([isActive])
+  @@map("access_sites")
+}
+
+model AccessPoint {
+  id           Int                @id @default(autoincrement())
+  siteId       Int                @map("site_id")
+  code         String             @db.VarChar(40)
+  name         String             @db.VarChar(150)
+  description  String?            @db.Text
+  movementMode AccessMovementMode @default(BOTH) @map("movement_mode")
+  isActive     Boolean            @default(true) @map("is_active")
+  createdAt    DateTime           @default(now()) @map("created_at")
+  updatedAt    DateTime           @updatedAt @map("updated_at")
+
+  site                AccessSite               @relation(fields: [siteId], references: [id], onDelete: Restrict)
+  entrySessions       AccessSession[]          @relation("AccessSessionEntryPoint")
+  exitSessions        AccessSession[]          @relation("AccessSessionExitPoint")
+  movements           AccessMovement[]
+  operatorAssignments AccessOperatorAssignment[]
+
+  @@unique([siteId, code])
+  @@index([siteId])
+  @@index([isActive])
+  @@map("access_points")
+}
+
+model AccessSession {
+  id                Int                 @id @default(autoincrement())
+  personId          Int                 @map("person_id")
+  siteId            Int                 @map("site_id")
+  entryPointId      Int                 @map("entry_point_id")
+  exitPointId       Int?                @map("exit_point_id")
+  entryAt           DateTime            @default(now()) @map("entry_at")
+  exitAt            DateTime?           @map("exit_at")
+  entryRegisteredBy Int?                @map("entry_registered_by")
+  exitRegisteredBy  Int?                @map("exit_registered_by")
+  status            AccessSessionStatus @default(OPEN)
+  createdAt         DateTime            @default(now()) @map("created_at")
+  updatedAt         DateTime            @updatedAt @map("updated_at")
+
+  person       Person       @relation(fields: [personId], references: [id], onDelete: Restrict)
+  site         AccessSite   @relation(fields: [siteId], references: [id], onDelete: Restrict)
+  entryPoint   AccessPoint  @relation("AccessSessionEntryPoint", fields: [entryPointId], references: [id], onDelete: Restrict)
+  exitPoint    AccessPoint? @relation("AccessSessionExitPoint", fields: [exitPointId], references: [id], onDelete: Restrict)
+  entryUser    User?        @relation("AccessSessionEntryRegisteredBy", fields: [entryRegisteredBy], references: [id], onDelete: SetNull)
+  exitUser     User?        @relation("AccessSessionExitRegisteredBy", fields: [exitRegisteredBy], references: [id], onDelete: SetNull)
+  movements    AccessMovement[]
+
+  @@index([personId])
+  @@index([siteId])
+  @@index([status])
+  @@index([entryAt])
+  @@index([personId, siteId, status])
+  @@map("access_sessions")
+}
+
+model AccessMovement {
+  id               String                 @id @default(cuid())
+  personId         Int                    @map("person_id")
+  cardId           String?                @map("card_id")
+  siteId           Int                    @map("site_id")
+  accessPointId    Int                    @map("access_point_id")
+  sessionId        Int?                   @map("session_id")
+  movementType     AccessMovementType     @map("movement_type")
+  validationResult AccessValidationResult @map("validation_result")
+  reasonCode       String?                @map("reason_code") @db.VarChar(60)
+  source           AccessMovementSource
+  registeredBy     Int?                   @map("registered_by")
+  occurredAt       DateTime               @default(now()) @map("occurred_at")
+  createdAt        DateTime               @default(now()) @map("created_at")
+  idempotencyKey   String?                @unique @map("idempotency_key") @db.VarChar(100)
+
+  person           Person        @relation(fields: [personId], references: [id], onDelete: Restrict)
+  card             AssociateCard? @relation(fields: [cardId], references: [id], onDelete: SetNull)
+  site             AccessSite    @relation(fields: [siteId], references: [id], onDelete: Restrict)
+  accessPoint      AccessPoint   @relation(fields: [accessPointId], references: [id], onDelete: Restrict)
+  session          AccessSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  registeredByUser User?         @relation("AccessMovementRegisteredBy", fields: [registeredBy], references: [id], onDelete: SetNull)
+
+  @@index([personId])
+  @@index([siteId])
+  @@index([accessPointId])
+  @@index([occurredAt])
+  @@index([movementType])
+  @@index([validationResult])
+  @@index([registeredBy])
+  @@index([sessionId])
+  @@map("access_movements")
+}
+
+model AccessPolicy {
+  id                         Int      @id @default(autoincrement())
+  siteId                     Int      @map("site_id")
+  name                       String   @db.VarChar(150)
+  allowedMembershipCategories Json?    @map("allowed_membership_categories")
+  requireActiveMembership    Boolean  @default(true) @map("require_active_membership")
+  requireValidCard           Boolean  @default(true) @map("require_valid_card")
+  quotaRestrictionEnabled    Boolean  @default(false) @map("quota_restriction_enabled")
+  maxPendingQuotas           Int?     @map("max_pending_quotas")
+  allowManualLookup          Boolean  @default(true) @map("allow_manual_lookup")
+  isActive                   Boolean  @default(true) @map("is_active")
+  version                    Int      @default(1)
+  createdAt                  DateTime @default(now()) @map("created_at")
+  updatedAt                  DateTime @updatedAt @map("updated_at")
+
+  site AccessSite @relation(fields: [siteId], references: [id], onDelete: Restrict)
+
+  @@index([siteId])
+  @@index([isActive])
+  @@map("access_policies")
+}
+
+model AccessOperatorAssignment {
+  id            Int      @id @default(autoincrement())
+  userId        Int      @map("user_id")
+  siteId        Int      @map("site_id")
+  accessPointId Int?     @map("access_point_id")
+  isActive      Boolean  @default(true) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  site        AccessSite   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  accessPoint AccessPoint? @relation(fields: [accessPointId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, siteId, accessPointId])
+  @@index([userId])
+  @@index([siteId])
+  @@index([accessPointId])
+  @@map("access_operator_assignments")
 }

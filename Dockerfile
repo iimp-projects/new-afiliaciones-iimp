@@ -122,6 +122,31 @@ COPY --from=builder /app/scripts ./scripts
 CMD ["npx", "tsx", "scripts/synchronize-alerts.ts"]
 
 # -----------------------------------------------------------------------------
+# Stage: wallet-sync — one-shot processing of the persistent Wallet outbox.
+#
+# Reuses the builder's node_modules (Prisma Client, tsx) and the source modules.
+# Designed to run from the existing scheduler mechanism (EventBridge/one-shot
+# container), never inside a request or a PostgreSQL transaction.
+# -----------------------------------------------------------------------------
+FROM node:22-bookworm-slim AS wallet-sync
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends openssl ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/tsconfig.json ./tsconfig.json
+COPY --from=builder /app/lib ./lib
+COPY --from=builder /app/modules ./modules
+COPY --from=builder /app/scripts ./scripts
+
+CMD ["npx", "tsx", "scripts/process-card-wallet-jobs.ts"]
+
+# -----------------------------------------------------------------------------
 # Stage: runner — minimal non-root runtime. Only the standalone server, static
 # assets, public assets and the Puppeteer-managed Chromium are present.
 # -----------------------------------------------------------------------------

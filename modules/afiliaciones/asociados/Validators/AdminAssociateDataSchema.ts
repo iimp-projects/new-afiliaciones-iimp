@@ -36,10 +36,16 @@ export const adminAcademicSchema = z
   })
   .nullable();
 
+export const employmentStatusSchema = z.enum(["EMPLOYED", "SELF_EMPLOYED", "NOT_WORKING"]);
+
 export const adminEmploymentSchema = z
   .object({
+    employmentStatus: employmentStatusSchema.nullable(),
     companyId: optionalId,
     positionId: optionalId,
+    companyName: optionalText(250),
+    positionName: optionalText(150),
+    companyTaxId: optionalText(11),
     area: optionalText(150),
     workingAddress: optionalText(250),
     workPhone: optionalText(50),

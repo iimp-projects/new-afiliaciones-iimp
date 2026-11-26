@@ -29,8 +29,7 @@ function validate(personal: PersonalInformation) {
 const hasError = (result: ReturnType<typeof validate>, field: string) =>
   result.errors.some((error) => error.field === field);
 
-describe("PersonalInformationValidator — ubicación geográfica", () => {
-  it("acepta Perú con departamento, provincia y distrito", () => {
+describe("PersonalInformationValidator — ubicación geográfica", () => {  it("acepta Perú con departamento, provincia y distrito", () => {
     const result = validate(base);
     expect(result.valid).toBe(true);
     expect(hasError(result, "provinceId")).toBe(false);
@@ -72,5 +71,24 @@ describe("PersonalInformationValidator — ubicación geográfica", () => {
   it("no genera error de distrito cuando no hay distritos disponibles", () => {
     const result = validate({ ...base, districtId: undefined });
     expect(hasError(result, "districtId")).toBe(false);
+  });
+});
+
+describe("PersonalInformationValidator — apellido materno", () => {
+  it("acepta apellido materno vacío", () => {
+    const result = validate({ ...base, motherLastName: "" });
+    expect(result.valid).toBe(true);
+    expect(hasError(result, "motherLastName")).toBe(false);
+  });
+
+  it("acepta apellido materno con espacios en blanco", () => {
+    const result = validate({ ...base, motherLastName: "   " });
+    expect(result.valid).toBe(true);
+    expect(hasError(result, "motherLastName")).toBe(false);
+  });
+
+  it("valida el formato cuando se ingresa apellido materno", () => {
+    const result = validate({ ...base, motherLastName: "G0mez" });
+    expect(hasError(result, "motherLastName")).toBe(true);
   });
 });

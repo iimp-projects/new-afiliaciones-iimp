@@ -100,7 +100,10 @@ export class S3StorageService {
         `${this.bucket}.s3.${this.region}.amazonaws.com`,
         `${this.bucket}.s3.amazonaws.com`,
       ]);
-      if (!validHosts.has(parsed.hostname)) throw new Error("El archivo no pertenece al almacenamiento autorizado.");
+      const isForeignS3Host = /(^|\.)s3([.-][a-z0-9-]+)?\.amazonaws\.com$/i.test(parsed.hostname);
+      if (!validHosts.has(parsed.hostname) && (process.env.NODE_ENV === "production" || !isForeignS3Host)) {
+        throw new Error("El archivo no pertenece al almacenamiento autorizado.");
+      }
       key = decodeURIComponent(parsed.pathname.replace(/^\/+/, ""));
     }
 

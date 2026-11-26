@@ -106,10 +106,10 @@ describe("AsociadosMapper", () => {
     expect(withCode.atomicValidations?.[0].assignee?.name).toBe("SIE");
   });
 
-  it("genera el código A-<personId> cuando el asociado no tiene código institucional", () => {
+  it("muestra el código correlativo almacenado del asociado", () => {
     const base = user("DNI", "41000057");
-    const card = AsociadosMapper.toCardData({ ...base, person: { ...base.person, id: 41 } });
-    expect(card.atomicValidations?.[0].statusLabel).toBe("A-0041");
+    const card = AsociadosMapper.toCardData({ ...base, person: { ...base.person, id: 41, associateCode: "A-00041" } });
+    expect(card.atomicValidations?.[0].statusLabel).toBe("A-00041");
     expect(card.atomicValidations?.[0].assignee?.name).toBe("IIMP");
   });
 
