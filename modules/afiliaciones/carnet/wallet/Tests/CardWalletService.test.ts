@@ -243,6 +243,38 @@ describe("CardWalletService", () => {
     expect(repo.deleteRegistration).toHaveBeenCalledWith("reg-1");
   });
 
+  it("permite revocar un pase emitido aunque el asociado esté fuera de la allowlist", async () => {
+    mocks.getCardRecord.mockResolvedValue(state.card);
+    const base = walletConfig();
+    const restricted: WalletConfig = { ...base, google: { ...base.google!, allowedAssociateCodePrefixes: ["QA-TEST-"] } };
+    const repo = repository({ findPass: vi.fn(async () => pass("GOOGLE")) });
+    const googleClient = { createSaveLink: vi.fn(), syncObject: vi.fn(async () => undefined) };
+    const { service: wallet } = service({
+      repo,
+      config: restricted,
+      googleClient,
+      loadCard: async () => ({ ...state, snapshot: { ...snapshot, revoked: true, membershipStatus: "Revocado" } }),
+    });
+    const result = await wallet.syncProvider(1, "GOOGLE");
+    expect(result).toEqual({ provider: "GOOGLE", status: "REVOKED" });
+    expect(googleClient.syncObject).toHaveBeenCalledWith(expect.objectContaining({ revoked: true }));
+    expect(repo.markRevoked).toHaveBeenCalled();
+    expect(repo.markFailed).not.toHaveBeenCalledWith("pass-GOOGLE", "ALLOWLIST_BLOCKED");
+  });
+
+  it("actualiza un pase existente fuera de la allowlist sin bloquearlo", async () => {
+    mocks.getCardRecord.mockResolvedValue(state.card);
+    const base = walletConfig();
+    const restricted: WalletConfig = { ...base, google: { ...base.google!, allowedAssociateCodePrefixes: ["QA-TEST-"] } };
+    const repo = repository({ findPass: vi.fn(async () => pass("GOOGLE")) });
+    const googleClient = { createSaveLink: vi.fn(), syncObject: vi.fn(async () => undefined) };
+    const { service: wallet } = service({ repo, config: restricted, googleClient });
+    const result = await wallet.syncProvider(1, "GOOGLE");
+    expect(result).toEqual({ provider: "GOOGLE", status: "SYNCED" });
+    expect(googleClient.syncObject).toHaveBeenCalled();
+    expect(repo.markSynced).toHaveBeenCalled();
+  });
+
   it("no lanza si falla un proveedor durante la sincronización", async () => {
     mocks.getCardRecord.mockResolvedValue(state.card);
     const repo = repository({

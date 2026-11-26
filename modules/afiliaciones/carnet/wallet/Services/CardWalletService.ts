@@ -343,10 +343,10 @@ export class CardWalletService {
         await this.repo.markFailed(pass.id, "GOOGLE_NOT_CONFIGURED").catch(() => undefined);
         return { provider: "GOOGLE", status: "FAILED", code: "GOOGLE_NOT_CONFIGURED" };
       }
-      if (!isGoogleWalletEmissionAllowed(config.google, { personId, associateCode: state.snapshot.associateCode })) {
-        await this.repo.markFailed(pass.id, "ALLOWLIST_BLOCKED").catch(() => undefined);
-        return { provider: "GOOGLE", status: "FAILED", code: "ALLOWLIST_BLOCKED" };
-      }
+      // La allowlist restringe NUEVAS emisiones/instalaciones (getGoogleLink).
+      // Un pase ya emitido debe poder actualizarse y, sobre todo, revocarse
+      // aunque el asociado haya salido de la allowlist; de lo contrario un
+      // carné revocado seguiría siendo válido en Google Wallet.
       try {
         // Transición controlada de fixtures locales: si el pase estaba en modo
         // simulación, se adopta el identificador real estable antes de sincronizar.
