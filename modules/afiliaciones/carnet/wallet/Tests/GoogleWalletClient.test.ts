@@ -91,6 +91,22 @@ describe("GoogleWalletClient", () => {
     expect(calls.some((call) => call.method === "PATCH" && call.url.includes("/genericObject/"))).toBe(true);
   });
 
+  it("no crea un objeto nuevo al sincronizar un pase inexistente", async () => {
+    const calls: Array<{ url: string; method: string }> = [];
+    const fetchImpl = async (input: string, init?: RequestInit): Promise<Response> => {
+      const method = init?.method ?? "GET";
+      calls.push({ url: input, method });
+      if (input === "https://oauth2.googleapis.com/token") return jsonResponse({ access_token: "access-token", expires_in: 3600 });
+      if (input.includes("/genericClass/")) return jsonResponse({});
+      if (input.includes("/genericObject/") && method === "GET") return new Response(null, { status: 404 });
+      if (input.endsWith("/genericObject") && method === "POST") return jsonResponse({});
+      return jsonResponse({});
+    };
+    const client = new GoogleWalletClient(config, appBaseUrl, { fetchImpl });
+    await expect(client.syncObject(snapshot)).rejects.toMatchObject({ code: "NOT_FOUND" });
+    expect(calls.some((call) => call.method === "POST" && call.url.endsWith("/genericObject"))).toBe(false);
+  });
+
   it("usa el namespace QA en el identificador y en el JWT", async () => {
     const qaConfig: GoogleWalletConfig = { ...config, classId: "338800000001.iimp_membership_qa", objectPrefix: "iimp_qa_card_" };
     const fetchImpl = async (input: string, init?: RequestInit): Promise<Response> => {
