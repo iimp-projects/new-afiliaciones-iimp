@@ -151,9 +151,9 @@ describe("GoogleWalletClient", () => {
     expect(serialized).toContain("/images/wallet/gold/wide-logo-v1.png");
     expect(serialized).toContain("/images/wallet/gold/hero-v1.png");
 
-    const cls = buildGenericClassPayload(config, appBaseUrl);
-    expect(cls.localizedTitle.defaultValue.value).toBe("Carné Digital IIMP");
-    expect(cls.hexBackgroundColor).toBe("#FAF8F3");
+    const cls = buildGenericClassPayload(config);
+    expect(cls.id).toBe(config.classId);
+    expect(Object.keys(cls).sort()).toEqual(["classTemplateInfo", "id"]);
     expect(cls.classTemplateInfo.cardTemplateOverride.cardRowTemplateInfos).toHaveLength(2);
     expect(JSON.stringify(cls.classTemplateInfo)).toContain("object.textModulesData['associate_code']");
     expect(JSON.stringify(cls.classTemplateInfo)).toContain("object.linksModuleData.uris['verify']");

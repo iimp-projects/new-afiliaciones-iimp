@@ -43,14 +43,14 @@ function sleep(milliseconds: number): Promise<void> {
 const RETRYABLE_STATUS = new Set([429, 500, 502, 503, 504]);
 const MAX_ATTEMPTS = 3;
 
-export function buildGenericClassPayload(config: GoogleWalletConfig, appBaseUrl: string) {
+/**
+ * La GenericClass solo admite `classTemplateInfo` (ver REST reference). El
+ * título, color e imágenes viven en el GenericObject; enviar campos inexistentes
+ * en la clase provoca "Patch request was empty".
+ */
+export function buildGenericClassPayload(config: GoogleWalletConfig) {
   return {
     id: config.classId,
-    issuerName: WALLET_BRAND.issuerName,
-    reviewStatus: "UNDER_REVIEW",
-    localizedTitle: localized(WALLET_BRAND.cardTitle),
-    hexBackgroundColor: WALLET_BRAND.palette.ivory,
-    homepageUri: { uri: appBaseUrl },
     classTemplateInfo: buildClassTemplateInfo(),
   };
 }
@@ -217,19 +217,25 @@ export class GoogleWalletClient {
       const operation = await this.ensureClass(accessToken);
       return { status: current.status, operation };
     }
-    const payload = buildGenericClassPayload(this.config, this.appBaseUrl);
+    const payload = buildGenericClassPayload(this.config);
     const response = await this.request(`${WALLET_API}/genericClass/${encodeURIComponent(this.config.classId)}`, {
       method: "PATCH",
       headers: { ...this.authHeaders(accessToken), "content-type": "application/json" },
-      body: JSON.stringify({
-        issuerName: payload.issuerName,
-        localizedTitle: payload.localizedTitle,
-        hexBackgroundColor: payload.hexBackgroundColor,
-        classTemplateInfo: payload.classTemplateInfo,
-      }),
+      body: JSON.stringify({ classTemplateInfo: payload.classTemplateInfo }),
     });
     if (!response.ok) {
-      throw new WalletError("PROVIDER_ERROR", "No pudimos actualizar el diseño de la clase de Google Wallet.");
+      let detail = "";
+      try {
+        const body = (await response.json()) as { error?: { message?: unknown } };
+        if (typeof body?.error?.message === "string") detail = body.error.message.slice(0, 240);
+      } catch {
+        detail = "";
+      }
+      // PATCH idempotente: si el template ya coincide, Google responde "empty".
+      if (response.status === 400 && /Patch request was empty/i.test(detail)) {
+        return { status: response.status, operation: "REUSED" };
+      }
+      throw new WalletError("PROVIDER_ERROR", `No pudimos actualizar el diseño de la clase de Google Wallet (HTTP ${response.status}: ${detail}).`);
     }
     return { status: response.status, operation: "UPDATED" };
   }
@@ -249,7 +255,7 @@ export class GoogleWalletClient {
     const created = await this.request(`${WALLET_API}/genericClass`, {
       method: "POST",
       headers: { ...this.authHeaders(accessToken), "content-type": "application/json" },
-      body: JSON.stringify(buildGenericClassPayload(this.config, this.appBaseUrl)),
+      body: JSON.stringify(buildGenericClassPayload(this.config)),
     });
     if (created.ok) return "CREATED";
     if (created.status === 409) return "REUSED";
@@ -360,7 +366,7 @@ export class GoogleWalletClient {
       const response = await this.request(`${WALLET_API}/genericClass`, {
         method: "POST",
         headers: { ...this.authHeaders(accessToken), "content-type": "application/json" },
-        body: JSON.stringify(buildGenericClassPayload(this.config, this.appBaseUrl)),
+        body: JSON.stringify(buildGenericClassPayload(this.config)),
       });
       if (response.ok) return { operation: "CREATED", status: response.status };
       if (response.status === 409) return { operation: "REUSED", status: response.status };
