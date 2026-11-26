@@ -714,6 +714,10 @@ El plan exacto y los comandos quedan en el runbook.
 
 ## 20. Refinamiento de la tarjeta de confirmación web (GOOGLE-WALLET-WEB-PREVIEW-REFINEMENT-04)
 
+> **Nota:** la paleta activa `#7F561E` y los recursos `*-v2.png` descritos aquí
+> fueron reemplazados por Gold Champagne §21 (`#DCC69C` + `wide-logo-dark-v3.png`).
+> Se conserva el historial; el flujo técnico sigue vigente.
+
 Esta fase corrige únicamente la presentación de la tarjeta que Google muestra al
 presionar **Agregar a Google Wallet**. La integración funcional (IDs, JWT, QR,
 credenciales, clase y reglas) no cambió.
@@ -827,3 +831,74 @@ Restaurar el backup de `%TEMP%\afiliaciones-wallet-refine\...json` con el mismo
 `PATCH` de campos visuales, o volver a ejecutar `wallet:google:refresh-objects`
 con la versión de branding anterior. No se eliminan objetos ni se alteran IDs, QR
 ni estado.
+
+## 21. Gold Champagne (GOOGLE-WALLET-PREMIUM-CHAMPAGNE-06)
+
+Esta fase reemplaza la paleta activa de §20 por un dorado claro tipo champagne y
+un lockup oscuro nítido. No cambian IDs, QR, JWT, credenciales, emisión ni reglas.
+
+### 21.1 Paleta centralizada en `walletBranding.ts`
+
+| Variante | `hexBackgroundColor` | `wideLogo` | Rol |
+| --- | --- | --- | --- |
+| **champagne (activa)** | `#DCC69C` | `wide-logo-dark-v3.png` | Gold Champagne prioritario |
+| `soft-gold` | `#CBB17D` | `wide-logo-dark-v3.png` | Alternativa más cálida |
+| `ivory` | `#F3EBDD` | `wide-logo-dark-v3.png` | Marfil premium |
+| `gold` | `#7F561E` | `wide-logo-light-v3.png` | Dorado oscuro histórico |
+
+Tokens del degradado (solo conceptuales, nunca en `hexBackgroundColor`):
+inicio `#F4E8CF`, centro `#DCC69C`, final `#BDA16D`. No se modificaron variables
+CSS globales de Afiliaciones.
+
+### 21.2 wideLogo oscuro y nítido
+
+- Fondo claro ⇒ lockup oscuro. Se evaluaron `#60471F`, `#49361C` y `#30251A`; se
+  selecciona **`#49361C`** por equilibrio entre contraste (≈6.8:1 sobre
+  `#DCC69C`), calidez institucional y nitidez (no es negro puro).
+- Nitidez: se usó el escudo de mayor resolución nativo
+  (`logo-square-v1.png`, 364×502) combinado con el texto del lockup original; se
+  compuso a escala 2.089× y se aplicó un suavizado de bordes leve
+  (`sigma 0.6`), sin filtros que diluyan trazos.
+- PNG 1280×400 real, esquinas con alfa 0, bbox de contenido `57..1223 × 13..386`
+  y 65.6 % de transparencia. Variante clara `#F3EBDD` para `gold`.
+- No hay vector original disponible: el PNG oficial del sitio IIMP es idéntico al
+  del repositorio (202×65, 8828 bytes) y no existe SVG en el historial.
+
+### 21.3 Degradado premium
+
+- El fondo nativo entrega un sólido `#DCC69C`.
+- El degradado se evaluó **solo** como posible `heroImage`; no se incrustó en el
+  `wideLogo`, no se generó una imagen completa del carné y no se intentó sustituir
+  el render nativo. Se mantiene un hero transparente sutil para preservar una
+  composición ligera; el degradado queda como ajuste opcional tras validación en
+  Android.
+
+### 21.4 Variantes sin duplicar objetos
+
+`npm run wallet:google:refine -- --variant champagne|soft-gold|ivory|gold`
+(`champagne` por defecto). El script hace PATCH únicamente a los 7 campos
+visuales del mismo objeto, respalda antes, verifica por GET y omite objetos fuera
+del namespace `iimp_qa_card_`.
+
+### 21.5 Resultado QA (26/11/2026)
+
+- Deploy QA oficial (`qa-deploy.yml`, run
+  https://github.com/iimp-projects/new-afiliaciones-iimp/actions/runs/45853781787):
+  **SUCCESS** sobre `feature/card-google-wallet-qa-deploy`, SHA `ce1b991`.
+- `wide-logo-dark-v3.png`, `wide-logo-light-v3.png` y `hero-v2.png` responden
+  `200 image/png`; el PNG oscuro coincide byte a byte (SHA-256). Health `200`.
+- **4/4 tarjetas QA** actualizadas y verificadas 7/7 con `#dcc69c`,
+  `wide-logo-dark-v3.png` y `hero-v2.png`. El objeto de diagnóstico
+  `iimp_qa_diag_...` se omitió (fuera de namespace).
+- Enlaces firmados y respaldos en `%TEMP%\afiliaciones-wallet-refine\`
+  (lote `2026-11-26T16-07-16`). La captura visual real requiere sesión de Cuenta
+  de Google (el save link redirige a `accounts.google.com`); queda para
+  validación del usuario en web, lista y Android.
+- El worker reutiliza `buildGenericObjectPayload`, por lo que preserva la
+  variante champagne en futuras sincronizaciones.
+
+### 21.6 Rollback
+
+Re-ejecutar `wallet:google:refine -- --variant gold` (o restaurar los backups de
+`%TEMP%\afiliaciones-wallet-refine\`). No se eliminan objetos ni se alteran IDs,
+QR ni estado.
