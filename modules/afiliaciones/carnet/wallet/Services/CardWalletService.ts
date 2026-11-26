@@ -232,14 +232,18 @@ export class CardWalletService {
       throw new WalletError("PROVIDER_ERROR", "No pudimos preparar tu billetera digital.", { cause: error });
     });
     try {
-      const authenticationToken = deriveApplePassAuthenticationToken(
-        config.apple.authenticationSecret,
-        serialNumber,
-        config.apple.authenticationSecretVersion,
-      );
+      // Un pase estático (actualizaciones deshabilitadas) no lleva token ni
+      // webServiceURL y no se marca como sincronizado: no existe estado remoto.
+      const authenticationToken = config.apple.updatesEnabled
+        ? deriveApplePassAuthenticationToken(
+            config.apple.authenticationSecret,
+            serialNumber,
+            config.apple.authenticationSecretVersion,
+          )
+        : "";
       const builder = this.makeAppleBuilder(config.apple);
       const buffer = await builder.build({ serialNumber, authenticationToken, snapshot: state.snapshot, config: config.apple });
-      await this.repo.markSynced(pass.id, this.now());
+      if (config.apple.updatesEnabled) await this.repo.markSynced(pass.id, this.now());
       await this.audit({ action: "CARD_WALLET_APPLE_PASS_GENERATED", personId, actorUserId, provider: "APPLE", outcome: "SUCCESS" });
       return { buffer, fileName: "carne-virtual-iimp.pkpass", serialNumber };
     } catch (error) {
@@ -364,6 +368,10 @@ export class CardWalletService {
     if (!config.apple) {
       await this.repo.markFailed(pass.id, "APPLE_NOT_CONFIGURED").catch(() => undefined);
       return { provider: "APPLE", status: "FAILED", code: "APPLE_NOT_CONFIGURED" };
+    }
+    if (!config.apple.updatesEnabled) {
+      // Pase estático: no hay estado remoto que sincronizar ni APNs que enviar.
+      return { provider: "APPLE", status: "SKIPPED", code: "UPDATES_DISABLED" };
     }
     try {
       if (state.snapshot.revoked) await this.repo.markRevoked(pass.id, this.now());

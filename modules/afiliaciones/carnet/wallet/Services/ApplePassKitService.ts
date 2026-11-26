@@ -96,6 +96,9 @@ export class ApplePassKitService {
   }): Promise<PassKitUpdateList | null> {
     const config = this.config();
     if (!config.apple) throw new WalletError("PROVIDER_NOT_CONFIGURED", "Apple Wallet no está configurado.");
+    if (!config.apple.updatesEnabled) {
+      throw new WalletError("PROVIDER_NOT_CONFIGURED", "Las actualizaciones de Apple Wallet no están habilitadas.");
+    }
     if (input.passTypeIdentifier !== config.apple.passTypeIdentifier) {
       throw new WalletError("NOT_FOUND", "Pase no encontrado.");
     }
@@ -152,6 +155,9 @@ export class ApplePassKitService {
   }): Promise<{ config: WalletConfig; pass: WalletPassRow }> {
     const config = this.config();
     if (!config.apple) throw new WalletError("PROVIDER_NOT_CONFIGURED", "Apple Wallet no está configurado.");
+    if (!config.apple.updatesEnabled) {
+      throw new WalletError("PROVIDER_NOT_CONFIGURED", "Las actualizaciones de Apple Wallet no están habilitadas.");
+    }
     if (input.passTypeIdentifier !== config.apple.passTypeIdentifier) {
       throw new WalletError("NOT_FOUND", "Pase no encontrado.");
     }

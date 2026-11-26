@@ -1,7 +1,10 @@
-import { readFileSync } from "node:fs";
-import { describe, expect, it } from "vitest";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { afterAll, describe, expect, it } from "vitest";
 import {
   getAppleWalletConfig,
+  getAppleWalletUpdatesEnabled,
   getGoogleWalletConfig,
   getWalletConfig,
   getWalletFlags,
@@ -182,5 +185,109 @@ describe("wallet config", () => {
     expect(isGoogleWalletEmissionAllowed(restricted, { personId: 1, associateCode: "QA-TEST-0001" })).toBe(true);
     expect(isGoogleWalletEmissionAllowed(restricted, { personId: 4242, associateCode: null })).toBe(true);
     expect(isGoogleWalletEmissionAllowed(restricted, { personId: 1, associateCode: "A-REAL" })).toBe(false);
+  });
+});
+
+const fixtureKey = "-----BEGIN ENCRYPTED PRIVATE KEY-----\nZmFrZS1rZXktbWF0ZXJpYWw=\n-----END ENCRYPTED PRIVATE KEY-----\n";
+const fixtureDir = mkdtempSync(path.join(tmpdir(), "iimp-wallet-config-"));
+const certFile = path.join(fixtureDir, "pass.pem");
+const keyFile = path.join(fixtureDir, "pass.key");
+const wwdrFile = path.join(fixtureDir, "wwdr.pem");
+const invalidFile = path.join(fixtureDir, "invalid.pem");
+writeFileSync(certFile, passCertificate);
+writeFileSync(keyFile, fixtureKey);
+writeFileSync(wwdrFile, wwdrCertificate);
+writeFileSync(invalidFile, "esto no es un pem");
+
+afterAll(() => {
+  rmSync(fixtureDir, { recursive: true, force: true });
+});
+
+function fileEnv(overrides: Record<string, string | undefined> = {}): Record<string, string | undefined> {
+  return {
+    NODE_ENV: "test",
+    APPLE_WALLET_TEAM_ID: "TEAM123456",
+    APPLE_WALLET_PASS_TYPE_ID: "pass.pe.org.iimp.carne",
+    APPLE_WALLET_PASS_CERT_FILE: certFile,
+    APPLE_WALLET_PASS_KEY_FILE: keyFile,
+    APPLE_WALLET_WWDR_CERT_FILE: wwdrFile,
+    APPLE_WALLET_UPDATES_ENABLED: "false",
+    ...overrides,
+  };
+}
+
+describe("apple wallet credential sources and capabilities", () => {
+  it("carga credenciales desde archivos y emite un pase estático", () => {
+    const config = getAppleWalletConfig(fileEnv());
+    expect(config).not.toBeNull();
+    expect(config?.updatesEnabled).toBe(false);
+    expect(config?.webServiceUrl).toBeNull();
+    expect(config?.authenticationSecret).toBe("");
+    expect(config?.certificatePem).toContain("-----BEGIN CERTIFICATE-----");
+    expect(config?.keyPassphrase).toBeNull();
+  });
+
+  it("mantiene compatibilidad con Base64 y le da precedencia sobre archivo equivalente", () => {
+    const config = getAppleWalletConfig(fileEnv({
+      APPLE_WALLET_PASS_CERT_B64: Buffer.from(passCertificate).toString("base64"),
+      APPLE_WALLET_PASS_KEY_B64: Buffer.from(fixtureKey).toString("base64"),
+      APPLE_WALLET_WWDR_CERT_B64: Buffer.from(wwdrCertificate).toString("base64"),
+    }));
+    expect(config?.passTypeIdentifier).toBe("pass.pe.org.iimp.carne");
+  });
+
+  it("mantiene compatibilidad con PEM inline", () => {
+    const config = getAppleWalletConfig(fileEnv({
+      APPLE_WALLET_PASS_CERT_FILE: undefined,
+      APPLE_WALLET_PASS_KEY_FILE: undefined,
+      APPLE_WALLET_WWDR_CERT_FILE: undefined,
+      APPLE_WALLET_PASS_CERT_PEM: passCertificate,
+      APPLE_WALLET_PASS_KEY_PEM: fixtureKey,
+      APPLE_WALLET_WWDR_CERT_PEM: wwdrCertificate,
+    }));
+    expect(config).not.toBeNull();
+  });
+
+  it("rechaza fuentes configuradas con contenidos distintos sin exponer valores", () => {
+    const env = fileEnv({ APPLE_WALLET_PASS_CERT_B64: Buffer.from(wwdrCertificate).toString("base64") });
+    expect(() => getAppleWalletConfig(env)).toThrow(/contenidos PEM distintos/);
+    expect(() => getAppleWalletConfig(env)).not.toThrow(/BEGIN CERTIFICATE/);
+  });
+
+  it("distingue archivo inexistente de archivo inválido", () => {
+    expect(() => getAppleWalletConfig(fileEnv({ APPLE_WALLET_PASS_CERT_FILE: path.join(fixtureDir, "missing.pem") })))
+      .toThrow(/no existe/);
+    expect(() => getAppleWalletConfig(fileEnv({ APPLE_WALLET_PASS_CERT_FILE: invalidFile })))
+      .toThrow(/PEM/);
+  });
+
+  it("preserva la passphrase sin recortar espacios", () => {
+    const config = getAppleWalletConfig(fileEnv({
+      APPLE_WALLET_PASS_KEY_PASSPHRASE: "  clave con espacios  ",
+      APPLE_WALLET_OPENSSL_PATH: "C:/Program Files/Git/usr/bin/openssl.exe",
+    }));
+    expect(config?.keyPassphrase).toBe("  clave con espacios  ");
+    expect(config?.opensslPath).toBe("C:/Program Files/Git/usr/bin/openssl.exe");
+  });
+
+  it("exige secreto y HTTPS cuando las actualizaciones están habilitadas", () => {
+    expect(getAppleWalletConfig(fileEnv({
+      APPLE_WALLET_UPDATES_ENABLED: "true",
+      APPLE_WALLET_WEB_SERVICE_URL: "https://portal.example/api/afiliaciones/carnet/wallet/apple",
+    }))).toBeNull();
+
+    const withSecret = getAppleWalletConfig(fileEnv({
+      APPLE_WALLET_UPDATES_ENABLED: "true",
+      APPLE_WALLET_WEB_SERVICE_URL: "https://portal.example/api/afiliaciones/carnet/wallet/apple",
+      CARD_WALLET_PASS_AUTH_SECRET: "s".repeat(40),
+    }));
+    expect(withSecret?.updatesEnabled).toBe(true);
+    expect(withSecret?.webServiceUrl).toBe("https://portal.example/api/afiliaciones/carnet/wallet/apple");
+  });
+
+  it("habilita actualizaciones por defecto para no alterar QA/PROD", () => {
+    expect(getAppleWalletUpdatesEnabled({})).toBe(true);
+    expect(getAppleWalletUpdatesEnabled({ APPLE_WALLET_UPDATES_ENABLED: "true" })).toBe(true);
+    expect(getAppleWalletUpdatesEnabled({ APPLE_WALLET_UPDATES_ENABLED: "false" })).toBe(false);
   });
 });
