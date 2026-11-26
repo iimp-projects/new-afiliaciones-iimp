@@ -37,7 +37,7 @@ export async function POST(
 
     const result = await new IncorporationPaymentRequestEmailService().sendIfEligible(
       applicationId,
-      { forceResend: true },
+      { forceResend: true, mode: "MANUAL_PAYMENT_METHODS" },
     );
     if (!result.sent) {
       const mapped = result.reason ? REASON_RESPONSE[result.reason] : undefined;

@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { AffiliateType, ApplicationStatus, PaymentStatus, TransactionalEmailStatus } from "@prisma/client";
+import { getAppBaseUrl } from "@/lib/config/env";
 import { MailService } from "@/modules/shared/Services/MailService";
 import { documentTypeLabel } from "@/modules/shared/Utils/documentType";
 import { TransactionalEmailRepository } from "@/modules/afiliaciones/notifications/Repositories/TransactionalEmailRepository";
@@ -15,22 +16,31 @@ import { PaymentSettingsResolver } from "@/modules/security/system-settings/Serv
 import {
   buildIncorporationPaymentRequestEmail,
   INCORPORATION_PAYMENT_REQUEST_LOGO_CID,
-  INCORPORATION_PAYMENT_REQUEST_QR_CID,
   INCORPORATION_PAYMENT_REQUEST_SUBJECT,
   type IncorporationPaymentRequestConcept,
 } from "../Templates/IncorporationPaymentRequestTemplate";
+import {
+  buildManualPaymentMethodsEmail,
+  MANUAL_PAYMENT_METHODS_LOGO_CID,
+  MANUAL_PAYMENT_METHODS_QR_CID,
+  MANUAL_PAYMENT_METHODS_SUBJECT,
+} from "../Templates/ManualPaymentMethodsEmailTemplate";
 
 export const INCORPORATION_PAYMENT_REQUEST_EVENT = "AFFILIATION_INCORPORATION_PAYMENT_REQUEST";
 export const INCORPORATION_PAYMENT_REQUEST_TEMPLATE = "incorporation-payment-request";
+export const MANUAL_PAYMENT_METHODS_EVENT = "AFFILIATION_MANUAL_PAYMENT_METHODS";
+export const MANUAL_PAYMENT_METHODS_TEMPLATE = "manual-payment-methods";
 
 const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 const LOGO_PATH = path.join(process.cwd(), "public", "images", "logo-iimp.png");
 const QR_PATH = path.join(process.cwd(), "public", "images", "iimp", "qr-yape-iimp.png");
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+export type IncorporationPaymentRequestEmailMode = "APPROVAL" | "MANUAL_PAYMENT_METHODS";
+
 export interface IncorporationPaymentRequestAssets {
   logo: Buffer;
-  qr: Buffer;
+  qr?: Buffer;
 }
 
 export interface IncorporationPaymentRequestSendResult {
@@ -52,6 +62,8 @@ export interface IncorporationPaymentRequestSendResult {
 type MailSender = Pick<MailService, "sendMail">;
 type AmountResolver = Pick<PaymentAmountResolver, "resolve">;
 type FeePeriodResolver = Pick<PaymentSettingsResolver, "getMonthlyFeePeriod">;
+type PaymentMethodResolver = Pick<PaymentSettingsResolver, "isCardEnabled" | "isYapeEnabled">;
+type ConsultaUrlProvider = () => string;
 type TransactionalEmailStore = Pick<
   TransactionalEmailRepository,
   "findByIdempotencyKey" | "createOrGetIdempotent" | "tryMarkSending" | "markAccepted" | "recordFailure"
@@ -62,6 +74,8 @@ export interface IncorporationPaymentRequestEmailServiceOptions {
   mailService?: MailSender;
   amountResolver?: AmountResolver;
   feePeriodResolver?: FeePeriodResolver;
+  paymentMethodsResolver?: PaymentMethodResolver;
+  consultaUrlProvider?: ConsultaUrlProvider;
   transactionalEmails?: TransactionalEmailStore;
   assetsLoader?: () => Promise<IncorporationPaymentRequestAssets>;
 }
@@ -87,6 +101,10 @@ function fullNameOf(candidate: IncorporationPaymentRequestCandidate): string {
     .trim() || "Postulante";
 }
 
+function membershipTypeLabelOf(candidate: IncorporationPaymentRequestCandidate): string {
+  return candidate.affiliateType === AffiliateType.STUDENT ? "Asociado Estudiante" : "Asociado Activo";
+}
+
 function paidConcepts(payments: IncorporationPaymentRequestPayment[]): { registration: boolean; membership: boolean } {
   const paid = payments.filter((payment) => payment.status === PaymentStatus.PAID);
   if (paid.length === 0) return { registration: false, membership: false };
@@ -102,8 +120,16 @@ function paidConcepts(payments: IncorporationPaymentRequestPayment[]): { registr
   };
 }
 
-function idempotencyKeyFor(applicationId: number): string {
-  return `incorporation-payment-request:v1:${applicationId}`;
+function paidAmountOf(payments: IncorporationPaymentRequestPayment[]): number {
+  return payments
+    .filter((payment) => payment.status === PaymentStatus.PAID)
+    .reduce((total, payment) => total + (payment.registrationAmount ?? 0) + (payment.membershipFeeAmount ?? 0), 0);
+}
+
+function idempotencyKeyFor(applicationId: number, mode: IncorporationPaymentRequestEmailMode): string {
+  return mode === "MANUAL_PAYMENT_METHODS"
+    ? `manual-payment-methods:v1:${applicationId}`
+    : `incorporation-payment-request:v1:${applicationId}`;
 }
 
 export class IncorporationPaymentRequestEmailService {
@@ -111,6 +137,8 @@ export class IncorporationPaymentRequestEmailService {
   private readonly mailService: MailSender;
   private readonly amountResolver: AmountResolver;
   private readonly feePeriodResolver: FeePeriodResolver;
+  private readonly paymentMethodsResolver: PaymentMethodResolver;
+  private readonly consultaUrlProvider: ConsultaUrlProvider;
   private readonly transactionalEmails: TransactionalEmailStore;
   private readonly assetsLoader: () => Promise<IncorporationPaymentRequestAssets>;
 
@@ -119,8 +147,29 @@ export class IncorporationPaymentRequestEmailService {
     this.mailService = options.mailService ?? new MailService();
     this.amountResolver = options.amountResolver ?? new PaymentAmountResolver();
     this.feePeriodResolver = options.feePeriodResolver ?? new PaymentSettingsResolver();
+    this.paymentMethodsResolver = options.paymentMethodsResolver ?? new PaymentSettingsResolver();
+    this.consultaUrlProvider =
+      options.consultaUrlProvider ?? (() => new URL("/consulta", getAppBaseUrl()).toString());
     this.transactionalEmails = options.transactionalEmails ?? new TransactionalEmailRepository();
     this.assetsLoader = options.assetsLoader ?? loadPaymentRequestAssets;
+  }
+
+  private async resolvePaymentMethods(): Promise<string[]> {
+    try {
+      const [cardEnabled, yapeEnabled] = await Promise.all([
+        this.paymentMethodsResolver.isCardEnabled(),
+        this.paymentMethodsResolver.isYapeEnabled(),
+      ]);
+      const methods: string[] = [];
+      if (cardEnabled !== false) methods.push("Visa", "Mastercard");
+      if (yapeEnabled === true) methods.push("Yape");
+      return methods;
+    } catch (error) {
+      console.error("[INCORPORATION_PAYMENT_EMAIL] No se pudieron resolver los medios de pago.", {
+        error: error instanceof Error ? error.message : "error desconocido",
+      });
+      return ["Visa", "Mastercard"];
+    }
   }
 
   /**
@@ -130,9 +179,10 @@ export class IncorporationPaymentRequestEmailService {
    */
   async sendIfEligible(
     applicationId: number,
-    options: { forceResend?: boolean } = {},
+    options: { forceResend?: boolean; mode?: IncorporationPaymentRequestEmailMode } = {},
   ): Promise<IncorporationPaymentRequestSendResult> {
     const forceResend = options.forceResend === true;
+    const mode = options.mode ?? "APPROVAL";
     const candidate = await this.repository.findCandidate(applicationId);
     if (!candidate) return { sent: false, reason: "NOT_FOUND" };
     if (candidate.deletedAt) return { sent: false, reason: "DELETED" };
@@ -167,6 +217,22 @@ export class IncorporationPaymentRequestEmailService {
     }
     if (concepts.length === 0) return { sent: false, reason: "NOTHING_TO_CHARGE" };
 
+    let paymentMethods: string[] = [];
+    let consultaUrl = "";
+    if (mode === "APPROVAL") {
+      paymentMethods = await this.resolvePaymentMethods();
+
+      try {
+        consultaUrl = this.consultaUrlProvider();
+      } catch (error) {
+        console.error("[INCORPORATION_PAYMENT_EMAIL] No se pudo resolver la URL del módulo de consulta.", {
+          applicationId,
+          error: error instanceof Error ? error.message : "error desconocido",
+        });
+        return { sent: false, reason: "SEND_FAILED" };
+      }
+    }
+
     let membershipPeriod: string | null = null;
     if (!paid.membership) {
       try {
@@ -187,8 +253,11 @@ export class IncorporationPaymentRequestEmailService {
       });
       return { sent: false, reason: "ASSETS_UNAVAILABLE" };
     }
+    if (mode === "MANUAL_PAYMENT_METHODS" && !assets.qr) {
+      return { sent: false, reason: "ASSETS_UNAVAILABLE" };
+    }
 
-    const baseIdempotencyKey = idempotencyKeyFor(candidate.id);
+    const baseIdempotencyKey = idempotencyKeyFor(candidate.id, mode);
     // El reenvío manual no reutiliza la clave del envío automático: genera un
     // registro nuevo y conserva la idempotencia de los flujos automáticos.
     const idempotencyKey = forceResend
@@ -207,8 +276,8 @@ export class IncorporationPaymentRequestEmailService {
     }
 
     const { id } = await this.transactionalEmails.createOrGetIdempotent({
-      event: INCORPORATION_PAYMENT_REQUEST_EVENT,
-      templateName: INCORPORATION_PAYMENT_REQUEST_TEMPLATE,
+      event: mode === "MANUAL_PAYMENT_METHODS" ? MANUAL_PAYMENT_METHODS_EVENT : INCORPORATION_PAYMENT_REQUEST_EVENT,
+      templateName: mode === "MANUAL_PAYMENT_METHODS" ? MANUAL_PAYMENT_METHODS_TEMPLATE : INCORPORATION_PAYMENT_REQUEST_TEMPLATE,
       applicationId: candidate.id,
       recipient,
       idempotencyKey,
@@ -219,36 +288,58 @@ export class IncorporationPaymentRequestEmailService {
     }
 
     try {
-      const html = buildIncorporationPaymentRequestEmail({
-        fullName: fullNameOf(candidate),
-        documentTypeLabel: documentTypeLabel(candidate.documentType),
-        documentNumber: candidate.documentNumber,
-        concepts,
-        membershipPeriod,
-      });
+      const html =
+        mode === "MANUAL_PAYMENT_METHODS"
+          ? buildManualPaymentMethodsEmail({
+              fullName: fullNameOf(candidate),
+              documentTypeLabel: documentTypeLabel(candidate.documentType),
+              documentNumber: candidate.documentNumber,
+              concepts,
+              membershipPeriod,
+            })
+          : buildIncorporationPaymentRequestEmail({
+              fullName: fullNameOf(candidate),
+              membershipTypeLabel: membershipTypeLabelOf(candidate),
+              concepts,
+              currency: amounts.currency,
+              paidAmount: paidAmountOf(candidate.payments),
+              membershipPeriod,
+              consultaUrl,
+              paymentMethods,
+              manualPaymentAvailable: true,
+            });
+      const subject =
+        mode === "MANUAL_PAYMENT_METHODS" ? MANUAL_PAYMENT_METHODS_SUBJECT : INCORPORATION_PAYMENT_REQUEST_SUBJECT;
+      const logoCid =
+        mode === "MANUAL_PAYMENT_METHODS" ? MANUAL_PAYMENT_METHODS_LOGO_CID : INCORPORATION_PAYMENT_REQUEST_LOGO_CID;
+      const attachments = [
+        {
+          filename: "logo-iimp.png",
+          content: assets.logo,
+          contentType: "image/png",
+          cid: logoCid,
+          contentDisposition: "inline" as const,
+        },
+        ...(mode === "MANUAL_PAYMENT_METHODS" && assets.qr
+          ? [
+              {
+                filename: "qr-yape-iimp.png",
+                content: assets.qr,
+                contentType: "image/png",
+                cid: MANUAL_PAYMENT_METHODS_QR_CID,
+                contentDisposition: "inline" as const,
+              },
+            ]
+          : []),
+      ];
 
       const result = await this.mailService.sendMail({
         to: recipient,
-        subject: INCORPORATION_PAYMENT_REQUEST_SUBJECT,
+        subject,
         html,
         fromName: "Instituto de Ingenieros de Minas del Perú – IIMP",
         replyTo: "asociados@iimp.org.pe",
-        attachments: [
-          {
-            filename: "logo-iimp.png",
-            content: assets.logo,
-            contentType: "image/png",
-            cid: INCORPORATION_PAYMENT_REQUEST_LOGO_CID,
-            contentDisposition: "inline",
-          },
-          {
-            filename: "qr-yape-iimp.png",
-            content: assets.qr,
-            contentType: "image/png",
-            cid: INCORPORATION_PAYMENT_REQUEST_QR_CID,
-            contentDisposition: "inline",
-          },
-        ],
+        attachments,
       });
 
       await this.transactionalEmails.markAccepted(id, result.messageId);
