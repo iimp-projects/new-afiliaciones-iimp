@@ -673,3 +673,36 @@ lo que la app QA actual no tiene esta funcionalidad. Además:
 
 Por seguridad **no** se desplegó, no se crearon secretos SSM ni se modificó AWS.
 El plan exacto y los comandos quedan en el runbook.
+
+## 19. Branding premium dorado de Google Wallet (QA)
+
+- **Paleta institucional real** (`app/globals.css`): dorado `#7F561E` (primary),
+  `#C39254` (primary-container), `#A87924` (acento UI), marfil `#FAF8F3`, texto
+  `#1F1F1F`/`#5F5E5D`, estado `#237A45`. Sin azul marino.
+- **Recursos** (HTTPS público, versionados con `?v=20261125-premium-gold-1`):
+  - `public/images/wallet/gold/logo-square-v1.png` (720×720, escudo oficial
+    centrado con 15 % de margen seguro, fondo marfil).
+  - `public/images/wallet/gold/wide-logo-v1.png` (1280×400, degradado dorado con
+    topografía sutil y placa marfil con el lockup oficial).
+  - `public/images/wallet/gold/hero-v1.png` (1032×812, topografía y siluetas
+    mineras de bajo contraste sobre marfil).
+- **Campos nativos** (`GenericObject`): `cardTitle = "Carné Digital IIMP"`,
+  `header` = nombre, `subheader` = membresía, `hexBackgroundColor = #FAF8F3`,
+  `logo` (cuadrado), `wideLogo` (cabecera), `heroImage`, `textModulesData`
+  (`membership_type`, `membership_status`, `associate_code`, `issued_at`,
+  `institution`) y `linksModuleData.uris['verify']` con la descripción
+  "Verificar autenticidad del carné". El `barcode` QR no cambia.
+- **GenericClass**: la API oficial solo admite `classTemplateInfo` (el color y el
+  título viven en el objeto). Plantilla con 2 filas (tipo|estado; código|emitido),
+  detalle superior del QR "IIMP", lista (nombre; tipo) y 4 detalles (tipo|estado,
+  código|emitido, institución, enlace de verificación).
+- **Limitaciones**: Generic Pass no admite fotografía del titular; no existe badge
+  verde personalizable (el estado se muestra como texto); tipografía y posición
+  las controla Google; "TEST ONLY" permanece en modo demo.
+- **Migración**: `npm run wallet:google:branding` (actualiza la clase con backup
+  remoto previo) y `npm run wallet:google:refresh-objects` (aplica el mismo
+  builder a los objetos existentes). El worker reutiliza el builder, por lo que
+  preserva el diseño en futuras sincronizaciones.
+- **Rollback**: el JSON previo de la clase queda en
+  `%TEMP%\afiliaciones-wallet-branding\`; se puede re-PATCH el template anterior y
+  re-sincronizar los objetos. No se alteran IDs, QR ni estado.
