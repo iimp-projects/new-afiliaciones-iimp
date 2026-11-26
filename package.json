@@ -29,6 +29,7 @@
     "wallet:google:branding": "tsx scripts/wallet-google-branding.ts",
     "wallet:google:refresh-objects": "tsx scripts/wallet-google-refresh-objects.ts",
     "wallet:google:refine": "tsx scripts/wallet-google-refine-preview.ts",
+    "wallet:apple:static": "tsx scripts/wallet-apple-generate-static-pass.ts",
     "quotas:sync": "tsx scripts/quotas-sync.ts",
     "quotas:padron": "tsx scripts/quotas-padron.ts",
     "quotas:export": "tsx scripts/quotas-export.ts",
