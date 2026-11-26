@@ -40,7 +40,7 @@ describe("POST /api/afiliaciones/expedientes/[id]/enviar-metodos-pago", () => {
     const response = await POST(request, { params });
 
     expect(response.status).toBe(200);
-    expect(mocks.sendIfEligible).toHaveBeenCalledWith(7, { forceResend: true });
+    expect(mocks.sendIfEligible).toHaveBeenCalledWith(7, { forceResend: true, mode: "MANUAL_PAYMENT_METHODS" });
     expect(await response.json()).toMatchObject({ success: true });
   });
 

@@ -1,13 +1,13 @@
 import { AffiliateType, ApplicationStatus, DocumentType, PaymentStatus, TransactionalEmailStatus } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  INCORPORATION_PAYMENT_REQUEST_NIUBIZ_URL,
-  INCORPORATION_PAYMENT_REQUEST_SUBJECT,
-} from "../Templates/IncorporationPaymentRequestTemplate";
+import { INCORPORATION_PAYMENT_REQUEST_SUBJECT } from "../Templates/IncorporationPaymentRequestTemplate";
+import { MANUAL_PAYMENT_METHODS_SUBJECT } from "../Templates/ManualPaymentMethodsEmailTemplate";
 import {
   IncorporationPaymentRequestEmailService,
   type IncorporationPaymentRequestEmailServiceOptions,
 } from "../Services/IncorporationPaymentRequestEmailService";
+
+const CONSULTA_URL = "https://portal.example.test/consulta";
 
 const baseCandidate = {
   id: 42,
@@ -33,6 +33,11 @@ function setup(overrides: Partial<IncorporationPaymentRequestEmailServiceOptions
     }),
   };
   const feePeriodResolver = { getMonthlyFeePeriod: vi.fn().mockResolvedValue(new Date("2026-01-01T00:00:00Z")) };
+  const paymentMethodsResolver = {
+    isCardEnabled: vi.fn().mockResolvedValue(true),
+    isYapeEnabled: vi.fn().mockResolvedValue(true),
+  };
+  const consultaUrlProvider = vi.fn().mockReturnValue(CONSULTA_URL);
   const transactionalEmails = {
     findByIdempotencyKey: vi.fn().mockResolvedValue(null),
     createOrGetIdempotent: vi.fn().mockResolvedValue({ id: 9, created: true }),
@@ -47,18 +52,34 @@ function setup(overrides: Partial<IncorporationPaymentRequestEmailServiceOptions
     mailService,
     amountResolver,
     feePeriodResolver,
+    paymentMethodsResolver,
+    consultaUrlProvider,
     transactionalEmails,
     assetsLoader,
     ...overrides,
   });
 
-  return { service, repository, mailService, amountResolver, feePeriodResolver, transactionalEmails, assetsLoader };
+  return {
+    service,
+    repository,
+    mailService,
+    amountResolver,
+    feePeriodResolver,
+    paymentMethodsResolver,
+    consultaUrlProvider,
+    transactionalEmails,
+    assetsLoader,
+  };
+}
+
+function occurrences(value: string, fragment: string): number {
+  return value.split(fragment).length - 1;
 }
 
 describe("IncorporationPaymentRequestEmailService", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("envía la solicitud de incorporación solo en READY_FOR_PAYMENT con importes dinámicos, Niubiz y QR CID", async () => {
+  it("envía el correo de aprobación con importes dinámicos, tipo de membresía y CTA a Consulta", async () => {
     const { service, mailService, transactionalEmails } = setup();
 
     await expect(service.sendIfEligible(42)).resolves.toEqual({ sent: true });
@@ -69,35 +90,69 @@ describe("IncorporationPaymentRequestEmailService", () => {
     expect(mail.subject).toBe(INCORPORATION_PAYMENT_REQUEST_SUBJECT);
     expect(mail.replyTo).toBe("asociados@iimp.org.pe");
     expect(mail.html).toContain("Ana Pérez Gómez");
+    expect(mail.html).toContain("Asociado Activo");
+    expect(mail.html).toContain("Aprobada");
+    expect(mail.html).toContain("Pendiente de pago");
     expect(mail.html).toContain("Derecho de inscripción");
     expect(mail.html).toContain("Primera cuota anual de membresía");
     expect(mail.html).toContain("S/ 150.00");
     expect(mail.html).toContain("S/ 300.00");
     expect(mail.html).toContain("2026");
-    expect(mail.html).toContain(`href="${INCORPORATION_PAYMENT_REQUEST_NIUBIZ_URL}"`);
-    expect(mail.html).toContain('src="cid:yape-qr-iimp"');
-    expect(mail.html).toContain('alt="Código QR Yape - Instituto de Ingenieros de Minas del Perú"');
+    expect(mail.html).toContain(`href="${CONSULTA_URL}"`);
+    expect(mail.html).toContain("Completar mi afiliación y pagar");
+    expect(mail.html).toContain("Visa");
+    expect(mail.html).toContain("Mastercard");
+    expect(mail.html).toContain("Yape");
+    expect(mail.html).toContain("Pagos en línea procesados a través de Niubiz.");
+    expect(mail.html).toContain("pago manual");
     expect(mail.html).toContain("max-width:600px");
-    expect(mail.html).toContain("Puede responder directamente");
-    expect(mail.html).not.toContain("no respondas");
-    expect(mail.html).not.toContain("ya es asociado activo");
+    expect(mail.html).not.toContain("12345678");
+    expect(mail.html).not.toContain("193-2410342-0-88");
+    expect(mail.html).not.toContain("002-193-002410342088-11");
+    expect(mail.html).not.toContain("qr-yape-iimp");
+    expect(mail.html).not.toContain("BANCO DE CRÉDITO");
+    expect(occurrences(mail.html, "cid:iimp-logo-incorporacion")).toBe(1);
+    expect(occurrences(mail.html, "Todos los derechos reservados")).toBe(1);
+    expect(mail.attachments).toEqual([
+      expect.objectContaining({
+        filename: "logo-iimp.png",
+        contentType: "image/png",
+        cid: "iimp-logo-incorporacion",
+        contentDisposition: "inline",
+      }),
+    ]);
+    expect(transactionalEmails.markAccepted).toHaveBeenCalledWith(9, "message-1");
+  });
+
+  it("conserva el correo de métodos de pago manual para el reenvío administrativo", async () => {
+    const { service, mailService, transactionalEmails, paymentMethodsResolver } = setup();
+
+    await expect(
+      service.sendIfEligible(42, { forceResend: true, mode: "MANUAL_PAYMENT_METHODS" }),
+    ).resolves.toEqual({ sent: true });
+
+    const mail = mailService.sendMail.mock.calls[0][0];
+    expect(mail.subject).toBe(MANUAL_PAYMENT_METHODS_SUBJECT);
+    expect(mail.html).toContain("Banco de Crédito del Perú");
+    expect(mail.html).toContain("193-2410342-0-88");
+    expect(mail.html).toContain("002-193-002410342088-11");
+    expect(mail.html).toContain("REALIZAR PAGO CON TARJETA");
+    expect(mail.html).toContain('src="cid:yape-qr-iimp"');
+    expect(mail.html).not.toContain("Completar mi afiliación y pagar");
     expect(mail.attachments).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({
-          filename: "qr-yape-iimp.png",
-          contentType: "image/png",
-          cid: "yape-qr-iimp",
-          contentDisposition: "inline",
-        }),
-        expect.objectContaining({
-          filename: "logo-iimp.png",
-          contentType: "image/png",
-          cid: "iimp-logo-incorporacion",
-          contentDisposition: "inline",
-        }),
+        expect.objectContaining({ cid: "iimp-logo-metodos-pago" }),
+        expect.objectContaining({ cid: "yape-qr-iimp" }),
       ]),
     );
-    expect(transactionalEmails.markAccepted).toHaveBeenCalledWith(9, "message-1");
+    expect(transactionalEmails.createOrGetIdempotent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: "AFFILIATION_MANUAL_PAYMENT_METHODS",
+        templateName: "manual-payment-methods",
+        idempotencyKey: expect.stringMatching(/^manual-payment-methods:v1:42:manual:/),
+      }),
+    );
+    expect(paymentMethodsResolver.isCardEnabled).not.toHaveBeenCalled();
   });
 
   it("no envía a asociados estudiantes", async () => {
@@ -134,7 +189,7 @@ describe("IncorporationPaymentRequestEmailService", () => {
     expect(mailService.sendMail).not.toHaveBeenCalled();
   });
 
-  it("cobra únicamente el concepto pendiente cuando la inscripción ya fue pagada", async () => {
+  it("muestra solo el concepto pendiente y el desglose cuando existe un pago parcial", async () => {
     const { service, repository, mailService } = setup();
     repository.findCandidate.mockResolvedValue({
       ...baseCandidate,
@@ -146,6 +201,9 @@ describe("IncorporationPaymentRequestEmailService", () => {
     const mail = mailService.sendMail.mock.calls[0][0];
     expect(mail.html).toContain("Primera cuota anual de membresía");
     expect(mail.html).not.toContain("Derecho de inscripción");
+    expect(mail.html).toContain("Importe ya pagado");
+    expect(mail.html).toContain("Total correspondiente");
+    expect(mail.html).toContain("S/ 300.00");
     expect(mail.html).toContain("S/ 150.00");
   });
 
@@ -166,6 +224,41 @@ describe("IncorporationPaymentRequestEmailService", () => {
     expect(mail.html).toContain("S/ 175.00");
     expect(mail.html).toContain("S/ 375.00");
     expect(mail.html).toContain("2027");
+  });
+
+  it("oculta Yape cuando el medio está deshabilitado", async () => {
+    const { service, mailService, paymentMethodsResolver } = setup();
+    paymentMethodsResolver.isYapeEnabled.mockResolvedValue(false);
+
+    await service.sendIfEligible(42);
+
+    expect(mailService.sendMail.mock.calls[0][0].html).not.toContain("Yape");
+  });
+
+  it("muestra únicamente Yape cuando la tarjeta está deshabilitada", async () => {
+    const { service, mailService, paymentMethodsResolver } = setup();
+    paymentMethodsResolver.isCardEnabled.mockResolvedValue(false);
+
+    await service.sendIfEligible(42);
+
+    const html = mailService.sendMail.mock.calls[0][0].html;
+    expect(html).not.toContain("Visa");
+    expect(html).not.toContain("Mastercard");
+    expect(html).toContain("Yape");
+  });
+
+  it("no bloquea el envío y omite la sección cuando no hay medios de pago habilitados", async () => {
+    const { service, mailService, paymentMethodsResolver } = setup();
+    paymentMethodsResolver.isCardEnabled.mockResolvedValue(false);
+    paymentMethodsResolver.isYapeEnabled.mockResolvedValue(false);
+
+    await expect(service.sendIfEligible(42)).resolves.toEqual({ sent: true });
+
+    const html = mailService.sendMail.mock.calls[0][0].html;
+    expect(html).not.toContain("Medios de pago disponibles");
+    expect(html).not.toContain("Visa");
+    expect(html).not.toContain("Mastercard");
+    expect(html).not.toContain("Yape");
   });
 
   it("no duplica el envío cuando el correo ya fue aceptado", async () => {

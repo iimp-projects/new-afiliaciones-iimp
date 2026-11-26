@@ -1,15 +1,11 @@
-import { emailCta, emailInfoBox } from "@/modules/shared/Email/EmailComponents";
+import { emailCta } from "@/modules/shared/Email/EmailComponents";
 import { escapeHtml, safeUrl } from "@/modules/shared/Email/EmailEscaping";
 import { emailLayout } from "@/modules/shared/Email/EmailLayout";
 
 export const INCORPORATION_PAYMENT_REQUEST_SUBJECT =
-  "IIMP | ¡Está a un paso de convertirse en asociado del Instituto de Ingenieros de Minas del Perú!";
-
-export const INCORPORATION_PAYMENT_REQUEST_NIUBIZ_URL =
-  "https://pagolink.niubiz.com.pe/pagoseguro/INSTITUTODEINGENIEROSDEMINASDELPERU/470721";
+  "¡Tu solicitud de afiliación ha sido aprobada! Completa tu incorporación al IIMP";
 
 export const INCORPORATION_PAYMENT_REQUEST_LOGO_CID = "iimp-logo-incorporacion";
-export const INCORPORATION_PAYMENT_REQUEST_QR_CID = "yape-qr-iimp";
 
 export interface IncorporationPaymentRequestConcept {
   label: string;
@@ -18,134 +14,186 @@ export interface IncorporationPaymentRequestConcept {
 
 export interface IncorporationPaymentRequestTemplateInput {
   fullName: string;
-  documentTypeLabel: string;
-  documentNumber: string;
+  membershipTypeLabel: string;
   concepts: IncorporationPaymentRequestConcept[];
+  currency?: string | null;
+  paidAmount?: number | null;
   /** Periodo (por ejemplo, 2026) del registro de cuota anual aplicable. */
   membershipPeriod?: string | null;
+  consultaUrl: string;
+  paymentMethods: string[];
+  manualPaymentAvailable?: boolean;
 }
 
-function formatSoles(amount: number): string {
+const COLORS = {
+  ivory: "#FAF8F3",
+  card: "#F3EFE6",
+  gold: "#A68B55",
+  goldText: "#9C814C",
+  border: "#E1D8C7",
+  secondary: "#746B5E",
+  text: "#333333",
+  approved: "#42805A",
+} as const;
+
+function formatMoney(amount: number, currency?: string | null): string {
   const fixed = Math.abs(amount).toFixed(2);
   const [integer, decimals] = fixed.split(".");
   const grouped = integer.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  return `S/ ${grouped}.${decimals}`;
+  const prefix = currency && currency !== "PEN" ? `${currency} ` : "S/ ";
+  return `${prefix}${grouped}.${decimals}`;
 }
 
-function paymentDetail(concepts: IncorporationPaymentRequestConcept[]): string {
-  const total = concepts.reduce((sum, concept) => sum + concept.amount, 0);
-  const rows = concepts
-    .map(
-      (concept) =>
-        `<tr><td style="padding:12px 14px;border-bottom:1px solid #e8e2d8;color:#344054;font-size:14px;line-height:20px;">${escapeHtml(concept.label)}</td><td align="right" style="padding:12px 14px;border-bottom:1px solid #e8e2d8;color:#18253a;font-size:14px;line-height:20px;font-weight:bold;white-space:nowrap;">${escapeHtml(formatSoles(concept.amount))}</td></tr>`,
-    )
-    .join("");
-
-  return `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;margin:18px 0 0;border:1px solid #e8e2d8;border-radius:8px;border-collapse:separate;overflow:hidden;">
-    <tr><td style="padding:12px 14px;background:#faf8f2;border-bottom:1px solid #e8e2d8;color:#9A7838;font-size:11px;line-height:16px;font-weight:bold;letter-spacing:1px;">CONCEPTO</td><td align="right" style="padding:12px 14px;background:#faf8f2;border-bottom:1px solid #e8e2d8;color:#9A7838;font-size:11px;line-height:16px;font-weight:bold;letter-spacing:1px;">IMPORTE</td></tr>
-    ${rows}
-    <tr><td style="padding:16px 14px;background:#18253a;color:#ffffff;font-size:14px;line-height:20px;font-weight:bold;">TOTAL A PAGAR</td><td align="right" style="padding:16px 14px;background:#18253a;color:#ffffff;font-size:20px;line-height:24px;font-weight:bold;white-space:nowrap;">${escapeHtml(formatSoles(total))}</td></tr>
-  </table>`;
+function approvalIcon(): string {
+  return `<table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:0 auto 16px;"><tr><td width="52" height="52" align="center" valign="middle" style="width:52px;height:52px;border-radius:26px;background-color:${COLORS.ivory};border:1px solid ${COLORS.border};color:${COLORS.gold};font-family:Arial,Helvetica,sans-serif;font-size:24px;line-height:52px;font-weight:bold;">&#10003;</td></tr></table>`;
 }
 
 function sectionTitle(title: string): string {
-  return `<h2 style="margin:28px 0 10px;padding:0 0 8px;border-bottom:1px solid #e8e2d8;color:#9A7838;font-size:12px;line-height:18px;font-weight:bold;letter-spacing:1.2px;text-transform:uppercase;">${escapeHtml(title)}</h2>`;
+  return `<h2 style="margin:28px 0 12px;padding:0;color:${COLORS.goldText};font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:19px;font-weight:bold;letter-spacing:1.1px;text-transform:uppercase;">${escapeHtml(title)}</h2>`;
 }
 
-function paymentFooter(): string {
-  return `<tr><td align="center" style="padding:24px 28px;background:#FAF8F4;border-top:1px solid #E7E2D9;color:#667085;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:17px;">
-    <strong style="color:#344054;">Área de Asociados</strong><br>
-    Instituto de Ingenieros de Minas del Perú – IIMP<br>
-    Calle Los Canarios 155-157, Urb. San César II Etapa, La Molina, Lima 12, Perú.<br>
-    <a href="mailto:asociados@iimp.org.pe" style="color:#9A681F;text-decoration:none;">asociados@iimp.org.pe</a> · +51 982 097 019 / +51 951 294 314<br>
-    Lunes a viernes de 09:00 a 18:00 hrs.<br><br>
-    Este correo fue enviado por el Portal de Afiliaciones del IIMP. Puede responder directamente a este mensaje adjuntando su comprobante de pago.<br>
-    © ${new Date().getFullYear()} Instituto de Ingenieros de Minas del Perú. Todos los derechos reservados.
-  </td></tr>`;
+function detailRows(input: IncorporationPaymentRequestTemplateInput, totalPending: number): string {
+  const rows = input.concepts
+    .map(
+      (concept) =>
+        `<tr><td style="padding:10px 0;border-bottom:1px solid ${COLORS.border};color:${COLORS.text};font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:20px;">${escapeHtml(concept.label)}</td><td align="right" style="padding:10px 0;border-bottom:1px solid ${COLORS.border};color:${COLORS.text};font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:20px;font-weight:bold;white-space:nowrap;">${escapeHtml(formatMoney(concept.amount, input.currency))}</td></tr>`,
+    )
+    .join("");
+
+  const paidAmount = input.paidAmount ?? 0;
+  const previousPaymentRows =
+    paidAmount > 0
+      ? `<tr><td style="padding:10px 0;border-bottom:1px solid ${COLORS.border};color:${COLORS.secondary};font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:19px;">Importe ya pagado</td><td align="right" style="padding:10px 0;border-bottom:1px solid ${COLORS.border};color:${COLORS.secondary};font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:19px;white-space:nowrap;">${escapeHtml(formatMoney(paidAmount, input.currency))}</td></tr>
+        <tr><td style="padding:10px 0;border-bottom:1px solid ${COLORS.border};color:${COLORS.secondary};font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:19px;">Total correspondiente</td><td align="right" style="padding:10px 0;border-bottom:1px solid ${COLORS.border};color:${COLORS.secondary};font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:19px;white-space:nowrap;">${escapeHtml(formatMoney(paidAmount + totalPending, input.currency))}</td></tr>`
+      : "";
+
+  return `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;border-collapse:collapse;">${rows}${previousPaymentRows}</table>`;
+}
+
+function affiliationCard(input: IncorporationPaymentRequestTemplateInput): string {
+  const totalPending = input.concepts.reduce((sum, concept) => sum + concept.amount, 0);
+  const periodNote =
+    input.membershipPeriod && input.concepts.some((concept) => concept.label.toLowerCase().includes("membresía"))
+      ? `<p style="margin:8px 0 0;color:${COLORS.secondary};font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:18px;">Periodo de la membresía anual: <strong style="color:${COLORS.text};">${escapeHtml(input.membershipPeriod)}</strong>.</p>`
+      : "";
+
+  return `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;margin:20px 0 0;background-color:${COLORS.card};border:1px solid ${COLORS.border};border-radius:10px;">
+    <tr><td style="padding:20px 20px 18px;">
+      <p style="margin:0 0 14px;color:${COLORS.goldText};font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:18px;font-weight:bold;letter-spacing:1.1px;text-transform:uppercase;">Información de tu afiliación</p>
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;border-collapse:collapse;">
+        <tr><td style="padding:7px 0;color:${COLORS.secondary};font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:19px;width:46%;">Tipo de membresía</td><td style="padding:7px 0;color:${COLORS.text};font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:19px;font-weight:bold;">${escapeHtml(input.membershipTypeLabel)}</td></tr>
+        <tr><td style="padding:7px 0;color:${COLORS.secondary};font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:19px;">Estado de afiliación</td><td style="padding:7px 0;color:${COLORS.approved};font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:19px;font-weight:bold;">Aprobada</td></tr>
+        <tr><td style="padding:7px 0;color:${COLORS.secondary};font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:19px;">Estado de pago</td><td style="padding:7px 0;color:${COLORS.goldText};font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:19px;font-weight:bold;">Pendiente de pago</td></tr>
+      </table>
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;margin:16px 0 0;"><tr><td height="1" style="height:1px;background-color:${COLORS.border};font-size:0;line-height:0;">&nbsp;</td></tr></table>
+      <p style="margin:16px 0 10px;color:${COLORS.goldText};font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:18px;font-weight:bold;letter-spacing:1.1px;text-transform:uppercase;">Detalle de pago</p>
+      ${detailRows(input, totalPending)}
+      ${periodNote}
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;margin:18px 0 0;background-color:${COLORS.ivory};border:1px solid ${COLORS.border};border-radius:8px;">
+        <tr><td align="center" style="padding:16px 12px;">
+          <p style="margin:0 0 6px;color:${COLORS.secondary};font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:16px;font-weight:bold;letter-spacing:1.2px;text-transform:uppercase;">Monto total pendiente</p>
+          <p style="margin:0;color:${COLORS.goldText};font-family:Arial,Helvetica,sans-serif;font-size:28px;line-height:34px;font-weight:bold;">${escapeHtml(formatMoney(totalPending, input.currency))}</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>`;
+}
+
+function steps(): string {
+  const items = [
+    { title: "Ingresa al portal de consulta", description: "Haz clic en el botón que encontrarás en este correo para acceder al sistema de afiliaciones." },
+    { title: "Consulta el estado de tu solicitud", description: "Ingresa los datos solicitados para visualizar la aprobación de tu afiliación y el importe pendiente de pago." },
+    { title: "Selecciona tu medio de pago", description: "Elige el medio de pago de tu preferencia y sigue las instrucciones para completar tu incorporación." },
+  ];
+
+  const rows = items
+    .map(
+      (item, index) => `<tr>
+        <td width="40" valign="top" style="width:40px;padding:0 12px 16px 0;"><div style="width:28px;height:28px;border-radius:14px;background-color:${COLORS.ivory};border:1px solid ${COLORS.border};color:${COLORS.goldText};font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:28px;font-weight:bold;text-align:center;">${index + 1}</div></td>
+        <td valign="top" style="padding:0 0 16px;"><p style="margin:0 0 3px;color:${COLORS.text};font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:20px;font-weight:bold;">${escapeHtml(item.title)}</p><p style="margin:0;color:${COLORS.secondary};font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:20px;">${escapeHtml(item.description)}</p></td>
+      </tr>`,
+    )
+    .join("");
+
+  return `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;border-collapse:collapse;">${rows}</table>`;
+}
+
+function paymentMethods(input: IncorporationPaymentRequestTemplateInput): string {
+  const methods = input.paymentMethods.filter(Boolean);
+  if (methods.length === 0) return "";
+
+  const methodLine = methods
+    .map((method) => `<span style="color:${COLORS.text};font-size:14px;line-height:20px;font-weight:bold;">${escapeHtml(method)}</span>`)
+    .join(`<span style="color:${COLORS.gold};font-size:14px;line-height:20px;"> &nbsp;|&nbsp; </span>`);
+  const manualLine = input.manualPaymentAvailable
+    ? `<p style="margin:10px 0 0;color:${COLORS.secondary};font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:18px;">También podrás consultar las alternativas de pago manual disponibles desde nuestro portal.</p>`
+    : "";
+
+  return `${sectionTitle("Medios de pago disponibles")}
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background-color:${COLORS.ivory};border:1px solid ${COLORS.border};border-radius:8px;"><tr><td align="center" style="padding:14px 16px;">
+      <p style="margin:0;font-family:Arial,Helvetica,sans-serif;">${methodLine}</p>
+      <p style="margin:8px 0 0;color:${COLORS.secondary};font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:18px;">Pagos en línea procesados a través de Niubiz.</p>
+      ${manualLine}
+    </td></tr></table>`;
 }
 
 function benefits(): string {
   const items = [
-    "<strong>Descuentos exclusivos</strong> en congresos, convenciones y conferencias organizados por el IIMP.",
-    "<strong>Acceso a publicaciones especializadas</strong> y contenidos de interés para el sector minero.",
-    "<strong>Participación en programas de capacitación</strong>, actividades académicas y eventos institucionales.",
-    "<strong>Acceso a exhibiciones</strong> de eventos organizados por nuestra institución, de acuerdo con las condiciones establecidas.",
-    "<strong>Vinculación con una comunidad de profesionales</strong> comprometidos con el desarrollo de la minería peruana.",
+    "Beneficios exclusivos para asociados.",
+    "Acceso a actividades y oportunidades de desarrollo profesional.",
+    "Servicios y recursos institucionales.",
+    "Conexión con nuestra comunidad de profesionales del sector minero.",
   ];
-  return `<ul style="margin:0 0 16px;padding-left:20px;color:#344054;font-size:14px;line-height:22px;">${items.map((item) => `<li style="margin:0 0 8px;">${item}</li>`).join("")}</ul>`;
+  const rows = items
+    .map(
+      (item) => `<tr>
+        <td width="22" valign="top" style="width:22px;padding:0 8px 9px 0;color:${COLORS.gold};font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:20px;font-weight:bold;">&#10003;</td>
+        <td valign="top" style="padding:0 0 9px;color:${COLORS.text};font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:20px;">${escapeHtml(item)}</td>
+      </tr>`,
+    )
+    .join("");
+
+  return `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;margin:18px 0 0;background-color:${COLORS.card};border:1px solid ${COLORS.border};border-radius:8px;"><tr><td style="padding:16px 18px;">
+    <p style="margin:0 0 12px;color:${COLORS.goldText};font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:18px;font-weight:bold;letter-spacing:1.1px;text-transform:uppercase;">Muy pronto podrás disfrutar de</p>
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;border-collapse:collapse;">${rows}</table>
+  </td></tr></table>`;
+}
+
+function closing(): string {
+  return `<p style="margin:22px 0 0;color:${COLORS.text};font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:21px;"><strong>¡Estamos muy contentos de estar cada vez más cerca de darte la bienvenida al IIMP!</strong></p>
+    <p style="margin:16px 0 0;color:${COLORS.text};font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:21px;">Atentamente,<br><strong>Área de Asociados</strong></p>`;
 }
 
 export function buildIncorporationPaymentRequestEmail(input: IncorporationPaymentRequestTemplateInput): string {
   const name = input.fullName.trim() || "Postulante";
-  const documentLabel = input.documentTypeLabel.trim() || "Documento";
-  const documentNumber = input.documentNumber.trim();
-  const depositorCode = documentNumber
-    ? `${escapeHtml(documentLabel)} ${escapeHtml(documentNumber)}`
-    : "su número de documento";
-  const conceptNames = input.concepts.map((concept) => concept.label.toLowerCase()).join(" y ");
-  const periodNote = input.membershipPeriod && input.concepts.some((concept) => concept.label.toLowerCase().includes("cuota anual"))
-    ? `<p style="margin:12px 0 0;color:#667085;font-size:12px;line-height:18px;">Periodo de la cuota anual: <strong style="color:#344054;">${escapeHtml(input.membershipPeriod)}</strong>.</p>`
-    : "";
 
   const content = `
-    <p style="margin:0 0 16px;">Estimado(a) <strong>${escapeHtml(name)}</strong>:</p>
-    <p style="margin:0 0 16px;">Reciba un cordial saludo del Instituto de Ingenieros de Minas del Perú (IIMP).</p>
-    <p style="margin:0 0 16px;color:#18253a;font-size:15px;line-height:23px;"><strong>¡Nos complace informarle que se encuentra a un paso de formar parte de nuestra comunidad de asociados!</strong></p>
-    <p style="margin:0 0 16px;">Su solicitud de afiliación ha avanzado satisfactoriamente y, para completar su proceso de incorporación como asociado del IIMP, únicamente queda pendiente realizar el pago correspondiente a ${escapeHtml(conceptNames)}.</p>
-    ${sectionTitle("Detalle del pago")}
-    ${paymentDetail(input.concepts)}
-    ${periodNote}
-    <p style="margin:18px 0 0;">Para facilitar este último paso, ponemos a su disposición los siguientes medios de pago:</p>
-
-    ${sectionTitle("1. Banco de Crédito del Perú (BCP)")}
-    ${emailInfoBox(`
-      <p style="margin:0 0 10px;color:#18253a;font-size:14px;line-height:21px;"><strong>Instituto de Ingenieros de Minas del Perú</strong></p>
-      <p style="margin:0 0 6px;">Cuenta corriente (S/): <strong>193-2410342-0-88</strong></p>
-      <p style="margin:0 0 6px;">CCI (S/): <strong>002-193-002410342088-11</strong></p>
-      <p style="margin:0;">Código de depositante: <strong>${depositorCode}</strong></p>
-    `, "neutral")}
-
-    ${sectionTitle("2. Banca por internet – BCP")}
-    <ol style="margin:0 0 16px;padding-left:20px;color:#344054;font-size:14px;line-height:22px;">
-      <li style="margin:0 0 8px;">Ingrese a la sección <strong>Pago de Servicios</strong>.</li>
-      <li style="margin:0 0 8px;">Busque <strong>Instituto de Ingenieros de Minas del Perú</strong>.</li>
-      <li style="margin:0 0 8px;">Seleccione el servicio <strong>Instituto – Soles</strong>.</li>
-      <li style="margin:0;">Ingrese su número de DNI o RUC como código de depositante para identificar correctamente la operación.</li>
-    </ol>
-
-    ${sectionTitle("3. Tarjeta de crédito o débito – Niubiz")}
-    <p style="margin:0 0 8px;">Puede efectuar su pago de forma rápida y segura mediante nuestra plataforma de pagos en línea.</p>
-    ${emailCta("REALIZAR PAGO CON TARJETA", INCORPORATION_PAYMENT_REQUEST_NIUBIZ_URL)}
-    <p style="margin:0 0 16px;color:#667085;font-size:11px;line-height:17px;text-align:center;word-break:break-all;">Enlace oficial: <a href="${safeUrl(INCORPORATION_PAYMENT_REQUEST_NIUBIZ_URL)}" target="_blank" rel="noopener noreferrer" style="color:#9A681F;text-decoration:none;">${escapeHtml(INCORPORATION_PAYMENT_REQUEST_NIUBIZ_URL)}</a></p>
-
-    ${sectionTitle("4. Yape corporativo – IIMP")}
-    <p style="margin:0 0 14px;">También puede realizar el pago escaneando nuestro código QR institucional de Yape.</p>
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;margin:0 0 16px;">
-      <tr><td align="center" style="padding:16px;background:#faf8f2;border:1px solid #e8e2d8;border-radius:10px;">
-        <img src="cid:${INCORPORATION_PAYMENT_REQUEST_QR_CID}" alt="Código QR Yape - Instituto de Ingenieros de Minas del Perú" width="220" style="display:block;width:220px;max-width:100%;height:auto;margin:0 auto;border:0;outline:none;">
-      </td></tr>
-    </table>
-
-    ${sectionTitle("Confirmación de su incorporación")}
-    ${emailInfoBox("Una vez realizado el pago, le agradeceremos responder este correo adjuntando el comprobante correspondiente, a fin de validar la operación y completar el proceso de incorporación.<br><br>Después de la verificación del pago y la actualización de nuestros registros, podrá disfrutar de los beneficios que ofrece el IIMP a sus asociados.", "info")}
-
-    ${sectionTitle("Beneficios de formar parte del IIMP")}
-    <p style="margin:0 0 12px;">Como asociado, tendrá la oportunidad de acceder a diversos beneficios, entre ellos:</p>
+    ${approvalIcon()}
+    <p style="margin:0 0 14px;color:${COLORS.text};font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:22px;">Estimado(a) <strong>${escapeHtml(name)}</strong>:</p>
+    <p style="margin:0 0 14px;color:${COLORS.text};font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:22px;">Nos complace informarte que, luego de culminar satisfactoriamente el proceso de evaluación, el Comité de Asociados del Instituto de Ingenieros de Minas del Perú ha aprobado tu solicitud de afiliación.</p>
+    <p style="margin:0 0 14px;color:${COLORS.text};font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:22px;">Agradecemos tu interés en formar parte de nuestra institución y de una comunidad comprometida con el desarrollo profesional, la generación de conocimiento y el fortalecimiento del sector minero.</p>
+    <p style="margin:0 0 14px;color:${COLORS.text};font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:22px;">Para finalizar tu proceso de incorporación y activar tu membresía, únicamente tienes pendiente realizar el pago correspondiente.</p>
+    ${affiliationCard(input)}
+    ${sectionTitle("¿Cómo completar tu afiliación?")}
+    <p style="margin:0 0 14px;color:${COLORS.text};font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:22px;">Ahora puedes realizar tu pago en línea desde nuestro sistema de afiliaciones, siguiendo estos sencillos pasos:</p>
+    ${steps()}
+    ${emailCta("Completar mi afiliación y pagar", input.consultaUrl)}
+    <p style="margin:0 0 8px;color:${COLORS.secondary};font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:17px;text-align:center;word-break:break-all;">Enlace oficial: <a href="${safeUrl(input.consultaUrl)}" target="_blank" rel="noopener noreferrer" style="color:${COLORS.goldText};text-decoration:none;">${escapeHtml(input.consultaUrl)}</a></p>
+    ${paymentMethods(input)}
+    ${sectionTitle("¿Qué sucede después de realizar el pago?")}
+    <p style="margin:0;color:${COLORS.text};font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:22px;">Una vez confirmado tu pago, continuaremos con el proceso de incorporación y recibirás las indicaciones correspondientes para acceder al portal de asociados y disfrutar de los beneficios de tu membresía.</p>
     ${benefits()}
-
-    <p style="margin:0 0 16px;">Estamos muy entusiasmados con la posibilidad de contar con usted como parte de nuestra institución y esperamos darle pronto la bienvenida oficial a nuestra comunidad de asociados.</p>
-    <p style="margin:0 0 16px;">Agradecemos su interés y confianza en el Instituto de Ingenieros de Minas del Perú.</p>
-    <p style="margin:0 0 20px;">Ante cualquier consulta sobre el proceso de pago o afiliación, quedamos a su disposición para brindarle el apoyo necesario.</p>
-    <p style="margin:0;">Atentamente,<br><strong style="color:#18253a;">Área de Asociados</strong><br>Instituto de Ingenieros de Minas del Perú – IIMP</p>
+    ${sectionTitle("¿Necesitas ayuda?")}
+    <p style="margin:0;color:${COLORS.text};font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:22px;">Si tienes alguna consulta o necesitas asistencia durante el proceso de pago, nuestro equipo de Asociados estará a tu disposición para brindarte el acompañamiento necesario. Puedes utilizar el correo de contacto indicado al pie de este mensaje.</p>
+    ${closing()}
   `;
 
   return emailLayout({
-    category: "Incorporación de Asociados",
-    title: "¡Está a un paso de formar parte del IIMP!",
-    summary: "Complete su incorporación realizando el pago correspondiente.",
+    category: "Afiliación IIMP",
+    title: "¡Tu solicitud ha sido aprobada!",
+    summary: "Estás a un paso de convertirte en asociado del IIMP.",
     content,
     logoUrl: `cid:${INCORPORATION_PAYMENT_REQUEST_LOGO_CID}`,
-    footerHtml: paymentFooter(),
     maxWidth: 600,
   });
 }
