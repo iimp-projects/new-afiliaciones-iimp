@@ -153,6 +153,19 @@ jobs:
           cache-to: type=gha,mode=max,scope=qa-wallet-worker
           provenance: false
 
+      - name: Verify QA wallet worker image is available in ECR
+        env:
+          EXPECTED_DIGEST: ${{ steps.worker.outputs.digest }}
+          WORKER_TAG: qa-wallet-sync-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          actual_digest="$(aws ecr describe-images \
+            --region "$AWS_REGION" \
+            --repository-name "$ECR_REPOSITORY" \
+            --image-ids "imageTag=$WORKER_TAG" \
+            --query 'imageDetails[0].imageDigest' \
+            --output text)"
+          test "$actual_digest" = "$EXPECTED_DIGEST"
+
       - name: Verify image is available in ECR
         env:
           EXPECTED_DIGEST: ${{ steps.build.outputs.digest }}

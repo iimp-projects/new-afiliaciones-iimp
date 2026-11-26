@@ -122,7 +122,7 @@ export class GoogleWalletClient {
     const accessToken = await this.accessToken();
     await this.ensureClass(accessToken);
     const payload = buildGenericObjectPayload({ config: this.config, snapshot, appBaseUrl: this.appBaseUrl });
-    const created = await this.upsertObject(accessToken, payload);
+    const created = await this.upsertObject(accessToken, payload, { allowCreate: true });
     // El JWT debe referenciar EXACTAMENTE el objeto creado (mismo objectPrefix).
     const jwt = this.signSaveJwt(payload.id);
     return {
@@ -153,7 +153,9 @@ export class GoogleWalletClient {
     const accessToken = await this.accessToken();
     await this.ensureClass(accessToken);
     const payload = buildGenericObjectPayload({ config: this.config, snapshot, appBaseUrl: this.appBaseUrl });
-    await this.upsertObject(accessToken, payload);
+    // Una actualización NUNCA crea el objeto: la creación (emisión) solo ocurre
+    // vía createSaveLink, que está sujeto a la allowlist.
+    await this.upsertObject(accessToken, payload, { allowCreate: false });
   }
 
   private signSaveJwt(objectId: string): string {
@@ -466,6 +468,7 @@ export class GoogleWalletClient {
   private async upsertObject(
     accessToken: string,
     payload: ReturnType<typeof buildGenericObjectPayload>,
+    options: { allowCreate: boolean },
   ): Promise<boolean> {
     this.assertObjectScope(payload.id);
     const url = `${WALLET_API}/genericObject/${encodeURIComponent(payload.id)}`;
@@ -484,6 +487,9 @@ export class GoogleWalletClient {
       return false;
     }
     if (current.status !== 404) throw new WalletError("PROVIDER_ERROR", "No pudimos consultar tu pase de Google Wallet.");
+    if (!options.allowCreate) {
+      throw new WalletError("NOT_FOUND", "El pase no existe en Google Wallet; una actualización no crea pases nuevos.");
+    }
 
     const created = await this.request(`${WALLET_API}/genericObject`, {
       method: "POST",

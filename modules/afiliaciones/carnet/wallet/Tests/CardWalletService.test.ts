@@ -28,10 +28,13 @@ const apple: AppleWalletConfig = {
   teamIdentifier: "TEAM",
   passTypeIdentifier: "pass.iimp",
   organizationName: "IIMP",
+  updatesEnabled: true,
   webServiceUrl: "https://portal.example/api/afiliaciones/carnet/wallet/apple",
   certificatePem: "cert",
   privateKeyPem: "key",
   wwdrCertificatePem: "wwdr",
+  keyPassphrase: null,
+  opensslPath: null,
   authenticationSecret: "s".repeat(40),
   authenticationSecretVersion: 1,
   previousAuthenticationSecret: null,
@@ -240,6 +243,38 @@ describe("CardWalletService", () => {
     expect(repo.deleteRegistration).toHaveBeenCalledWith("reg-1");
   });
 
+  it("permite revocar un pase emitido aunque el asociado esté fuera de la allowlist", async () => {
+    mocks.getCardRecord.mockResolvedValue(state.card);
+    const base = walletConfig();
+    const restricted: WalletConfig = { ...base, google: { ...base.google!, allowedAssociateCodePrefixes: ["QA-TEST-"] } };
+    const repo = repository({ findPass: vi.fn(async () => pass("GOOGLE")) });
+    const googleClient = { createSaveLink: vi.fn(), syncObject: vi.fn(async () => undefined) };
+    const { service: wallet } = service({
+      repo,
+      config: restricted,
+      googleClient,
+      loadCard: async () => ({ ...state, snapshot: { ...snapshot, revoked: true, membershipStatus: "Revocado" } }),
+    });
+    const result = await wallet.syncProvider(1, "GOOGLE");
+    expect(result).toEqual({ provider: "GOOGLE", status: "REVOKED" });
+    expect(googleClient.syncObject).toHaveBeenCalledWith(expect.objectContaining({ revoked: true }));
+    expect(repo.markRevoked).toHaveBeenCalled();
+    expect(repo.markFailed).not.toHaveBeenCalledWith("pass-GOOGLE", "ALLOWLIST_BLOCKED");
+  });
+
+  it("actualiza un pase existente fuera de la allowlist sin bloquearlo", async () => {
+    mocks.getCardRecord.mockResolvedValue(state.card);
+    const base = walletConfig();
+    const restricted: WalletConfig = { ...base, google: { ...base.google!, allowedAssociateCodePrefixes: ["QA-TEST-"] } };
+    const repo = repository({ findPass: vi.fn(async () => pass("GOOGLE")) });
+    const googleClient = { createSaveLink: vi.fn(), syncObject: vi.fn(async () => undefined) };
+    const { service: wallet } = service({ repo, config: restricted, googleClient });
+    const result = await wallet.syncProvider(1, "GOOGLE");
+    expect(result).toEqual({ provider: "GOOGLE", status: "SYNCED" });
+    expect(googleClient.syncObject).toHaveBeenCalled();
+    expect(repo.markSynced).toHaveBeenCalled();
+  });
+
   it("no lanza si falla un proveedor durante la sincronización", async () => {
     mocks.getCardRecord.mockResolvedValue(state.card);
     const repo = repository({
@@ -292,5 +327,36 @@ describe("CardWalletService", () => {
     expect(result.buffer.toString()).toBe("pkpass");
     expect(audit).toHaveBeenCalledWith(expect.objectContaining({ action: "CARD_WALLET_APPLE_PASS_GENERATED", outcome: "SUCCESS" }));
     expect(JSON.stringify(audit.mock.calls)).not.toContain("token");
+  });
+
+  it("emite un pase Apple estático sin marcarlo como sincronizado", async () => {
+    const base = walletConfig();
+    const staticConfig: WalletConfig = {
+      ...base,
+      apple: { ...base.apple!, updatesEnabled: false, webServiceUrl: null, authenticationSecret: "", apns: null },
+    };
+    const repo = repository();
+    const { service: wallet, audit } = service({ repo, config: staticConfig });
+    const result = await wallet.createApplePass(1, 9);
+    expect(result.buffer.toString()).toBe("pkpass");
+    expect(repo.markSynced).not.toHaveBeenCalled();
+    expect(audit).toHaveBeenCalledWith(expect.objectContaining({ action: "CARD_WALLET_APPLE_PASS_GENERATED", outcome: "SUCCESS" }));
+  });
+
+  it("omite la sincronización de Apple cuando las actualizaciones están deshabilitadas", async () => {
+    mocks.getCardRecord.mockResolvedValue(state.card);
+    const base = walletConfig();
+    const staticConfig: WalletConfig = {
+      ...base,
+      apple: { ...base.apple!, updatesEnabled: false, webServiceUrl: null, authenticationSecret: "", apns: null },
+    };
+    const repo = repository({ findPass: vi.fn(async () => pass("APPLE")) });
+    const push = { notify: vi.fn() };
+    const { service: wallet } = service({ repo, config: staticConfig, push });
+    const result = await wallet.syncProvider(1, "APPLE");
+    expect(result).toEqual({ provider: "APPLE", status: "SKIPPED", code: "UPDATES_DISABLED" });
+    expect(repo.markSynced).not.toHaveBeenCalled();
+    expect(repo.markRevoked).not.toHaveBeenCalled();
+    expect(push.notify).not.toHaveBeenCalled();
   });
 });

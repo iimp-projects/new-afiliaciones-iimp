@@ -1,6 +1,6 @@
 import { X509Certificate } from "node:crypto";
 import { readFileSync } from "node:fs";
-import type { EnvSource } from "./env";
+import { ConfigurationError, type EnvSource } from "./env";
 import { getAppBaseUrl } from "./env";
 
 /**
@@ -81,10 +81,20 @@ export interface AppleWalletConfig {
   readonly teamIdentifier: string;
   readonly passTypeIdentifier: string;
   readonly organizationName: string;
+  /**
+   * Capacidad de actualización (PassKit Web Service + APNs). Por defecto `true`
+   * para preservar QA/PROD. En LOCAL se desactiva explícitamente para emitir
+   * pases estáticos sin HTTPS ni registro de dispositivos.
+   */
+  readonly updatesEnabled: boolean;
   readonly webServiceUrl: string | null;
   readonly certificatePem: string;
   readonly privateKeyPem: string;
   readonly wwdrCertificatePem: string;
+  /** Passphrase de la clave privada cifrada. Solo servidor; nunca se registra. */
+  readonly keyPassphrase: string | null;
+  /** Ruta explícita al binario openssl; si es null se resuelve por PATH. */
+  readonly opensslPath: string | null;
   readonly authenticationSecret: string;
   readonly authenticationSecretVersion: number;
   readonly previousAuthenticationSecret: string | null;
@@ -136,18 +146,85 @@ export function isCertificateCurrentlyValid(pem: string, now: Date = new Date())
   }
 }
 
-function readPem(env: EnvSource, base64Variable: string, pathVariable: string): string | null {
-  const base64 = text(env, base64Variable);
-  if (base64) {
-    const decoded = decodeBase64(base64, base64Variable);
-    if (!decoded.includes("-----BEGIN")) {
-      throw new Error(`${base64Variable} no contiene un PEM válido.`);
-    }
-    return decoded;
+/**
+ * Devuelve el valor tal cual (sin trim) para secretos como la passphrase,
+ * donde los espacios pueden ser significativos. Vacío = no configurado.
+ */
+function rawText(env: EnvSource, name: string): string | null {
+  const value = env[name];
+  return value !== undefined && value.length > 0 ? value : null;
+}
+
+function normalizePem(value: string): string {
+  return value.replace(/\r\n/g, "\n").trim();
+}
+
+function readPemFile(env: EnvSource, fileVariable: string): string {
+  const file = text(env, fileVariable);
+  if (!file) throw new ConfigurationError([{ variable: fileVariable, reason: "es obligatorio" }]);
+  let contents: string;
+  try {
+    contents = readFileSync(file, "utf8");
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    const reason = code === "ENOENT"
+      ? "el archivo no existe"
+      : code === "EACCES" || code === "EPERM"
+        ? "el archivo no es legible"
+        : "el archivo no se pudo leer";
+    throw new ConfigurationError([{ variable: fileVariable, reason }]);
   }
-  const pem = text(env, pathVariable);
-  if (pem?.includes("-----BEGIN")) return pem;
-  return null;
+  if (!contents.includes("-----BEGIN")) {
+    throw new ConfigurationError([{ variable: fileVariable, reason: "no contiene un PEM válido" }]);
+  }
+  return contents;
+}
+
+interface ApplePemSources {
+  readonly base64: string;
+  readonly inline: string;
+  readonly file?: string;
+}
+
+/**
+ * Resuelve un PEM de Apple desde fuentes mutuamente excluyentes.
+ *
+ * Precedencia cuando varias fuentes configuradas son equivalentes:
+ *   Base64  >  PEM inline  >  archivo
+ * Si dos fuentes configuradas difieren, se rechaza por configuración ambigua.
+ * Nunca se devuelve ni se registra el contenido en los mensajes de error.
+ */
+function resolvePem(env: EnvSource, sources: ApplePemSources): string | null {
+  const resolved: Array<{ variable: string; value: string }> = [];
+  const base64 = text(env, sources.base64);
+  if (base64) {
+    const decoded = decodeBase64(base64, sources.base64);
+    if (!decoded.includes("-----BEGIN")) {
+      throw new ConfigurationError([{ variable: sources.base64, reason: "no contiene un PEM válido" }]);
+    }
+    resolved.push({ variable: sources.base64, value: decoded });
+  }
+  const inline = text(env, sources.inline);
+  if (inline) {
+    if (!inline.includes("-----BEGIN")) {
+      throw new ConfigurationError([{ variable: sources.inline, reason: "no contiene un PEM válido" }]);
+    }
+    resolved.push({ variable: sources.inline, value: inline });
+  }
+  if (sources.file && text(env, sources.file)) {
+    resolved.push({ variable: sources.file, value: readPemFile(env, sources.file) });
+  }
+  if (resolved.length === 0) return null;
+  const expected = normalizePem(resolved[0].value);
+  if (resolved.slice(1).some((entry) => normalizePem(entry.value) !== expected)) {
+    throw new ConfigurationError([
+      {
+        variable: resolved.map((entry) => entry.variable).join(" / "),
+        reason: "definen contenidos PEM distintos; configure una sola fuente por credencial",
+      },
+    ]);
+  }
+  return resolved[0].value.trim();
 }
 
 function parseServiceAccount(env: EnvSource): GoogleServiceAccount | null {
@@ -269,48 +346,94 @@ export function getGoogleWalletConfig(env: EnvSource = process.env): GoogleWalle
 }
 
 /**
- * APPLE_WALLET_WEB_SERVICE_URL debe ser HTTPS para que Wallet pueda registrar
- * dispositivos. En desarrollo local (HTTP) se omite el servicio de actualización
- * y el pase sigue siendo descargable, sin registro PassKit.
+ * Capacidad de actualización de Apple Wallet. `false` desactiva PassKit Web
+ * Service y APNs para permitir emitir pases estáticos. Por defecto `true` para
+ * no alterar QA/PROD; LOCAL debe desactivarla explícitamente.
+ */
+export function getAppleWalletUpdatesEnabled(env: EnvSource = process.env): boolean {
+  return env.APPLE_WALLET_UPDATES_ENABLED?.trim().toLowerCase() !== "false";
+}
+
+/**
+ * Configuración de Apple Wallet.
+ *
+ * Fuentes de credenciales (por credencial, en orden de precedencia):
+ *   Base64 (`*_B64`) > PEM inline (`*_PEM`) > archivo (`*_FILE`).
+ * Configurar varias fuentes con contenido distinto se considera ambiguo y se
+ * rechaza con `ConfigurationError` (solo se nombran variables, nunca valores).
+ *
+ * Con `APPLE_WALLET_UPDATES_ENABLED=false` se omite `APPLE_WALLET_WEB_SERVICE_URL`
+ * y el secreto HMAC: el pase es estático (sin webServiceURL/authenticationToken).
+ * Con actualizaciones habilitadas se mantiene la exigencia de HTTPS y secreto.
  */
 export function getAppleWalletConfig(env: EnvSource = process.env): AppleWalletConfig | null {
   const teamIdentifier = text(env, "APPLE_WALLET_TEAM_ID");
   const passTypeIdentifier = text(env, "APPLE_WALLET_PASS_TYPE_ID");
-  const certificatePem = readPem(env, "APPLE_WALLET_PASS_CERT_B64", "APPLE_WALLET_PASS_CERT_PEM");
-  const privateKeyPem = readPem(env, "APPLE_WALLET_PASS_KEY_B64", "APPLE_WALLET_PASS_KEY_PEM");
-  const wwdrCertificatePem = readPem(env, "APPLE_WALLET_WWDR_CERT_B64", "APPLE_WALLET_WWDR_CERT_PEM");
-  const authenticationSecret = text(env, "CARD_WALLET_PASS_AUTH_SECRET");
-  const authenticationSecretVersion = boundedInt(env, "CARD_WALLET_PASS_AUTH_SECRET_VERSION", 1, 1, 1_000_000);
-  const previousAuthenticationSecret = text(env, "CARD_WALLET_PASS_AUTH_SECRET_PREVIOUS");
-  const previousAuthenticationSecretVersion = previousAuthenticationSecret
-    ? boundedInt(env, "CARD_WALLET_PASS_AUTH_SECRET_PREVIOUS_VERSION", Math.max(1, authenticationSecretVersion - 1), 1, 1_000_000)
-    : null;
+  const certificatePem = resolvePem(env, {
+    base64: "APPLE_WALLET_PASS_CERT_B64",
+    inline: "APPLE_WALLET_PASS_CERT_PEM",
+    file: "APPLE_WALLET_PASS_CERT_FILE",
+  });
+  const privateKeyPem = resolvePem(env, {
+    base64: "APPLE_WALLET_PASS_KEY_B64",
+    inline: "APPLE_WALLET_PASS_KEY_PEM",
+    file: "APPLE_WALLET_PASS_KEY_FILE",
+  });
+  const wwdrCertificatePem = resolvePem(env, {
+    base64: "APPLE_WALLET_WWDR_CERT_B64",
+    inline: "APPLE_WALLET_WWDR_CERT_PEM",
+    file: "APPLE_WALLET_WWDR_CERT_FILE",
+  });
   if (!teamIdentifier || !passTypeIdentifier || !certificatePem || !privateKeyPem || !wwdrCertificatePem) return null;
   if (!isCertificateCurrentlyValid(certificatePem) || !isCertificateCurrentlyValid(wwdrCertificatePem)) return null;
-  if (!authenticationSecret || authenticationSecret.length < 32) return null;
-  if (previousAuthenticationSecret && previousAuthenticationSecret.length < 32) return null;
-  if (previousAuthenticationSecret && previousAuthenticationSecretVersion === authenticationSecretVersion) return null;
 
-  const configuredWebService = text(env, "APPLE_WALLET_WEB_SERVICE_URL");
-  const appBaseUrl = getAppBaseUrl(env, { allowDevDefault: true });
-  const webServiceUrl = configuredWebService ?? `${appBaseUrl}/api/afiliaciones/carnet/wallet/apple`;
-  if (!webServiceUrl.startsWith("https://")) return null;
+  const updatesEnabled = getAppleWalletUpdatesEnabled(env);
+  let webServiceUrl: string | null = null;
+  let authenticationSecret = "";
+  let authenticationSecretVersion = 1;
+  let previousAuthenticationSecret: string | null = null;
+  let previousAuthenticationSecretVersion: number | null = null;
+  let apns: AppleApnsConfig | null = null;
 
-  const apnsKeyId = text(env, "APPLE_WALLET_APNS_KEY_ID");
-  const apnsPrivateKey = readPem(env, "APPLE_WALLET_APNS_KEY_B64", "APPLE_WALLET_APNS_KEY_PEM");
-  const apnsTeamId = text(env, "APPLE_WALLET_APNS_TEAM_ID") ?? teamIdentifier;
-  const apns = apnsKeyId && apnsPrivateKey && apnsTeamId
-    ? { keyId: apnsKeyId, teamId: apnsTeamId, privateKeyPem: apnsPrivateKey }
-    : null;
+  if (updatesEnabled) {
+    const configuredWebService = text(env, "APPLE_WALLET_WEB_SERVICE_URL");
+    const appBaseUrl = getAppBaseUrl(env, { allowDevDefault: true });
+    webServiceUrl = configuredWebService ?? `${appBaseUrl}/api/afiliaciones/carnet/wallet/apple`;
+    if (!webServiceUrl.startsWith("https://")) return null;
+
+    const secret = text(env, "CARD_WALLET_PASS_AUTH_SECRET");
+    if (!secret || secret.length < 32) return null;
+    authenticationSecret = secret;
+    authenticationSecretVersion = boundedInt(env, "CARD_WALLET_PASS_AUTH_SECRET_VERSION", 1, 1, 1_000_000);
+    previousAuthenticationSecret = text(env, "CARD_WALLET_PASS_AUTH_SECRET_PREVIOUS");
+    previousAuthenticationSecretVersion = previousAuthenticationSecret
+      ? boundedInt(env, "CARD_WALLET_PASS_AUTH_SECRET_PREVIOUS_VERSION", Math.max(1, authenticationSecretVersion - 1), 1, 1_000_000)
+      : null;
+    if (previousAuthenticationSecret && previousAuthenticationSecret.length < 32) return null;
+    if (previousAuthenticationSecret && previousAuthenticationSecretVersion === authenticationSecretVersion) return null;
+
+    const apnsKeyId = text(env, "APPLE_WALLET_APNS_KEY_ID");
+    const apnsPrivateKey = resolvePem(env, {
+      base64: "APPLE_WALLET_APNS_KEY_B64",
+      inline: "APPLE_WALLET_APNS_KEY_PEM",
+    });
+    const apnsTeamId = text(env, "APPLE_WALLET_APNS_TEAM_ID") ?? teamIdentifier;
+    apns = apnsKeyId && apnsPrivateKey && apnsTeamId
+      ? { keyId: apnsKeyId, teamId: apnsTeamId, privateKeyPem: apnsPrivateKey }
+      : null;
+  }
 
   return {
     teamIdentifier,
     passTypeIdentifier,
     organizationName: text(env, "APPLE_WALLET_ORGANIZATION_NAME") ?? "Instituto de Ingenieros de Minas del Perú",
+    updatesEnabled,
     webServiceUrl,
     certificatePem,
     privateKeyPem,
     wwdrCertificatePem,
+    keyPassphrase: rawText(env, "APPLE_WALLET_PASS_KEY_PASSPHRASE"),
+    opensslPath: text(env, "APPLE_WALLET_OPENSSL_PATH"),
     authenticationSecret,
     authenticationSecretVersion,
     previousAuthenticationSecret,

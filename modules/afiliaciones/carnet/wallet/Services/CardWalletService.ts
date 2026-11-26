@@ -104,7 +104,24 @@ export class CardWalletService {
     this.simulationFailure = deps.simulationFailure ?? (() => getWalletSimulationFailure());
     this.makeGoogleClient = deps.makeGoogleClient ?? ((config, appBaseUrl) => new GoogleWalletClient(config, appBaseUrl));
     this.makeAppleBuilder = deps.makeAppleBuilder ?? ((config) => new ApplePassBuilder(new OpenSslPassSigner(config), () => loadApplePassAssets()));
-    this.makePush = deps.makePush ?? ((config) => (config.apns ? new ApplePushService(config.apns, config.passTypeIdentifier) : null));
+    this.makePush = deps.makePush ?? ((config) => {
+      if (!config.updatesEnabled) return null;
+      // Mecanismo documentado para Wallet: el push usa el mismo certificado y
+      // clave del Pass Type ID que firma el pase (auth por certificado TLS).
+      // El token .p8 queda como fallback si en el futuro no hubiera certificado.
+      return new ApplePushService(
+        config.apns,
+        config.passTypeIdentifier,
+        undefined,
+        undefined,
+        undefined,
+        {
+          certificatePem: config.certificatePem,
+          privateKeyPem: config.privateKeyPem,
+          passphrase: config.keyPassphrase,
+        },
+      );
+    });
     this.audit = deps.audit ?? writeWalletAudit;
     this.now = deps.now ?? (() => new Date());
     this.loadCard = deps.loadCard ?? loadWalletCard;
@@ -232,14 +249,18 @@ export class CardWalletService {
       throw new WalletError("PROVIDER_ERROR", "No pudimos preparar tu billetera digital.", { cause: error });
     });
     try {
-      const authenticationToken = deriveApplePassAuthenticationToken(
-        config.apple.authenticationSecret,
-        serialNumber,
-        config.apple.authenticationSecretVersion,
-      );
+      // Un pase estático (actualizaciones deshabilitadas) no lleva token ni
+      // webServiceURL y no se marca como sincronizado: no existe estado remoto.
+      const authenticationToken = config.apple.updatesEnabled
+        ? deriveApplePassAuthenticationToken(
+            config.apple.authenticationSecret,
+            serialNumber,
+            config.apple.authenticationSecretVersion,
+          )
+        : "";
       const builder = this.makeAppleBuilder(config.apple);
       const buffer = await builder.build({ serialNumber, authenticationToken, snapshot: state.snapshot, config: config.apple });
-      await this.repo.markSynced(pass.id, this.now());
+      if (config.apple.updatesEnabled) await this.repo.markSynced(pass.id, this.now());
       await this.audit({ action: "CARD_WALLET_APPLE_PASS_GENERATED", personId, actorUserId, provider: "APPLE", outcome: "SUCCESS" });
       return { buffer, fileName: "carne-virtual-iimp.pkpass", serialNumber };
     } catch (error) {
@@ -339,10 +360,10 @@ export class CardWalletService {
         await this.repo.markFailed(pass.id, "GOOGLE_NOT_CONFIGURED").catch(() => undefined);
         return { provider: "GOOGLE", status: "FAILED", code: "GOOGLE_NOT_CONFIGURED" };
       }
-      if (!isGoogleWalletEmissionAllowed(config.google, { personId, associateCode: state.snapshot.associateCode })) {
-        await this.repo.markFailed(pass.id, "ALLOWLIST_BLOCKED").catch(() => undefined);
-        return { provider: "GOOGLE", status: "FAILED", code: "ALLOWLIST_BLOCKED" };
-      }
+      // La allowlist restringe NUEVAS emisiones/instalaciones (getGoogleLink).
+      // Un pase ya emitido debe poder actualizarse y, sobre todo, revocarse
+      // aunque el asociado haya salido de la allowlist; de lo contrario un
+      // carné revocado seguiría siendo válido en Google Wallet.
       try {
         // Transición controlada de fixtures locales: si el pase estaba en modo
         // simulación, se adopta el identificador real estable antes de sincronizar.
@@ -364,6 +385,10 @@ export class CardWalletService {
     if (!config.apple) {
       await this.repo.markFailed(pass.id, "APPLE_NOT_CONFIGURED").catch(() => undefined);
       return { provider: "APPLE", status: "FAILED", code: "APPLE_NOT_CONFIGURED" };
+    }
+    if (!config.apple.updatesEnabled) {
+      // Pase estático: no hay estado remoto que sincronizar ni APNs que enviar.
+      return { provider: "APPLE", status: "SKIPPED", code: "UPDATES_DISABLED" };
     }
     try {
       if (state.snapshot.revoked) await this.repo.markRevoked(pass.id, this.now());
