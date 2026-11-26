@@ -796,20 +796,30 @@ El worker y `wallet:google:refresh-objects` reutilizan
 `buildGenericObjectPayload`, por lo que preservan color y recursos versionados en
 futuras sincronizaciones (cubierto por prueba de `syncObject`).
 
-### 20.5 Estado real y bloqueo
+### 20.5 Resultado del despliegue QA (26/11/2026)
 
-- Código, assets, typecheck y pruebas focales: **PASS** (wallet 49/49).
-- Guard LOCAL verificado: el script aborta sin tocar el objeto.
-- Diagnóstico QA **solo lectura**: OAuth/API/issuer `OK`, clase QA existe y tiene
-  **5 objetos**. `wide-logo-v1.png` responde `200`; `wide-logo-light-v2.png`,
-  `wide-logo-dark-v2.png` y `hero-v2.png` responden **404** (aún no desplegados).
-- `PATCH` real, relectura y captura de la pantalla web en QA: **BLOCKED**. Este
-  entorno local apunta a LOCAL por HTTP (`AUTH_URL=http://localhost:3000`), el
-  origen HTTPS de QA vive en la EC2 y los PNG nuevos no están publicados allí. No
-  se modificó LOCAL, PROD, AWS ni credenciales.
-- Próximo paso único: desplegar este cambio en QA y ejecutar
-  `wallet:google:refine -- --variant gold` allí; luego validar la captura real en
-  Android/web. El script aborta si algún PNG no responde `200`.
+- Deploy QA oficial (`qa-deploy.yml`, run
+  https://github.com/iimp-projects/new-afiliaciones-iimp/actions/runs/45847628201):
+  **SUCCESS** sobre `feature/card-google-wallet-qa-deploy`, SHA `d83bdf7`.
+  Quality gates, build, push a ECR y despliegue SSM completados.
+- Recursos en `https://afiliaciones-qa.iimp.org.pe`: `wide-logo-light-v2.png`,
+  `wide-logo-dark-v2.png` y `hero-v2.png` responden `200 image/png`; el PNG
+  dorado desplegado coincide byte a byte con el del repositorio (SHA-256). Health
+  de la app: `200`.
+- Refinamiento de objetos QA: **4/4 tarjetas** actualizadas y verificadas 7/7
+  (`cardTitle`, `header`, `subheader`, `hexBackgroundColor`, `logo`, `wideLogo`,
+  `heroImage`). Google devuelve `#7f561e` y las URLs `*-v2.png?v=20261126-...`.
+- Se **omitió** 1 objeto de diagnóstico `iimp_qa_diag_...` por estar fuera del
+  namespace `iimp_qa_card_`; no se modificó. El script reporta `skipped=1` y
+  termina con código `0`.
+- Respaldos y enlaces firmados por objeto en
+  `%TEMP%\afiliaciones-wallet-refine\`. La captura visual real de la pantalla de
+  confirmación requiere una sesión de Cuenta de Google: el enlace redirige a
+  `accounts.google.com` (verificado con navegador headless), por lo que no se
+  capturó sin credenciales.
+- No se tocó LOCAL, PROD, AWS, credenciales, IDs, QR ni la firma JWT. El SHA de
+  runtime desplegado es `d83bdf7`; los commits posteriores de la rama (`1012d05`)
+  son solo de la herramienta de refinamiento.
 
 ### 20.6 Rollback
 
