@@ -28,4 +28,22 @@ regresion de QA (ver `CARD-WALLET-QA-DEPLOY-GUARD.md`).
 3. `npm run wallet:apple:static` genera un `.pkpass` sintetico en `.tmp/apple-wallet/`.
 4. Instalar en iPhone (AirDrop/Correo) y verificar render + QR.
 
+## Que archivo .env usa el script
+`wallet:apple:static` usa `dotenv/config`, que carga `.env` desde el directorio
+de trabajo actual; si no existe, puede apuntarse con `DOTENV_CONFIG_PATH`. En este
+worktree **no** hay `.env` (esta gitignored). Usar el `.env` del repo principal
+por ruta, sin copiar secretos al worktree:
+
+```powershell
+Set-Location 'C:\Users\maxic\AppData\Local\Temp\opencode\afiliaciones-apple-wallet-real-20261126'
+$env:DOTENV_CONFIG_PATH='C:\xampp\htdocs\afiliaciones-desarrollo\.env'
+$env:APPLE_WALLET_PASS_KEY_PASSPHRASE = Read-Host -AsSecureString | ConvertFrom-SecureString   # opcional; ver nota
+npm run wallet:apple:static
+```
+> En PowerShell 5.1 `ConvertFrom-SecureString` devuelve texto cifrado, no la
+> passphrase en claro. La forma recomendada es que el operador exporte la variable
+> en su sesion con el metodo aprobado de su entorno; no se documenta ni imprime la
+> passphrase aqui. Alternativa: ejecutar el script desde el repo principal, donde
+> ya existe `.env`, una vez integrada la rama.
+
 Apple Wallet no se considera funcional hasta la prueba fisica en dispositivo.
