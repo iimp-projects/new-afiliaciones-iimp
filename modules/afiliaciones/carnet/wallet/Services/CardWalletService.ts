@@ -168,7 +168,7 @@ export class CardWalletService {
       throw new WalletError("PROVIDER_NOT_CONFIGURED", "Google Wallet aún no está configurado por el IIMP.");
     }
     const state = await this.loadCard(personId);
-    if (!isGoogleWalletEmissionAllowed(config.google, { personId, associateCode: state.snapshot.associateCode })) {
+    if (!isGoogleWalletEmissionAllowed(config.emissionAllowlist, { personId, associateCode: state.snapshot.associateCode })) {
       await this.audit({
         action: "CARD_WALLET_GOOGLE_LINK_READY",
         personId,
@@ -244,6 +244,18 @@ export class CardWalletService {
       throw new WalletError("PROVIDER_NOT_CONFIGURED", "Apple Wallet aún no está configurado por el IIMP.");
     }
     const state = await this.loadCard(personId);
+    // Misma allowlist que Google: restringe NUEVAS emisiones/instalaciones Apple.
+    if (!isGoogleWalletEmissionAllowed(config.emissionAllowlist, { personId, associateCode: state.snapshot.associateCode })) {
+      await this.audit({
+        action: "CARD_WALLET_APPLE_PASS_GENERATED",
+        personId,
+        actorUserId,
+        provider: "APPLE",
+        outcome: "FAILURE",
+        code: "ALLOWLIST_BLOCKED",
+      });
+      throw new WalletError("NOT_ELIGIBLE", "La emisión de Apple Wallet no está autorizada para este asociado en este entorno.");
+    }
     const serialNumber = appleWalletSerialNumber(state.card.id);
     const pass = await this.repo.ensurePass(state.card.id, "APPLE", serialNumber).catch((error) => {
       throw new WalletError("PROVIDER_ERROR", "No pudimos preparar tu billetera digital.", { cause: error });

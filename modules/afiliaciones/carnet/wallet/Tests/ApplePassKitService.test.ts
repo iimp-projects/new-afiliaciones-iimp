@@ -29,6 +29,7 @@ const config: WalletConfig = {
   modes: { google: "REAL", apple: "SIMULATION" },
   google: null,
   apple,
+  emissionAllowlist: { allowedPersonIds: [], allowedAssociateCodePrefixes: [] },
 };
 
 const SERIAL = "iimp-card-card_abc";

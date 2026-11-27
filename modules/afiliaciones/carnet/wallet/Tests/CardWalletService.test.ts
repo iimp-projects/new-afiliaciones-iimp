@@ -49,6 +49,7 @@ function walletConfig(enabled = true): WalletConfig {
     modes: { google: "REAL", apple: "SIMULATION" },
     google,
     apple,
+    emissionAllowlist: { allowedPersonIds: [], allowedAssociateCodePrefixes: [] },
   };
 }
 
@@ -195,7 +196,7 @@ describe("CardWalletService", () => {
     const base = walletConfig();
     const restricted: WalletConfig = {
       ...base,
-      google: { ...base.google!, allowedAssociateCodePrefixes: ["QA-TEST-"] },
+      emissionAllowlist: { allowedPersonIds: [], allowedAssociateCodePrefixes: ["QA-TEST-"] },
     };
     const { service: wallet, googleClient, audit } = service({ config: restricted });
     await expect(wallet.getGoogleLink(1, 9)).rejects.toMatchObject({ code: "NOT_ELIGIBLE" });
@@ -327,6 +328,32 @@ describe("CardWalletService", () => {
     expect(result.buffer.toString()).toBe("pkpass");
     expect(audit).toHaveBeenCalledWith(expect.objectContaining({ action: "CARD_WALLET_APPLE_PASS_GENERATED", outcome: "SUCCESS" }));
     expect(JSON.stringify(audit.mock.calls)).not.toContain("token");
+  });
+
+  it("bloquea la emisión Apple fuera de la allowlist compartida", async () => {
+    const base = walletConfig();
+    const restricted: WalletConfig = {
+      ...base,
+      emissionAllowlist: { allowedPersonIds: [], allowedAssociateCodePrefixes: ["QA-TEST-"] },
+    };
+    const { service: wallet, audit } = service({ config: restricted });
+    await expect(wallet.createApplePass(1, 9)).rejects.toMatchObject({ code: "NOT_ELIGIBLE" });
+    expect(audit).toHaveBeenCalledWith(expect.objectContaining({
+      action: "CARD_WALLET_APPLE_PASS_GENERATED",
+      outcome: "FAILURE",
+      code: "ALLOWLIST_BLOCKED",
+    }));
+  });
+
+  it("permite la emisión Apple para un personId autorizado", async () => {
+    const base = walletConfig();
+    const allowed: WalletConfig = {
+      ...base,
+      emissionAllowlist: { allowedPersonIds: [1], allowedAssociateCodePrefixes: [] },
+    };
+    const { service: wallet } = service({ config: allowed });
+    const result = await wallet.createApplePass(1, 9);
+    expect(result.buffer.toString()).toBe("pkpass");
   });
 
   it("emite un pase Apple estático sin marcarlo como sincronizado", async () => {
