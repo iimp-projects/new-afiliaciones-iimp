@@ -59,8 +59,21 @@ function parsePersonIds(value: string | undefined): number[] {
  * allowlist configurada no restringe (LOCAL). Con allowlist, solo autoriza por
  * personId o por prefijo de código de asociado sintético.
  */
+export interface WalletEmissionAllowlist {
+  readonly allowedPersonIds: readonly number[];
+  readonly allowedAssociateCodePrefixes: readonly string[];
+}
+
+/** Allowlist compartida por proveedores: restringe NUEVAS emisiones/instalaciones. */
+export function getWalletEmissionAllowlist(env: EnvSource = process.env): WalletEmissionAllowlist {
+  return {
+    allowedPersonIds: parsePersonIds(env.CARD_WALLET_ALLOWED_PERSON_IDS),
+    allowedAssociateCodePrefixes: parseCsv(env.CARD_WALLET_ALLOWED_ASSOCIATE_PREFIXES),
+  };
+}
+
 export function isGoogleWalletEmissionAllowed(
-  config: GoogleWalletConfig,
+  config: WalletEmissionAllowlist,
   subject: { readonly personId: number; readonly associateCode: string | null },
 ): boolean {
   const restricted = config.allowedPersonIds.length > 0 || config.allowedAssociateCodePrefixes.length > 0;
@@ -116,6 +129,8 @@ export interface WalletConfig {
   readonly modes: { readonly google: WalletProviderMode; readonly apple: WalletProviderMode };
   readonly google: GoogleWalletConfig | null;
   readonly apple: AppleWalletConfig | null;
+  /** Allowlist compartida para nuevas emisiones (Google y Apple). */
+  readonly emissionAllowlist: WalletEmissionAllowlist;
 }
 
 function isEnabled(value: string | undefined): boolean {
@@ -340,8 +355,7 @@ export function getGoogleWalletConfig(env: EnvSource = process.env): GoogleWalle
     objectPrefix,
     serviceAccount,
     classAutoCreate: env.GOOGLE_WALLET_CLASS_AUTO_CREATE?.trim().toLowerCase() !== "false",
-    allowedPersonIds: parsePersonIds(env.CARD_WALLET_ALLOWED_PERSON_IDS),
-    allowedAssociateCodePrefixes: parseCsv(env.CARD_WALLET_ALLOWED_ASSOCIATE_PREFIXES),
+    ...getWalletEmissionAllowlist(env),
   };
 }
 
@@ -449,5 +463,6 @@ export function getWalletConfig(env: EnvSource = process.env): WalletConfig {
     modes: { google: getWalletProviderMode("GOOGLE", env), apple: getWalletProviderMode("APPLE", env) },
     google: getGoogleWalletConfig(env),
     apple: getAppleWalletConfig(env),
+    emissionAllowlist: getWalletEmissionAllowlist(env),
   };
 }
